@@ -3,6 +3,7 @@ import { notFound } from 'next/navigation'
 import { createClient } from '@/lib/supabase/server'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
+import { StatusBadge } from '@/components/ui/status-badge'
 import { ArrowLeft, Plus, Building2, Mail, Phone, MapPin } from 'lucide-react'
 
 interface CustomerDetailPageProps {
@@ -83,7 +84,7 @@ export default async function CustomerDetailPage({ params }: CustomerDetailPageP
               <CardDescription>Projects for this customer</CardDescription>
             </div>
             <Button size="sm" asChild>
-              <Link href={`/projects/new?customer_id=${customer.id}`}>
+              <Link href={`/projects?add=true&customer_id=${customer.id}`}>
                 <Plus className="mr-2 h-4 w-4" />
                 New Project
               </Link>
@@ -97,11 +98,16 @@ export default async function CustomerDetailPage({ params }: CustomerDetailPageP
                     key={project.id}
                     className="flex items-center justify-between rounded-md border p-3"
                   >
-                    <div>
-                      <p className="font-medium">{project.name}</p>
-                      <p className="text-sm text-muted-foreground">
-                        Status: {project.status}
-                      </p>
+                    <div className="flex-1">
+                      <div className="flex items-center gap-2">
+                        <p className="font-medium">{project.name}</p>
+                        <StatusBadge status={project.status} />
+                      </div>
+                      {project.description && (
+                        <p className="text-sm text-muted-foreground mt-1">
+                          {project.description}
+                        </p>
+                      )}
                     </div>
                     <Button variant="ghost" size="sm" asChild>
                       <Link href={`/projects/${project.id}`}>View</Link>
