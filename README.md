@@ -1,36 +1,64 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# Gama ERP - Logistics Management System
+
+A Next.js 14 logistics management system built with TypeScript, Tailwind CSS, Shadcn/ui, and Supabase.
+
+## Tech Stack
+
+- **Framework**: Next.js 14 with App Router
+- **Language**: TypeScript
+- **Styling**: Tailwind CSS
+- **UI Components**: Shadcn/ui
+- **Backend**: Supabase (Postgres, Auth, Storage)
+
+## Project Structure
+
+```
+/app
+  /(main)
+    /dashboard    - Main dashboard
+    /pjo          - Proforma Job Orders
+    /jo           - Job Orders (actual)
+    /invoices     - Customer invoices
+    /customers    - Customer management
+    /projects     - Project management
+    /settings     - System settings
+
+/components
+  /ui             - Shadcn components
+  /forms          - Form components (Combobox, DatePicker)
+  /tables         - Data tables
+  /layout         - Layout components (Sidebar, Header)
+
+/lib
+  /supabase       - Supabase client (browser, server, middleware)
+  /utils          - Helper functions
+
+/types            - TypeScript types
+```
 
 ## Getting Started
 
-First, run the development server:
+1. Copy `.env.local.example` to `.env.local` and add your Supabase credentials:
+   ```
+   NEXT_PUBLIC_SUPABASE_URL=your-supabase-url
+   NEXT_PUBLIC_SUPABASE_ANON_KEY=your-supabase-anon-key
+   ```
 
-```bash
-npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
-```
+2. Install dependencies:
+   ```bash
+   npm install
+   ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+3. Run the development server:
+   ```bash
+   npm run dev
+   ```
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+4. Open [http://localhost:3000](http://localhost:3000)
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+## Shadcn/ui Components Installed
 
-## Learn More
-
-To learn more about Next.js, take a look at the following resources:
-
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
-
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
-
-## Deploy on Vercel
-
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
-
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+- Button, Input, Label, Card
+- Table, Dialog, Sheet
+- Select, Command (Combobox), Calendar (DatePicker)
+- Toast, Alert, Popover
