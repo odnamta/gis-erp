@@ -16,6 +16,7 @@ import {
 } from '@/components/ui/alert-dialog'
 import { PJOTable } from '@/components/pjo/pjo-table'
 import { PJOFilters } from '@/components/pjo/pjo-filters'
+import { VarianceDashboard } from '@/components/pjo/variance-dashboard'
 import { filterPJOs } from '@/lib/pjo-utils'
 import { deletePJO } from './actions'
 import { useToast } from '@/hooks/use-toast'
@@ -88,6 +89,8 @@ export function PJOListClient({ pjos }: PJOListClientProps) {
           </Link>
         </Button>
       </div>
+
+      <VarianceDashboard pjos={pjos} />
 
       <PJOFilters
         statusFilter={statusFilter}

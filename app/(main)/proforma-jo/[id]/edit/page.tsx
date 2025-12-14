@@ -4,6 +4,7 @@ import Link from 'next/link'
 import { Button } from '@/components/ui/button'
 import { PJOForm } from '@/components/pjo/pjo-form'
 import { ArrowLeft } from 'lucide-react'
+import { PJORevenueItem, PJOCostItem } from '@/types'
 
 interface EditPJOPageProps {
   params: Promise<{ id: string }>
@@ -29,6 +30,20 @@ export default async function EditPJOPage({ params }: EditPJOPageProps) {
     redirect(`/proforma-jo/${id}`)
   }
 
+  // Fetch existing revenue items
+  const { data: revenueItems } = await supabase
+    .from('pjo_revenue_items')
+    .select('*')
+    .eq('pjo_id', id)
+    .order('created_at', { ascending: true })
+
+  // Fetch existing cost items
+  const { data: costItems } = await supabase
+    .from('pjo_cost_items')
+    .select('*')
+    .eq('pjo_id', id)
+    .order('created_at', { ascending: true })
+
   const { data: projects } = await supabase
     .from('projects')
     .select(`
@@ -52,7 +67,13 @@ export default async function EditPJOPage({ params }: EditPJOPageProps) {
         <h1 className="text-2xl font-bold">Edit PJO: {pjo.pjo_number}</h1>
       </div>
 
-      <PJOForm projects={projects || []} pjo={pjo} mode="edit" />
+      <PJOForm 
+        projects={projects || []} 
+        pjo={pjo} 
+        existingRevenueItems={(revenueItems || []) as PJORevenueItem[]}
+        existingCostItems={(costItems || []) as PJOCostItem[]}
+        mode="edit" 
+      />
     </div>
   )
 }

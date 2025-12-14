@@ -14,7 +14,8 @@
         "list_tables",
         "apply_migration",
         "generate_typescript_types",
-        "list_migrations"
+        "list_migrations",
+        "execute_sql"
       ]
     },
     "context7": {

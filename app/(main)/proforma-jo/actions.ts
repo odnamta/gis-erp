@@ -5,6 +5,23 @@ import { revalidatePath } from 'next/cache'
 import { z } from 'zod'
 import { toRomanMonth, calculateProfit } from '@/lib/pjo-utils'
 
+const revenueItemSchema = z.object({
+  id: z.string().optional(),
+  description: z.string().min(1),
+  quantity: z.number().positive(),
+  unit: z.string().min(1),
+  unit_price: z.number().min(0),
+  source_type: z.string().optional(),
+  source_id: z.string().optional(),
+})
+
+const costItemSchema = z.object({
+  id: z.string().optional(),
+  category: z.string().min(1),
+  description: z.string().min(1),
+  estimated_amount: z.number().positive(),
+})
+
 const pjoSchema = z.object({
   project_id: z.string().min(1, 'Please select a project'),
   jo_date: z.string().min(1, 'Date is required'),
@@ -25,22 +42,18 @@ const pjoSchema = z.object({
   total_revenue: z.number().min(0, 'Revenue must be non-negative'),
   total_expenses: z.number().min(0, 'Expenses must be non-negative'),
   notes: z.string().optional(),
+  revenue_items: z.array(revenueItemSchema).optional(),
+  cost_items: z.array(costItemSchema).optional(),
 })
 
 export type PJOFormData = z.infer<typeof pjoSchema>
 
-/**
- * Generate the next PJO number for the current month
- * Format: NNNN/CARGO/MM/YYYY where MM is Roman numeral
- */
 export async function generatePJONumber(): Promise<string> {
   const supabase = await createClient()
   const now = new Date()
   const year = now.getFullYear()
   const month = now.getMonth() + 1
   const romanMonth = toRomanMonth(month)
-
-  // Pattern to match current month's PJO numbers
   const pattern = `%/CARGO/${romanMonth}/${year}`
 
   const { data: lastPJO } = await supabase
@@ -70,14 +83,11 @@ export async function createPJO(data: PJOFormData): Promise<{ error?: string; id
   }
 
   const supabase = await createClient()
-
-  // Get current user
   const { data: { user } } = await supabase.auth.getUser()
   if (!user) {
     return { error: 'You must be logged in to create a PJO' }
   }
 
-  // Get project to find customer_id
   const { data: project, error: projectError } = await supabase
     .from('projects')
     .select('customer_id')
@@ -88,7 +98,6 @@ export async function createPJO(data: PJOFormData): Promise<{ error?: string; id
     return { error: 'Project not found' }
   }
 
-  // Generate PJO number
   const pjoNumber = await generatePJONumber()
   const profit = calculateProfit(data.total_revenue, data.total_expenses)
 
@@ -115,6 +124,7 @@ export async function createPJO(data: PJOFormData): Promise<{ error?: string; id
       eta: data.eta || null,
       carrier_type: data.carrier_type || null,
       total_revenue: data.total_revenue,
+      total_revenue_calculated: data.total_revenue,
       total_expenses: data.total_expenses,
       profit: profit,
       notes: data.notes || null,
@@ -129,10 +139,59 @@ export async function createPJO(data: PJOFormData): Promise<{ error?: string; id
     return { error: error.message }
   }
 
+  // Insert revenue items if provided
+  if (data.revenue_items && data.revenue_items.length > 0) {
+    const revenueItemsToInsert = data.revenue_items.map(item => ({
+      pjo_id: newPJO.id,
+      description: item.description,
+      quantity: item.quantity,
+      unit: item.unit,
+      unit_price: item.unit_price,
+      source_type: item.source_type || 'manual',
+      source_id: item.source_id || null,
+    }))
+
+    const { error: revenueError } = await supabase
+      .from('pjo_revenue_items')
+      .insert(revenueItemsToInsert)
+
+    if (revenueError) {
+      console.error('Error inserting revenue items:', revenueError)
+    }
+  }
+
+  // Insert cost items if provided
+  if (data.cost_items && data.cost_items.length > 0) {
+    const costItemsToInsert = data.cost_items.map(item => ({
+      pjo_id: newPJO.id,
+      category: item.category,
+      description: item.description,
+      estimated_amount: item.estimated_amount,
+      status: 'estimated',
+      estimated_by: user.id,
+    }))
+
+    const { error: costError } = await supabase
+      .from('pjo_cost_items')
+      .insert(costItemsToInsert)
+
+    if (costError) {
+      console.error('Error inserting cost items:', costError)
+    }
+
+    // Update PJO with total_cost_estimated
+    const totalCostEstimated = data.cost_items.reduce((sum, item) => sum + item.estimated_amount, 0)
+    await supabase
+      .from('proforma_job_orders')
+      .update({ total_cost_estimated: totalCostEstimated })
+      .eq('id', newPJO.id)
+  }
+
   revalidatePath('/proforma-jo')
   revalidatePath(`/projects/${data.project_id}`)
   return { id: newPJO.id }
 }
+
 
 export async function updatePJO(
   id: string,
@@ -145,7 +204,6 @@ export async function updatePJO(
 
   const supabase = await createClient()
 
-  // Check if PJO is in draft status
   const { data: existingPJO, error: fetchError } = await supabase
     .from('proforma_job_orders')
     .select('status, project_id')
@@ -181,6 +239,7 @@ export async function updatePJO(
       eta: data.eta || null,
       carrier_type: data.carrier_type || null,
       total_revenue: data.total_revenue,
+      total_revenue_calculated: data.total_revenue,
       total_expenses: data.total_expenses,
       profit: profit,
       notes: data.notes || null,
@@ -193,6 +252,111 @@ export async function updatePJO(
     return { error: error.message }
   }
 
+  // Handle revenue items diff
+  if (data.revenue_items) {
+    // Get existing items
+    const { data: existingItems } = await supabase
+      .from('pjo_revenue_items')
+      .select('id')
+      .eq('pjo_id', id)
+
+    const existingIds = new Set(existingItems?.map(item => item.id) || [])
+    const newIds = new Set(data.revenue_items.filter(item => item.id).map(item => item.id))
+
+    // Delete removed items
+    const idsToDelete = [...existingIds].filter(existingId => !newIds.has(existingId))
+    if (idsToDelete.length > 0) {
+      await supabase.from('pjo_revenue_items').delete().in('id', idsToDelete)
+    }
+
+    // Update existing and insert new items
+    for (const item of data.revenue_items) {
+      if (item.id && existingIds.has(item.id)) {
+        // Update existing
+        await supabase
+          .from('pjo_revenue_items')
+          .update({
+            description: item.description,
+            quantity: item.quantity,
+            unit: item.unit,
+            unit_price: item.unit_price,
+            source_type: item.source_type || 'manual',
+            source_id: item.source_id || null,
+            updated_at: new Date().toISOString(),
+          })
+          .eq('id', item.id)
+      } else {
+        // Insert new
+        await supabase.from('pjo_revenue_items').insert({
+          pjo_id: id,
+          description: item.description,
+          quantity: item.quantity,
+          unit: item.unit,
+          unit_price: item.unit_price,
+          source_type: item.source_type || 'manual',
+          source_id: item.source_id || null,
+        })
+      }
+    }
+  }
+
+  // Handle cost items diff
+  if (data.cost_items) {
+    const { data: { user } } = await supabase.auth.getUser()
+    
+    // Get existing cost items
+    const { data: existingCostItems } = await supabase
+      .from('pjo_cost_items')
+      .select('id, status')
+      .eq('pjo_id', id)
+
+    const existingCostIds = new Set(existingCostItems?.map(item => item.id) || [])
+    const existingCostMap = new Map(existingCostItems?.map(item => [item.id, item]) || [])
+    const newCostIds = new Set(data.cost_items.filter(item => item.id).map(item => item.id))
+
+    // Delete removed items
+    const costIdsToDelete = [...existingCostIds].filter(existingId => !newCostIds.has(existingId))
+    if (costIdsToDelete.length > 0) {
+      await supabase.from('pjo_cost_items').delete().in('id', costIdsToDelete)
+    }
+
+    // Update existing and insert new items
+    for (const item of data.cost_items) {
+      if (item.id && existingCostIds.has(item.id)) {
+        // Update existing - preserve status if already confirmed
+        const existingItem = existingCostMap.get(item.id)
+        const preserveStatus = existingItem?.status !== 'estimated'
+        
+        await supabase
+          .from('pjo_cost_items')
+          .update({
+            category: item.category,
+            description: item.description,
+            estimated_amount: preserveStatus ? undefined : item.estimated_amount,
+            updated_at: new Date().toISOString(),
+          })
+          .eq('id', item.id)
+      } else {
+        // Insert new
+        await supabase.from('pjo_cost_items').insert({
+          pjo_id: id,
+          category: item.category,
+          description: item.description,
+          estimated_amount: item.estimated_amount,
+          status: 'estimated',
+          estimated_by: user?.id,
+        })
+      }
+    }
+
+    // Update PJO with total_cost_estimated
+    const totalCostEstimated = data.cost_items.reduce((sum, item) => sum + item.estimated_amount, 0)
+    await supabase
+      .from('proforma_job_orders')
+      .update({ total_cost_estimated: totalCostEstimated })
+      .eq('id', id)
+  }
+
   revalidatePath('/proforma-jo')
   revalidatePath(`/proforma-jo/${id}`)
   revalidatePath(`/projects/${existingPJO.project_id}`)
@@ -202,7 +366,6 @@ export async function updatePJO(
 export async function deletePJO(id: string): Promise<{ error?: string }> {
   const supabase = await createClient()
 
-  // Check if PJO is in draft status
   const { data: existingPJO, error: fetchError } = await supabase
     .from('proforma_job_orders')
     .select('status, project_id')
@@ -217,7 +380,6 @@ export async function deletePJO(id: string): Promise<{ error?: string }> {
     return { error: 'Only draft PJOs can be deleted' }
   }
 
-  // Soft delete
   const { error } = await supabase
     .from('proforma_job_orders')
     .update({ is_active: false })
@@ -235,7 +397,6 @@ export async function deletePJO(id: string): Promise<{ error?: string }> {
 export async function submitForApproval(id: string): Promise<{ error?: string }> {
   const supabase = await createClient()
 
-  // Check current status
   const { data: existingPJO, error: fetchError } = await supabase
     .from('proforma_job_orders')
     .select('status')
@@ -270,13 +431,11 @@ export async function submitForApproval(id: string): Promise<{ error?: string }>
 export async function approvePJO(id: string): Promise<{ error?: string }> {
   const supabase = await createClient()
 
-  // Get current user
   const { data: { user } } = await supabase.auth.getUser()
   if (!user) {
     return { error: 'You must be logged in to approve a PJO' }
   }
 
-  // Check current status
   const { data: existingPJO, error: fetchError } = await supabase
     .from('proforma_job_orders')
     .select('status')
@@ -317,13 +476,11 @@ export async function rejectPJO(id: string, reason: string): Promise<{ error?: s
     return { error: 'Rejection reason is required' }
   }
 
-  // Get current user
   const { data: { user } } = await supabase.auth.getUser()
   if (!user) {
     return { error: 'You must be logged in to reject a PJO' }
   }
 
-  // Check current status
   const { data: existingPJO, error: fetchError } = await supabase
     .from('proforma_job_orders')
     .select('status')
