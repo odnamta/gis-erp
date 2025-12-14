@@ -38,13 +38,16 @@ export function JOTable({ jobOrders }: JOTableProps) {
           <TableHead>Project</TableHead>
           <TableHead className="text-right">Revenue</TableHead>
           <TableHead className="text-right">Profit</TableHead>
+          <TableHead className="text-right">Margin</TableHead>
           <TableHead>Status</TableHead>
           <TableHead className="w-[80px]">Actions</TableHead>
         </TableRow>
       </TableHeader>
       <TableBody>
         {jobOrders.map((jo) => {
-          const profit = (jo.final_revenue ?? jo.amount ?? 0) - (jo.final_cost ?? 0)
+          const revenue = jo.final_revenue ?? jo.amount ?? 0
+          const profit = revenue - (jo.final_cost ?? 0)
+          const margin = revenue > 0 ? (profit / revenue) * 100 : 0
           return (
             <TableRow key={jo.id}>
               <TableCell className="font-medium">
@@ -82,6 +85,9 @@ export function JOTable({ jobOrders }: JOTableProps) {
               </TableCell>
               <TableCell className={`text-right ${profit >= 0 ? 'text-green-600' : 'text-red-600'}`}>
                 {jo.final_cost ? formatIDR(profit) : '-'}
+              </TableCell>
+              <TableCell className={`text-right ${margin >= 0 ? 'text-green-600' : 'text-red-600'}`}>
+                {jo.final_cost ? `${margin.toFixed(1)}%` : '-'}
               </TableCell>
               <TableCell>
                 <JOStatusBadge status={jo.status} />

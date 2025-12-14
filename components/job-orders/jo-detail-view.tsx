@@ -1,17 +1,18 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import Link from 'next/link'
 import { useRouter } from 'next/navigation'
-import { JobOrderWithRelations } from '@/types'
+import { JobOrderWithRelations, PJORevenueItem, PJOCostItem } from '@/types'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Label } from '@/components/ui/label'
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table'
 import { JOStatusBadge } from '@/components/ui/jo-status-badge'
-import { formatIDR, formatDate, formatDateTime } from '@/lib/pjo-utils'
-import { markCompleted, submitToFinance } from '@/app/(main)/job-orders/actions'
+import { formatIDR, formatDate, formatDateTime, COST_CATEGORY_LABELS } from '@/lib/pjo-utils'
+import { markCompleted, submitToFinance, getJORevenueItems, getJOCostItems } from '@/app/(main)/job-orders/actions'
 import { useToast } from '@/hooks/use-toast'
-import { CheckCircle, Send, FileText, ArrowLeft } from 'lucide-react'
+import { CheckCircle, Send, FileText, ArrowLeft, Loader2 } from 'lucide-react'
 
 interface JODetailViewProps {
   jobOrder: JobOrderWithRelations
@@ -21,12 +22,36 @@ export function JODetailView({ jobOrder }: JODetailViewProps) {
   const router = useRouter()
   const { toast } = useToast()
   const [isLoading, setIsLoading] = useState(false)
+  const [revenueItems, setRevenueItems] = useState<PJORevenueItem[]>([])
+  const [costItems, setCostItems] = useState<PJOCostItem[]>([])
+  const [itemsLoading, setItemsLoading] = useState(true)
 
   const pjo = jobOrder.proforma_job_orders
   const profit = (jobOrder.final_revenue ?? jobOrder.amount ?? 0) - (jobOrder.final_cost ?? 0)
   const margin = jobOrder.final_revenue && jobOrder.final_revenue > 0
     ? (profit / jobOrder.final_revenue) * 100
     : 0
+
+  useEffect(() => {
+    async function loadItems() {
+      if (!pjo?.id) {
+        setItemsLoading(false)
+        return
+      }
+      setItemsLoading(true)
+      try {
+        const [revenue, cost] = await Promise.all([
+          getJORevenueItems(pjo.id),
+          getJOCostItems(pjo.id),
+        ])
+        setRevenueItems(revenue as PJORevenueItem[])
+        setCostItems(cost as PJOCostItem[])
+      } finally {
+        setItemsLoading(false)
+      }
+    }
+    loadItems()
+  }, [pjo?.id])
 
   async function handleMarkCompleted() {
     setIsLoading(true)
@@ -216,9 +241,103 @@ export function JODetailView({ jobOrder }: JODetailViewProps) {
           <div>
             <Label className="text-muted-foreground">Final Margin</Label>
             <p className={`text-lg font-semibold ${margin >= 0 ? 'text-green-600' : 'text-red-600'}`}>
-              {jobOrder.final_cost ? `${margin.toFixed(2)}%` : '-'}
+              {jobOrder.final_cost ? `${margin.toFixed(1)}%` : '-'}
             </p>
           </div>
+        </CardContent>
+      </Card>
+
+      {/* Revenue Breakdown */}
+      <Card>
+        <CardHeader>
+          <CardTitle>Revenue Breakdown</CardTitle>
+        </CardHeader>
+        <CardContent>
+          {itemsLoading ? (
+            <div className="flex items-center justify-center py-4 text-muted-foreground">
+              <Loader2 className="h-4 w-4 animate-spin mr-2" />
+              Loading...
+            </div>
+          ) : revenueItems.length === 0 ? (
+            <p className="text-muted-foreground text-center py-4">No revenue items found</p>
+          ) : (
+            <Table>
+              <TableHeader>
+                <TableRow>
+                  <TableHead>Description</TableHead>
+                  <TableHead className="text-right">Qty</TableHead>
+                  <TableHead>Unit</TableHead>
+                  <TableHead className="text-right">Unit Price</TableHead>
+                  <TableHead className="text-right">Subtotal</TableHead>
+                </TableRow>
+              </TableHeader>
+              <TableBody>
+                {revenueItems.map((item) => (
+                  <TableRow key={item.id}>
+                    <TableCell>{item.description}</TableCell>
+                    <TableCell className="text-right">{item.quantity}</TableCell>
+                    <TableCell>{item.unit}</TableCell>
+                    <TableCell className="text-right">{formatIDR(item.unit_price)}</TableCell>
+                    <TableCell className="text-right font-medium">{formatIDR(item.subtotal)}</TableCell>
+                  </TableRow>
+                ))}
+                <TableRow className="bg-muted/50 font-semibold">
+                  <TableCell colSpan={4}>Total Revenue</TableCell>
+                  <TableCell className="text-right">{formatIDR(jobOrder.final_revenue ?? 0)}</TableCell>
+                </TableRow>
+              </TableBody>
+            </Table>
+          )}
+        </CardContent>
+      </Card>
+
+      {/* Cost Breakdown */}
+      <Card>
+        <CardHeader>
+          <CardTitle>Cost Breakdown (Actual)</CardTitle>
+        </CardHeader>
+        <CardContent>
+          {itemsLoading ? (
+            <div className="flex items-center justify-center py-4 text-muted-foreground">
+              <Loader2 className="h-4 w-4 animate-spin mr-2" />
+              Loading...
+            </div>
+          ) : costItems.length === 0 ? (
+            <p className="text-muted-foreground text-center py-4">No cost items found</p>
+          ) : (
+            <Table>
+              <TableHeader>
+                <TableRow>
+                  <TableHead>Category</TableHead>
+                  <TableHead>Description</TableHead>
+                  <TableHead className="text-right">Estimated</TableHead>
+                  <TableHead className="text-right">Actual</TableHead>
+                  <TableHead className="text-right">Variance</TableHead>
+                </TableRow>
+              </TableHeader>
+              <TableBody>
+                {costItems.map((item) => {
+                  const variance = (item.actual_amount ?? 0) - item.estimated_amount
+                  return (
+                    <TableRow key={item.id}>
+                      <TableCell>{COST_CATEGORY_LABELS[item.category] || item.category}</TableCell>
+                      <TableCell>{item.description}</TableCell>
+                      <TableCell className="text-right">{formatIDR(item.estimated_amount)}</TableCell>
+                      <TableCell className="text-right">{item.actual_amount != null ? formatIDR(item.actual_amount) : '-'}</TableCell>
+                      <TableCell className={`text-right ${variance > 0 ? 'text-red-600' : variance < 0 ? 'text-green-600' : ''}`}>
+                        {item.actual_amount != null ? formatIDR(variance) : '-'}
+                      </TableCell>
+                    </TableRow>
+                  )
+                })}
+                <TableRow className="bg-muted/50 font-semibold">
+                  <TableCell colSpan={3}>Total Cost</TableCell>
+                  <TableCell className="text-right">{formatIDR(jobOrder.final_cost ?? 0)}</TableCell>
+                  <TableCell></TableCell>
+                </TableRow>
+              </TableBody>
+            </Table>
+          )}
         </CardContent>
       </Card>
 

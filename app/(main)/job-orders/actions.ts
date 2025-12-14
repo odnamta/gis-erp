@@ -146,3 +146,37 @@ export async function submitToFinance(joId: string): Promise<{ error?: string }>
   revalidatePath(`/job-orders/${joId}`)
   return {}
 }
+
+export async function getJORevenueItems(pjoId: string) {
+  const supabase = await createClient()
+
+  const { data, error } = await supabase
+    .from('pjo_revenue_items')
+    .select('*')
+    .eq('pjo_id', pjoId)
+    .order('created_at', { ascending: true })
+
+  if (error) {
+    console.error('Error fetching revenue items:', error)
+    return []
+  }
+
+  return data
+}
+
+export async function getJOCostItems(pjoId: string) {
+  const supabase = await createClient()
+
+  const { data, error } = await supabase
+    .from('pjo_cost_items')
+    .select('*')
+    .eq('pjo_id', pjoId)
+    .order('created_at', { ascending: true })
+
+  if (error) {
+    console.error('Error fetching cost items:', error)
+    return []
+  }
+
+  return data
+}
