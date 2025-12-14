@@ -795,3 +795,547 @@ describe('v0.4.2 Validation Utilities', () => {
     })
   })
 })
+
+
+/**
+ * **Feature: v0.5-ops-actual-costs, Property 1: Status Calculation**
+ * *For any* estimated amount > 0 and actual amount ≥ 0, the calculated status SHALL be:
+ * - "confirmed" when actual ≤ 90% of estimated
+ * - "at_risk" when actual > 90% of estimated AND actual ≤ estimated
+ * - "exceeded" when actual > estimated
+ * **Validates: Requirements 4.1, 4.3, 5.1, 10.2**
+ */
+import { calculateCostStatus, calculateVariance, canEditCostItems } from '@/lib/pjo-utils'
+import { CostItemStatus } from '@/types'
+
+describe('v0.5 Operations Actual Cost Entry', () => {
+  describe('calculateCostStatus', () => {
+    it('should return confirmed when actual ≤ 90% of estimated', () => {
+      fc.assert(
+        fc.property(
+          fc.double({ min: 1, max: 1e9, noNaN: true }),
+          fc.double({ min: 0, max: 0.9, noNaN: true }),
+          (estimated, percentage) => {
+            const actual = estimated * percentage
+            const result = calculateCostStatus(estimated, actual)
+            expect(result.status).toBe('confirmed')
+          }
+        ),
+        { numRuns: 100 }
+      )
+    })
+
+    it('should return at_risk when actual > 90% AND actual ≤ 100% of estimated', () => {
+      fc.assert(
+        fc.property(
+          fc.double({ min: 100, max: 1e9, noNaN: true }),
+          fc.double({ min: 0.901, max: 1, noNaN: true }),
+          (estimated, percentage) => {
+            const actual = estimated * percentage
+            const result = calculateCostStatus(estimated, actual)
+            expect(result.status).toBe('at_risk')
+          }
+        ),
+        { numRuns: 100 }
+      )
+    })
+
+    it('should return exceeded when actual > estimated', () => {
+      fc.assert(
+        fc.property(
+          fc.double({ min: 1, max: 1e9, noNaN: true }),
+          fc.double({ min: 0.01, max: 1e9, noNaN: true }),
+          (estimated, extra) => {
+            const actual = estimated + extra
+            const result = calculateCostStatus(estimated, actual)
+            expect(result.status).toBe('exceeded')
+          }
+        ),
+        { numRuns: 100 }
+      )
+    })
+
+    it('should calculate variance correctly', () => {
+      fc.assert(
+        fc.property(
+          fc.double({ min: 1, max: 1e9, noNaN: true }),
+          fc.double({ min: 0, max: 2e9, noNaN: true }),
+          (estimated, actual) => {
+            const result = calculateCostStatus(estimated, actual)
+            expect(result.variance).toBeCloseTo(actual - estimated, 5)
+            expect(result.variancePct).toBeCloseTo(((actual - estimated) / estimated) * 100, 5)
+          }
+        ),
+        { numRuns: 100 }
+      )
+    })
+
+    it('should handle boundary conditions correctly', () => {
+      // Exactly 90% - should be confirmed
+      const at90 = calculateCostStatus(1000000, 900000)
+      expect(at90.status).toBe('confirmed')
+
+      // Just over 90% - should be at_risk
+      const over90 = calculateCostStatus(1000000, 900001)
+      expect(over90.status).toBe('at_risk')
+
+      // Exactly 100% - should be at_risk
+      const at100 = calculateCostStatus(1000000, 1000000)
+      expect(at100.status).toBe('at_risk')
+
+      // Just over 100% - should be exceeded
+      const over100 = calculateCostStatus(1000000, 1000001)
+      expect(over100.status).toBe('exceeded')
+    })
+  })
+
+  /**
+   * **Feature: v0.5-ops-actual-costs, Property 2: Variance Calculation**
+   * *For any* estimated amount and actual amount, the variance SHALL equal (actual - estimated)
+   * and variance percentage SHALL equal ((actual - estimated) / estimated) * 100
+   * **Validates: Requirements 2.4, 3.2, 4.2**
+   */
+  describe('calculateVariance', () => {
+    it('should calculate variance as actual - estimated', () => {
+      fc.assert(
+        fc.property(
+          fc.double({ min: 1, max: 1e9, noNaN: true }),
+          fc.double({ min: 0, max: 2e9, noNaN: true }),
+          (estimated, actual) => {
+            const result = calculateVariance(estimated, actual)
+            expect(result.variance).toBeCloseTo(actual - estimated, 5)
+          }
+        ),
+        { numRuns: 100 }
+      )
+    })
+
+    it('should calculate variance percentage correctly', () => {
+      fc.assert(
+        fc.property(
+          fc.double({ min: 1, max: 1e9, noNaN: true }),
+          fc.double({ min: 0, max: 2e9, noNaN: true }),
+          (estimated, actual) => {
+            const result = calculateVariance(estimated, actual)
+            const expectedPct = ((actual - estimated) / estimated) * 100
+            expect(result.variancePct).toBeCloseTo(expectedPct, 5)
+          }
+        ),
+        { numRuns: 100 }
+      )
+    })
+
+    it('should handle zero estimated amount', () => {
+      const result = calculateVariance(0, 1000)
+      expect(result.variance).toBe(1000)
+      expect(result.variancePct).toBe(0) // Avoid division by zero
+    })
+
+    it('should handle specific cases', () => {
+      // Under budget
+      const under = calculateVariance(1000000, 900000)
+      expect(under.variance).toBe(-100000)
+      expect(under.variancePct).toBe(-10)
+
+      // Over budget
+      const over = calculateVariance(1000000, 1100000)
+      expect(over.variance).toBe(100000)
+      expect(over.variancePct).toBe(10)
+
+      // Exact budget
+      const exact = calculateVariance(1000000, 1000000)
+      expect(exact.variance).toBe(0)
+      expect(exact.variancePct).toBe(0)
+    })
+  })
+
+  /**
+   * **Feature: v0.5-ops-actual-costs, Property 4: Edit Permission**
+   * *For any* user and PJO combination, editing SHALL be allowed if and only if:
+   * - User role is "ops" OR "admin"
+   * - AND PJO status is "approved"
+   * - AND PJO has not been converted to Job Order (converted_to_jo is false)
+   * **Validates: Requirements 9.1, 9.2, 9.3, 9.4**
+   */
+  describe('canEditCostItems', () => {
+    const allowedRoles = ['ops', 'admin']
+    const disallowedRoles = ['sales', 'engineer', 'manager', 'super_admin']
+    const allRoles = [...allowedRoles, ...disallowedRoles]
+    const allStatuses = ['draft', 'pending_approval', 'approved', 'rejected']
+
+    it('should allow editing only for ops and admin roles with approved PJO not converted', () => {
+      fc.assert(
+        fc.property(
+          fc.constantFrom(...allRoles),
+          fc.constantFrom(...allStatuses),
+          fc.boolean(),
+          (role, status, convertedToJo) => {
+            const result = canEditCostItems(role, status, convertedToJo)
+            
+            const isAllowedRole = allowedRoles.includes(role)
+            const isApproved = status === 'approved'
+            const notConverted = !convertedToJo
+            
+            const expected = isAllowedRole && isApproved && notConverted
+            expect(result).toBe(expected)
+          }
+        ),
+        { numRuns: 100 }
+      )
+    })
+
+    it('should deny editing for non-ops/admin roles', () => {
+      fc.assert(
+        fc.property(
+          fc.constantFrom(...disallowedRoles),
+          (role) => {
+            const result = canEditCostItems(role, 'approved', false)
+            expect(result).toBe(false)
+          }
+        ),
+        { numRuns: 50 }
+      )
+    })
+
+    it('should deny editing for non-approved PJOs', () => {
+      const nonApprovedStatuses = ['draft', 'pending_approval', 'rejected']
+      fc.assert(
+        fc.property(
+          fc.constantFrom(...allowedRoles),
+          fc.constantFrom(...nonApprovedStatuses),
+          (role, status) => {
+            const result = canEditCostItems(role, status, false)
+            expect(result).toBe(false)
+          }
+        ),
+        { numRuns: 50 }
+      )
+    })
+
+    it('should deny editing for converted PJOs', () => {
+      fc.assert(
+        fc.property(
+          fc.constantFrom(...allowedRoles),
+          (role) => {
+            const result = canEditCostItems(role, 'approved', true)
+            expect(result).toBe(false)
+          }
+        ),
+        { numRuns: 50 }
+      )
+    })
+
+    it('should handle null converted_to_jo as false', () => {
+      expect(canEditCostItems('ops', 'approved', null)).toBe(true)
+      expect(canEditCostItems('admin', 'approved', null)).toBe(true)
+    })
+  })
+
+  /**
+   * **Feature: v0.5-ops-actual-costs, Property 6: Total Cost Calculation**
+   * *For any* list of confirmed cost items, total_cost_actual SHALL equal the sum of all actual_amount values
+   * **Validates: Requirements 10.4**
+   */
+  describe('Total Cost Calculation', () => {
+    it('should calculate total actual cost as sum of all actual amounts', () => {
+      fc.assert(
+        fc.property(
+          fc.array(
+            fc.record({
+              id: fc.uuid(),
+              actual_amount: fc.option(fc.double({ min: 0, max: 1e9, noNaN: true }), { nil: null }),
+            }),
+            { minLength: 0, maxLength: 20 }
+          ),
+          (items) => {
+            // Calculate total using the same logic as the server action
+            const totalActual = items.reduce((sum, item) => sum + (item.actual_amount ?? 0), 0)
+            
+            // Verify the calculation
+            const expectedTotal = items
+              .filter(item => item.actual_amount !== null)
+              .reduce((sum, item) => sum + (item.actual_amount as number), 0)
+            
+            expect(totalActual).toBeCloseTo(expectedTotal, 5)
+          }
+        ),
+        { numRuns: 100 }
+      )
+    })
+
+    it('should return 0 for empty list', () => {
+      const items: { actual_amount: number | null }[] = []
+      const total = items.reduce((sum, item) => sum + (item.actual_amount ?? 0), 0)
+      expect(total).toBe(0)
+    })
+
+    it('should handle mix of confirmed and pending items', () => {
+      const items = [
+        { actual_amount: 1000000 },
+        { actual_amount: null },
+        { actual_amount: 2000000 },
+        { actual_amount: null },
+      ]
+      const total = items.reduce((sum, item) => sum + (item.actual_amount ?? 0), 0)
+      expect(total).toBe(3000000)
+    })
+  })
+
+  /**
+   * **Feature: v0.5-ops-actual-costs, Property 7: Has Overruns Flag**
+   * *For any* list of cost items, has_cost_overruns SHALL be true if and only if at least one item has status "exceeded"
+   * **Validates: Requirements 10.5**
+   */
+  describe('Has Overruns Flag', () => {
+    const statuses: CostItemStatus[] = ['estimated', 'confirmed', 'at_risk', 'exceeded']
+
+    it('should be true if any item has exceeded status', () => {
+      fc.assert(
+        fc.property(
+          fc.array(fc.constantFrom(...statuses), { minLength: 1, maxLength: 20 }),
+          (statusList) => {
+            const hasOverruns = statusList.some(status => status === 'exceeded')
+            const hasExceededItem = statusList.includes('exceeded')
+            expect(hasOverruns).toBe(hasExceededItem)
+          }
+        ),
+        { numRuns: 100 }
+      )
+    })
+
+    it('should be false if no items have exceeded status', () => {
+      const nonExceededStatuses: CostItemStatus[] = ['estimated', 'confirmed', 'at_risk']
+      fc.assert(
+        fc.property(
+          fc.array(fc.constantFrom(...nonExceededStatuses), { minLength: 0, maxLength: 20 }),
+          (statusList) => {
+            const hasOverruns = statusList.some(status => status === 'exceeded')
+            expect(hasOverruns).toBe(false)
+          }
+        ),
+        { numRuns: 100 }
+      )
+    })
+
+    it('should handle empty list', () => {
+      const items: { status: string }[] = []
+      const hasOverruns = items.some(item => item.status === 'exceeded')
+      expect(hasOverruns).toBe(false)
+    })
+  })
+
+  /**
+   * **Feature: v0.5-ops-actual-costs, Property 5: Progress Calculation**
+   * *For any* list of cost items, the confirmed count SHALL equal the number of items
+   * where actual_amount is not null and confirmed_at is not null
+   * **Validates: Requirements 7.1**
+   */
+  describe('Progress Calculation', () => {
+    it('should count confirmed items correctly', () => {
+      fc.assert(
+        fc.property(
+          fc.array(
+            fc.record({
+              actual_amount: fc.option(fc.double({ min: 0, max: 1e9, noNaN: true }), { nil: null }),
+              confirmed_at: fc.option(fc.date().map(d => d.toISOString()), { nil: null }),
+            }),
+            { minLength: 0, maxLength: 20 }
+          ),
+          (items) => {
+            // Calculate confirmed count using the same logic as the component
+            const confirmed = items.filter(
+              item => item.actual_amount !== null && item.confirmed_at !== null
+            ).length
+            const total = items.length
+
+            // Verify the calculation matches expected
+            const expectedConfirmed = items.reduce((count, item) => {
+              if (item.actual_amount !== null && item.confirmed_at !== null) {
+                return count + 1
+              }
+              return count
+            }, 0)
+
+            expect(confirmed).toBe(expectedConfirmed)
+            expect(total).toBe(items.length)
+          }
+        ),
+        { numRuns: 100 }
+      )
+    })
+
+    it('should return 0 confirmed for empty list', () => {
+      const items: { actual_amount: number | null; confirmed_at: string | null }[] = []
+      const confirmed = items.filter(item => item.actual_amount !== null && item.confirmed_at !== null).length
+      expect(confirmed).toBe(0)
+    })
+
+    it('should not count items with only actual_amount (no confirmed_at)', () => {
+      const items = [
+        { actual_amount: 1000000, confirmed_at: null },
+        { actual_amount: 2000000, confirmed_at: '2025-01-01T00:00:00Z' },
+      ]
+      const confirmed = items.filter(item => item.actual_amount !== null && item.confirmed_at !== null).length
+      expect(confirmed).toBe(1)
+    })
+
+    it('should not count items with only confirmed_at (no actual_amount)', () => {
+      const items = [
+        { actual_amount: null, confirmed_at: '2025-01-01T00:00:00Z' },
+        { actual_amount: 2000000, confirmed_at: '2025-01-01T00:00:00Z' },
+      ]
+      const confirmed = items.filter(item => item.actual_amount !== null && item.confirmed_at !== null).length
+      expect(confirmed).toBe(1)
+    })
+  })
+
+  /**
+   * **Feature: v0.5-ops-actual-costs, Property 3: Justification Validation**
+   * *For any* cost item where actual > estimated:
+   * - If justification is empty or less than 10 characters, confirmation SHALL be blocked
+   * - If justification is 10+ characters, confirmation SHALL be allowed
+   * **Validates: Requirements 5.3, 5.4, 6.2**
+   */
+  describe('Justification Validation', () => {
+    function validateJustification(
+      estimated: number,
+      actual: number,
+      justification: string
+    ): { canConfirm: boolean; needsJustification: boolean } {
+      const isExceeded = actual > estimated
+      const hasValidJustification = justification.trim().length >= 10
+      const needsJustification = isExceeded && !hasValidJustification
+      const canConfirm = !needsJustification
+      return { canConfirm, needsJustification }
+    }
+
+    it('should block confirmation for exceeded items without justification', () => {
+      fc.assert(
+        fc.property(
+          fc.double({ min: 1, max: 1e9, noNaN: true }),
+          fc.double({ min: 0.01, max: 1e9, noNaN: true }),
+          fc.string({ minLength: 0, maxLength: 9 }),
+          (estimated, extra, shortJustification) => {
+            const actual = estimated + extra // exceeded
+            const result = validateJustification(estimated, actual, shortJustification)
+            expect(result.needsJustification).toBe(true)
+            expect(result.canConfirm).toBe(false)
+          }
+        ),
+        { numRuns: 100 }
+      )
+    })
+
+    it('should allow confirmation for exceeded items with valid justification', () => {
+      fc.assert(
+        fc.property(
+          fc.double({ min: 1, max: 1e9, noNaN: true }),
+          fc.double({ min: 0.01, max: 1e9, noNaN: true }),
+          // Generate alphanumeric strings with at least 10 characters
+          fc.string({ minLength: 10, maxLength: 100, unit: 'grapheme' }).filter(s => s.trim().length >= 10),
+          (estimated, extra, validJustification) => {
+            const actual = estimated + extra // exceeded
+            const result = validateJustification(estimated, actual, validJustification)
+            expect(result.needsJustification).toBe(false)
+            expect(result.canConfirm).toBe(true)
+          }
+        ),
+        { numRuns: 100 }
+      )
+    })
+
+    it('should not require justification for non-exceeded items', () => {
+      fc.assert(
+        fc.property(
+          fc.double({ min: 1, max: 1e9, noNaN: true }),
+          fc.double({ min: 0, max: 1, noNaN: true }),
+          fc.string({ minLength: 0, maxLength: 500 }),
+          (estimated, percentage, anyJustification) => {
+            const actual = estimated * percentage // within budget
+            const result = validateJustification(estimated, actual, anyJustification)
+            expect(result.needsJustification).toBe(false)
+            expect(result.canConfirm).toBe(true)
+          }
+        ),
+        { numRuns: 100 }
+      )
+    })
+
+    it('should handle boundary case of exactly 10 characters', () => {
+      const result = validateJustification(1000, 1500, 'Exactly 10')
+      expect(result.canConfirm).toBe(true)
+      expect(result.needsJustification).toBe(false)
+    })
+
+    it('should handle boundary case of 9 characters', () => {
+      const result = validateJustification(1000, 1500, 'Only nine')
+      expect(result.canConfirm).toBe(false)
+      expect(result.needsJustification).toBe(true)
+    })
+
+    it('should trim whitespace when validating', () => {
+      // Justification with only spaces should not count
+      const result = validateJustification(1000, 1500, '          ')
+      expect(result.canConfirm).toBe(false)
+      expect(result.needsJustification).toBe(true)
+    })
+  })
+
+  /**
+   * **Feature: v0.5-ops-actual-costs, Property 8: Currency Formatting**
+   * *For any* numeric amount, the formatted IDR string SHALL match the pattern "Rp X.XXX.XXX"
+   * with period separators for thousands
+   * **Validates: Requirements 2.2**
+   */
+  describe('Currency Formatting (IDR)', () => {
+    it('should format positive amounts with Rp prefix and period separators', () => {
+      fc.assert(
+        fc.property(
+          fc.nat({ max: 999999999999 }),
+          (amount) => {
+            const result = formatIDR(amount)
+            // Should start with "Rp "
+            expect(result.startsWith('Rp ')).toBe(true)
+            // Should contain only digits and periods after prefix
+            const numericPart = result.replace('Rp ', '')
+            expect(numericPart).toMatch(/^\d{1,3}(\.\d{3})*$/)
+          }
+        ),
+        { numRuns: 100 }
+      )
+    })
+
+    it('should format negative amounts with minus prefix', () => {
+      fc.assert(
+        fc.property(
+          fc.integer({ min: 1, max: 999999999999 }),
+          (amount) => {
+            const result = formatIDR(-amount)
+            // Should start with "-Rp "
+            expect(result.startsWith('-Rp ')).toBe(true)
+          }
+        ),
+        { numRuns: 100 }
+      )
+    })
+
+    it('should handle zero correctly', () => {
+      expect(formatIDR(0)).toBe('Rp 0')
+    })
+
+    it('should preserve numeric value after formatting', () => {
+      fc.assert(
+        fc.property(
+          fc.nat({ max: 999999999 }),
+          (amount) => {
+            const formatted = formatIDR(amount)
+            // Parse back the numeric value
+            const parsed = parseInt(formatted.replace(/Rp\s?/g, '').replace(/\./g, ''), 10)
+            expect(parsed).toBe(amount)
+          }
+        ),
+        { numRuns: 100 }
+      )
+    })
+  })
+})

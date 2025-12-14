@@ -29,7 +29,7 @@ import { submitForApproval, approvePJO, rejectPJO } from '@/app/(main)/proforma-
 import { getRevenueItems } from '@/app/(main)/proforma-jo/revenue-actions'
 import { getCostItems } from '@/app/(main)/proforma-jo/cost-actions'
 import { useToast } from '@/hooks/use-toast'
-import { Pencil, Send, Check, X } from 'lucide-react'
+import { Pencil, Send, Check, X, DollarSign } from 'lucide-react'
 
 interface PJODetailViewProps {
   pjo: PJOWithRelations
@@ -189,6 +189,14 @@ export function PJODetailView({ pjo, canApprove = true }: PJODetailViewProps) {
                 Reject
               </Button>
             </>
+          )}
+          {pjo.status === 'approved' && !pjo.converted_to_jo && (
+            <Button asChild>
+              <Link href={`/proforma-jo/${pjo.id}/costs`}>
+                <DollarSign className="mr-2 h-4 w-4" />
+                Fill Actual Costs
+              </Link>
+            </Button>
           )}
         </div>
       </div>

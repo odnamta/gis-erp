@@ -161,10 +161,11 @@ export function calculateCostTotal(items: PJOCostItem[], type: 'estimated' | 'ac
 }
 
 /**
- * Determine cost item status based on estimated vs actual
+ * Determine cost item status based on estimated vs actual (legacy function)
  * @param estimated - Estimated amount
  * @param actual - Actual amount
  * @returns Cost item status
+ * @deprecated Use calculateCostStatus instead for more granular status
  */
 export function determineCostStatus(estimated: number, actual: number): CostItemStatus {
   if (actual > estimated) {
@@ -174,6 +175,62 @@ export function determineCostStatus(estimated: number, actual: number): CostItem
     return 'under_budget'
   }
   return 'confirmed'
+}
+
+/**
+ * Result of variance calculation
+ */
+export interface VarianceResult {
+  variance: number
+  variancePct: number
+}
+
+/**
+ * Calculate variance between actual and estimated amounts
+ * @param estimated - Estimated amount (budget)
+ * @param actual - Actual amount entered
+ * @returns Object with variance (actual - estimated) and variance percentage
+ */
+export function calculateVariance(estimated: number, actual: number): VarianceResult {
+  const variance = actual - estimated
+  const variancePct = estimated > 0 ? (variance / estimated) * 100 : 0
+  return { variance, variancePct }
+}
+
+/**
+ * Result of cost status calculation
+ */
+export interface CostStatusResult {
+  status: CostItemStatus
+  variance: number
+  variancePct: number
+}
+
+/**
+ * Calculate cost item status with variance based on estimated vs actual amounts
+ * Status logic:
+ * - "confirmed" when actual ≤ 90% of estimated
+ * - "at_risk" when actual > 90% of estimated AND actual ≤ estimated
+ * - "exceeded" when actual > estimated
+ * 
+ * @param estimated - Estimated amount (budget cap), must be > 0
+ * @param actual - Actual amount entered, must be ≥ 0
+ * @returns Object with status, variance, and variance percentage
+ */
+export function calculateCostStatus(estimated: number, actual: number): CostStatusResult {
+  const variance = actual - estimated
+  const variancePct = estimated > 0 ? (variance / estimated) * 100 : 0
+  
+  let status: CostItemStatus
+  if (actual <= estimated * 0.9) {
+    status = 'confirmed'
+  } else if (actual <= estimated) {
+    status = 'at_risk'
+  } else {
+    status = 'exceeded'
+  }
+  
+  return { status, variance, variancePct }
 }
 
 /**
@@ -311,4 +368,35 @@ export function validateDateOrder(etd: Date | null, eta: Date | null): Validatio
     }
   }
   return { valid: true }
+}
+
+
+/**
+ * User role type for permission checks
+ */
+export type UserRole = 'ops' | 'admin' | 'sales' | 'engineer' | 'manager' | 'super_admin'
+
+/**
+ * Check if a user can edit cost items for a PJO
+ * Editing is allowed if:
+ * - User role is 'ops' or 'admin'
+ * - PJO status is 'approved'
+ * - PJO has not been converted to Job Order
+ * 
+ * @param userRole - The user's role
+ * @param pjoStatus - The PJO's current status
+ * @param convertedToJo - Whether the PJO has been converted to a Job Order
+ * @returns true if the user can edit cost items
+ */
+export function canEditCostItems(
+  userRole: UserRole | string,
+  pjoStatus: string,
+  convertedToJo: boolean | null
+): boolean {
+  const allowedRoles = ['ops', 'admin']
+  const isAllowedRole = allowedRoles.includes(userRole)
+  const isApproved = pjoStatus === 'approved'
+  const notConverted = !convertedToJo
+  
+  return isAllowedRole && isApproved && notConverted
 }

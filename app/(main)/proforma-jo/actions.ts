@@ -514,3 +514,174 @@ export async function rejectPJO(id: string, reason: string): Promise<{ error?: s
   revalidatePath(`/proforma-jo/${id}`)
   return {}
 }
+
+
+// ============================================
+// v0.5 - Operations Actual Cost Entry Actions
+// ============================================
+
+import { calculateCostStatus } from '@/lib/pjo-utils'
+
+/**
+ * Confirm a cost item with actual amount
+ * Updates the cost item with actual_amount, status, confirmed_by, confirmed_at
+ * For exceeded items, justification is required
+ */
+export async function confirmCostItem(
+  itemId: string,
+  actualAmount: number,
+  justification?: string
+): Promise<{ success: boolean; error?: string }> {
+  const supabase = await createClient()
+  
+  const { data: { user } } = await supabase.auth.getUser()
+  if (!user) {
+    return { success: false, error: 'You must be logged in to confirm cost items' }
+  }
+
+  // Fetch the cost item to get estimated amount
+  const { data: costItem, error: fetchError } = await supabase
+    .from('pjo_cost_items')
+    .select('id, pjo_id, estimated_amount')
+    .eq('id', itemId)
+    .single()
+
+  if (fetchError || !costItem) {
+    return { success: false, error: 'Cost item not found' }
+  }
+
+  // Validate actual amount
+  if (actualAmount < 0) {
+    return { success: false, error: 'Actual amount cannot be negative' }
+  }
+
+  // Calculate status and variance
+  const { status, variance, variancePct } = calculateCostStatus(
+    costItem.estimated_amount,
+    actualAmount
+  )
+
+  // Require justification for exceeded items
+  if (status === 'exceeded') {
+    if (!justification || justification.trim().length < 10) {
+      return { success: false, error: 'Justification (minimum 10 characters) is required for exceeded budget items' }
+    }
+  }
+
+  // Update the cost item
+  const { error: updateError } = await supabase
+    .from('pjo_cost_items')
+    .update({
+      actual_amount: actualAmount,
+      variance: variance,
+      variance_pct: variancePct,
+      status: status,
+      confirmed_by: user.id,
+      confirmed_at: new Date().toISOString(),
+      justification: status === 'exceeded' ? justification?.trim() : null,
+      updated_at: new Date().toISOString(),
+    })
+    .eq('id', itemId)
+
+  if (updateError) {
+    return { success: false, error: updateError.message }
+  }
+
+  // Check if all costs are confirmed and update PJO
+  await checkAndUpdatePJOCostStatus(costItem.pjo_id)
+
+  revalidatePath(`/proforma-jo/${costItem.pjo_id}`)
+  revalidatePath(`/proforma-jo/${costItem.pjo_id}/costs`)
+  
+  return { success: true }
+}
+
+/**
+ * Check if all cost items are confirmed and update PJO flags
+ */
+async function checkAndUpdatePJOCostStatus(pjoId: string): Promise<{
+  allConfirmed: boolean
+  hasOverruns: boolean
+  totalActual: number
+}> {
+  const supabase = await createClient()
+
+  // Fetch all cost items for this PJO
+  const { data: costItems, error } = await supabase
+    .from('pjo_cost_items')
+    .select('id, actual_amount, status')
+    .eq('pjo_id', pjoId)
+
+  if (error || !costItems) {
+    return { allConfirmed: false, hasOverruns: false, totalActual: 0 }
+  }
+
+  // Check if all items have actual amounts
+  const pendingItems = costItems.filter(item => item.actual_amount === null)
+  const allConfirmed = pendingItems.length === 0 && costItems.length > 0
+
+  // Check for overruns
+  const hasOverruns = costItems.some(item => item.status === 'exceeded')
+
+  // Calculate total actual cost
+  const totalActual = costItems.reduce((sum, item) => sum + (item.actual_amount ?? 0), 0)
+
+  // Update PJO record
+  await supabase
+    .from('proforma_job_orders')
+    .update({
+      all_costs_confirmed: allConfirmed,
+      has_cost_overruns: hasOverruns,
+      total_cost_actual: totalActual,
+      updated_at: new Date().toISOString(),
+    })
+    .eq('id', pjoId)
+
+  return { allConfirmed, hasOverruns, totalActual }
+}
+
+/**
+ * Get cost confirmation status for a PJO
+ */
+export async function getCostConfirmationStatus(pjoId: string): Promise<{
+  confirmed: number
+  total: number
+  allConfirmed: boolean
+  hasOverruns: boolean
+  totalEstimated: number
+  totalActual: number
+}> {
+  const supabase = await createClient()
+
+  const { data: costItems, error } = await supabase
+    .from('pjo_cost_items')
+    .select('id, estimated_amount, actual_amount, status')
+    .eq('pjo_id', pjoId)
+
+  if (error || !costItems) {
+    return {
+      confirmed: 0,
+      total: 0,
+      allConfirmed: false,
+      hasOverruns: false,
+      totalEstimated: 0,
+      totalActual: 0,
+    }
+  }
+
+  const confirmed = costItems.filter(item => item.actual_amount !== null).length
+  const total = costItems.length
+  const allConfirmed = confirmed === total && total > 0
+  const hasOverruns = costItems.some(item => item.status === 'exceeded')
+  const totalEstimated = costItems.reduce((sum, item) => sum + item.estimated_amount, 0)
+  const totalActual = costItems.reduce((sum, item) => sum + (item.actual_amount ?? 0), 0)
+
+  return {
+    confirmed,
+    total,
+    allConfirmed,
+    hasOverruns,
+    totalEstimated,
+    totalActual,
+  }
+}

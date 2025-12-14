@@ -505,7 +505,7 @@ export type CostCategory =
   | 'trucking' | 'port_charges' | 'documentation' | 'handling'
   | 'customs' | 'insurance' | 'storage' | 'labor' | 'fuel' | 'tolls' | 'other'
 
-export type CostItemStatus = 'estimated' | 'confirmed' | 'exceeded' | 'under_budget'
+export type CostItemStatus = 'estimated' | 'confirmed' | 'at_risk' | 'exceeded' | 'under_budget'
 
 export type RevenueSourceType = 'quotation' | 'contract' | 'manual'
 
