@@ -7,16 +7,17 @@ import { StatusBadge } from '@/components/ui/status-badge'
 import { ArrowLeft, Plus, Building2, Mail, Phone, MapPin } from 'lucide-react'
 
 interface CustomerDetailPageProps {
-  params: { id: string }
+  params: Promise<{ id: string }>
 }
 
 export default async function CustomerDetailPage({ params }: CustomerDetailPageProps) {
+  const { id } = await params
   const supabase = await createClient()
 
   const { data: customer, error } = await supabase
     .from('customers')
     .select('*')
-    .eq('id', params.id)
+    .eq('id', id)
     .single()
 
   if (error || !customer) {
@@ -26,7 +27,7 @@ export default async function CustomerDetailPage({ params }: CustomerDetailPageP
   const { data: projects } = await supabase
     .from('projects')
     .select('*')
-    .eq('customer_id', params.id)
+    .eq('customer_id', id)
     .eq('is_active', true)
     .order('created_at', { ascending: false })
 

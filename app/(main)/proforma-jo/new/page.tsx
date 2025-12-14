@@ -5,10 +5,11 @@ import { Button } from '@/components/ui/button'
 import { ArrowLeft } from 'lucide-react'
 
 interface NewPJOPageProps {
-  searchParams: { project_id?: string }
+  searchParams: Promise<{ project_id?: string }>
 }
 
 export default async function NewPJOPage({ searchParams }: NewPJOPageProps) {
+  const params = await searchParams
   const supabase = await createClient()
 
   const { data: projects } = await supabase
@@ -36,7 +37,7 @@ export default async function NewPJOPage({ searchParams }: NewPJOPageProps) {
 
       <PJOForm
         projects={projects || []}
-        preselectedProjectId={searchParams.project_id}
+        preselectedProjectId={params.project_id}
         mode="create"
       />
     </div>

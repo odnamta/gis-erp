@@ -2,10 +2,11 @@ import { createClient } from '@/lib/supabase/server'
 import { ProjectsClient } from './projects-client'
 
 interface ProjectsPageProps {
-  searchParams: { add?: string; customer_id?: string }
+  searchParams: Promise<{ add?: string; customer_id?: string }>
 }
 
 export default async function ProjectsPage({ searchParams }: ProjectsPageProps) {
+  const params = await searchParams
   const supabase = await createClient()
 
   const { data: projects } = await supabase
@@ -24,8 +25,8 @@ export default async function ProjectsPage({ searchParams }: ProjectsPageProps) 
     <ProjectsClient
       projects={projects || []}
       customers={customers || []}
-      openAddDialog={searchParams.add === 'true'}
-      preselectedCustomerId={searchParams.customer_id}
+      openAddDialog={params.add === 'true'}
+      preselectedCustomerId={params.customer_id}
     />
   )
 }

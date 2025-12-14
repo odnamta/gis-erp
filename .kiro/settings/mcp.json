@@ -33,7 +33,9 @@
         "@modelcontextprotocol/server-sequential-thinking"
       ],
       "disabled": false,
-      "autoApprove": []
+      "autoApprove": [
+        "sequentialthinking"
+      ]
     },
     "shadcn": {
       "command": "npx",

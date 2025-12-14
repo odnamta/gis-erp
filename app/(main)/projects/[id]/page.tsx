@@ -9,16 +9,17 @@ import { formatDate } from '@/lib/pjo-utils'
 import { ArrowLeft, Building2, MapPin, Calendar, FolderOpen, FileText, ClipboardList } from 'lucide-react'
 
 interface ProjectDetailPageProps {
-  params: { id: string }
+  params: Promise<{ id: string }>
 }
 
 export default async function ProjectDetailPage({ params }: ProjectDetailPageProps) {
+  const { id } = await params
   const supabase = await createClient()
 
   const { data: project, error } = await supabase
     .from('projects')
     .select('*, customers(id, name, email)')
-    .eq('id', params.id)
+    .eq('id', id)
     .single()
 
   if (error || !project) {
@@ -28,13 +29,13 @@ export default async function ProjectDetailPage({ params }: ProjectDetailPagePro
   const { data: pjos } = await supabase
     .from('proforma_job_orders')
     .select('*')
-    .eq('project_id', params.id)
+    .eq('project_id', id)
     .order('created_at', { ascending: false })
 
   const { data: jos } = await supabase
     .from('job_orders')
     .select('*')
-    .eq('project_id', params.id)
+    .eq('project_id', id)
     .order('created_at', { ascending: false })
 
   return (
@@ -106,7 +107,7 @@ export default async function ProjectDetailPage({ params }: ProjectDetailPagePro
               <CardDescription>Quotations for this project</CardDescription>
             </div>
             <Button asChild size="sm">
-              <Link href={`/proforma-jo/new?project_id=${params.id}`}>
+              <Link href={`/proforma-jo/new?project_id=${id}`}>
                 Add PJO
               </Link>
             </Button>

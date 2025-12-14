@@ -6,16 +6,17 @@ import { PJOForm } from '@/components/pjo/pjo-form'
 import { ArrowLeft } from 'lucide-react'
 
 interface EditPJOPageProps {
-  params: { id: string }
+  params: Promise<{ id: string }>
 }
 
 export default async function EditPJOPage({ params }: EditPJOPageProps) {
+  const { id } = await params
   const supabase = await createClient()
 
   const { data: pjo, error } = await supabase
     .from('proforma_job_orders')
     .select('*')
-    .eq('id', params.id)
+    .eq('id', id)
     .eq('is_active', true)
     .single()
 
@@ -25,7 +26,7 @@ export default async function EditPJOPage({ params }: EditPJOPageProps) {
 
   // Only draft PJOs can be edited
   if (pjo.status !== 'draft') {
-    redirect(`/proforma-jo/${params.id}`)
+    redirect(`/proforma-jo/${id}`)
   }
 
   const { data: projects } = await supabase
@@ -44,7 +45,7 @@ export default async function EditPJOPage({ params }: EditPJOPageProps) {
     <div className="space-y-6">
       <div className="flex items-center gap-4">
         <Button variant="ghost" size="icon" asChild>
-          <Link href={`/proforma-jo/${params.id}`}>
+          <Link href={`/proforma-jo/${id}`}>
             <ArrowLeft className="h-4 w-4" />
           </Link>
         </Button>

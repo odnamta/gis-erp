@@ -6,10 +6,11 @@ import { PJODetailView } from '@/components/pjo/pjo-detail-view'
 import { ArrowLeft } from 'lucide-react'
 
 interface PJODetailPageProps {
-  params: { id: string }
+  params: Promise<{ id: string }>
 }
 
 export default async function PJODetailPage({ params }: PJODetailPageProps) {
+  const { id } = await params
   const supabase = await createClient()
 
   const { data: pjo, error } = await supabase
@@ -25,7 +26,7 @@ export default async function PJODetailPage({ params }: PJODetailPageProps) {
         )
       )
     `)
-    .eq('id', params.id)
+    .eq('id', id)
     .eq('is_active', true)
     .single()
 
