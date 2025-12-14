@@ -19,7 +19,7 @@ export async function getJobOrders(): Promise<JobOrderWithRelations[]> {
         id,
         name
       ),
-      proforma_job_orders (
+      proforma_job_orders!job_orders_pjo_id_fkey (
         id,
         pjo_number
       )
@@ -49,7 +49,7 @@ export async function getJobOrder(id: string): Promise<JobOrderWithRelations | n
         id,
         name
       ),
-      proforma_job_orders (
+      proforma_job_orders!job_orders_pjo_id_fkey (
         id,
         pjo_number,
         commodity,

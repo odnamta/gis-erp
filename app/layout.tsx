@@ -27,11 +27,11 @@ export default function RootLayout({
   return (
     <html lang="en">
       <head>
-        {/* Google Maps API - must be in head with beforeInteractive for early loading */}
+        {/* Google Maps API - loaded async for better performance */}
         {process.env.NEXT_PUBLIC_GOOGLE_MAPS_API_KEY && (
           <Script
-            src={`https://maps.googleapis.com/maps/api/js?key=${process.env.NEXT_PUBLIC_GOOGLE_MAPS_API_KEY}&libraries=places`}
-            strategy="beforeInteractive"
+            src={`https://maps.googleapis.com/maps/api/js?key=${process.env.NEXT_PUBLIC_GOOGLE_MAPS_API_KEY}&libraries=places&loading=async`}
+            strategy="afterInteractive"
           />
         )}
       </head>

@@ -118,9 +118,9 @@ export function JODetailView({ jobOrder }: JODetailViewProps) {
             </Button>
           )}
           {jobOrder.status === 'submitted_to_finance' && (
-            <Button disabled>
+            <Button onClick={() => router.push(`/invoices/new?joId=${jobOrder.id}`)}>
               <FileText className="mr-2 h-4 w-4" />
-              Create Invoice
+              Generate Invoice
             </Button>
           )}
         </div>

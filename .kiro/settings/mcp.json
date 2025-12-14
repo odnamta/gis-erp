@@ -15,7 +15,8 @@
         "apply_migration",
         "generate_typescript_types",
         "list_migrations",
-        "execute_sql"
+        "execute_sql",
+        "get_logs"
       ]
     },
     "context7": {

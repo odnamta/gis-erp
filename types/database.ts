@@ -156,42 +156,57 @@ export type Database = {
       }
       invoices: {
         Row: {
-          amount: number
-          created_at: string | null
-          customer_id: string
-          due_date: string
           id: string
           invoice_number: string
           jo_id: string
-          status: string
+          customer_id: string
+          invoice_date: string
+          due_date: string
+          subtotal: number
           tax_amount: number
           total_amount: number
+          status: string
+          sent_at: string | null
+          paid_at: string | null
+          cancelled_at: string | null
+          notes: string | null
+          created_at: string | null
           updated_at: string | null
         }
         Insert: {
-          amount?: number
-          created_at?: string | null
-          customer_id: string
-          due_date: string
           id?: string
           invoice_number: string
           jo_id: string
-          status?: string
+          customer_id: string
+          invoice_date?: string
+          due_date: string
+          subtotal?: number
           tax_amount?: number
           total_amount?: number
+          status?: string
+          sent_at?: string | null
+          paid_at?: string | null
+          cancelled_at?: string | null
+          notes?: string | null
+          created_at?: string | null
           updated_at?: string | null
         }
         Update: {
-          amount?: number
-          created_at?: string | null
-          customer_id?: string
-          due_date?: string
           id?: string
           invoice_number?: string
           jo_id?: string
-          status?: string
+          customer_id?: string
+          invoice_date?: string
+          due_date?: string
+          subtotal?: number
           tax_amount?: number
           total_amount?: number
+          status?: string
+          sent_at?: string | null
+          paid_at?: string | null
+          cancelled_at?: string | null
+          notes?: string | null
+          created_at?: string | null
           updated_at?: string | null
         }
         Relationships: [
@@ -209,6 +224,51 @@ export type Database = {
             referencedRelation: "job_orders"
             referencedColumns: ["id"]
           },
+        ]
+      }
+      invoice_line_items: {
+        Row: {
+          id: string
+          invoice_id: string
+          line_number: number
+          description: string
+          quantity: number
+          unit: string | null
+          unit_price: number
+          subtotal: number
+          created_at: string | null
+          updated_at: string | null
+        }
+        Insert: {
+          id?: string
+          invoice_id: string
+          line_number: number
+          description: string
+          quantity?: number
+          unit?: string | null
+          unit_price: number
+          created_at?: string | null
+          updated_at?: string | null
+        }
+        Update: {
+          id?: string
+          invoice_id?: string
+          line_number?: number
+          description?: string
+          quantity?: number
+          unit?: string | null
+          unit_price?: number
+          created_at?: string | null
+          updated_at?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "invoice_line_items_invoice_id_fkey"
+            columns: ["invoice_id"]
+            isOneToOne: false
+            referencedRelation: "invoices"
+            referencedColumns: ["id"]
+          }
         ]
       }
       job_orders: {
@@ -599,4 +659,45 @@ export interface ProjectWithCustomer extends Project {
     id: string
     name: string
   } | null
+}
+
+// Invoice types
+export type InvoiceStatus = 'draft' | 'sent' | 'paid' | 'overdue' | 'cancelled'
+
+export type InvoiceLineItem = Tables<'invoice_line_items'>
+
+export interface InvoiceWithRelations extends Invoice {
+  customers: {
+    id: string
+    name: string
+    email: string
+    address: string | null
+  }
+  job_orders: {
+    id: string
+    jo_number: string
+    pjo_id: string | null
+  }
+  invoice_line_items?: InvoiceLineItem[]
+}
+
+export interface InvoiceFormData {
+  jo_id: string
+  customer_id: string
+  invoice_date: string
+  due_date: string
+  line_items: {
+    description: string
+    quantity: number
+    unit: string
+    unit_price: number
+  }[]
+  notes?: string
+}
+
+export interface InvoiceLineItemInput {
+  description: string
+  quantity: number
+  unit: string
+  unit_price: number
 }

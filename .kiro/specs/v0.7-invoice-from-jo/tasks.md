@@ -1,0 +1,178 @@
+# Implementation Plan
+
+- [x] 1. Database schema and type definitions
+  - [x] 1.1 Create migration for invoice_line_items table and invoices table updates
+    - Add invoice_line_items table with id, invoice_id, line_number, description, quantity, unit, unit_price, subtotal (generated), timestamps
+    - Add columns to invoices: invoice_date, sent_at, paid_at, cancelled_at, notes
+    - Rename amount to subtotal in invoices table
+    - Add RLS policies for invoice_line_items
+    - _Requirements: 9.1, 9.3_
+  - [x] 1.2 Update TypeScript type definitions
+    - Add InvoiceLineItem interface
+    - Add InvoiceExtended interface with new fields
+    - Add InvoiceWithRelations interface
+    - Add InvoiceFormData interface
+    - Add InvoiceStatus type
+    - _Requirements: 9.1_
+
+- [x] 2. Invoice utility functions
+  - [x] 2.1 Create lib/invoice-utils.ts with core calculation functions
+    - Implement calculateInvoiceTotals(lineItems) returning subtotal, vatAmount, grandTotal
+    - Implement VAT_RATE constant (0.11)
+    - Implement generateInvoiceNumber(year, sequence) function
+    - Implement isInvoiceOverdue(dueDate, status) function
+    - Implement getDefaultDueDate() returning date 30 days from now
+    - _Requirements: 3.1, 3.2, 3.3, 3.4, 1.5_
+  - [x] 2.2 Write property test for invoice total calculations
+    - **Property 6: Invoice Total Calculations**
+    - **Validates: Requirements 3.1, 3.2, 3.3, 3.4, 3.5**
+  - [x] 2.3 Write property test for line item subtotal calculation
+    - **Property 5: Line Item Subtotal Calculation**
+    - **Validates: Requirements 2.4**
+
+- [x] 3. Invoice server actions - Core CRUD
+  - [x] 3.1 Create app/(main)/invoices/actions.ts with invoice number generation
+    - Implement generateInvoiceNumber() that queries max invoice number for current year and returns next sequential
+    - Format: INV-YYYY-NNNN
+    - _Requirements: 1.3_
+  - [x] 3.2 Write property test for invoice number generation
+    - **Property 1: Invoice Number Sequential Generation**
+    - **Validates: Requirements 1.3**
+  - [x] 3.3 Implement getInvoiceDataFromJO(joId) action
+    - Fetch JO with customer and PJO data
+    - Fetch pjo_revenue_items for the linked PJO
+    - Validate JO status is "submitted_to_finance"
+    - Return pre-filled InvoiceFormData
+    - _Requirements: 1.2, 1.6, 2.1, 2.2_
+  - [x] 3.4 Write property test for JO status validation
+    - **Property 2: JO Status Validation**
+    - **Validates: Requirements 1.6**
+  - [x] 3.5 Implement createInvoice(data) action
+    - Generate invoice number
+    - Create invoice record with status "draft"
+    - Create invoice_line_items from form data with sequential line_number
+    - Update JO status to "invoiced"
+    - Return created invoice
+    - _Requirements: 4.1, 4.2, 4.3, 4.4_
+  - [x] 3.6 Write property test for revenue items copy
+    - **Property 3: Revenue Items Complete Copy**
+    - **Validates: Requirements 2.1, 2.2**
+  - [x] 3.7 Write property test for line item sequential numbering
+    - **Property 4: Line Item Sequential Numbering**
+    - **Validates: Requirements 2.3**
+  - [x] 3.8 Write property test for invoice creation updates JO
+    - **Property 7: Invoice Creation Updates JO**
+    - **Validates: Requirements 4.3, 4.4**
+
+- [x] 4. Checkpoint - Ensure all tests pass
+  - Ensure all tests pass, ask the user if questions arise.
+
+- [x] 5. Invoice server actions - Read operations
+  - [x] 5.1 Implement getInvoices(filters?) action
+    - Fetch invoices with customer and job_order relations
+    - Apply status filter if provided
+    - Apply search filter for invoice_number and customer name
+    - Sort by created_at descending
+    - _Requirements: 5.1, 5.2, 8.1, 8.2, 8.3_
+  - [x] 5.2 Write property test for status filter correctness
+    - **Property 11: Status Filter Correctness**
+    - **Validates: Requirements 8.1**
+  - [x] 5.3 Write property test for invoice list ordering
+    - **Property 12: Invoice List Ordering**
+    - **Validates: Requirements 5.2**
+  - [x] 5.4 Implement getInvoice(id) action
+    - Fetch invoice with customer, job_order, and invoice_line_items
+    - Return InvoiceWithRelations or null
+    - _Requirements: 6.1, 6.2, 6.3_
+
+- [x] 6. Invoice server actions - Status management
+  - [x] 6.1 Implement updateInvoiceStatus(id, status) action
+    - Validate current status allows transition to target status
+    - Update status and appropriate timestamp (sent_at, paid_at, cancelled_at)
+    - If status is "paid", update JO status to "closed"
+    - If status is "cancelled", revert JO status to "submitted_to_finance"
+    - _Requirements: 7.1, 7.2, 7.3, 7.4, 7.5_
+  - [x] 6.2 Write property test for status transitions
+    - **Property 8: Invoice Status Transitions**
+    - **Validates: Requirements 7.1, 7.2, 7.5**
+  - [x] 6.3 Write property test for payment updates JO
+    - **Property 9: Payment Updates JO to Closed**
+    - **Validates: Requirements 7.3**
+  - [x] 6.4 Write property test for cancellation reverts JO
+    - **Property 10: Cancellation Reverts JO Status**
+    - **Validates: Requirements 7.4**
+
+- [x] 7. Checkpoint - Ensure all tests pass
+  - Ensure all tests pass, ask the user if questions arise.
+
+- [x] 8. UI Components - Status and display
+  - [x] 8.1 Create components/ui/invoice-status-badge.tsx
+    - Display status with appropriate colors (draft: gray, sent: blue, paid: green, overdue: red, cancelled: gray)
+    - _Requirements: 5.1_
+  - [x] 8.2 Create components/invoices/invoice-filters.tsx
+    - Status filter dropdown with all status options
+    - Search input for invoice number and customer name
+    - _Requirements: 8.1, 8.2, 8.3_
+
+- [x] 9. UI Components - Invoice table and list
+  - [x] 9.1 Create components/invoices/invoice-table.tsx
+    - Display columns: Invoice #, Customer, JO #, Subtotal, VAT, Total, Due Date, Status
+    - Format monetary values using formatIDR
+    - Click row to navigate to detail page
+    - _Requirements: 5.1, 5.3, 5.4_
+  - [x] 9.2 Update app/(main)/invoices/page.tsx
+    - Fetch invoices using getInvoices action
+    - Render InvoiceFilters and InvoiceTable
+    - Handle filter state
+    - _Requirements: 5.1, 5.2_
+
+- [x] 10. UI Components - Invoice detail view
+  - [x] 10.1 Create components/invoices/invoice-detail-view.tsx
+    - Display invoice header (number, date, status, customer, JO link)
+    - Display line items table
+    - Display financial summary (subtotal, VAT, total)
+    - Action buttons for status transitions based on current status
+    - _Requirements: 6.1, 6.2, 6.3, 6.4, 7.1, 7.2, 7.4, 7.5_
+  - [x] 10.2 Create app/(main)/invoices/[id]/page.tsx
+    - Fetch invoice using getInvoice action
+    - Render InvoiceDetailView
+    - Handle 404 if invoice not found
+    - _Requirements: 6.1_
+
+- [x] 11. UI Components - Invoice form
+  - [x] 11.1 Create components/invoices/invoice-line-item-row.tsx
+    - Editable row for line item (description, quantity, unit, unit_price)
+    - Display calculated subtotal
+    - Delete button
+    - _Requirements: 2.5_
+  - [x] 11.2 Create components/invoices/invoice-form.tsx
+    - Display invoice number (read-only, auto-generated)
+    - Date pickers for invoice_date and due_date
+    - Customer info display (read-only)
+    - Editable line items list with add/remove
+    - Auto-calculating totals (subtotal, VAT, grand total)
+    - Save button
+    - _Requirements: 1.2, 1.3, 1.4, 1.5, 2.5, 3.5_
+  - [x] 11.3 Create app/(main)/invoices/new/page.tsx
+    - Accept joId query parameter
+    - Fetch pre-fill data using getInvoiceDataFromJO
+    - Render InvoiceForm
+    - Handle form submission with createInvoice
+    - Redirect to invoice detail on success
+    - _Requirements: 1.2, 4.1_
+
+- [x] 12. Integration - JO Detail page update
+  - [x] 12.1 Update components/job-orders/jo-detail-view.tsx
+    - Add "Generate Invoice" button when status is "submitted_to_finance"
+    - Button navigates to /invoices/new?joId={id}
+    - _Requirements: 1.1_
+
+- [x] 13. Checkpoint - Ensure all tests pass
+  - Ensure all tests pass, ask the user if questions arise.
+
+- [x] 14. Write property test for monetary value round-trip
+  - **Property 13: Monetary Value Round-Trip**
+  - **Validates: Requirements 9.3, 9.4**
+
+- [x] 15. Final Checkpoint - Ensure all tests pass
+  - Ensure all tests pass, ask the user if questions arise.
