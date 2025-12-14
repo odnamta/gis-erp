@@ -1,0 +1,71 @@
+# Implementation Plan
+
+- [x] 1. Set up authentication infrastructure
+  - [x] 1.1 Update middleware helper for session management
+    - Update `lib/supabase/middleware.ts` to handle session refresh
+    - Export `updateSession` function for use in middleware
+    - _Requirements: 4.1, 4.3_
+  - [x] 1.2 Create route protection middleware
+    - Create `middleware.ts` at project root
+    - Configure matcher to exclude /login, /auth/callback, and static files
+    - Call `updateSession` to validate and refresh sessions
+    - Redirect unauthenticated users to /login
+    - _Requirements: 4.1, 4.2, 4.3_
+  - [x] 1.3 Write property test for route protection
+    - **Property 1: Route protection redirects unauthenticated users**
+    - Generate random route paths, verify middleware correctly identifies protected vs public routes
+    - **Validates: Requirements 4.1**
+
+- [x] 2. Create login page and OAuth flow
+  - [x] 2.1 Create login page component
+    - Create `app/login/page.tsx`
+    - Use shadcn/ui Card and Button components
+    - Display Gama ERP logo/branding
+    - Add "Sign in with Google" button with Google icon
+    - Handle loading state during OAuth initiation
+    - Display error messages from URL search params
+    - _Requirements: 1.1, 1.2, 1.5, 5.1_
+  - [x] 2.2 Create OAuth callback route handler
+    - Create `app/auth/callback/route.ts`
+    - Exchange auth code for session using Supabase server client
+    - Handle success: redirect to /dashboard
+    - Handle error: redirect to /login with error message
+    - _Requirements: 1.4, 1.5, 5.2_
+  - [x] 2.3 Write unit tests for login page
+    - Test sign-in button renders
+    - Test error message displays when error param present
+    - Test loading state during authentication
+    - _Requirements: 1.1, 1.5, 5.1_
+
+- [x] 3. Checkpoint - Ensure all tests pass
+  - Ensure all tests pass, ask the user if questions arise.
+
+- [x] 4. Update header with user info and logout
+  - [x] 4.1 Update header component with user display
+    - Modify `components/layout/header.tsx`
+    - Fetch user session in parent layout and pass to Header
+    - Display user's name from Google profile
+    - Display user's avatar image with fallback to initials
+    - _Requirements: 2.1, 2.2, 2.3_
+  - [x] 4.2 Add logout functionality to header
+    - Add logout button/dropdown menu to header
+    - Implement client-side logout using Supabase client
+    - Redirect to /login after logout
+    - Clear session cookies
+    - _Requirements: 3.1, 3.2, 3.3, 3.4_
+  - [x] 4.3 Update main layout to fetch and pass user data
+    - Modify `app/(main)/layout.tsx`
+    - Fetch user session using server client
+    - Pass user info to Header component
+    - _Requirements: 2.1, 2.2_
+  - [x] 4.4 Write property test for user profile display
+    - **Property 2: Authenticated user profile display**
+    - Generate random user metadata, verify header correctly extracts and displays name
+    - **Validates: Requirements 2.1, 2.2**
+  - [x] 4.5 Write property test for avatar fallback
+    - **Property 3: Avatar fallback to initials**
+    - Generate random names, verify initials are correctly derived
+    - **Validates: Requirements 2.3**
+
+- [x] 5. Final Checkpoint - Ensure all tests pass
+  - Ensure all tests pass, ask the user if questions arise.

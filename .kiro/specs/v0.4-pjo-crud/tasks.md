@@ -1,0 +1,171 @@
+# Implementation Plan
+
+- [x] 1. Database schema and types setup
+  - [x] 1.1 Apply migration to extend proforma_job_orders table
+    - Add columns: jo_date, commodity, quantity, quantity_unit, pol, pod, etd, eta, carrier_type, total_revenue, total_expenses, profit, notes, created_by, approved_by, approved_at, rejection_reason, is_active
+    - _Requirements: 3.1, 3.2, 3.3, 3.4, 3.7, 4.1_
+  - [x] 1.2 Update TypeScript types in types/database.ts
+    - Add PJOStatus, QuantityUnit, CarrierType types
+    - Update ProformaJobOrder type with new fields
+    - Add PJOWithRelations type
+    - _Requirements: 3.1, 5.2_
+
+- [x] 2. Utility functions and core logic
+  - [x] 2.1 Create lib/pjo-utils.ts with utility functions
+    - Implement formatIDR() for Indonesian Rupiah formatting
+    - Implement calculateProfit() and calculateMargin()
+    - Implement toRomanMonth() for month conversion
+    - Implement filterPJOs() for list filtering
+    - _Requirements: 1.3, 2.1, 2.2, 2.3, 3.5, 3.6, 4.4_
+  - [x] 2.2 Write property test for IDR currency formatting
+    - **Property 1: IDR Currency Formatting**
+    - **Validates: Requirements 1.3**
+  - [x] 2.3 Write property test for profit calculation
+    - **Property 4: Profit Calculation**
+    - **Validates: Requirements 3.5**
+  - [x] 2.4 Write property test for margin calculation
+    - **Property 5: Margin Calculation**
+    - **Validates: Requirements 3.6**
+  - [x] 2.5 Write property test for Roman numeral conversion
+    - **Property 7: Month to Roman Numeral Conversion**
+    - **Validates: Requirements 4.4**
+  - [x] 2.6 Write property test for PJO filtering
+    - **Property 3: PJO Filtering**
+    - **Validates: Requirements 2.1, 2.2, 2.3**
+
+- [x] 3. PJO number generation
+  - [x] 3.1 Implement generatePJONumber() function in actions.ts
+    - Query last PJO number for current month
+    - Increment sequence or start at 0001
+    - Format as NNNN/CARGO/MM/YYYY with Roman numeral month
+    - _Requirements: 4.1, 4.2, 4.3, 4.4_
+  - [x] 3.2 Write property test for PJO number format
+    - **Property 6: PJO Number Format**
+    - **Validates: Requirements 4.1, 4.2**
+
+- [x] 4. PJO Status Badge component
+  - [x] 4.1 Create components/ui/pjo-status-badge.tsx
+    - Define PJOStatus type (draft, pending_approval, approved, rejected)
+    - Implement color mapping (gray, yellow, green, red)
+    - _Requirements: 9.1, 9.2, 9.3, 9.4_
+  - [x] 4.2 Write property test for status badge colors
+    - **Property 9: PJO Status Badge Colors**
+    - **Validates: Requirements 9.1, 9.2, 9.3, 9.4**
+
+- [x] 5. Checkpoint - Ensure all tests pass
+  - Ensure all tests pass, ask the user if questions arise.
+
+- [x] 6. PJO Form component
+  - [x] 6.1 Create components/pjo/pjo-form.tsx
+    - Section 1: Basic Info (jo_date, project dropdown, commodity, quantity, quantity_unit)
+    - Section 2: Logistics (pol, pod, etd, eta, carrier_type)
+    - Section 3: Financials (total_revenue, total_expenses, auto-calculated profit/margin)
+    - Section 4: Notes (textarea)
+    - Use react-hook-form with Zod validation
+    - _Requirements: 3.1, 3.2, 3.3, 3.4, 3.5, 3.6, 3.7, 3.8_
+  - [x] 6.2 Write unit tests for PJO form validation
+    - Test required field validation
+    - Test auto-calculation of profit and margin
+    - _Requirements: 3.5, 3.6_
+
+- [x] 7. Server Actions for PJO CRUD
+  - [x] 7.1 Create app/(main)/proforma-jo/actions.ts
+    - Implement createPJO() with auto-generated number
+    - Implement updatePJO() for draft PJOs only
+    - Implement deletePJO() soft delete for draft PJOs only
+    - _Requirements: 3.9, 3.10, 6.1, 6.2, 6.3, 10.2, 10.3, 10.4_
+  - [x] 7.2 Implement status transition actions
+    - submitForApproval() - draft → pending_approval
+    - approvePJO() - pending_approval → approved
+    - rejectPJO() - pending_approval → rejected with reason
+    - _Requirements: 7.2, 7.3, 8.2, 8.3_
+  - [x] 7.3 Write property test for status transitions
+    - **Property 8: Status Transition Validity**
+    - **Validates: Requirements 7.2, 8.2, 8.3**
+
+- [x] 8. PJO List Page
+  - [x] 8.1 Create app/(main)/proforma-jo/page.tsx (Server Component)
+    - Fetch PJOs with project and customer relations
+    - Order by created_at descending
+    - _Requirements: 1.1, 1.2_
+  - [x] 8.2 Create app/(main)/proforma-jo/pjo-list-client.tsx (Client Component)
+    - Manage filter state (status, date range)
+    - Handle delete confirmation dialog
+    - _Requirements: 2.1, 2.2, 2.3, 2.4_
+  - [x] 8.3 Create components/pjo/pjo-table.tsx
+    - Display columns: PJO number, date, customer, project, revenue, profit, status, actions
+    - Format monetary values with formatIDR()
+    - Include view, edit, delete action buttons
+    - _Requirements: 1.2, 1.3, 1.5_
+  - [x] 8.4 Create components/pjo/pjo-filters.tsx
+    - Status dropdown filter
+    - Date range picker (from/to)
+    - _Requirements: 2.1, 2.2_
+  - [x] 8.5 Write property test for list ordering
+    - **Property 2: PJO List Ordering**
+    - **Validates: Requirements 1.1**
+
+- [x] 9. Create PJO Page
+  - [x] 9.1 Create app/(main)/proforma-jo/new/page.tsx
+    - Server Component fetching projects with customers
+    - Accept optional project_id query param
+    - Render PJOForm in create mode
+    - _Requirements: 3.1, 3.8, 11.3_
+  - [x] 9.2 Write unit tests for create PJO flow
+    - Test form submission
+    - Test PJO number generation
+    - Test redirect after success
+    - _Requirements: 3.9, 3.10, 4.1_
+
+- [x] 10. PJO Detail Page
+  - [x] 10.1 Create app/(main)/proforma-jo/[id]/page.tsx
+    - Server Component fetching single PJO with relations
+    - Handle 404 for non-existent PJO
+    - _Requirements: 5.1, 5.6_
+  - [x] 10.2 Create components/pjo/pjo-detail-view.tsx
+    - Display all PJO fields in read-only cards by section
+    - Show project and customer links
+    - Render action buttons based on status
+    - _Requirements: 5.2, 5.3, 5.4, 5.5_
+  - [x] 10.3 Implement status-based action buttons
+    - Draft: "Submit for Approval" button
+    - Pending Approval: "Approve" / "Reject" buttons (for managers)
+    - Approved: "Create Job Order" button (placeholder for future)
+    - _Requirements: 7.1, 7.4, 8.1, 8.5_
+
+- [x] 11. Edit PJO Page
+  - [x] 11.1 Create app/(main)/proforma-jo/[id]/edit/page.tsx
+    - Server Component fetching PJO for editing
+    - Redirect if PJO is not draft status
+    - Render PJOForm in edit mode with pre-filled data
+    - _Requirements: 6.1, 6.2, 6.5_
+  - [x] 11.2 Write unit tests for edit PJO flow
+    - Test form pre-population
+    - Test status restriction
+    - _Requirements: 6.3, 6.5_
+
+- [x] 12. Checkpoint - Ensure all tests pass
+  - Ensure all tests pass, ask the user if questions arise.
+
+- [x] 13. Project integration
+  - [x] 13.1 Update project detail page to show PJOs
+    - Add PJO list section to /projects/[id] page
+    - Display PJO number, date, status, revenue
+    - Add "Add PJO" button linking to /proforma-jo/new?project_id=xxx
+    - _Requirements: 11.1, 11.2, 11.3_
+
+- [x] 14. Navigation and polish
+  - [x] 14.1 Add PJO menu item to sidebar navigation
+    - Add "Proforma JO" link to main navigation
+    - _Requirements: 1.1_
+  - [x] 14.2 Add loading states and empty states
+    - Loading indicator for table
+    - Empty state message when no PJOs exist
+    - _Requirements: 1.4, 1.5_
+  - [x] 14.3 Add error handling and toast notifications
+    - Success toasts for create, update, delete, status changes
+    - Error toasts for failures
+    - _Requirements: 1.6, 3.10, 3.11, 6.3, 6.4, 7.3, 8.4, 10.3, 10.5_
+
+- [x] 15. Final Checkpoint - Ensure all tests pass
+  - Ensure all tests pass, ask the user if questions arise.

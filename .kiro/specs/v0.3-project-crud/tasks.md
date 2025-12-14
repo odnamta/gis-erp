@@ -1,0 +1,114 @@
+# Implementation Plan
+
+- [x] 1. Create shared components and utilities
+  - [x] 1.1 Create StatusBadge component
+    - Create `components/ui/status-badge.tsx`
+    - Implement color mapping for draft (gray), active (green), completed (blue), cancelled (red)
+    - Export getStatusColor utility function for testing
+    - _Requirements: 7.1, 7.2, 7.3, 7.4_
+  - [x] 1.2 Write property test for status badge colors
+    - **Property 7: Status badge color mapping is correct**
+    - Test all status values map to correct colors
+    - **Validates: Requirements 7.1, 7.2, 7.3, 7.4**
+
+- [x] 2. Create project form and dialog components
+  - [x] 2.1 Create project form component with validation
+    - Create `components/projects/project-form.tsx`
+    - Add fields: customer_id (select), name (required), status (select), site_address
+    - Implement validation using zod schema
+    - Disable customer select in edit mode
+    - Handle loading state during submission
+    - _Requirements: 3.2, 3.3, 3.4, 4.2, 4.3_
+  - [x] 2.2 Write property test for name validation
+    - **Property 4: Project name validation rejects empty/whitespace**
+    - Generate whitespace-only strings, verify rejection
+    - **Validates: Requirements 3.3**
+  - [x] 2.3 Create project dialog component
+    - Create `components/projects/project-dialog.tsx`
+    - Support both add and edit modes
+    - Pre-fill form when editing existing project
+    - Support preselectedCustomerId prop
+    - Handle dialog open/close state
+    - _Requirements: 3.1, 4.1, 6.3_
+  - [x] 2.4 Write property test for edit form pre-fill
+    - **Property 5: Edit form pre-fills all project data**
+    - Generate random project data, verify all fields pre-filled
+    - **Validates: Requirements 4.1**
+
+- [x] 3. Implement server actions for CRUD operations
+  - [x] 3.1 Create server actions file
+    - Create `app/(main)/projects/actions.ts`
+    - Implement `createProject` action with validation
+    - Implement `updateProject` action with validation
+    - Implement `deleteProject` action (soft-delete with is_active check)
+    - Handle errors and return appropriate messages
+    - _Requirements: 3.5, 4.4_
+
+- [x] 4. Checkpoint - Ensure all tests pass
+  - Ensure all tests pass, ask the user if questions arise.
+
+- [x] 5. Build project list page with filters
+  - [x] 5.1 Create project table component
+    - Create `components/projects/project-table.tsx`
+    - Display projects in table format (name, customer, status, site, actions)
+    - Add status filter dropdown
+    - Add customer filter dropdown
+    - Add edit, view, and delete action buttons per row
+    - Handle empty state
+    - _Requirements: 1.1, 1.2, 1.4, 2.1, 2.2, 2.3, 2.4_
+  - [x] 5.2 Write property test for status filtering
+    - **Property 1: Status filter returns only matching projects**
+    - Generate random projects and status filters, verify filter correctness
+    - **Validates: Requirements 2.1**
+  - [x] 5.3 Write property test for customer filtering
+    - **Property 2: Customer filter returns only matching projects**
+    - Generate random projects and customer filters, verify filter correctness
+    - **Validates: Requirements 2.2**
+  - [x] 5.4 Write property test for combined filtering
+    - **Property 3: Combined filters are conjunctive**
+    - Generate random projects with both filters, verify intersection
+    - **Validates: Requirements 2.3**
+  - [x] 5.5 Create projects client component
+    - Create `app/(main)/projects/projects-client.tsx`
+    - Handle add/edit/delete flows with dialogs
+    - Integrate toast notifications
+    - _Requirements: 3.6, 4.5_
+  - [x] 5.6 Update projects page
+    - Update `app/(main)/projects/page.tsx`
+    - Fetch projects with customer join from Supabase
+    - Fetch customers for filter dropdown
+    - Order by created_at descending
+    - _Requirements: 1.3_
+
+- [x] 6. Checkpoint - Ensure all tests pass
+  - Ensure all tests pass, ask the user if questions arise.
+
+- [x] 7. Create project detail page
+  - [x] 7.1 Create project detail page
+    - Create `app/(main)/projects/[id]/page.tsx`
+    - Fetch project by ID with customer join
+    - Display all project fields with StatusBadge
+    - Show customer info with link to customer detail
+    - Handle project not found (404)
+    - _Requirements: 5.1, 5.2, 5.3, 5.6_
+  - [x] 7.2 Add PJOs and JOs lists to detail page
+    - Fetch PJOs for the project
+    - Fetch JOs for the project
+    - Display in tables/lists (empty state if none)
+    - _Requirements: 5.4, 5.5_
+  - [x] 7.3 Write property test for project detail display
+    - **Property 6: Project detail displays all fields**
+    - Generate random project data, verify all fields displayed
+    - **Validates: Requirements 5.2**
+
+- [x] 8. Update customer detail page
+  - [x] 8.1 Enhance customer projects section
+    - Update `app/(main)/customers/[id]/page.tsx`
+    - Add StatusBadge to project list
+    - Add "Add Project" button that pre-selects customer
+    - Show site_address in project list
+    - _Requirements: 6.1, 6.2, 6.3_
+
+- [x] 9. Final Checkpoint - Ensure all tests pass
+  - Ensure all tests pass, ask the user if questions arise.
+
