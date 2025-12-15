@@ -135,7 +135,7 @@ export async function fetchRecentActivity(): Promise<ActivityEntry[]> {
     .order('created_at', { ascending: false })
     .limit(5)
 
-  if (error) {
+  if (error && Object.keys(error).length > 0) {
     console.error('Error fetching recent activity:', error)
     return []
   }
