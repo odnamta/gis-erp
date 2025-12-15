@@ -377,6 +377,25 @@ export async function updateInvoiceStatus(
         updated_at: new Date().toISOString(),
       })
       .eq('id', invoice.jo_id)
+
+    // Log activity for dashboard - fetch invoice number first
+    const { data: invoiceData } = await supabase
+      .from('invoices')
+      .select('invoice_number')
+      .eq('id', id)
+      .single()
+
+    if (invoiceData) {
+      const { data: { user } } = await supabase.auth.getUser()
+      await supabase.from('activity_log').insert({
+        action_type: 'invoice_paid',
+        document_type: 'invoice',
+        document_id: id,
+        document_number: invoiceData.invoice_number,
+        user_id: user?.id || null,
+        user_name: user?.email || 'System',
+      })
+    }
   } else if (targetStatus === 'cancelled') {
     // Revert JO to submitted_to_finance
     await supabase
@@ -392,6 +411,7 @@ export async function updateInvoiceStatus(
   revalidatePath(`/invoices/${id}`)
   revalidatePath('/job-orders')
   revalidatePath(`/job-orders/${invoice.jo_id}`)
+  revalidatePath('/dashboard')
 
   return {}
 }

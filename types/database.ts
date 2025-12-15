@@ -527,6 +527,42 @@ export type Database = {
           },
         ]
       }
+      activity_log: {
+        Row: {
+          id: string
+          action_type: string
+          document_type: string
+          document_id: string
+          document_number: string
+          user_id: string | null
+          user_name: string
+          details: Json | null
+          created_at: string | null
+        }
+        Insert: {
+          id?: string
+          action_type: string
+          document_type: string
+          document_id: string
+          document_number: string
+          user_id?: string | null
+          user_name: string
+          details?: Json | null
+          created_at?: string | null
+        }
+        Update: {
+          id?: string
+          action_type?: string
+          document_type?: string
+          document_id?: string
+          document_number?: string
+          user_id?: string | null
+          user_name?: string
+          details?: Json | null
+          created_at?: string | null
+        }
+        Relationships: []
+      }
     }
     Views: {
       [_ in never]: never
@@ -700,4 +736,75 @@ export interface InvoiceLineItemInput {
   quantity: number
   unit: string
   unit_price: number
+}
+
+
+// Dashboard types
+export interface DashboardKPIs {
+  awaitingOpsInput: number
+  exceededBudgetItems: number
+  readyForConversion: number
+  outstandingAR: number
+}
+
+export type ActivityType = 
+  | 'pjo_approved'
+  | 'pjo_rejected'
+  | 'jo_created'
+  | 'jo_completed'
+  | 'jo_submitted_to_finance'
+  | 'invoice_created'
+  | 'invoice_sent'
+  | 'invoice_paid'
+  | 'cost_confirmed'
+
+export type DocumentType = 'pjo' | 'jo' | 'invoice'
+
+export interface ActivityEntry {
+  id: string
+  action_type: ActivityType
+  document_type: DocumentType
+  document_id: string
+  document_number: string
+  user_id: string
+  user_name: string
+  details?: Record<string, unknown>
+  created_at: string
+}
+
+export interface BudgetAlert {
+  id: string
+  pjo_id: string
+  pjo_number: string
+  category: string
+  description: string
+  estimated_amount: number
+  actual_amount: number
+  variance: number
+  variance_pct: number
+  created_at: string
+}
+
+export interface OpsQueueItem {
+  id: string
+  pjo_number: string
+  customer_name: string
+  project_name: string | null
+  commodity: string | null
+  costs_confirmed: number
+  costs_total: number
+  created_at: string
+}
+
+export interface ManagerMetrics {
+  totalRevenue: number
+  totalCosts: number
+  totalProfit: number
+  margin: number
+  activeJOCount: number
+}
+
+export interface CostProgress {
+  confirmed: number
+  total: number
 }

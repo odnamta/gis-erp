@@ -438,7 +438,7 @@ export async function approvePJO(id: string): Promise<{ error?: string }> {
 
   const { data: existingPJO, error: fetchError } = await supabase
     .from('proforma_job_orders')
-    .select('status')
+    .select('status, pjo_number')
     .eq('id', id)
     .single()
 
@@ -464,8 +464,19 @@ export async function approvePJO(id: string): Promise<{ error?: string }> {
     return { error: error.message }
   }
 
+  // Log activity for dashboard
+  await supabase.from('activity_log').insert({
+    action_type: 'pjo_approved',
+    document_type: 'pjo',
+    document_id: id,
+    document_number: existingPJO.pjo_number,
+    user_id: user.id,
+    user_name: user.email || 'Unknown User',
+  })
+
   revalidatePath('/proforma-jo')
   revalidatePath(`/proforma-jo/${id}`)
+  revalidatePath('/dashboard')
   return {}
 }
 

@@ -1,0 +1,162 @@
+# Implementation Plan
+
+- [x] 1. Set up database schema and types
+  - [x] 1.1 Create activity_log table migration
+    - Create migration for activity_log table with columns: id, action_type, document_type, document_id, document_number, user_id, user_name, details, created_at
+    - Add indexes on created_at and action_type
+    - Enable RLS with appropriate policies
+    - _Requirements: 3.4, 3.5, 3.6_
+  - [x] 1.2 Add dashboard types to types/database.ts
+    - Add DashboardKPIs, BudgetAlert, ActivityEntry, OpsQueueItem, ManagerMetrics interfaces
+    - Add ActivityType union type
+    - _Requirements: 1.2, 1.3, 1.4, 1.5, 3.2, 4.3, 6.2_
+
+- [x] 2. Implement dashboard utility functions
+  - [x] 2.1 Create lib/dashboard-utils.ts with KPI calculation functions
+    - Implement calculateAwaitingOpsCount function
+    - Implement calculateExceededBudgetCount function
+    - Implement calculateReadyForConversionCount function
+    - Implement calculateOutstandingAR function
+    - _Requirements: 1.2, 1.3, 1.4, 1.5_
+  - [x] 2.2 Write property test for KPI calculations
+    - **Property 1: KPI Count Calculations**
+    - **Validates: Requirements 1.2, 1.3, 1.4**
+  - [x] 2.3 Write property test for Outstanding AR calculation
+    - **Property 2: Outstanding AR Sum Calculation**
+    - **Validates: Requirements 1.5**
+  - [x] 2.4 Implement variance and progress calculation functions
+    - Implement calculateVariancePercent function (leverage existing calculateVariance from pjo-utils)
+    - Implement calculateCostProgress function for X of Y display
+    - _Requirements: 2.4, 4.4_
+  - [x] 2.5 Write property test for progress calculation
+    - **Property 5: Cost Entry Progress Calculation**
+    - **Validates: Requirements 4.4**
+  - [x] 2.6 Implement activity message formatting functions
+    - Implement formatActivityMessage function for each action type
+    - Implement formatRelativeTime function for timestamps
+    - _Requirements: 3.2, 3.3, 3.4, 3.5, 3.6_
+  - [x] 2.7 Write property test for activity message formatting
+    - **Property 4: Activity Message Formatting**
+    - **Validates: Requirements 3.4, 3.5, 3.6**
+  - [x] 2.8 Implement manager metrics calculation functions
+    - Implement calculateManagerMetrics function for revenue, costs, profit, margin
+    - _Requirements: 6.2, 6.3_
+  - [x] 2.9 Write property test for manager metrics calculation
+    - **Property 7: Manager Metrics Calculation**
+    - **Validates: Requirements 6.3**
+
+- [x] 3. Checkpoint - Ensure all tests pass
+  - Ensure all tests pass, ask the user if questions arise.
+
+- [x] 4. Implement server actions for data fetching
+  - [x] 4.1 Create app/(main)/dashboard/actions.ts with KPI fetch functions
+    - Implement fetchDashboardKPIs function with parallel queries
+    - Use count queries with head: true for performance
+    - _Requirements: 1.2, 1.3, 1.4, 1.5, 7.1, 7.2_
+  - [x] 4.2 Implement budget alerts fetch function
+    - Fetch exceeded cost items with PJO number join
+    - Limit to 5 most recent items
+    - Order by created_at descending
+    - _Requirements: 2.1, 2.2, 7.3_
+  - [x] 4.3 Write property test for query result limits
+    - **Property 6: Query Result Limits**
+    - **Validates: Requirements 7.3, 7.4**
+  - [x] 4.4 Implement recent activity fetch function
+    - Fetch from activity_log table
+    - Limit to 5 most recent entries
+    - Order by created_at descending
+    - _Requirements: 3.1, 7.4_
+  - [x] 4.5 Implement operations queue fetch function
+    - Fetch PJOs where status='approved' AND all_costs_confirmed=false
+    - Include customer name and cost progress counts
+    - _Requirements: 4.2, 4.3_
+  - [x] 4.6 Implement manager metrics fetch function
+    - Aggregate JO data for current month
+    - Calculate total revenue, costs, profit, margin
+    - _Requirements: 6.2, 6.3_
+
+- [x] 5. Checkpoint - Ensure all tests pass
+  - Ensure all tests pass, ask the user if questions arise.
+
+- [x] 6. Create dashboard UI components
+  - [x] 6.1 Create KPICard component
+    - Implement responsive card with icon, value, description
+    - Add variant prop for color indicators (default, success, warning, danger)
+    - Add href prop for navigation link
+    - Add loading skeleton state
+    - _Requirements: 1.1, 1.6, 5.1, 5.2, 5.3, 5.4, 5.5, 7.5_
+  - [x] 6.2 Create BudgetAlertCard component
+    - Display list of exceeded cost items
+    - Show PJO number, category, variance amount, variance percentage
+    - Format amounts as IDR
+    - Show "View All" link when more than 5 items
+    - Show success message when no exceeded items
+    - _Requirements: 2.1, 2.2, 2.3, 2.5, 2.6_
+  - [x] 6.3 Create RecentActivity component
+    - Display list of activity items
+    - Show action type icon, document number, user name
+    - Format timestamp as relative time
+    - _Requirements: 3.1, 3.2, 3.3_
+  - [x] 6.4 Create OperationsQueue component
+    - Display list of PJOs needing cost entry
+    - Show PJO number, customer name, progress bar
+    - Link each item to cost entry page
+    - _Requirements: 4.1, 4.2, 4.3, 4.4, 4.5_
+  - [x] 6.5 Create ManagerSummary component
+    - Display total revenue, costs, profit, margin cards
+    - Format amounts as IDR
+    - Link to financial reports
+    - _Requirements: 6.1, 6.2, 6.4_
+
+- [x] 7. Update dashboard page
+  - [x] 7.1 Refactor dashboard page to fetch real data
+    - Replace static stats with server-side data fetching
+    - Fetch KPIs, budget alerts, recent activity in parallel
+    - Pass data to child components
+    - _Requirements: 1.1, 7.1_
+  - [x] 7.2 Implement role-based section rendering
+    - Show Operations Queue for ops and manager roles
+    - Show Manager Summary for manager role only
+    - _Requirements: 4.1, 6.1_
+  - [x] 7.3 Add KPI card navigation links
+    - Awaiting Ops Input → /proforma-jo?status=approved&costs_confirmed=false
+    - Budget Health → /dashboard/budget-alerts
+    - Ready for Conversion → /proforma-jo?status=approved&costs_confirmed=true
+    - Outstanding AR → /invoices?status=sent,overdue
+    - _Requirements: 9.1, 9.2, 9.3, 9.4_
+
+- [x] 8. Implement activity logging
+  - [x] 8.1 Create activity logging utility function
+    - Implement logActivity function to insert into activity_log
+    - Accept action_type, document info, user info
+    - _Requirements: 3.4, 3.5, 3.6_
+  - [x] 8.2 Add activity logging to PJO approval flow
+    - Log when PJO is approved with pjo_number and approver name
+    - _Requirements: 3.4_
+  - [x] 8.3 Add activity logging to JO creation flow
+    - Log when JO is created with source PJO number
+    - _Requirements: 3.5_
+  - [x] 8.4 Add activity logging to invoice payment flow
+    - Log when invoice is marked as paid with invoice_number
+    - _Requirements: 3.6_
+
+- [x] 9. Implement client-side refresh
+  - [x] 9.1 Add auto-refresh hook for dashboard data
+    - Create useInterval hook for 60-second refresh
+    - Implement data refresh without full page reload
+    - _Requirements: 8.1, 8.3_
+  - [x] 9.2 Add stale data indicator
+    - Show indicator when refresh fails
+    - Display last known values
+    - _Requirements: 8.4_
+
+- [x] 10. Create budget alerts page
+  - [x] 10.1 Create /dashboard/budget-alerts page
+    - Display all exceeded cost items (not limited to 5)
+    - Show PJO number, category, description, variance
+    - Link each item to PJO cost entry page
+    - _Requirements: 9.2, 9.5_
+
+- [x] 11. Final Checkpoint - Ensure all tests pass
+  - Ensure all tests pass, ask the user if questions arise.
+
