@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useTransition } from 'react'
+import { useState, useTransition, Fragment } from 'react'
 import { useRouter } from 'next/navigation'
 import Link from 'next/link'
 import { PJOCostItem, PJOWithRelations } from '@/types'
@@ -252,9 +252,8 @@ export function CostsClient({ pjo, costItems: initialCostItems, canEdit }: Costs
                     const showJustification = currentStatus === 'exceeded' && !item.confirmed_at
 
                     return (
-                      <>
+                      <Fragment key={item.id}>
                         <CostItemRow
-                          key={item.id}
                           item={item}
                           index={index}
                           onConfirm={handleConfirm}
@@ -262,14 +261,13 @@ export function CostsClient({ pjo, costItems: initialCostItems, canEdit }: Costs
                         />
                         {(showJustification || (item.status === 'exceeded' && item.justification)) && (
                           <JustificationRow
-                            key={`${item.id}-justification`}
                             item={item}
                             justification={currentJustification}
                             setJustification={(value) => setJustifications(prev => ({ ...prev, [item.id]: value }))}
                             disabled={!canEdit || isPending}
                           />
                         )}
-                      </>
+                      </Fragment>
                     )
                   })}
                 </tbody>

@@ -140,22 +140,54 @@ export async function ensureUserProfile(): Promise<UserProfile | null> {
     return null
   }
 
-  // Check if profile exists
-  const { data: existingProfile } = await supabase
+  // First, try to get existing profile
+  const { data: existingProfile, error: selectError } = await supabase
     .from('user_profiles')
     .select('*')
     .eq('user_id', user.id)
     .single()
 
+  // If profile exists, return it (don't overwrite!)
   if (existingProfile) {
     return existingProfile as UserProfile
   }
 
-  // Create new profile
+  // Profile doesn't exist, create new one
+  const email = user.email!
+  let role: UserRole = 'viewer'
+  let permissions = DEFAULT_PERMISSIONS.viewer
+
+  if (email === 'dioatmando@gama-group.co') {
+    role = 'admin'
+    permissions = DEFAULT_PERMISSIONS.admin
+  } else if (email.endsWith('@gama-group.co')) {
+    role = 'manager'
+    permissions = DEFAULT_PERMISSIONS.manager
+  }
+
   const fullName = user.user_metadata?.full_name || user.user_metadata?.name
   const avatarUrl = user.user_metadata?.avatar_url || user.user_metadata?.picture
 
-  return createUserProfile(user.id, user.email!, fullName, avatarUrl)
+  const { data, error } = await supabase
+    .from('user_profiles')
+    .insert({
+      user_id: user.id,
+      email,
+      full_name: fullName || null,
+      avatar_url: avatarUrl || null,
+      role,
+      custom_dashboard: role === 'admin' ? 'admin' : 'default',
+      ...permissions,
+    })
+    .select()
+    .single()
+
+  if (error) {
+    console.error('Error creating user profile:', error)
+    return null
+  }
+
+  return data as UserProfile
 }
 
 /**
