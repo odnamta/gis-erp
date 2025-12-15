@@ -1,0 +1,130 @@
+# Implementation Plan
+
+- [x] 1. Create finance dashboard utility functions
+  - [x] 1.1 Create `lib/finance-dashboard-utils.ts` with core calculation functions
+    - Implement `calculateDaysOverdue(dueDate, currentDate)` 
+    - Implement `calculateAgingBucket(dueDate, currentDate)` returning bucket type
+    - Implement `getOverdueSeverity(daysOverdue)` returning severity level
+    - _Requirements: 2.1, 8.1, 8.2, 8.3_
+  - [x] 1.2 Write property test for aging bucket classification
+    - **Property 2: AR aging bucket classification**
+    - **Validates: Requirements 2.1, 2.3**
+  - [x] 1.3 Write property test for severity classification
+    - **Property 9: Overdue severity classification**
+    - **Validates: Requirements 8.1, 8.2, 8.3**
+
+- [x] 2. Implement data aggregation functions
+  - [x] 2.1 Add `groupInvoicesByAging(invoices, currentDate)` function
+    - Group invoices into aging buckets with count and amount
+    - Return ARAgingData structure
+    - _Requirements: 2.1, 2.2_
+  - [x] 2.2 Write property test for aging bucket aggregation
+    - **Property 3: Aging bucket aggregation**
+    - **Validates: Requirements 2.2**
+  - [x] 2.3 Add `groupPJOsByStatus(pjos)` function
+    - Group PJOs by status with count and total value
+    - Return PJOPipelineData array
+    - _Requirements: 3.1, 3.2_
+  - [x] 2.4 Write property test for PJO pipeline grouping
+    - **Property 4: PJO pipeline grouping and aggregation**
+    - **Validates: Requirements 3.1, 3.2**
+
+- [x] 3. Implement filter and sort functions
+  - [x] 3.1 Add `filterOverdueInvoices(invoices, currentDate)` function
+    - Filter invoices where due_date < currentDate
+    - Calculate days_overdue and severity for each
+    - Sort by days_overdue descending
+    - _Requirements: 4.1, 4.2, 4.3_
+  - [x] 3.2 Write property test for overdue invoice filter
+    - **Property 5: Overdue invoice filter**
+    - **Validates: Requirements 4.1**
+  - [x] 3.3 Write property test for overdue invoice sort order
+    - **Property 6: Overdue invoice sort order**
+    - **Validates: Requirements 4.3**
+  - [x] 3.4 Add `filterRecentPayments(invoices, currentDate)` function
+    - Filter paid invoices from last 30 days
+    - Sort by paid_at descending
+    - _Requirements: 5.1, 5.2, 5.4_
+  - [x] 3.5 Write property test for recent payments filter
+    - **Property 7: Recent payments filter**
+    - **Validates: Requirements 5.1**
+  - [x] 3.6 Write property test for recent payments sort order
+    - **Property 8: Recent payments sort order**
+    - **Validates: Requirements 5.4**
+
+- [x] 4. Implement KPI calculation functions
+  - [x] 4.1 Add `calculateMonthlyRevenue(jobOrders, currentDate)` function
+    - Sum revenue from completed JOs in current month
+    - Compare with previous month for trend
+    - Return current, previous, count, and trend
+    - _Requirements: 7.1, 7.2, 7.3_
+  - [x] 4.2 Write property test for monthly revenue calculation
+    - **Property 10: Monthly revenue calculation**
+    - **Validates: Requirements 7.1, 7.2**
+  - [x] 4.3 Add `calculateFinanceKPIs(invoices, jobOrders, currentDate)` function
+    - Aggregate all KPI data into FinanceKPIs structure
+    - Include outstanding AR, overdue, critical count, monthly revenue
+    - _Requirements: 1.2, 1.3, 8.4_
+
+- [x] 5. Checkpoint - Make sure all tests are passing
+  - Ensure all tests pass, ask the user if questions arise.
+
+- [x] 6. Create Finance Dashboard UI components
+  - [x] 6.1 Create `components/dashboard/finance/finance-kpi-cards.tsx`
+    - Display 3 KPI cards: Outstanding AR, Overdue Amount, Monthly Revenue
+    - Show counts alongside monetary values
+    - Show critical alert count badge on overdue card
+    - _Requirements: 1.2, 1.3, 8.4_
+  - [x] 6.2 Create `components/dashboard/finance/ar-aging-summary.tsx`
+    - Display 4 aging buckets with count and amount
+    - Make buckets clickable to filter invoice list
+    - _Requirements: 2.1, 2.2, 2.4_
+  - [x] 6.3 Create `components/dashboard/finance/pjo-pipeline.tsx`
+    - Display pipeline table with status, count, value columns
+    - Add action buttons (Review, Follow up, Track execution, Archive)
+    - _Requirements: 3.1, 3.2, 3.3, 3.4_
+  - [x] 6.4 Create `components/dashboard/finance/overdue-invoices-table.tsx`
+    - Display overdue invoices with severity indicators
+    - Show invoice number, customer, amount, due date, days overdue
+    - Add "Remind" action button
+    - _Requirements: 4.1, 4.2, 4.3, 4.4, 8.1, 8.2, 8.3_
+  - [x] 6.5 Create `components/dashboard/finance/recent-payments-table.tsx`
+    - Display recent payments sorted by date
+    - Show payment date, invoice number, customer, amount, reference
+    - _Requirements: 5.1, 5.2, 5.4_
+
+- [x] 7. Create main Finance Dashboard container
+  - [x] 7.1 Create `components/dashboard/finance/finance-dashboard.tsx`
+    - Compose all finance dashboard components
+    - Add "Export Report" dropdown in header
+    - Fetch and pass data to child components
+    - _Requirements: 1.1, 1.2_
+  - [x] 7.2 Create `components/dashboard/finance/export-report-dropdown.tsx`
+    - Show export format options (CSV, PDF)
+    - Implement AR aging export
+    - Implement payment report export
+    - _Requirements: 6.1, 6.2, 6.3, 6.4_
+  - [x] 7.3 Write property test for export completeness
+    - **Property 11: Export completeness**
+    - **Validates: Requirements 6.2**
+
+- [x] 8. Integrate Finance Dashboard with routing
+  - [x] 8.1 Update `components/dashboard/dashboard-client.tsx` to route finance users
+    - Add finance role check to dashboard router
+    - Render FinanceDashboard for finance users
+    - _Requirements: 1.1, 1.4_
+  - [x] 8.2 Write property test for dashboard routing
+    - **Property 1: Dashboard routing for finance role**
+    - **Validates: Requirements 1.1**
+
+- [x] 9. Add server actions for data fetching
+  - [x] 9.1 Create server actions in `app/(main)/dashboard/actions.ts`
+    - Add `getFinanceDashboardData()` to fetch all finance data
+    - Add `getARAgingData()` for aging breakdown
+    - Add `getPJOPipeline()` for quotation pipeline
+    - Add `getOverdueInvoices()` for overdue list
+    - Add `getRecentPayments()` for payment history
+    - _Requirements: 1.1, 2.1, 3.1, 4.1, 5.1_
+
+- [x] 10. Final Checkpoint - Make sure all tests are passing
+  - Ensure all tests pass, ask the user if questions arise.

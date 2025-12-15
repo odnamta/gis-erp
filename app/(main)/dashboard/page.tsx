@@ -1,5 +1,6 @@
 import { DashboardClient } from '@/components/dashboard/dashboard-client'
 import { OpsDashboard } from '@/components/dashboard/ops'
+import { FinanceDashboard } from '@/components/dashboard/finance/finance-dashboard'
 import {
   fetchDashboardKPIs,
   fetchBudgetAlerts,
@@ -7,6 +8,7 @@ import {
   fetchRecentActivity,
   fetchOperationsQueue,
   fetchManagerMetrics,
+  fetchFinanceDashboardData,
 } from './actions'
 import { getUserProfile } from '@/lib/permissions-server'
 import { getOpsDashboardData } from '@/lib/ops-dashboard-utils'
@@ -25,6 +27,12 @@ export default async function DashboardPage() {
         userName={profile?.full_name || undefined} 
       />
     )
+  }
+
+  // Render finance-specific dashboard for finance users
+  if (userRole === 'finance') {
+    const financeData = await fetchFinanceDashboardData()
+    return <FinanceDashboard data={financeData} />
   }
 
   // Fetch all data in parallel for other roles

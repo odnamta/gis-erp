@@ -284,3 +284,100 @@ export async function logActivity(
     console.error('Error logging activity:', error)
   }
 }
+
+
+/**
+ * Fetch finance dashboard data
+ */
+import {
+  groupInvoicesByAging,
+  groupPJOsByStatus,
+  filterOverdueInvoices,
+  filterRecentPayments,
+  calculateFinanceKPIs,
+  type ARAgingData,
+  type PJOPipelineData,
+  type OverdueInvoice,
+  type RecentPayment,
+  type FinanceKPIs,
+} from '@/lib/finance-dashboard-utils'
+
+export interface FinanceDashboardData {
+  kpis: FinanceKPIs
+  arAging: ARAgingData
+  pjoPipeline: PJOPipelineData[]
+  overdueInvoices: OverdueInvoice[]
+  recentPayments: RecentPayment[]
+}
+
+export async function fetchFinanceDashboardData(): Promise<FinanceDashboardData> {
+  const supabase = await createClient()
+  const currentDate = new Date()
+
+  // Fetch invoices with customer info
+  const { data: invoicesData } = await supabase
+    .from('invoices')
+    .select(`
+      id,
+      invoice_number,
+      due_date,
+      total_amount,
+      status,
+      paid_at,
+      notes,
+      customers(name)
+    `)
+    .order('due_date', { ascending: true })
+
+  // Fetch PJOs for pipeline
+  const { data: pjosData } = await supabase
+    .from('proforma_job_orders')
+    .select('status, total_revenue_calculated, is_active')
+    .eq('is_active', true)
+
+  // Fetch job orders for revenue calculation
+  const { data: jobOrdersData } = await supabase
+    .from('job_orders')
+    .select('final_revenue, completed_at, status')
+
+  // Transform invoice data
+  const invoices = (invoicesData || []).map(inv => ({
+    id: inv.id,
+    invoice_number: inv.invoice_number,
+    due_date: inv.due_date,
+    total_amount: inv.total_amount,
+    status: inv.status,
+    paid_at: inv.paid_at,
+    notes: inv.notes,
+    customer_name: (inv.customers as { name: string })?.name || 'Unknown',
+  }))
+
+  // Transform PJO data
+  const pjos = (pjosData || []).map(pjo => ({
+    status: pjo.status,
+    total_revenue_calculated: pjo.total_revenue_calculated,
+    is_active: pjo.is_active,
+  }))
+
+  // Transform job orders data
+  const jobOrders = (jobOrdersData || []).map(jo => ({
+    final_revenue: jo.final_revenue,
+    completed_at: jo.completed_at,
+    status: jo.status,
+  }))
+
+  // Calculate all metrics
+  const kpis = calculateFinanceKPIs(invoices, jobOrders, currentDate)
+  const arAging = groupInvoicesByAging(invoices, currentDate)
+  const pjoPipeline = groupPJOsByStatus(pjos)
+  const overdueInvoices = filterOverdueInvoices(invoices, currentDate)
+  const recentPayments = filterRecentPayments(invoices, currentDate)
+
+  return {
+    kpis,
+    arAging,
+    pjoPipeline,
+    overdueInvoices,
+    recentPayments,
+  }
+}

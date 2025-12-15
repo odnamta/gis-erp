@@ -1,5 +1,3 @@
-'use server'
-
 import { createClient } from '@/lib/supabase/server'
 import { differenceInDays, startOfWeek, endOfWeek, subWeeks } from 'date-fns'
 
@@ -214,11 +212,12 @@ export async function getActiveJobs(): Promise<ActiveJob[]> {
     .select(`
       id,
       jo_number,
-      commodity,
-      pol,
-      pod,
+      description,
       status,
       proforma_job_orders(
+        commodity,
+        pol,
+        pod,
         projects(name)
       )
     `)
@@ -228,13 +227,18 @@ export async function getActiveJobs(): Promise<ActiveJob[]> {
   if (!jobs) return []
 
   return jobs.map((job) => {
-    const pjo = job.proforma_job_orders as { projects: { name: string } | null } | null
+    const pjo = job.proforma_job_orders as { 
+      commodity: string | null
+      pol: string | null
+      pod: string | null
+      projects: { name: string } | null 
+    } | null
     return {
       id: job.id,
       jo_number: job.jo_number,
-      commodity: job.commodity,
-      pol: job.pol,
-      pod: job.pod,
+      commodity: pjo?.commodity || job.description,
+      pol: pjo?.pol || '',
+      pod: pjo?.pod || '',
       status: job.status,
       project_name: pjo?.projects?.name || 'Unknown Project',
     }
@@ -277,9 +281,9 @@ export async function getWeeklyStats(): Promise<WeeklyStats> {
 
     const confirmedDates = costItems
       .map((item: { confirmed_at: string | null }) => item.confirmed_at)
-      .filter(Boolean)
-      .map((d: string) => new Date(d))
-      .sort((a: Date, b: Date) => b.getTime() - a.getTime())
+      .filter((d): d is string => d !== null)
+      .map((d) => new Date(d))
+      .sort((a, b) => b.getTime() - a.getTime())
 
     const lastConfirmedDate = confirmedDates[0]
     if (!lastConfirmedDate) return
