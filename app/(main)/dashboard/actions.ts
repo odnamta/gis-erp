@@ -779,3 +779,173 @@ export async function approveAllPJOs(): Promise<void> {
     throw new Error('Failed to approve all PJOs')
   }
 }
+
+
+/**
+ * Fetch administration dashboard data
+ * For Administration Division (role: 'admin') - handles PJO/JO/Invoice workflow
+ */
+import {
+  getAdminPeriodDates,
+  calculateAdminKPIs,
+  calculatePipelineStages,
+  getPendingWorkItems,
+  calculateAgingBuckets,
+  getRecentDocuments,
+  type AdminPeriodType,
+  type AdminKPIs as AdminKPIsType,
+  type PipelineStage as AdminPipelineStage,
+  type PendingWorkItem,
+  type AgingBucket,
+  type RecentDocument,
+  type PJOInput as AdminPJOInput,
+  type JOInput as AdminJOInput,
+  type InvoiceInput as AdminInvoiceInput,
+} from '@/lib/admin-dashboard-utils'
+
+export interface AdminDashboardData {
+  kpis: AdminKPIsType
+  pipeline: AdminPipelineStage[]
+  pendingWork: PendingWorkItem[]
+  agingBuckets: AgingBucket[]
+  recentDocuments: RecentDocument[]
+}
+
+export async function fetchAdminDashboardData(
+  periodType: AdminPeriodType = 'this_month'
+): Promise<AdminDashboardData> {
+  const supabase = await createClient()
+  const currentDate = new Date()
+
+  // Get period dates
+  const period = getAdminPeriodDates(periodType, currentDate)
+
+  // Fetch PJOs with customer info
+  const { data: pjosData } = await supabase
+    .from('proforma_job_orders')
+    .select(`
+      id,
+      pjo_number,
+      status,
+      converted_to_jo,
+      all_costs_confirmed,
+      created_at,
+      updated_at,
+      projects(
+        name,
+        customers(name)
+      )
+    `)
+    .eq('is_active', true)
+    .order('created_at', { ascending: false })
+
+  // Fetch JOs with customer info
+  const { data: josData } = await supabase
+    .from('job_orders')
+    .select(`
+      id,
+      jo_number,
+      status,
+      created_at,
+      updated_at,
+      proforma_job_orders(
+        pjo_number,
+        projects(
+          name,
+          customers(name)
+        )
+      )
+    `)
+    .order('created_at', { ascending: false })
+
+  // Fetch Invoices with customer info
+  const { data: invoicesData } = await supabase
+    .from('invoices')
+    .select(`
+      id,
+      invoice_number,
+      status,
+      total_amount,
+      due_date,
+      paid_at,
+      created_at,
+      updated_at,
+      job_orders(
+        jo_number,
+        proforma_job_orders(
+          projects(
+            customers(name)
+          )
+        )
+      )
+    `)
+    .order('created_at', { ascending: false })
+
+  // Transform PJO data
+  const pjos: AdminPJOInput[] = (pjosData || []).map(pjo => {
+    const project = pjo.projects as { name: string; customers: { name: string } | null } | null
+    return {
+      id: pjo.id,
+      pjo_number: pjo.pjo_number,
+      status: pjo.status,
+      converted_to_jo: pjo.converted_to_jo,
+      all_costs_confirmed: pjo.all_costs_confirmed,
+      created_at: pjo.created_at,
+      updated_at: pjo.updated_at,
+      customer_name: project?.customers?.name,
+      project_name: project?.name,
+    }
+  })
+
+  // Transform JO data
+  const jos: AdminJOInput[] = (josData || []).map(jo => {
+    const pjo = jo.proforma_job_orders as { 
+      pjo_number: string; 
+      projects: { name: string; customers: { name: string } | null } | null 
+    } | null
+    return {
+      id: jo.id,
+      jo_number: jo.jo_number,
+      status: jo.status,
+      created_at: jo.created_at,
+      updated_at: jo.updated_at,
+      customer_name: pjo?.projects?.customers?.name,
+      pjo_number: pjo?.pjo_number,
+    }
+  })
+
+  // Transform Invoice data
+  const invoices: AdminInvoiceInput[] = (invoicesData || []).map(inv => {
+    const jo = inv.job_orders as { 
+      jo_number: string; 
+      proforma_job_orders: { projects: { customers: { name: string } | null } | null } | null 
+    } | null
+    return {
+      id: inv.id,
+      invoice_number: inv.invoice_number,
+      status: inv.status,
+      amount: inv.total_amount,
+      due_date: inv.due_date,
+      paid_at: inv.paid_at,
+      created_at: inv.created_at,
+      updated_at: inv.updated_at,
+      customer_name: jo?.proforma_job_orders?.projects?.customers?.name,
+      jo_number: jo?.jo_number,
+    }
+  })
+
+  // Calculate all metrics
+  const kpis = calculateAdminKPIs(pjos, jos, invoices, period)
+  const pipeline = calculatePipelineStages(pjos)
+  const pendingWork = getPendingWorkItems(pjos, jos, invoices, currentDate)
+  const agingBuckets = calculateAgingBuckets(invoices, currentDate)
+  const recentDocuments = getRecentDocuments(pjos, jos, invoices, 10)
+
+  return {
+    kpis,
+    pipeline,
+    pendingWork,
+    agingBuckets,
+    recentDocuments,
+  }
+}

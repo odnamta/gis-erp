@@ -3,6 +3,7 @@ import { OpsDashboard } from '@/components/dashboard/ops'
 import { FinanceDashboard } from '@/components/dashboard/finance/finance-dashboard'
 import { SalesDashboard } from '@/components/dashboard/sales/sales-dashboard'
 import { ManagerDashboard } from '@/components/dashboard/manager/manager-dashboard'
+import { AdminDashboard } from '@/components/dashboard/admin/admin-dashboard'
 import {
   fetchDashboardKPIs,
   fetchBudgetAlerts,
@@ -13,6 +14,7 @@ import {
   fetchFinanceDashboardData,
   fetchSalesDashboardData,
   fetchManagerDashboardData,
+  fetchAdminDashboardData,
 } from './actions'
 import { getUserProfile } from '@/lib/permissions-server'
 import { getOpsDashboardData } from '@/lib/ops-dashboard-utils'
@@ -51,6 +53,17 @@ export default async function DashboardPage() {
     return (
       <ManagerDashboard
         initialData={managerData}
+        userName={profile?.full_name || undefined}
+      />
+    )
+  }
+
+  // Render admin-specific dashboard for administration division users
+  if (userRole === 'admin') {
+    const adminData = await fetchAdminDashboardData()
+    return (
+      <AdminDashboard
+        initialData={adminData}
         userName={profile?.full_name || undefined}
       />
     )
