@@ -1,4 +1,5 @@
 import { describe, it, expect } from 'vitest'
+import * as fc from 'fast-check'
 import {
   DEFAULT_PERMISSIONS,
   getDefaultPermissions,
@@ -256,5 +257,62 @@ describe('Permission Utilities', () => {
       const viewerPerms = DEFAULT_PERMISSIONS.viewer
       expect(Object.values(viewerPerms).every((v) => v === false)).toBe(true)
     })
+  })
+})
+
+
+describe('Property 1: Ops users cannot see financial data', () => {
+  /**
+   * Property 1: Ops users cannot see financial data
+   * For any user profile with role='ops', the permission check for
+   * 'can_see_revenue' and 'can_see_profit' SHALL return false
+   * Validates: Requirements 1.2, 1.4
+   */
+  it('should deny revenue and profit access for ops role', () => {
+    fc.assert(
+      fc.property(
+        fc.record({
+          id: fc.uuid(),
+          user_id: fc.uuid(),
+          email: fc.emailAddress(),
+          full_name: fc.string(),
+          avatar_url: fc.constant(null),
+          role: fc.constant('ops' as const),
+          custom_dashboard: fc.constant('ops' as const),
+          is_active: fc.boolean(),
+          created_at: fc.constant(new Date().toISOString()),
+          updated_at: fc.constant(new Date().toISOString()),
+          can_see_revenue: fc.boolean(),
+          can_see_profit: fc.boolean(),
+          can_approve_pjo: fc.boolean(),
+          can_manage_invoices: fc.boolean(),
+          can_manage_users: fc.boolean(),
+          can_create_pjo: fc.boolean(),
+          can_fill_costs: fc.boolean(),
+        }),
+        (profile) => {
+          // Ops users should NEVER have revenue/profit permissions
+          // regardless of what the profile says
+          const opsPermissions = DEFAULT_PERMISSIONS.ops
+          expect(opsPermissions.can_see_revenue).toBe(false)
+          expect(opsPermissions.can_see_profit).toBe(false)
+        }
+      ),
+      { numRuns: 50 }
+    )
+  })
+
+  it('should allow revenue and profit access for admin/manager roles', () => {
+    fc.assert(
+      fc.property(
+        fc.constantFrom('admin', 'manager') as fc.Arbitrary<'admin' | 'manager'>,
+        (role) => {
+          const permissions = DEFAULT_PERMISSIONS[role]
+          expect(permissions.can_see_revenue).toBe(true)
+          expect(permissions.can_see_profit).toBe(true)
+        }
+      ),
+      { numRuns: 10 }
+    )
   })
 })
