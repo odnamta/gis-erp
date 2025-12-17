@@ -1,0 +1,93 @@
+# Implementation Plan
+
+- [x] 1. Create TypeScript types and utility functions
+  - [x] 1.1 Create activity log types
+    - Create types/activity-log.ts with ActivityLogEntry, ActionType, EntityType, DateRange, ActivityLogFilters
+    - _Requirements: All_
+  - [x] 1.2 Create activity log utility functions
+    - Create lib/activity-log-utils.ts
+    - Implement formatActionType(actionType) → human-readable label
+    - Implement formatEntityType(documentType) → human-readable label
+    - Implement formatRelativeTime(timestamp) → relative time string
+    - Implement formatDetails(details) → readable string from JSONB
+    - Implement getEntityUrl(documentType, documentId) → navigation URL or null
+    - Implement exportToCsv(logs, filename) → trigger CSV download
+    - _Requirements: 8, 9, 10_
+  - [x] 1.3 Write tests for utility functions
+    - Test formatActionType returns correct labels
+    - Test formatEntityType returns correct labels
+    - Test formatRelativeTime for today, yesterday, older dates
+    - Test formatDetails handles various JSONB structures
+    - Test getEntityUrl returns correct URLs and null for login/logout
+    - _Requirements: 8, 10_
+
+- [x] 2. Set up database RLS policies
+  - [x] 2.1 Create RLS policies for activity_log table
+    - Add policy for owner/admin to view all logs
+    - Add policy for other users to view only own logs
+    - _Requirements: 1, 2, 3_
+
+- [x] 3. Implement server actions
+  - [x] 3.1 Create activity log server actions
+    - Create app/(main)/settings/activity-log/actions.ts
+    - Implement getActivityLogs(filters, pagination) with access control
+    - Implement getActivityLogUsers() for user filter dropdown
+    - Apply date range filtering (last7, last30, last90, all)
+    - Apply action type, entity type, user filters
+    - Return paginated results with total count
+    - _Requirements: 1, 2, 3, 4, 5, 6, 7, 11_
+  - [x] 3.2 Write tests for server actions
+    - Test getActivityLogs returns correct filtered results
+    - Test pagination works correctly
+    - Test access control (owner sees all, others see own)
+    - _Requirements: 1, 2, 3, 11_
+
+- [x] 4. Checkpoint - Verify types, utils, and actions
+  - Run tests to ensure all utility functions work correctly (35/35 passed)
+  - Verify RLS policies are applied
+
+- [x] 5. Implement Activity Log page components
+  - [x] 5.1 Create ActivityLogClient component
+    - Create app/(main)/settings/activity-log/activity-log-client.tsx
+    - Implement filter state management (action, entity, user, date range)
+    - Implement pagination state
+    - Show/hide user filter based on access level
+    - Show/hide export button based on access level
+    - Handle filter changes and refetch data
+    - _Requirements: 1, 2, 3, 4, 5, 6, 7, 9, 11_
+  - [x] 5.2 Create Activity Log table display
+    - Display columns: Time, User, Action, Entity, Details, Actions
+    - Format timestamps using formatRelativeTime
+    - Format action types using formatActionType
+    - Format entity types using formatEntityType
+    - Format details using formatDetails
+    - Show View link for entities with getEntityUrl
+    - Handle empty state
+    - Handle loading state with skeleton
+    - _Requirements: 1, 5, 8, 10_
+  - [x] 5.3 Implement CSV export functionality
+    - Add Export CSV button (visible to owner/admin only)
+    - Export current filtered results to CSV
+    - Use filename format: activity-log-{date}.csv
+    - _Requirements: 9_
+
+- [x] 6. Create Activity Log page
+  - [x] 6.1 Create server page component
+    - Create app/(main)/settings/activity-log/page.tsx
+    - Check user permissions (redirect if no access)
+    - Fetch initial activity logs
+    - Fetch users list for filter (if owner/admin)
+    - Pass data to ActivityLogClient
+    - _Requirements: 1, 2, 3, 12_
+
+- [x] 7. Add navigation link to Settings
+  - [x] 7.1 Update Settings page or navigation
+    - Add Activity Log link to settings navigation
+    - Ensure link is visible to all authenticated users
+    - _Requirements: 12_
+
+- [x] 8. Final Checkpoint
+  - All utility tests pass (35/35)
+  - No TypeScript errors
+  - RLS policies applied for access control
+  - Navigation updated to include Activity Log

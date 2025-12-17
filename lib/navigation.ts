@@ -91,12 +91,16 @@ export const NAV_ITEMS: NavItem[] = [
     title: 'Settings',
     href: '/settings',
     icon: Settings,
-    roles: ['owner', 'admin'],
+    roles: ['owner', 'admin', 'manager', 'ops', 'finance', 'sales', 'viewer'],
     children: [
       {
         title: 'Users',
         href: '/settings/users',
         permission: 'can_manage_users',
+      },
+      {
+        title: 'Activity Log',
+        href: '/settings/activity-log',
       },
     ],
   },

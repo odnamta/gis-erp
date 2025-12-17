@@ -2,7 +2,7 @@
 
 ## Introduction
 
-This document specifies the requirements for the Reports Module (v0.9.6) in Gama ERP. The Reports Module provides a dedicated section for generating business reports across financial, operational, accounts receivable, and sales domains. Phase 1 focuses on data tables with period filtering; Phase 2 (future) will add PDF export and charts.
+This document specifies the requirements for the Reports Module (v0.10) in Gama ERP. The Reports Module provides a dedicated section for generating business reports across financial, operational, accounts receivable, and sales domains. Phase 1 focuses on data tables with period filtering; Phase 2 (future) will add PDF export and charts.
 
 ## Glossary
 
