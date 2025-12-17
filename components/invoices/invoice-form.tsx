@@ -21,9 +21,10 @@ interface InvoiceFormProps {
     customerName: string
     joNumber: string
   }
+  vatRate?: number // VAT rate as decimal (e.g., 0.11 for 11%)
 }
 
-export function InvoiceForm({ initialData }: InvoiceFormProps) {
+export function InvoiceForm({ initialData, vatRate = VAT_RATE }: InvoiceFormProps) {
   const router = useRouter()
   const { toast } = useToast()
   const [isLoading, setIsLoading] = useState(false)
@@ -32,7 +33,7 @@ export function InvoiceForm({ initialData }: InvoiceFormProps) {
   const [notes, setNotes] = useState(initialData.notes || '')
   const [lineItems, setLineItems] = useState<InvoiceLineItemInput[]>(initialData.line_items)
 
-  const { subtotal, vatAmount, grandTotal } = calculateInvoiceTotals(lineItems)
+  const { subtotal, vatAmount, grandTotal } = calculateInvoiceTotals(lineItems, vatRate)
 
   function handleLineItemChange(index: number, field: keyof InvoiceLineItemInput, value: string | number) {
     setLineItems((prev) => {
@@ -188,7 +189,7 @@ export function InvoiceForm({ initialData }: InvoiceFormProps) {
               <span className="font-medium">{formatIDR(subtotal)}</span>
             </div>
             <div className="flex justify-between">
-              <span className="text-muted-foreground">VAT ({(VAT_RATE * 100).toFixed(0)}%)</span>
+              <span className="text-muted-foreground">VAT ({(vatRate * 100).toFixed(0)}%)</span>
               <span className="font-medium">{formatIDR(vatAmount)}</span>
             </div>
             <div className="border-t pt-2 flex justify-between">

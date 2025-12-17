@@ -1,0 +1,123 @@
+# Implementation Plan
+
+- [x] 1. Set up database schema and types
+  - [x] 1.1 Create company_settings table migration with RLS policies
+    - Create table with id, key, value, updated_at, updated_by columns
+    - Add RLS policies for read (all authenticated) and write (admin/owner only)
+    - Insert default settings values
+    - _Requirements: 1.1, 6.1, 6.2_
+  - [x] 1.2 Create TypeScript types for company settings
+    - Define CompanySettingsRow interface
+    - Define CompanySettings interface
+    - Define SETTING_KEYS constant and SettingKey type
+    - _Requirements: 1.1_
+
+- [-] 2. Implement utility functions with property tests
+  - [x] 2.1 Create company-settings-utils.ts with validation functions
+    - Implement validateVatRate function
+    - Implement validatePaymentTerms function
+    - Implement validateDocumentFormat function
+    - Implement validateLogoFile function
+    - Implement getSettingValue helper
+    - _Requirements: 2.2, 2.3, 3.3, 4.2, 4.3_
+  - [x] 2.2 Write property test for VAT rate validation
+    - **Property 4: VAT rate validation**
+    - **Validates: Requirements 2.2**
+  - [x] 2.3 Write property test for payment terms validation
+    - **Property 5: Payment terms validation**
+    - **Validates: Requirements 2.3**
+  - [x] 2.4 Write property test for document format validation
+    - **Property 6: Document number format validation**
+    - **Validates: Requirements 3.3**
+  - [x] 2.5 Implement document number generation functions
+    - Implement generateDocumentNumber function
+    - Implement previewDocumentNumber function
+    - _Requirements: 3.2, 3.4, 3.5, 3.6_
+  - [x] 2.6 Write property test for document number generation
+    - **Property 7: Document number generation**
+    - **Validates: Requirements 3.2, 3.4, 3.5, 3.6**
+  - [x] 2.7 Write property test for logo file validation
+    - **Property 8: Logo file type validation**
+    - **Property 9: Logo file size validation**
+    - **Validates: Requirements 4.2, 4.3**
+
+- [x] 3. Checkpoint - Ensure all tests pass
+  - Ensure all tests pass, ask the user if questions arise.
+
+- [x] 4. Implement server actions
+  - [x] 4.1 Create loadCompanySettings server action
+    - Fetch all settings from database
+    - Transform key-value rows to CompanySettings object
+    - Handle missing settings with defaults
+    - _Requirements: 1.1, 2.1, 3.1_
+  - [x] 4.2 Create saveCompanySettings server action
+    - Validate input settings
+    - Upsert settings to database
+    - Update audit fields (updated_at, updated_by)
+    - Return success/error response
+    - _Requirements: 1.2, 1.3, 1.4, 5.1, 5.2_
+  - [x] 4.3 Write property test for settings round-trip
+    - **Property 1: Settings persistence round-trip**
+    - **Validates: Requirements 1.2, 5.2**
+  - [x] 4.4 Create uploadCompanyLogo server action
+    - Validate file type and size
+    - Upload to Supabase Storage company-assets bucket
+    - Update logo_url setting
+    - Return success with URL or error
+    - _Requirements: 4.2, 4.3, 4.4_
+
+- [x] 5. Checkpoint - Ensure all tests pass
+  - Ensure all tests pass, ask the user if questions arise.
+
+- [x] 6. Build UI components
+  - [x] 6.1 Create DocumentNumberPreview component
+    - Accept format string prop
+    - Display live preview using previewDocumentNumber
+    - Update preview on format change
+    - _Requirements: 3.2_
+  - [x] 6.2 Create LogoUploader component
+    - Display current logo if exists
+    - Handle file selection with validation
+    - Show upload progress and errors
+    - Call onUploadComplete callback on success
+    - _Requirements: 4.1, 4.2, 4.3, 4.4, 4.5_
+  - [x] 6.3 Create CompanySettingsForm client component
+    - Render all settings sections (Company Info, Invoice, Document Numbering, Logo)
+    - Handle form state and validation
+    - Display inline validation errors
+    - Show success/error toast on save
+    - _Requirements: 1.1, 1.4, 2.1, 3.1, 5.1, 5.3_
+
+- [x] 7. Create settings page with access control
+  - [x] 7.1 Create company settings page
+    - Check user permissions (admin/owner only)
+    - Redirect unauthorized users to dashboard
+    - Load initial settings via server action
+    - Render CompanySettingsForm with initial data
+    - _Requirements: 6.1, 6.2_
+  - [x] 7.2 Write property test for access control
+    - **Property 10: Access control**
+    - **Validates: Requirements 6.1**
+  - [x] 7.3 Add settings navigation link
+    - Add Company Settings link to settings page
+    - Show link only for admin/owner roles
+    - _Requirements: 6.1_
+
+- [x] 8. Checkpoint - Ensure all tests pass
+  - Ensure all tests pass, ask the user if questions arise.
+
+- [x] 9. Integrate settings with existing features
+  - [x] 9.1 Update invoice creation to use configured VAT rate
+    - Fetch vat_rate setting in invoice form
+    - Apply VAT rate to tax calculations
+    - _Requirements: 2.4_
+  - [x] 9.2 Update invoice creation to use configured payment terms
+    - Fetch default_payment_terms setting
+    - Calculate default due date from invoice date
+    - _Requirements: 2.5_
+  - [x] 9.3 Write property test for invoice defaults
+    - **Property 6 (extended): Invoice uses configured defaults**
+    - **Validates: Requirements 2.4, 2.5**
+
+- [x] 10. Final Checkpoint - Ensure all tests pass
+  - Ensure all tests pass, ask the user if questions arise.

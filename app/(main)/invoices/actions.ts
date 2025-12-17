@@ -13,6 +13,7 @@ import {
   isValidStatusTransition,
   getDefaultDueDate,
 } from '@/lib/invoice-utils'
+import { DEFAULT_SETTINGS } from '@/types/company-settings'
 
 /**
  * Generate the next sequential invoice number for the current year
@@ -111,7 +112,19 @@ export async function getInvoiceDataFromJO(joId: string): Promise<{
 
   // Generate invoice number
   const invoiceNumber = await generateInvoiceNumber()
-  const dueDate = getDefaultDueDate()
+  
+  // Get payment terms from company settings
+  const { data: paymentTermsSetting } = await supabase
+    .from('company_settings')
+    .select('value')
+    .eq('key', 'default_payment_terms')
+    .single()
+  
+  const paymentTerms = paymentTermsSetting?.value 
+    ? parseInt(paymentTermsSetting.value, 10) 
+    : DEFAULT_SETTINGS.default_payment_terms
+  
+  const dueDate = getDefaultDueDate(paymentTerms)
 
   return {
     data: {

@@ -7,54 +7,72 @@ export type Json =
   | Json[]
 
 export type Database = {
+  // Allows to automatically instantiate createClient with right options
+  // instead of createClient<Database, { PostgrestVersion: 'XX' }>(URL, KEY)
+  __InternalSupabase: {
+    PostgrestVersion: "13.0.5"
+  }
   public: {
     Tables: {
-      document_attachments: {
+      activity_log: {
+        Row: {
+          action_type: string
+          created_at: string | null
+          details: Json | null
+          document_id: string
+          document_number: string
+          document_type: string
+          id: string
+          user_id: string | null
+          user_name: string
+        }
+        Insert: {
+          action_type: string
+          created_at?: string | null
+          details?: Json | null
+          document_id: string
+          document_number: string
+          document_type: string
+          id?: string
+          user_id?: string | null
+          user_name: string
+        }
+        Update: {
+          action_type?: string
+          created_at?: string | null
+          details?: Json | null
+          document_id?: string
+          document_number?: string
+          document_type?: string
+          id?: string
+          user_id?: string | null
+          user_name?: string
+        }
+        Relationships: []
+      }
+      company_settings: {
         Row: {
           id: string
-          entity_type: string
-          entity_id: string
-          file_name: string
-          file_type: string | null
-          file_size: number | null
-          storage_path: string
-          description: string | null
-          uploaded_by: string | null
-          created_at: string | null
+          key: string
+          updated_at: string | null
+          updated_by: string | null
+          value: string | null
         }
         Insert: {
           id?: string
-          entity_type: string
-          entity_id: string
-          file_name: string
-          file_type?: string | null
-          file_size?: number | null
-          storage_path: string
-          description?: string | null
-          uploaded_by?: string | null
-          created_at?: string | null
+          key: string
+          updated_at?: string | null
+          updated_by?: string | null
+          value?: string | null
         }
         Update: {
           id?: string
-          entity_type?: string
-          entity_id?: string
-          file_name?: string
-          file_type?: string | null
-          file_size?: number | null
-          storage_path?: string
-          description?: string | null
-          uploaded_by?: string | null
-          created_at?: string | null
+          key?: string
+          updated_at?: string | null
+          updated_by?: string | null
+          value?: string | null
         }
-        Relationships: [
-          {
-            foreignKeyName: "document_attachments_uploaded_by_fkey"
-            columns: ["uploaded_by"]
-            isOneToOne: false
-            referencedRelation: "user_profiles"
-            referencedColumns: ["id"]
-          }
-        ]
+        Relationships: []
       }
       customers: {
         Row: {
@@ -89,171 +107,153 @@ export type Database = {
         }
         Relationships: []
       }
-      pjo_revenue_items: {
+      document_attachments: {
         Row: {
-          id: string
-          pjo_id: string
-          description: string
-          quantity: number
-          unit: string
-          unit_price: number
-          subtotal: number
-          source_type: string | null
-          source_id: string | null
-          notes: string | null
           created_at: string | null
-          updated_at: string | null
+          description: string | null
+          entity_id: string
+          entity_type: string
+          file_name: string
+          file_size: number | null
+          file_type: string | null
+          id: string
+          storage_path: string
+          uploaded_by: string | null
         }
         Insert: {
-          id?: string
-          pjo_id: string
-          description: string
-          quantity?: number
-          unit: string
-          unit_price: number
-          source_type?: string | null
-          source_id?: string | null
-          notes?: string | null
           created_at?: string | null
-          updated_at?: string | null
+          description?: string | null
+          entity_id: string
+          entity_type: string
+          file_name: string
+          file_size?: number | null
+          file_type?: string | null
+          id?: string
+          storage_path: string
+          uploaded_by?: string | null
         }
         Update: {
-          id?: string
-          pjo_id?: string
-          description?: string
-          quantity?: number
-          unit?: string
-          unit_price?: number
-          source_type?: string | null
-          source_id?: string | null
-          notes?: string | null
           created_at?: string | null
-          updated_at?: string | null
+          description?: string | null
+          entity_id?: string
+          entity_type?: string
+          file_name?: string
+          file_size?: number | null
+          file_type?: string | null
+          id?: string
+          storage_path?: string
+          uploaded_by?: string | null
         }
         Relationships: [
           {
-            foreignKeyName: "pjo_revenue_items_pjo_id_fkey"
-            columns: ["pjo_id"]
+            foreignKeyName: "document_attachments_uploaded_by_fkey"
+            columns: ["uploaded_by"]
             isOneToOne: false
-            referencedRelation: "proforma_job_orders"
+            referencedRelation: "user_profiles"
             referencedColumns: ["id"]
-          }
+          },
         ]
       }
-      pjo_cost_items: {
+      invoice_line_items: {
         Row: {
-          id: string
-          pjo_id: string
-          category: string
-          description: string
-          estimated_amount: number
-          actual_amount: number | null
-          variance: number | null
-          variance_pct: number | null
-          status: string
-          estimated_by: string | null
-          confirmed_by: string | null
-          confirmed_at: string | null
-          justification: string | null
-          notes: string | null
           created_at: string | null
+          description: string
+          id: string
+          invoice_id: string
+          line_number: number
+          quantity: number
+          subtotal: number | null
+          unit: string | null
+          unit_price: number
           updated_at: string | null
         }
         Insert: {
-          id?: string
-          pjo_id: string
-          category: string
-          description: string
-          estimated_amount: number
-          actual_amount?: number | null
-          status?: string
-          estimated_by?: string | null
-          confirmed_by?: string | null
-          confirmed_at?: string | null
-          justification?: string | null
-          notes?: string | null
           created_at?: string | null
+          description: string
+          id?: string
+          invoice_id: string
+          line_number: number
+          quantity?: number
+          subtotal?: number | null
+          unit?: string | null
+          unit_price: number
           updated_at?: string | null
         }
         Update: {
-          id?: string
-          pjo_id?: string
-          category?: string
-          description?: string
-          estimated_amount?: number
-          actual_amount?: number | null
-          status?: string
-          estimated_by?: string | null
-          confirmed_by?: string | null
-          confirmed_at?: string | null
-          justification?: string | null
-          notes?: string | null
           created_at?: string | null
+          description?: string
+          id?: string
+          invoice_id?: string
+          line_number?: number
+          quantity?: number
+          subtotal?: number | null
+          unit?: string | null
+          unit_price?: number
           updated_at?: string | null
         }
         Relationships: [
           {
-            foreignKeyName: "pjo_cost_items_pjo_id_fkey"
-            columns: ["pjo_id"]
+            foreignKeyName: "invoice_line_items_invoice_id_fkey"
+            columns: ["invoice_id"]
             isOneToOne: false
-            referencedRelation: "proforma_job_orders"
+            referencedRelation: "invoices"
             referencedColumns: ["id"]
-          }
+          },
         ]
       }
       invoices: {
         Row: {
+          cancelled_at: string | null
+          created_at: string | null
+          customer_id: string
+          due_date: string
           id: string
+          invoice_date: string | null
           invoice_number: string
           jo_id: string
-          customer_id: string
-          invoice_date: string
-          due_date: string
+          notes: string | null
+          paid_at: string | null
+          sent_at: string | null
+          status: string
           subtotal: number
           tax_amount: number
           total_amount: number
-          status: string
-          sent_at: string | null
-          paid_at: string | null
-          cancelled_at: string | null
-          notes: string | null
-          created_at: string | null
           updated_at: string | null
         }
         Insert: {
+          cancelled_at?: string | null
+          created_at?: string | null
+          customer_id: string
+          due_date: string
           id?: string
+          invoice_date?: string | null
           invoice_number: string
           jo_id: string
-          customer_id: string
-          invoice_date?: string
-          due_date: string
+          notes?: string | null
+          paid_at?: string | null
+          sent_at?: string | null
+          status?: string
           subtotal?: number
           tax_amount?: number
           total_amount?: number
-          status?: string
-          sent_at?: string | null
-          paid_at?: string | null
-          cancelled_at?: string | null
-          notes?: string | null
-          created_at?: string | null
           updated_at?: string | null
         }
         Update: {
+          cancelled_at?: string | null
+          created_at?: string | null
+          customer_id?: string
+          due_date?: string
           id?: string
+          invoice_date?: string | null
           invoice_number?: string
           jo_id?: string
-          customer_id?: string
-          invoice_date?: string
-          due_date?: string
+          notes?: string | null
+          paid_at?: string | null
+          sent_at?: string | null
+          status?: string
           subtotal?: number
           tax_amount?: number
           total_amount?: number
-          status?: string
-          sent_at?: string | null
-          paid_at?: string | null
-          cancelled_at?: string | null
-          notes?: string | null
-          created_at?: string | null
           updated_at?: string | null
         }
         Relationships: [
@@ -273,108 +273,60 @@ export type Database = {
           },
         ]
       }
-      invoice_line_items: {
-        Row: {
-          id: string
-          invoice_id: string
-          line_number: number
-          description: string
-          quantity: number
-          unit: string | null
-          unit_price: number
-          subtotal: number
-          created_at: string | null
-          updated_at: string | null
-        }
-        Insert: {
-          id?: string
-          invoice_id: string
-          line_number: number
-          description: string
-          quantity?: number
-          unit?: string | null
-          unit_price: number
-          created_at?: string | null
-          updated_at?: string | null
-        }
-        Update: {
-          id?: string
-          invoice_id?: string
-          line_number?: number
-          description?: string
-          quantity?: number
-          unit?: string | null
-          unit_price?: number
-          created_at?: string | null
-          updated_at?: string | null
-        }
-        Relationships: [
-          {
-            foreignKeyName: "invoice_line_items_invoice_id_fkey"
-            columns: ["invoice_id"]
-            isOneToOne: false
-            referencedRelation: "invoices"
-            referencedColumns: ["id"]
-          }
-        ]
-      }
       job_orders: {
         Row: {
           amount: number
+          completed_at: string | null
+          converted_from_pjo_at: string | null
           created_at: string | null
           customer_id: string
           description: string
+          final_cost: number | null
+          final_revenue: number | null
           id: string
           jo_number: string
           pjo_id: string | null
           project_id: string | null
           status: string
-          updated_at: string | null
-          final_revenue: number | null
-          final_cost: number | null
-          converted_from_pjo_at: string | null
-          completed_at: string | null
-          submitted_to_finance_at: string | null
           submitted_by: string | null
-          notes: string | null
+          submitted_to_finance_at: string | null
+          updated_at: string | null
         }
         Insert: {
           amount?: number
+          completed_at?: string | null
+          converted_from_pjo_at?: string | null
           created_at?: string | null
           customer_id: string
           description: string
+          final_cost?: number | null
+          final_revenue?: number | null
           id?: string
           jo_number: string
           pjo_id?: string | null
           project_id?: string | null
           status?: string
-          updated_at?: string | null
-          final_revenue?: number | null
-          final_cost?: number | null
-          converted_from_pjo_at?: string | null
-          completed_at?: string | null
-          submitted_to_finance_at?: string | null
           submitted_by?: string | null
-          notes?: string | null
+          submitted_to_finance_at?: string | null
+          updated_at?: string | null
         }
         Update: {
           amount?: number
+          completed_at?: string | null
+          converted_from_pjo_at?: string | null
           created_at?: string | null
           customer_id?: string
           description?: string
+          final_cost?: number | null
+          final_revenue?: number | null
           id?: string
           jo_number?: string
           pjo_id?: string | null
           project_id?: string | null
           status?: string
-          updated_at?: string | null
-          final_revenue?: number | null
-          final_cost?: number | null
-          converted_from_pjo_at?: string | null
-          completed_at?: string | null
-          submitted_to_finance_at?: string | null
           submitted_by?: string | null
-          notes?: string | null
+          submitted_to_finance_at?: string | null
+          updated_at?: string | null
         }
         Relationships: [
           {
@@ -400,121 +352,359 @@ export type Database = {
           },
         ]
       }
-      proforma_job_orders: {
+      notification_preferences: {
         Row: {
-          id: string
-          pjo_number: string
-          customer_id: string
-          project_id: string | null
-          description: string
-          estimated_amount: number
-          status: string
-          jo_date: string | null
-          commodity: string | null
-          quantity: number | null
-          quantity_unit: string | null
-          pol: string | null
-          pod: string | null
-          pol_place_id: string | null
-          pol_lat: number | null
-          pol_lng: number | null
-          pod_place_id: string | null
-          pod_lat: number | null
-          pod_lng: number | null
-          etd: string | null
-          eta: string | null
-          carrier_type: string | null
-          total_revenue: number
-          total_expenses: number
-          profit: number
-          notes: string | null
-          created_by: string | null
-          approved_by: string | null
-          approved_at: string | null
-          rejection_reason: string | null
-          is_active: boolean
+          approval_enabled: boolean | null
+          budget_alert_enabled: boolean | null
           created_at: string | null
+          id: string
+          overdue_enabled: boolean | null
+          status_change_enabled: boolean | null
+          system_enabled: boolean | null
           updated_at: string | null
-          total_revenue_calculated: number | null
-          total_cost_estimated: number | null
-          total_cost_actual: number | null
-          all_costs_confirmed: boolean | null
-          converted_to_jo: boolean | null
-          converted_to_jo_at: string | null
-          job_order_id: string | null
-          has_cost_overruns: boolean | null
+          user_id: string
         }
         Insert: {
-          id?: string
-          pjo_number: string
-          customer_id: string
-          project_id?: string | null
-          description?: string
-          estimated_amount?: number
-          status?: string
-          jo_date?: string | null
-          commodity?: string | null
-          quantity?: number | null
-          quantity_unit?: string | null
-          pol?: string | null
-          pod?: string | null
-          etd?: string | null
-          eta?: string | null
-          carrier_type?: string | null
-          total_revenue?: number
-          total_expenses?: number
-          profit?: number
-          notes?: string | null
-          created_by?: string | null
-          approved_by?: string | null
-          approved_at?: string | null
-          rejection_reason?: string | null
-          is_active?: boolean
+          approval_enabled?: boolean | null
+          budget_alert_enabled?: boolean | null
           created_at?: string | null
+          id?: string
+          overdue_enabled?: boolean | null
+          status_change_enabled?: boolean | null
+          system_enabled?: boolean | null
           updated_at?: string | null
-          total_revenue_calculated?: number | null
-          total_cost_estimated?: number | null
-          total_cost_actual?: number | null
-          all_costs_confirmed?: boolean | null
-          converted_to_jo?: boolean | null
-          converted_to_jo_at?: string | null
-          job_order_id?: string | null
+          user_id: string
         }
         Update: {
+          approval_enabled?: boolean | null
+          budget_alert_enabled?: boolean | null
+          created_at?: string | null
           id?: string
-          pjo_number?: string
-          customer_id?: string
-          project_id?: string | null
+          overdue_enabled?: boolean | null
+          status_change_enabled?: boolean | null
+          system_enabled?: boolean | null
+          updated_at?: string | null
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "notification_preferences_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: true
+            referencedRelation: "user_profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      notifications: {
+        Row: {
+          action_url: string | null
+          created_at: string | null
+          deleted_at: string | null
+          entity_id: string | null
+          entity_type: string | null
+          expires_at: string | null
+          id: string
+          is_read: boolean | null
+          message: string
+          metadata: Json | null
+          priority: string | null
+          read_at: string | null
+          title: string
+          type: string
+          user_id: string
+        }
+        Insert: {
+          action_url?: string | null
+          created_at?: string | null
+          deleted_at?: string | null
+          entity_id?: string | null
+          entity_type?: string | null
+          expires_at?: string | null
+          id?: string
+          is_read?: boolean | null
+          message: string
+          metadata?: Json | null
+          priority?: string | null
+          read_at?: string | null
+          title: string
+          type: string
+          user_id: string
+        }
+        Update: {
+          action_url?: string | null
+          created_at?: string | null
+          deleted_at?: string | null
+          entity_id?: string | null
+          entity_type?: string | null
+          expires_at?: string | null
+          id?: string
+          is_read?: boolean | null
+          message?: string
+          metadata?: Json | null
+          priority?: string | null
+          read_at?: string | null
+          title?: string
+          type?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "notifications_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "user_profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      pjo_cost_items: {
+        Row: {
+          actual_amount: number | null
+          category: string
+          confirmed_at: string | null
+          confirmed_by: string | null
+          created_at: string | null
+          description: string
+          estimated_amount: number
+          estimated_by: string | null
+          id: string
+          justification: string | null
+          notes: string | null
+          pjo_id: string
+          status: string
+          updated_at: string | null
+          variance: number | null
+          variance_pct: number | null
+        }
+        Insert: {
+          actual_amount?: number | null
+          category: string
+          confirmed_at?: string | null
+          confirmed_by?: string | null
+          created_at?: string | null
+          description: string
+          estimated_amount: number
+          estimated_by?: string | null
+          id?: string
+          justification?: string | null
+          notes?: string | null
+          pjo_id: string
+          status?: string
+          updated_at?: string | null
+          variance?: number | null
+          variance_pct?: number | null
+        }
+        Update: {
+          actual_amount?: number | null
+          category?: string
+          confirmed_at?: string | null
+          confirmed_by?: string | null
+          created_at?: string | null
           description?: string
           estimated_amount?: number
-          status?: string
-          jo_date?: string | null
-          commodity?: string | null
-          quantity?: number | null
-          quantity_unit?: string | null
-          pol?: string | null
-          pod?: string | null
-          etd?: string | null
-          eta?: string | null
-          carrier_type?: string | null
-          total_revenue?: number
-          total_expenses?: number
-          profit?: number
+          estimated_by?: string | null
+          id?: string
+          justification?: string | null
           notes?: string | null
-          created_by?: string | null
-          approved_by?: string | null
-          approved_at?: string | null
-          rejection_reason?: string | null
-          is_active?: boolean
-          created_at?: string | null
+          pjo_id?: string
+          status?: string
           updated_at?: string | null
-          total_revenue_calculated?: number | null
-          total_cost_estimated?: number | null
-          total_cost_actual?: number | null
+          variance?: number | null
+          variance_pct?: number | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "pjo_cost_items_pjo_id_fkey"
+            columns: ["pjo_id"]
+            isOneToOne: false
+            referencedRelation: "proforma_job_orders"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      pjo_revenue_items: {
+        Row: {
+          created_at: string | null
+          description: string
+          id: string
+          notes: string | null
+          pjo_id: string
+          quantity: number
+          source_id: string | null
+          source_type: string | null
+          subtotal: number | null
+          unit: string
+          unit_price: number
+          updated_at: string | null
+        }
+        Insert: {
+          created_at?: string | null
+          description: string
+          id?: string
+          notes?: string | null
+          pjo_id: string
+          quantity?: number
+          source_id?: string | null
+          source_type?: string | null
+          subtotal?: number | null
+          unit: string
+          unit_price: number
+          updated_at?: string | null
+        }
+        Update: {
+          created_at?: string | null
+          description?: string
+          id?: string
+          notes?: string | null
+          pjo_id?: string
+          quantity?: number
+          source_id?: string | null
+          source_type?: string | null
+          subtotal?: number | null
+          unit?: string
+          unit_price?: number
+          updated_at?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "pjo_revenue_items_pjo_id_fkey"
+            columns: ["pjo_id"]
+            isOneToOne: false
+            referencedRelation: "proforma_job_orders"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      proforma_job_orders: {
+        Row: {
+          all_costs_confirmed: boolean | null
+          approved_at: string | null
+          approved_by: string | null
+          carrier_type: string | null
+          commodity: string | null
+          converted_to_jo: boolean | null
+          converted_to_jo_at: string | null
+          created_at: string | null
+          created_by: string | null
+          customer_id: string
+          description: string
+          estimated_amount: number
+          eta: string | null
+          etd: string | null
+          has_cost_overruns: boolean | null
+          id: string
+          is_active: boolean | null
+          jo_date: string | null
+          job_order_id: string | null
+          notes: string | null
+          pjo_number: string
+          pod: string | null
+          pod_lat: number | null
+          pod_lng: number | null
+          pod_place_id: string | null
+          pol: string | null
+          pol_lat: number | null
+          pol_lng: number | null
+          pol_place_id: string | null
+          profit: number | null
+          project_id: string | null
+          quantity: number | null
+          quantity_unit: string | null
+          rejection_reason: string | null
+          status: string
+          total_cost_actual: number | null
+          total_cost_estimated: number | null
+          total_expenses: number | null
+          total_revenue: number | null
+          total_revenue_calculated: number | null
+          updated_at: string | null
+        }
+        Insert: {
           all_costs_confirmed?: boolean | null
+          approved_at?: string | null
+          approved_by?: string | null
+          carrier_type?: string | null
+          commodity?: string | null
           converted_to_jo?: boolean | null
           converted_to_jo_at?: string | null
+          created_at?: string | null
+          created_by?: string | null
+          customer_id: string
+          description: string
+          estimated_amount?: number
+          eta?: string | null
+          etd?: string | null
+          has_cost_overruns?: boolean | null
+          id?: string
+          is_active?: boolean | null
+          jo_date?: string | null
           job_order_id?: string | null
+          notes?: string | null
+          pjo_number: string
+          pod?: string | null
+          pod_lat?: number | null
+          pod_lng?: number | null
+          pod_place_id?: string | null
+          pol?: string | null
+          pol_lat?: number | null
+          pol_lng?: number | null
+          pol_place_id?: string | null
+          profit?: number | null
+          project_id?: string | null
+          quantity?: number | null
+          quantity_unit?: string | null
+          rejection_reason?: string | null
+          status?: string
+          total_cost_actual?: number | null
+          total_cost_estimated?: number | null
+          total_expenses?: number | null
+          total_revenue?: number | null
+          total_revenue_calculated?: number | null
+          updated_at?: string | null
+        }
+        Update: {
+          all_costs_confirmed?: boolean | null
+          approved_at?: string | null
+          approved_by?: string | null
+          carrier_type?: string | null
+          commodity?: string | null
+          converted_to_jo?: boolean | null
+          converted_to_jo_at?: string | null
+          created_at?: string | null
+          created_by?: string | null
+          customer_id?: string
+          description?: string
+          estimated_amount?: number
+          eta?: string | null
+          etd?: string | null
+          has_cost_overruns?: boolean | null
+          id?: string
+          is_active?: boolean | null
+          jo_date?: string | null
+          job_order_id?: string | null
+          notes?: string | null
+          pjo_number?: string
+          pod?: string | null
+          pod_lat?: number | null
+          pod_lng?: number | null
+          pod_place_id?: string | null
+          pol?: string | null
+          pol_lat?: number | null
+          pol_lng?: number | null
+          pol_place_id?: string | null
+          profit?: number | null
+          project_id?: string | null
+          quantity?: number | null
+          quantity_unit?: string | null
+          rejection_reason?: string | null
+          status?: string
+          total_cost_actual?: number | null
+          total_cost_estimated?: number | null
+          total_expenses?: number | null
+          total_revenue?: number | null
+          total_revenue_calculated?: number | null
+          updated_at?: string | null
         }
         Relationships: [
           {
@@ -522,6 +712,13 @@ export type Database = {
             columns: ["customer_id"]
             isOneToOne: false
             referencedRelation: "customers"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "proforma_job_orders_job_order_id_fkey"
+            columns: ["job_order_id"]
+            isOneToOne: false
+            referencedRelation: "job_orders"
             referencedColumns: ["id"]
           },
           {
@@ -574,208 +771,66 @@ export type Database = {
           },
         ]
       }
-      activity_log: {
-        Row: {
-          id: string
-          action_type: string
-          document_type: string
-          document_id: string
-          document_number: string
-          user_id: string | null
-          user_name: string
-          details: Json | null
-          created_at: string | null
-        }
-        Insert: {
-          id?: string
-          action_type: string
-          document_type: string
-          document_id: string
-          document_number: string
-          user_id?: string | null
-          user_name: string
-          details?: Json | null
-          created_at?: string | null
-        }
-        Update: {
-          id?: string
-          action_type?: string
-          document_type?: string
-          document_id?: string
-          document_number?: string
-          user_id?: string | null
-          user_name?: string
-          details?: Json | null
-          created_at?: string | null
-        }
-        Relationships: []
-      }
-      notifications: {
-        Row: {
-          id: string
-          user_id: string
-          title: string
-          message: string
-          type: string
-          priority: string | null
-          entity_type: string | null
-          entity_id: string | null
-          is_read: boolean | null
-          read_at: string | null
-          action_url: string | null
-          metadata: Json | null
-          created_at: string | null
-          expires_at: string | null
-          deleted_at: string | null
-        }
-        Insert: {
-          id?: string
-          user_id: string
-          title: string
-          message: string
-          type: string
-          priority?: string | null
-          entity_type?: string | null
-          entity_id?: string | null
-          is_read?: boolean | null
-          read_at?: string | null
-          action_url?: string | null
-          metadata?: Json | null
-          created_at?: string | null
-          expires_at?: string | null
-          deleted_at?: string | null
-        }
-        Update: {
-          id?: string
-          user_id?: string
-          title?: string
-          message?: string
-          type?: string
-          priority?: string | null
-          entity_type?: string | null
-          entity_id?: string | null
-          is_read?: boolean | null
-          read_at?: string | null
-          action_url?: string | null
-          metadata?: Json | null
-          created_at?: string | null
-          expires_at?: string | null
-          deleted_at?: string | null
-        }
-        Relationships: [
-          {
-            foreignKeyName: "notifications_user_id_fkey"
-            columns: ["user_id"]
-            isOneToOne: false
-            referencedRelation: "user_profiles"
-            referencedColumns: ["id"]
-          }
-        ]
-      }
-      notification_preferences: {
-        Row: {
-          id: string
-          user_id: string
-          approval_enabled: boolean | null
-          budget_alert_enabled: boolean | null
-          status_change_enabled: boolean | null
-          overdue_enabled: boolean | null
-          system_enabled: boolean | null
-          created_at: string | null
-          updated_at: string | null
-        }
-        Insert: {
-          id?: string
-          user_id: string
-          approval_enabled?: boolean | null
-          budget_alert_enabled?: boolean | null
-          status_change_enabled?: boolean | null
-          overdue_enabled?: boolean | null
-          system_enabled?: boolean | null
-          created_at?: string | null
-          updated_at?: string | null
-        }
-        Update: {
-          id?: string
-          user_id?: string
-          approval_enabled?: boolean | null
-          budget_alert_enabled?: boolean | null
-          status_change_enabled?: boolean | null
-          overdue_enabled?: boolean | null
-          system_enabled?: boolean | null
-          created_at?: string | null
-          updated_at?: string | null
-        }
-        Relationships: [
-          {
-            foreignKeyName: "notification_preferences_user_id_fkey"
-            columns: ["user_id"]
-            isOneToOne: true
-            referencedRelation: "user_profiles"
-            referencedColumns: ["id"]
-          }
-        ]
-      }
       user_profiles: {
         Row: {
-          id: string
-          user_id: string | null
-          email: string
-          full_name: string | null
           avatar_url: string | null
-          role: string
-          can_see_revenue: boolean
-          can_see_profit: boolean
           can_approve_pjo: boolean
-          can_manage_invoices: boolean
-          can_manage_users: boolean
           can_create_pjo: boolean
           can_fill_costs: boolean
-          custom_dashboard: string
-          is_active: boolean
+          can_manage_invoices: boolean
+          can_manage_users: boolean
+          can_see_profit: boolean
+          can_see_revenue: boolean
           created_at: string | null
-          updated_at: string | null
+          custom_dashboard: string | null
+          email: string
+          full_name: string | null
+          id: string
+          is_active: boolean
           last_login_at: string | null
+          role: string
+          updated_at: string | null
+          user_id: string | null
         }
         Insert: {
-          id?: string
-          user_id?: string | null
+          avatar_url?: string | null
+          can_approve_pjo?: boolean
+          can_create_pjo?: boolean
+          can_fill_costs?: boolean
+          can_manage_invoices?: boolean
+          can_manage_users?: boolean
+          can_see_profit?: boolean
+          can_see_revenue?: boolean
+          created_at?: string | null
+          custom_dashboard?: string | null
           email: string
           full_name?: string | null
-          avatar_url?: string | null
-          role?: string
-          can_see_revenue?: boolean
-          can_see_profit?: boolean
-          can_approve_pjo?: boolean
-          can_manage_invoices?: boolean
-          can_manage_users?: boolean
-          can_create_pjo?: boolean
-          can_fill_costs?: boolean
-          custom_dashboard?: string
+          id?: string
           is_active?: boolean
-          created_at?: string | null
-          updated_at?: string | null
           last_login_at?: string | null
+          role?: string
+          updated_at?: string | null
+          user_id?: string | null
         }
         Update: {
-          id?: string
-          user_id?: string | null
-          email?: string
-          full_name?: string | null
           avatar_url?: string | null
-          role?: string
-          can_see_revenue?: boolean
-          can_see_profit?: boolean
           can_approve_pjo?: boolean
-          can_manage_invoices?: boolean
-          can_manage_users?: boolean
           can_create_pjo?: boolean
           can_fill_costs?: boolean
-          custom_dashboard?: string
-          is_active?: boolean
+          can_manage_invoices?: boolean
+          can_manage_users?: boolean
+          can_see_profit?: boolean
+          can_see_revenue?: boolean
           created_at?: string | null
-          updated_at?: string | null
+          custom_dashboard?: string | null
+          email?: string
+          full_name?: string | null
+          id?: string
+          is_active?: boolean
           last_login_at?: string | null
+          role?: string
+          updated_at?: string | null
+          user_id?: string | null
         }
         Relationships: []
       }
@@ -795,232 +850,125 @@ export type Database = {
   }
 }
 
-// Helper types
-export type Tables<T extends keyof Database['public']['Tables']> = Database['public']['Tables'][T]['Row']
-export type TablesInsert<T extends keyof Database['public']['Tables']> = Database['public']['Tables'][T]['Insert']
-export type TablesUpdate<T extends keyof Database['public']['Tables']> = Database['public']['Tables'][T]['Update']
+type DatabaseWithoutInternals = Omit<Database, "__InternalSupabase">
 
-// Convenience type aliases
-export type Customer = Tables<'customers'>
-export type Project = Tables<'projects'>
-export type ProformaJobOrder = Tables<'proforma_job_orders'>
-export type JobOrder = Tables<'job_orders'>
-export type Invoice = Tables<'invoices'>
+type DefaultSchema = DatabaseWithoutInternals[Extract<keyof Database, "public">]
 
-// PJO specific types
-export type PJOStatus = 'draft' | 'pending_approval' | 'approved' | 'rejected'
-export type QuantityUnit = 'TRIP' | 'TRIPS' | 'LOT' | 'CASE'
-export type CarrierType = 'FUSO' | 'TRAILER 20FT' | 'TRAILER 40FT'
-
-// Itemized financials types
-export type CostCategory = 
-  | 'trucking' | 'port_charges' | 'documentation' | 'handling'
-  | 'customs' | 'insurance' | 'storage' | 'labor' | 'fuel' | 'tolls' | 'other'
-
-export type CostItemStatus = 'estimated' | 'confirmed' | 'at_risk' | 'exceeded' | 'under_budget'
-
-export type RevenueSourceType = 'quotation' | 'contract' | 'manual'
-
-export type JOStatusNew = 'active' | 'completed' | 'submitted_to_finance' | 'invoiced' | 'closed'
-
-export interface PJORevenueItem {
-  id: string
-  pjo_id: string
-  description: string
-  quantity: number
-  unit: string
-  unit_price: number
-  subtotal: number
-  source_type?: RevenueSourceType
-  source_id?: string
-  notes?: string
-  created_at: string
-  updated_at: string
-}
-
-export interface PJOCostItem {
-  id: string
-  pjo_id: string
-  category: CostCategory
-  description: string
-  estimated_amount: number
-  actual_amount?: number
-  variance?: number
-  variance_pct?: number
-  status: CostItemStatus
-  estimated_by?: string
-  confirmed_by?: string
-  confirmed_at?: string
-  justification?: string
-  notes?: string
-  created_at: string
-  updated_at: string
-}
-
-// JobOrder already has these fields from the database type, so we just alias it
-export type JobOrderExtended = JobOrder
-
-export interface JobOrderWithRelations extends JobOrderExtended {
-  proforma_job_orders?: ProformaJobOrder
-  projects?: Project
-  customers?: Customer
-}
-
-export interface BudgetAnalysis {
-  total_estimated: number
-  total_actual: number
-  total_variance: number
-  variance_pct: number
-  items_confirmed: number
-  items_pending: number
-  items_over_budget: number
-  items_under_budget: number
-  all_confirmed: boolean
-  has_overruns: boolean
-}
-
-export interface ConversionReadiness {
-  ready: boolean
-  blockers: string[]
-  summary: {
-    total_revenue: number
-    total_cost: number
-    profit: number
-    margin: number
-    cost_items_confirmed: number
-    cost_items_total: number
-    has_overruns: boolean
+export type Tables<
+  DefaultSchemaTableNameOrOptions extends
+    | keyof (DefaultSchema["Tables"] & DefaultSchema["Views"])
+    | { schema: keyof DatabaseWithoutInternals },
+  TableName extends DefaultSchemaTableNameOrOptions extends {
+    schema: keyof DatabaseWithoutInternals
   }
+    ? keyof (DatabaseWithoutInternals[DefaultSchemaTableNameOrOptions["schema"]]["Tables"] &
+        DatabaseWithoutInternals[DefaultSchemaTableNameOrOptions["schema"]]["Views"])
+    : never = never,
+> = DefaultSchemaTableNameOrOptions extends {
+  schema: keyof DatabaseWithoutInternals
 }
-
-// PJO with related data for display
-export interface PJOWithRelations extends ProformaJobOrder {
-  projects: {
-    id: string
-    name: string
-    customers: {
-      id: string
-      name: string
+  ? (DatabaseWithoutInternals[DefaultSchemaTableNameOrOptions["schema"]]["Tables"] &
+      DatabaseWithoutInternals[DefaultSchemaTableNameOrOptions["schema"]]["Views"])[TableName] extends {
+      Row: infer R
     }
-  } | null
-}
+    ? R
+    : never
+  : DefaultSchemaTableNameOrOptions extends keyof (DefaultSchema["Tables"] &
+        DefaultSchema["Views"])
+    ? (DefaultSchema["Tables"] &
+        DefaultSchema["Views"])[DefaultSchemaTableNameOrOptions] extends {
+        Row: infer R
+      }
+      ? R
+      : never
+    : never
 
-// Project with customer for dropdowns
-export interface ProjectWithCustomer extends Project {
-  customers: {
-    id: string
-    name: string
-  } | null
-}
-
-// Invoice types
-export type InvoiceStatus = 'draft' | 'sent' | 'paid' | 'overdue' | 'cancelled'
-
-export type InvoiceLineItem = Tables<'invoice_line_items'>
-
-export interface InvoiceWithRelations extends Invoice {
-  customers: {
-    id: string
-    name: string
-    email: string
-    address: string | null
+export type TablesInsert<
+  DefaultSchemaTableNameOrOptions extends
+    | keyof DefaultSchema["Tables"]
+    | { schema: keyof DatabaseWithoutInternals },
+  TableName extends DefaultSchemaTableNameOrOptions extends {
+    schema: keyof DatabaseWithoutInternals
   }
-  job_orders: {
-    id: string
-    jo_number: string
-    pjo_id: string | null
+    ? keyof DatabaseWithoutInternals[DefaultSchemaTableNameOrOptions["schema"]]["Tables"]
+    : never = never,
+> = DefaultSchemaTableNameOrOptions extends {
+  schema: keyof DatabaseWithoutInternals
+}
+  ? DatabaseWithoutInternals[DefaultSchemaTableNameOrOptions["schema"]]["Tables"][TableName] extends {
+      Insert: infer I
+    }
+    ? I
+    : never
+  : DefaultSchemaTableNameOrOptions extends keyof DefaultSchema["Tables"]
+    ? DefaultSchema["Tables"][DefaultSchemaTableNameOrOptions] extends {
+        Insert: infer I
+      }
+      ? I
+      : never
+    : never
+
+export type TablesUpdate<
+  DefaultSchemaTableNameOrOptions extends
+    | keyof DefaultSchema["Tables"]
+    | { schema: keyof DatabaseWithoutInternals },
+  TableName extends DefaultSchemaTableNameOrOptions extends {
+    schema: keyof DatabaseWithoutInternals
   }
-  invoice_line_items?: InvoiceLineItem[]
+    ? keyof DatabaseWithoutInternals[DefaultSchemaTableNameOrOptions["schema"]]["Tables"]
+    : never = never,
+> = DefaultSchemaTableNameOrOptions extends {
+  schema: keyof DatabaseWithoutInternals
 }
+  ? DatabaseWithoutInternals[DefaultSchemaTableNameOrOptions["schema"]]["Tables"][TableName] extends {
+      Update: infer U
+    }
+    ? U
+    : never
+  : DefaultSchemaTableNameOrOptions extends keyof DefaultSchema["Tables"]
+    ? DefaultSchema["Tables"][DefaultSchemaTableNameOrOptions] extends {
+        Update: infer U
+      }
+      ? U
+      : never
+    : never
 
-export interface InvoiceFormData {
-  jo_id: string
-  customer_id: string
-  invoice_date: string
-  due_date: string
-  line_items: {
-    description: string
-    quantity: number
-    unit: string
-    unit_price: number
-  }[]
-  notes?: string
+export type Enums<
+  DefaultSchemaEnumNameOrOptions extends
+    | keyof DefaultSchema["Enums"]
+    | { schema: keyof DatabaseWithoutInternals },
+  EnumName extends DefaultSchemaEnumNameOrOptions extends {
+    schema: keyof DatabaseWithoutInternals
+  }
+    ? keyof DatabaseWithoutInternals[DefaultSchemaEnumNameOrOptions["schema"]]["Enums"]
+    : never = never,
+> = DefaultSchemaEnumNameOrOptions extends {
+  schema: keyof DatabaseWithoutInternals
 }
+  ? DatabaseWithoutInternals[DefaultSchemaEnumNameOrOptions["schema"]]["Enums"][EnumName]
+  : DefaultSchemaEnumNameOrOptions extends keyof DefaultSchema["Enums"]
+    ? DefaultSchema["Enums"][DefaultSchemaEnumNameOrOptions]
+    : never
 
-export interface InvoiceLineItemInput {
-  description: string
-  quantity: number
-  unit: string
-  unit_price: number
+export type CompositeTypes<
+  PublicCompositeTypeNameOrOptions extends
+    | keyof DefaultSchema["CompositeTypes"]
+    | { schema: keyof DatabaseWithoutInternals },
+  CompositeTypeName extends PublicCompositeTypeNameOrOptions extends {
+    schema: keyof DatabaseWithoutInternals
+  }
+    ? keyof DatabaseWithoutInternals[PublicCompositeTypeNameOrOptions["schema"]]["CompositeTypes"]
+    : never = never,
+> = PublicCompositeTypeNameOrOptions extends {
+  schema: keyof DatabaseWithoutInternals
 }
+  ? DatabaseWithoutInternals[PublicCompositeTypeNameOrOptions["schema"]]["CompositeTypes"][CompositeTypeName]
+  : PublicCompositeTypeNameOrOptions extends keyof DefaultSchema["CompositeTypes"]
+    ? DefaultSchema["CompositeTypes"][PublicCompositeTypeNameOrOptions]
+    : never
 
-
-// Dashboard types
-export interface DashboardKPIs {
-  awaitingOpsInput: number
-  exceededBudgetItems: number
-  readyForConversion: number
-  outstandingAR: number
-}
-
-export type ActivityType = 
-  | 'pjo_approved'
-  | 'pjo_rejected'
-  | 'jo_created'
-  | 'jo_completed'
-  | 'jo_submitted_to_finance'
-  | 'invoice_created'
-  | 'invoice_sent'
-  | 'invoice_paid'
-  | 'cost_confirmed'
-
-export type DocumentType = 'pjo' | 'jo' | 'invoice'
-
-export interface ActivityEntry {
-  id: string
-  action_type: ActivityType
-  document_type: DocumentType
-  document_id: string
-  document_number: string
-  user_id: string
-  user_name: string
-  details?: Record<string, unknown>
-  created_at: string
-}
-
-export interface BudgetAlert {
-  id: string
-  pjo_id: string
-  pjo_number: string
-  category: string
-  description: string
-  estimated_amount: number
-  actual_amount: number
-  variance: number
-  variance_pct: number
-  created_at: string
-}
-
-export interface OpsQueueItem {
-  id: string
-  pjo_number: string
-  customer_name: string
-  project_name: string | null
-  commodity: string | null
-  costs_confirmed: number
-  costs_total: number
-  created_at: string
-}
-
-export interface ManagerMetrics {
-  totalRevenue: number
-  totalCosts: number
-  totalProfit: number
-  margin: number
-  activeJOCount: number
-}
-
-export interface CostProgress {
-  confirmed: number
-  total: number
-}
+export const Constants = {
+  public: {
+    Enums: {},
+  },
+} as const

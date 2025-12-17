@@ -1,7 +1,10 @@
 import { InvoiceStatus, InvoiceLineItemInput } from '@/types'
 
-// VAT rate constant (11% PPN)
+// Default VAT rate constant (11% PPN) - used as fallback
 export const VAT_RATE = 0.11
+
+// Default payment terms (30 days) - used as fallback
+export const DEFAULT_PAYMENT_TERMS = 30
 
 /**
  * Calculate line item subtotal
@@ -12,8 +15,13 @@ export function calculateLineItemSubtotal(quantity: number, unitPrice: number): 
 
 /**
  * Calculate invoice totals from line items
+ * @param lineItems - Array of line items
+ * @param vatRate - VAT rate as decimal (e.g., 0.11 for 11%). Defaults to VAT_RATE constant.
  */
-export function calculateInvoiceTotals(lineItems: InvoiceLineItemInput[]): {
+export function calculateInvoiceTotals(
+  lineItems: InvoiceLineItemInput[],
+  vatRate: number = VAT_RATE
+): {
   subtotal: number
   vatAmount: number
   grandTotal: number
@@ -22,7 +30,7 @@ export function calculateInvoiceTotals(lineItems: InvoiceLineItemInput[]): {
     return sum + calculateLineItemSubtotal(item.quantity, item.unit_price)
   }, 0)
   
-  const vatAmount = subtotal * VAT_RATE
+  const vatAmount = subtotal * vatRate
   const grandTotal = subtotal + vatAmount
   
   return {
@@ -55,11 +63,12 @@ export function parseInvoiceNumber(invoiceNumber: string): { year: number; seque
 }
 
 /**
- * Get default due date (30 days from now)
+ * Get default due date based on payment terms
+ * @param paymentTerms - Number of days until due. Defaults to DEFAULT_PAYMENT_TERMS.
  */
-export function getDefaultDueDate(): Date {
+export function getDefaultDueDate(paymentTerms: number = DEFAULT_PAYMENT_TERMS): Date {
   const date = new Date()
-  date.setDate(date.getDate() + 30)
+  date.setDate(date.getDate() + paymentTerms)
   return date
 }
 

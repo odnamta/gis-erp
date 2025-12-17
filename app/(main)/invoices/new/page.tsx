@@ -1,6 +1,8 @@
 import { redirect, notFound } from 'next/navigation'
 import { getInvoiceDataFromJO } from '../actions'
 import { InvoiceForm } from '@/components/invoices/invoice-form'
+import { getCompanySetting } from '@/app/(main)/settings/company/actions'
+import { DEFAULT_SETTINGS } from '@/types/company-settings'
 
 interface NewInvoicePageProps {
   searchParams: Promise<{ joId?: string }>
@@ -34,6 +36,10 @@ export default async function NewInvoicePage({ searchParams }: NewInvoicePagePro
     notFound()
   }
 
+  // Get VAT rate from company settings
+  const vatRateSetting = await getCompanySetting('vat_rate')
+  const vatRate = vatRateSetting ? parseFloat(vatRateSetting) / 100 : DEFAULT_SETTINGS.vat_rate / 100
+
   return (
     <div className="space-y-6">
       <div>
@@ -43,7 +49,7 @@ export default async function NewInvoicePage({ searchParams }: NewInvoicePagePro
         </p>
       </div>
 
-      <InvoiceForm initialData={result.data} />
+      <InvoiceForm initialData={result.data} vatRate={vatRate} />
     </div>
   )
 }
