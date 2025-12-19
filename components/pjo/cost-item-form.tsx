@@ -3,7 +3,7 @@
 import { useForm } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { z } from 'zod'
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
@@ -27,6 +27,10 @@ import { PJOCostItem, CostCategory } from '@/types'
 import { createCostItem, updateCostEstimate, CostItemFormData } from '@/app/(main)/proforma-jo/cost-actions'
 import { useToast } from '@/hooks/use-toast'
 import { COST_CATEGORY_LABELS } from '@/lib/pjo-utils'
+import { VendorSelector } from '@/components/vendors/vendor-selector'
+import { EquipmentSelector } from '@/components/vendors/equipment-selector'
+import { mapCostCategoryToVendorType } from '@/lib/vendor-utils'
+import { Vendor, VendorEquipment } from '@/types/vendors'
 
 const schema = z.object({
   category: z.enum([
@@ -36,6 +40,8 @@ const schema = z.object({
   description: z.string().min(1, 'Description is required'),
   estimated_amount: z.number().positive('Amount must be positive'),
   notes: z.string().optional(),
+  vendor_id: z.string().uuid().optional().nullable(),
+  vendor_equipment_id: z.string().uuid().optional().nullable(),
 })
 
 const categoryOptions: CostCategory[] = [
@@ -54,6 +60,8 @@ interface CostItemFormProps {
 export function CostItemForm({ pjoId, item, open, onOpenChange, onSuccess }: CostItemFormProps) {
   const { toast } = useToast()
   const [isLoading, setIsLoading] = useState(false)
+  const [selectedVendorId, setSelectedVendorId] = useState<string | null>(item?.vendor_id || null)
+  const [selectedEquipmentId, setSelectedEquipmentId] = useState<string | null>(item?.vendor_equipment_id || null)
   const isEdit = !!item
 
   const {
@@ -70,10 +78,40 @@ export function CostItemForm({ pjoId, item, open, onOpenChange, onSuccess }: Cos
       description: item?.description || '',
       estimated_amount: item?.estimated_amount || 0,
       notes: item?.notes || '',
+      vendor_id: item?.vendor_id || null,
+      vendor_equipment_id: item?.vendor_equipment_id || null,
     },
   })
 
   const selectedCategory = watch('category')
+  const vendorType = mapCostCategoryToVendorType(selectedCategory)
+
+  // Reset vendor and equipment when category changes
+  useEffect(() => {
+    if (!isEdit) {
+      setSelectedVendorId(null)
+      setSelectedEquipmentId(null)
+      setValue('vendor_id', null)
+      setValue('vendor_equipment_id', null)
+    }
+  }, [selectedCategory, isEdit, setValue])
+
+  const handleVendorChange = (vendorId: string | null, vendor?: Vendor) => {
+    setSelectedVendorId(vendorId)
+    setValue('vendor_id', vendorId)
+    // Clear equipment when vendor changes
+    setSelectedEquipmentId(null)
+    setValue('vendor_equipment_id', null)
+  }
+
+  const handleEquipmentChange = (equipmentId: string | null, equipment?: VendorEquipment) => {
+    setSelectedEquipmentId(equipmentId)
+    setValue('vendor_equipment_id', equipmentId)
+    // Auto-suggest daily rate as estimated amount if equipment has one
+    if (equipment?.daily_rate && !watch('estimated_amount')) {
+      setValue('estimated_amount', equipment.daily_rate)
+    }
+  }
 
   async function onSubmit(data: CostItemFormData) {
     setIsLoading(true)
@@ -145,6 +183,35 @@ export function CostItemForm({ pjoId, item, open, onOpenChange, onSuccess }: Cos
               <p className="text-sm text-destructive">{errors.description.message}</p>
             )}
           </div>
+
+          {/* Vendor Selection */}
+          <div className="space-y-2">
+            <Label>Vendor (Optional)</Label>
+            <VendorSelector
+              value={selectedVendorId}
+              onChange={handleVendorChange}
+              vendorType={vendorType}
+              placeholder="Select vendor..."
+              disabled={isLoading}
+            />
+            <p className="text-xs text-muted-foreground">
+              {vendorType ? `Showing ${vendorType} vendors` : 'Showing all vendors'}
+            </p>
+          </div>
+
+          {/* Equipment Selection (only for trucking-related categories) */}
+          {selectedVendorId && ['trucking', 'handling', 'fuel', 'tolls'].includes(selectedCategory) && (
+            <div className="space-y-2">
+              <Label>Equipment (Optional)</Label>
+              <EquipmentSelector
+                vendorId={selectedVendorId}
+                value={selectedEquipmentId}
+                onChange={handleEquipmentChange}
+                placeholder="Select equipment..."
+                disabled={isLoading}
+              />
+            </div>
+          )}
 
           <div className="space-y-2">
             <Label htmlFor="estimated_amount">Estimated Amount (IDR) *</Label>

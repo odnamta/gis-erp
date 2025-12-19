@@ -74,7 +74,7 @@ describe('Navigation Properties', () => {
 })
 
 describe('Role-specific navigation', () => {
-  it('admin sees Dashboard, Customers, Projects, Proforma JO, Cost Entry, Job Orders, Invoices, Reports, Settings', () => {
+  it('admin sees Dashboard, Customers, Projects, Proforma JO, Cost Entry, Job Orders, Vendors, Invoices, Reports, Notifications, Settings', () => {
     const adminPermissions = DEFAULT_PERMISSIONS.admin
     const filteredItems = filterNavItems(NAV_ITEMS, 'admin', adminPermissions)
     const titles = filteredItems.map(item => item.title)
@@ -85,12 +85,14 @@ describe('Role-specific navigation', () => {
     expect(titles).toContain('Proforma JO')
     expect(titles).toContain('Cost Entry')
     expect(titles).toContain('Job Orders')
+    expect(titles).toContain('Vendors')
     expect(titles).toContain('Invoices')
     expect(titles).toContain('Reports')
+    expect(titles).toContain('Notifications')
     expect(titles).toContain('Settings')
   })
 
-  it('manager sees Dashboard, Customers, Projects, Proforma JO, Job Orders, Reports (no Settings, no Cost Entry)', () => {
+  it('manager sees Dashboard, Customers, Projects, Proforma JO, Job Orders, Vendors, Reports, Notifications, Settings (no Cost Entry, no Invoices)', () => {
     const managerPermissions = DEFAULT_PERMISSIONS.manager
     const filteredItems = filterNavItems(NAV_ITEMS, 'manager', managerPermissions)
     const titles = filteredItems.map(item => item.title)
@@ -100,12 +102,15 @@ describe('Role-specific navigation', () => {
     expect(titles).toContain('Projects')
     expect(titles).toContain('Proforma JO')
     expect(titles).toContain('Job Orders')
+    expect(titles).toContain('Vendors')
     expect(titles).toContain('Reports')
-    expect(titles).not.toContain('Settings')
+    expect(titles).toContain('Notifications')
+    expect(titles).toContain('Settings')
     expect(titles).not.toContain('Cost Entry')
+    expect(titles).not.toContain('Invoices')
   })
 
-  it('ops sees Dashboard, Projects, Proforma JO, Cost Entry, Job Orders (no Customers, no Invoices, no Reports, no Settings)', () => {
+  it('ops sees Dashboard, Projects, Proforma JO, Cost Entry, Job Orders, Vendors, Reports, Notifications, Settings (no Customers, no Invoices)', () => {
     const opsPermissions = DEFAULT_PERMISSIONS.ops
     const filteredItems = filterNavItems(NAV_ITEMS, 'ops', opsPermissions)
     const titles = filteredItems.map(item => item.title)
@@ -115,12 +120,15 @@ describe('Role-specific navigation', () => {
     expect(titles).toContain('Proforma JO')
     expect(titles).toContain('Cost Entry')
     expect(titles).toContain('Job Orders')
+    expect(titles).toContain('Vendors')
+    expect(titles).toContain('Reports')
+    expect(titles).toContain('Notifications')
+    expect(titles).toContain('Settings')
     expect(titles).not.toContain('Customers')
     expect(titles).not.toContain('Invoices')
-    expect(titles).not.toContain('Settings')
   })
 
-  it('finance sees Dashboard, Customers, Projects, Proforma JO, Job Orders, Invoices, Reports (no Settings, no Cost Entry)', () => {
+  it('finance sees Dashboard, Customers, Projects, Proforma JO, Job Orders, Vendors, Invoices, Reports, Notifications, Settings (no Cost Entry)', () => {
     const financePermissions = DEFAULT_PERMISSIONS.finance
     const filteredItems = filterNavItems(NAV_ITEMS, 'finance', financePermissions)
     const titles = filteredItems.map(item => item.title)
@@ -130,13 +138,15 @@ describe('Role-specific navigation', () => {
     expect(titles).toContain('Projects')
     expect(titles).toContain('Proforma JO')
     expect(titles).toContain('Job Orders')
+    expect(titles).toContain('Vendors')
     expect(titles).toContain('Invoices')
     expect(titles).toContain('Reports')
-    expect(titles).not.toContain('Settings')
+    expect(titles).toContain('Notifications')
+    expect(titles).toContain('Settings')
     expect(titles).not.toContain('Cost Entry')
   })
 
-  it('sales sees Dashboard, Customers, Projects, Proforma JO, Reports (no Job Orders, no Invoices, no Settings, no Cost Entry)', () => {
+  it('sales sees Dashboard, Customers, Projects, Proforma JO, Reports, Notifications, Settings (no Job Orders, no Vendors, no Invoices, no Cost Entry)', () => {
     const salesPermissions = DEFAULT_PERMISSIONS.sales
     const filteredItems = filterNavItems(NAV_ITEMS, 'sales', salesPermissions)
     const titles = filteredItems.map(item => item.title)
@@ -146,9 +156,154 @@ describe('Role-specific navigation', () => {
     expect(titles).toContain('Projects')
     expect(titles).toContain('Proforma JO')
     expect(titles).toContain('Reports')
+    expect(titles).toContain('Notifications')
+    expect(titles).toContain('Settings')
     expect(titles).not.toContain('Job Orders')
+    expect(titles).not.toContain('Vendors')
     expect(titles).not.toContain('Invoices')
-    expect(titles).not.toContain('Settings')
     expect(titles).not.toContain('Cost Entry')
+  })
+})
+
+
+// ============================================
+// Property 19: Vendor Navigation Visibility by Role
+// Feature: vendor-management
+// Validates: Requirements 11.2, 11.3
+// ============================================
+describe('Property 19: Vendor Navigation Visibility by Role', () => {
+  /**
+   * Feature: vendor-management, Property 19a: Vendor Menu Visibility
+   * The Vendors menu item SHALL be visible to roles: owner, admin, manager, ops, finance.
+   */
+  it('should show Vendors menu to authorized roles', () => {
+    const authorizedRoles: UserRole[] = ['owner', 'admin', 'manager', 'ops', 'finance']
+    
+    fc.assert(
+      fc.property(fc.constantFrom(...authorizedRoles), (role) => {
+        const permissions = DEFAULT_PERMISSIONS[role]
+        const filteredItems = filterNavItems(NAV_ITEMS, role, permissions)
+        const titles = filteredItems.map(item => item.title)
+        
+        return titles.includes('Vendors')
+      }),
+      { numRuns: 100 }
+    )
+  })
+
+  /**
+   * Feature: vendor-management, Property 19b: Vendor Menu Hidden from Unauthorized
+   * The Vendors menu item SHALL NOT be visible to roles: sales, viewer.
+   */
+  it('should hide Vendors menu from unauthorized roles', () => {
+    const unauthorizedRoles: UserRole[] = ['sales', 'viewer']
+    
+    fc.assert(
+      fc.property(fc.constantFrom(...unauthorizedRoles), (role) => {
+        const permissions = DEFAULT_PERMISSIONS[role]
+        const filteredItems = filterNavItems(NAV_ITEMS, role, permissions)
+        const titles = filteredItems.map(item => item.title)
+        
+        return !titles.includes('Vendors')
+      }),
+      { numRuns: 100 }
+    )
+  })
+
+  /**
+   * Feature: vendor-management, Property 19c: Vendor Menu Position
+   * The Vendors menu item SHALL appear after Job Orders in the navigation.
+   */
+  it('should position Vendors menu after Job Orders', () => {
+    const vendorItem = NAV_ITEMS.find(item => item.title === 'Vendors')
+    const jobOrdersItem = NAV_ITEMS.find(item => item.title === 'Job Orders')
+    
+    expect(vendorItem).toBeDefined()
+    expect(jobOrdersItem).toBeDefined()
+    
+    const vendorIndex = NAV_ITEMS.indexOf(vendorItem!)
+    const jobOrdersIndex = NAV_ITEMS.indexOf(jobOrdersItem!)
+    
+    expect(vendorIndex).toBeGreaterThan(jobOrdersIndex)
+  })
+
+  /**
+   * Feature: vendor-management, Property 19d: Vendor Menu Icon
+   * The Vendors menu item SHALL use the Building2 icon.
+   */
+  it('should use Building2 icon for Vendors menu', () => {
+    const vendorItem = NAV_ITEMS.find(item => item.title === 'Vendors')
+    
+    expect(vendorItem).toBeDefined()
+    expect(vendorItem!.icon.displayName || vendorItem!.icon.name).toBe('Building2')
+  })
+
+  /**
+   * Feature: vendor-management, Property 19e: Vendor Menu Path
+   * The Vendors menu item SHALL link to /vendors.
+   */
+  it('should link Vendors menu to /vendors', () => {
+    const vendorItem = NAV_ITEMS.find(item => item.title === 'Vendors')
+    
+    expect(vendorItem).toBeDefined()
+    expect(vendorItem!.href).toBe('/vendors')
+  })
+})
+
+describe('Vendor navigation - role-specific tests', () => {
+  it('owner sees Vendors in navigation', () => {
+    const ownerPermissions = DEFAULT_PERMISSIONS.owner
+    const filteredItems = filterNavItems(NAV_ITEMS, 'owner', ownerPermissions)
+    const titles = filteredItems.map(item => item.title)
+    
+    expect(titles).toContain('Vendors')
+  })
+
+  it('admin sees Vendors in navigation', () => {
+    const adminPermissions = DEFAULT_PERMISSIONS.admin
+    const filteredItems = filterNavItems(NAV_ITEMS, 'admin', adminPermissions)
+    const titles = filteredItems.map(item => item.title)
+    
+    expect(titles).toContain('Vendors')
+  })
+
+  it('manager sees Vendors in navigation', () => {
+    const managerPermissions = DEFAULT_PERMISSIONS.manager
+    const filteredItems = filterNavItems(NAV_ITEMS, 'manager', managerPermissions)
+    const titles = filteredItems.map(item => item.title)
+    
+    expect(titles).toContain('Vendors')
+  })
+
+  it('ops sees Vendors in navigation', () => {
+    const opsPermissions = DEFAULT_PERMISSIONS.ops
+    const filteredItems = filterNavItems(NAV_ITEMS, 'ops', opsPermissions)
+    const titles = filteredItems.map(item => item.title)
+    
+    expect(titles).toContain('Vendors')
+  })
+
+  it('finance sees Vendors in navigation', () => {
+    const financePermissions = DEFAULT_PERMISSIONS.finance
+    const filteredItems = filterNavItems(NAV_ITEMS, 'finance', financePermissions)
+    const titles = filteredItems.map(item => item.title)
+    
+    expect(titles).toContain('Vendors')
+  })
+
+  it('sales does NOT see Vendors in navigation', () => {
+    const salesPermissions = DEFAULT_PERMISSIONS.sales
+    const filteredItems = filterNavItems(NAV_ITEMS, 'sales', salesPermissions)
+    const titles = filteredItems.map(item => item.title)
+    
+    expect(titles).not.toContain('Vendors')
+  })
+
+  it('viewer does NOT see Vendors in navigation', () => {
+    const viewerPermissions = DEFAULT_PERMISSIONS.viewer
+    const filteredItems = filterNavItems(NAV_ITEMS, 'viewer', viewerPermissions)
+    const titles = filteredItems.map(item => item.title)
+    
+    expect(titles).not.toContain('Vendors')
   })
 })

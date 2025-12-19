@@ -55,6 +55,17 @@ export type FeatureKey =
   | 'invoices.view'
   | 'reports.pnl'
   | 'users.manage'
+  // Vendor permissions
+  | 'vendors.view'
+  | 'vendors.create'
+  | 'vendors.edit'
+  | 'vendors.delete'
+  | 'vendors.verify'
+  | 'vendors.set_preferred'
+  | 'vendors.add_equipment'
+  | 'vendors.rate'
+  | 'vendors.view_bank'
+  | 'vendors.nav'
 
 export interface PermissionContextType {
   profile: UserProfile | null

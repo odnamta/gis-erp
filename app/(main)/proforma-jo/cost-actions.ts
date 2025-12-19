@@ -14,6 +14,8 @@ const costItemSchema = z.object({
   description: z.string().min(1, 'Description is required'),
   estimated_amount: z.number().positive('Amount must be positive'),
   notes: z.string().optional(),
+  vendor_id: z.string().uuid().optional().nullable(),
+  vendor_equipment_id: z.string().uuid().optional().nullable(),
 })
 
 const costConfirmationSchema = z.object({
@@ -81,6 +83,8 @@ export async function createCostItem(
       status: 'estimated',
       estimated_by: user?.id || null,
       notes: data.notes || null,
+      vendor_id: data.vendor_id || null,
+      vendor_equipment_id: data.vendor_equipment_id || null,
     })
     .select()
     .single()
@@ -131,7 +135,12 @@ export async function updateCostEstimate(
   const { data: updatedItem, error } = await supabase
     .from('pjo_cost_items')
     .update({
-      ...data,
+      category: data.category,
+      description: data.description,
+      estimated_amount: data.estimated_amount,
+      notes: data.notes || null,
+      vendor_id: data.vendor_id || null,
+      vendor_equipment_id: data.vendor_equipment_id || null,
       updated_at: new Date().toISOString(),
     })
     .eq('id', id)

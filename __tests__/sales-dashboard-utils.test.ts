@@ -977,7 +977,7 @@ describe('Property 14: Navigation filtering for sales role', () => {
     expect(navTitles).toContain('Proforma JO')
   })
 
-  it('should hide Job Orders, Invoices, and Settings for sales users', () => {
+  it('should hide Job Orders, Invoices, Vendors, and Cost Entry for sales users', () => {
     const salesPermissions = DEFAULT_PERMISSIONS.sales
     const filteredNav = filterNavItems(NAV_ITEMS, 'sales', salesPermissions)
 
@@ -986,7 +986,11 @@ describe('Property 14: Navigation filtering for sales role', () => {
     // Should NOT include these
     expect(navTitles).not.toContain('Job Orders')
     expect(navTitles).not.toContain('Invoices')
-    expect(navTitles).not.toContain('Settings')
+    expect(navTitles).not.toContain('Vendors')
+    expect(navTitles).not.toContain('Cost Entry')
+    
+    // Sales CAN see Settings (with filtered children)
+    expect(navTitles).toContain('Settings')
   })
 
   it('should filter navigation consistently for any sales user', () => {
@@ -1008,13 +1012,15 @@ describe('Property 14: Navigation filtering for sales role', () => {
           // Sales should never see these
           expect(navTitles).not.toContain('Job Orders')
           expect(navTitles).not.toContain('Invoices')
-          expect(navTitles).not.toContain('Settings')
+          expect(navTitles).not.toContain('Vendors')
+          expect(navTitles).not.toContain('Cost Entry')
 
           // Sales should always see these
           expect(navTitles).toContain('Dashboard')
           expect(navTitles).toContain('Customers')
           expect(navTitles).toContain('Projects')
           expect(navTitles).toContain('Proforma JO')
+          expect(navTitles).toContain('Settings')
         }
       ),
       { numRuns: 20 }

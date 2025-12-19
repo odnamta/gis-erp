@@ -17,9 +17,10 @@ import {
 import { Alert, AlertDescription } from '@/components/ui/alert'
 import { formatBKKCurrency, calculateAvailableBudget } from '@/lib/bkk-utils'
 import { createBKK, getBKKsForCostItem } from '@/app/(main)/job-orders/bkk-actions'
-import type { BKK, CreateBKKInput } from '@/types/database'
-import { AlertTriangle, Loader2 } from 'lucide-react'
-import { toast } from 'sonner'
+import type { CreateBKKInput } from '@/types/database'
+import { AlertTriangle, Loader2, Building2, CreditCard } from 'lucide-react'
+import { useToast } from '@/hooks/use-toast'
+import type { Vendor } from '@/types/vendors'
 
 interface CostItem {
   id: string
@@ -28,6 +29,8 @@ interface CostItem {
   estimated_amount: number
   actual_amount: number | null
   status: string
+  vendor_id?: string | null
+  vendor_equipment_id?: string | null
 }
 
 interface BKKFormProps {
@@ -35,12 +38,15 @@ interface BKKFormProps {
   joNumber: string
   costItems: CostItem[]
   generatedBKKNumber: string
+  vendors?: Vendor[]
 }
 
-export function BKKForm({ jobOrderId, joNumber, costItems, generatedBKKNumber }: BKKFormProps) {
+export function BKKForm({ jobOrderId, joNumber, costItems, generatedBKKNumber, vendors = [] }: BKKFormProps) {
   const router = useRouter()
+  const { toast } = useToast()
   const [isLoading, setIsLoading] = useState(false)
   const [selectedCostItemId, setSelectedCostItemId] = useState<string>('')
+  const [selectedVendorId, setSelectedVendorId] = useState<string>('')
   const [purpose, setPurpose] = useState('')
   const [amountRequested, setAmountRequested] = useState('')
   const [notes, setNotes] = useState('')
@@ -56,6 +62,24 @@ export function BKKForm({ jobOrderId, joNumber, costItems, generatedBKKNumber }:
   const availableCostItems = costItems.filter(
     item => item.status !== 'confirmed' && item.status !== 'exceeded'
   )
+
+  // Get selected vendor details
+  const selectedVendor = vendors.find(v => v.id === selectedVendorId)
+  const selectedCostItem = costItems.find(c => c.id === selectedCostItemId)
+
+  // Auto-select vendor when cost item is selected (if cost item has vendor_id)
+  useEffect(() => {
+    if (selectedCostItemId) {
+      const costItem = costItems.find(c => c.id === selectedCostItemId)
+      if (costItem?.vendor_id) {
+        setSelectedVendorId(costItem.vendor_id)
+      } else {
+        setSelectedVendorId('')
+      }
+    } else {
+      setSelectedVendorId('')
+    }
+  }, [selectedCostItemId, costItems])
 
   // Load budget info when cost item is selected
   useEffect(() => {
@@ -82,7 +106,6 @@ export function BKKForm({ jobOrderId, joNumber, costItems, generatedBKKNumber }:
     loadBudgetInfo()
   }, [selectedCostItemId, costItems])
 
-  const selectedCostItem = costItems.find(c => c.id === selectedCostItemId)
   const requestedAmount = parseFloat(amountRequested) || 0
   const exceedsBudget = budgetInfo && requestedAmount > budgetInfo.available
 
@@ -90,12 +113,12 @@ export function BKKForm({ jobOrderId, joNumber, costItems, generatedBKKNumber }:
     e.preventDefault()
     
     if (!purpose.trim()) {
-      toast.error('Purpose is required')
+      toast({ title: 'Error', description: 'Purpose is required', variant: 'destructive' })
       return
     }
     
     if (requestedAmount <= 0) {
-      toast.error('Amount must be greater than zero')
+      toast({ title: 'Error', description: 'Amount must be greater than zero', variant: 'destructive' })
       return
     }
 
@@ -106,6 +129,7 @@ export function BKKForm({ jobOrderId, joNumber, costItems, generatedBKKNumber }:
       purpose: purpose.trim(),
       amount_requested: requestedAmount,
       notes: notes.trim() || undefined,
+      vendor_id: selectedVendorId || undefined,
     }
 
     if (selectedCostItemId && selectedCostItem) {
@@ -118,9 +142,9 @@ export function BKKForm({ jobOrderId, joNumber, costItems, generatedBKKNumber }:
     setIsLoading(false)
 
     if (result.error) {
-      toast.error(result.error)
+      toast({ title: 'Error', description: result.error, variant: 'destructive' })
     } else {
-      toast.success('BKK request submitted successfully')
+      toast({ title: 'Success', description: 'BKK request submitted successfully' })
       router.push(`/job-orders/${jobOrderId}`)
       router.refresh()
     }
@@ -184,6 +208,67 @@ export function BKKForm({ jobOrderId, joNumber, costItems, generatedBKKNumber }:
                 <div>
                   <p className="text-xs text-muted-foreground">Available</p>
                   <p className="font-semibold text-green-600">{formatBKKCurrency(budgetInfo.available)}</p>
+                </div>
+              </div>
+            )}
+          </div>
+
+          {/* Vendor Section */}
+          <div className="space-y-4">
+            <h3 className="font-semibold text-sm uppercase text-muted-foreground flex items-center gap-2">
+              <Building2 className="h-4 w-4" />
+              Vendor Information
+            </h3>
+            
+            <div className="space-y-2">
+              <Label htmlFor="vendor">Select Vendor (Optional)</Label>
+              <Select value={selectedVendorId} onValueChange={setSelectedVendorId}>
+                <SelectTrigger>
+                  <SelectValue placeholder="Select a vendor..." />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="">No vendor</SelectItem>
+                  {vendors.map((vendor) => (
+                    <SelectItem key={vendor.id} value={vendor.id}>
+                      {vendor.vendor_name} ({vendor.vendor_code})
+                      {vendor.is_preferred && ' ⭐'}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+              {selectedCostItem?.vendor_id && (
+                <p className="text-xs text-muted-foreground">
+                  Auto-selected from cost item
+                </p>
+              )}
+            </div>
+
+            {/* Vendor Bank Details */}
+            {selectedVendor && selectedVendor.bank_account && (
+              <div className="p-4 bg-blue-50 dark:bg-blue-950/30 rounded-lg border border-blue-200 dark:border-blue-800">
+                <div className="flex items-center gap-2 mb-3">
+                  <CreditCard className="h-4 w-4 text-blue-600" />
+                  <span className="font-medium text-sm text-blue-700 dark:text-blue-300">
+                    Bank Details for Transfer
+                  </span>
+                </div>
+                <div className="grid grid-cols-2 gap-3 text-sm">
+                  <div>
+                    <p className="text-xs text-muted-foreground">Bank Name</p>
+                    <p className="font-medium">{selectedVendor.bank_name || '-'}</p>
+                  </div>
+                  <div>
+                    <p className="text-xs text-muted-foreground">Branch</p>
+                    <p className="font-medium">{selectedVendor.bank_branch || '-'}</p>
+                  </div>
+                  <div>
+                    <p className="text-xs text-muted-foreground">Account Number</p>
+                    <p className="font-medium font-mono">{selectedVendor.bank_account}</p>
+                  </div>
+                  <div>
+                    <p className="text-xs text-muted-foreground">Account Name</p>
+                    <p className="font-medium">{selectedVendor.bank_account_name || '-'}</p>
+                  </div>
                 </div>
               </div>
             )}

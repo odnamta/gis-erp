@@ -106,6 +106,17 @@ const FEATURE_PERMISSION_MAP: Record<FeatureKey, (profile: UserProfile) => boole
   'invoices.view': (p) => p.can_manage_invoices || p.can_see_revenue,
   'reports.pnl': (p) => p.can_see_revenue && p.can_see_profit,
   'users.manage': (p) => p.can_manage_users,
+  // Vendor permissions
+  'vendors.view': () => true, // All authenticated users can view
+  'vendors.create': (p) => ['owner', 'admin', 'ops'].includes(p.role),
+  'vendors.edit': (p) => ['owner', 'admin', 'manager'].includes(p.role),
+  'vendors.delete': (p) => ['owner', 'admin'].includes(p.role),
+  'vendors.verify': (p) => ['owner', 'admin'].includes(p.role),
+  'vendors.set_preferred': (p) => ['owner', 'admin', 'manager'].includes(p.role),
+  'vendors.add_equipment': (p) => ['owner', 'admin', 'manager', 'ops'].includes(p.role),
+  'vendors.rate': (p) => ['owner', 'admin', 'manager', 'finance', 'ops'].includes(p.role),
+  'vendors.view_bank': (p) => ['owner', 'admin', 'manager', 'finance'].includes(p.role),
+  'vendors.nav': (p) => p.role !== 'viewer', // Show in nav for all except viewer
 }
 
 /**
@@ -196,4 +207,78 @@ export function isOwnerEmail(email: string): boolean {
  */
 export function isPendingUser(profile: UserProfile): boolean {
   return profile.user_id === null
+}
+
+// ============================================
+// Vendor Permission Helpers
+// ============================================
+
+/**
+ * Check if user can view vendors
+ */
+export function canViewVendors(profile: UserProfile | null): boolean {
+  return canAccessFeature(profile, 'vendors.view')
+}
+
+/**
+ * Check if user can create vendors
+ */
+export function canCreateVendor(profile: UserProfile | null): boolean {
+  return canAccessFeature(profile, 'vendors.create')
+}
+
+/**
+ * Check if user can edit vendors
+ */
+export function canEditVendor(profile: UserProfile | null): boolean {
+  return canAccessFeature(profile, 'vendors.edit')
+}
+
+/**
+ * Check if user can delete vendors
+ */
+export function canDeleteVendor(profile: UserProfile | null): boolean {
+  return canAccessFeature(profile, 'vendors.delete')
+}
+
+/**
+ * Check if user can verify vendors
+ */
+export function canVerifyVendor(profile: UserProfile | null): boolean {
+  return canAccessFeature(profile, 'vendors.verify')
+}
+
+/**
+ * Check if user can set vendor as preferred
+ */
+export function canSetPreferredVendor(profile: UserProfile | null): boolean {
+  return canAccessFeature(profile, 'vendors.set_preferred')
+}
+
+/**
+ * Check if user can add equipment to vendors
+ */
+export function canAddVendorEquipment(profile: UserProfile | null): boolean {
+  return canAccessFeature(profile, 'vendors.add_equipment')
+}
+
+/**
+ * Check if user can rate vendors
+ */
+export function canRateVendor(profile: UserProfile | null): boolean {
+  return canAccessFeature(profile, 'vendors.rate')
+}
+
+/**
+ * Check if user can view vendor bank details
+ */
+export function canViewVendorBankDetails(profile: UserProfile | null): boolean {
+  return canAccessFeature(profile, 'vendors.view_bank')
+}
+
+/**
+ * Check if vendors should be shown in navigation
+ */
+export function canSeeVendorsNav(profile: UserProfile | null): boolean {
+  return canAccessFeature(profile, 'vendors.nav')
 }

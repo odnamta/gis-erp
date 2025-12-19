@@ -7,8 +7,6 @@ export type Json =
   | Json[]
 
 export type Database = {
-  // Allows to automatically instantiate createClient with right options
-  // instead of createClient<Database, { PostgrestVersion: 'XX' }>(URL, KEY)
   __InternalSupabase: {
     PostgrestVersion: "13.0.5"
   }
@@ -50,138 +48,6 @@ export type Database = {
         }
         Relationships: []
       }
-
-      bukti_kas_keluar: {
-        Row: {
-          id: string
-          bkk_number: string
-          jo_id: string
-          pjo_cost_item_id: string | null
-          purpose: string
-          amount_requested: number
-          budget_category: string | null
-          budget_amount: number | null
-          status: string
-          requested_by: string | null
-          requested_at: string | null
-          approved_by: string | null
-          approved_at: string | null
-          rejection_reason: string | null
-          released_by: string | null
-          released_at: string | null
-          release_method: string | null
-          release_reference: string | null
-          amount_spent: number | null
-          amount_returned: number | null
-          settled_at: string | null
-          settled_by: string | null
-          receipt_urls: Json | null
-          notes: string | null
-          created_at: string | null
-          updated_at: string | null
-        }
-        Insert: {
-          id?: string
-          bkk_number: string
-          jo_id: string
-          pjo_cost_item_id?: string | null
-          purpose: string
-          amount_requested: number
-          budget_category?: string | null
-          budget_amount?: number | null
-          status?: string
-          requested_by?: string | null
-          requested_at?: string | null
-          approved_by?: string | null
-          approved_at?: string | null
-          rejection_reason?: string | null
-          released_by?: string | null
-          released_at?: string | null
-          release_method?: string | null
-          release_reference?: string | null
-          amount_spent?: number | null
-          amount_returned?: number | null
-          settled_at?: string | null
-          settled_by?: string | null
-          receipt_urls?: Json | null
-          notes?: string | null
-          created_at?: string | null
-          updated_at?: string | null
-        }
-        Update: {
-          id?: string
-          bkk_number?: string
-          jo_id?: string
-          pjo_cost_item_id?: string | null
-          purpose?: string
-          amount_requested?: number
-          budget_category?: string | null
-          budget_amount?: number | null
-          status?: string
-          requested_by?: string | null
-          requested_at?: string | null
-          approved_by?: string | null
-          approved_at?: string | null
-          rejection_reason?: string | null
-          released_by?: string | null
-          released_at?: string | null
-          release_method?: string | null
-          release_reference?: string | null
-          amount_spent?: number | null
-          amount_returned?: number | null
-          settled_at?: string | null
-          settled_by?: string | null
-          receipt_urls?: Json | null
-          notes?: string | null
-          created_at?: string | null
-          updated_at?: string | null
-        }
-        Relationships: [
-          {
-            foreignKeyName: "bukti_kas_keluar_jo_id_fkey"
-            columns: ["jo_id"]
-            isOneToOne: false
-            referencedRelation: "job_orders"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "bukti_kas_keluar_pjo_cost_item_id_fkey"
-            columns: ["pjo_cost_item_id"]
-            isOneToOne: false
-            referencedRelation: "pjo_cost_items"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "bukti_kas_keluar_requested_by_fkey"
-            columns: ["requested_by"]
-            isOneToOne: false
-            referencedRelation: "user_profiles"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "bukti_kas_keluar_approved_by_fkey"
-            columns: ["approved_by"]
-            isOneToOne: false
-            referencedRelation: "user_profiles"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "bukti_kas_keluar_released_by_fkey"
-            columns: ["released_by"]
-            isOneToOne: false
-            referencedRelation: "user_profiles"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "bukti_kas_keluar_settled_by_fkey"
-            columns: ["settled_by"]
-            isOneToOne: false
-            referencedRelation: "user_profiles"
-            referencedColumns: ["id"]
-          },
-        ]
-      }
-
       berita_acara: {
         Row: {
           ba_number: string
@@ -246,24 +112,98 @@ export type Database = {
           updated_at?: string | null
           work_description?: string | null
         }
-        Relationships: [
-          {
-            foreignKeyName: "berita_acara_created_by_fkey"
-            columns: ["created_by"]
-            isOneToOne: false
-            referencedRelation: "user_profiles"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "berita_acara_jo_id_fkey"
-            columns: ["jo_id"]
-            isOneToOne: false
-            referencedRelation: "job_orders"
-            referencedColumns: ["id"]
-          },
-        ]
+        Relationships: []
       }
-
+      bukti_kas_keluar: {
+        Row: {
+          amount_requested: number
+          amount_returned: number | null
+          amount_spent: number | null
+          approved_at: string | null
+          approved_by: string | null
+          bkk_number: string
+          budget_amount: number | null
+          budget_category: string | null
+          created_at: string | null
+          id: string
+          jo_id: string
+          notes: string | null
+          pjo_cost_item_id: string | null
+          purpose: string
+          receipt_urls: Json | null
+          rejection_reason: string | null
+          release_method: string | null
+          release_reference: string | null
+          released_at: string | null
+          released_by: string | null
+          requested_at: string | null
+          requested_by: string | null
+          settled_at: string | null
+          settled_by: string | null
+          status: string | null
+          updated_at: string | null
+          vendor_id: string | null
+        }
+        Insert: {
+          amount_requested: number
+          amount_returned?: number | null
+          amount_spent?: number | null
+          approved_at?: string | null
+          approved_by?: string | null
+          bkk_number: string
+          budget_amount?: number | null
+          budget_category?: string | null
+          created_at?: string | null
+          id?: string
+          jo_id: string
+          notes?: string | null
+          pjo_cost_item_id?: string | null
+          purpose: string
+          receipt_urls?: Json | null
+          rejection_reason?: string | null
+          release_method?: string | null
+          release_reference?: string | null
+          released_at?: string | null
+          released_by?: string | null
+          requested_at?: string | null
+          requested_by?: string | null
+          settled_at?: string | null
+          settled_by?: string | null
+          status?: string | null
+          updated_at?: string | null
+          vendor_id?: string | null
+        }
+        Update: {
+          amount_requested?: number
+          amount_returned?: number | null
+          amount_spent?: number | null
+          approved_at?: string | null
+          approved_by?: string | null
+          bkk_number?: string
+          budget_amount?: number | null
+          budget_category?: string | null
+          created_at?: string | null
+          id?: string
+          jo_id?: string
+          notes?: string | null
+          pjo_cost_item_id?: string | null
+          purpose?: string
+          receipt_urls?: Json | null
+          rejection_reason?: string | null
+          release_method?: string | null
+          release_reference?: string | null
+          released_at?: string | null
+          released_by?: string | null
+          requested_at?: string | null
+          requested_by?: string | null
+          settled_at?: string | null
+          settled_by?: string | null
+          status?: string | null
+          updated_at?: string | null
+          vendor_id?: string | null
+        }
+        Relationships: []
+      }
       company_settings: {
         Row: {
           id: string
@@ -321,7 +261,6 @@ export type Database = {
         }
         Relationships: []
       }
-
       document_attachments: {
         Row: {
           created_at: string | null
@@ -359,17 +298,8 @@ export type Database = {
           storage_path?: string
           uploaded_by?: string | null
         }
-        Relationships: [
-          {
-            foreignKeyName: "document_attachments_uploaded_by_fkey"
-            columns: ["uploaded_by"]
-            isOneToOne: false
-            referencedRelation: "user_profiles"
-            referencedColumns: ["id"]
-          },
-        ]
+        Relationships: []
       }
-
       invoice_line_items: {
         Row: {
           created_at: string | null
@@ -407,17 +337,8 @@ export type Database = {
           unit_price?: number
           updated_at?: string | null
         }
-        Relationships: [
-          {
-            foreignKeyName: "invoice_line_items_invoice_id_fkey"
-            columns: ["invoice_id"]
-            isOneToOne: false
-            referencedRelation: "invoices"
-            referencedColumns: ["id"]
-          },
-        ]
+        Relationships: []
       }
-
       invoices: {
         Row: {
           amount_paid: number | null
@@ -485,24 +406,8 @@ export type Database = {
           total_amount?: number
           updated_at?: string | null
         }
-        Relationships: [
-          {
-            foreignKeyName: "invoices_customer_id_fkey"
-            columns: ["customer_id"]
-            isOneToOne: false
-            referencedRelation: "customers"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "invoices_jo_id_fkey"
-            columns: ["jo_id"]
-            isOneToOne: false
-            referencedRelation: "job_orders"
-            referencedColumns: ["id"]
-          },
-        ]
+        Relationships: []
       }
-
       job_orders: {
         Row: {
           amount: number
@@ -576,31 +481,8 @@ export type Database = {
           total_invoiced?: number | null
           updated_at?: string | null
         }
-        Relationships: [
-          {
-            foreignKeyName: "job_orders_customer_id_fkey"
-            columns: ["customer_id"]
-            isOneToOne: false
-            referencedRelation: "customers"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "job_orders_pjo_id_fkey"
-            columns: ["pjo_id"]
-            isOneToOne: false
-            referencedRelation: "proforma_job_orders"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "job_orders_project_id_fkey"
-            columns: ["project_id"]
-            isOneToOne: false
-            referencedRelation: "projects"
-            referencedColumns: ["id"]
-          },
-        ]
+        Relationships: []
       }
-
       notification_preferences: {
         Row: {
           approval_enabled: boolean | null
@@ -635,17 +517,8 @@ export type Database = {
           updated_at?: string | null
           user_id?: string
         }
-        Relationships: [
-          {
-            foreignKeyName: "notification_preferences_user_id_fkey"
-            columns: ["user_id"]
-            isOneToOne: true
-            referencedRelation: "user_profiles"
-            referencedColumns: ["id"]
-          },
-        ]
+        Relationships: []
       }
-
       notifications: {
         Row: {
           action_url: string | null
@@ -698,17 +571,8 @@ export type Database = {
           type?: string
           user_id?: string
         }
-        Relationships: [
-          {
-            foreignKeyName: "notifications_user_id_fkey"
-            columns: ["user_id"]
-            isOneToOne: false
-            referencedRelation: "user_profiles"
-            referencedColumns: ["id"]
-          },
-        ]
+        Relationships: []
       }
-
       payments: {
         Row: {
           amount: number
@@ -752,24 +616,8 @@ export type Database = {
           reference_number?: string | null
           updated_at?: string | null
         }
-        Relationships: [
-          {
-            foreignKeyName: "payments_invoice_id_fkey"
-            columns: ["invoice_id"]
-            isOneToOne: false
-            referencedRelation: "invoices"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "payments_recorded_by_fkey"
-            columns: ["recorded_by"]
-            isOneToOne: false
-            referencedRelation: "user_profiles"
-            referencedColumns: ["id"]
-          },
-        ]
+        Relationships: []
       }
-
       pjo_cost_items: {
         Row: {
           actual_amount: number | null
@@ -788,6 +636,8 @@ export type Database = {
           updated_at: string | null
           variance: number | null
           variance_pct: number | null
+          vendor_equipment_id: string | null
+          vendor_id: string | null
         }
         Insert: {
           actual_amount?: number | null
@@ -806,6 +656,8 @@ export type Database = {
           updated_at?: string | null
           variance?: number | null
           variance_pct?: number | null
+          vendor_equipment_id?: string | null
+          vendor_id?: string | null
         }
         Update: {
           actual_amount?: number | null
@@ -824,18 +676,11 @@ export type Database = {
           updated_at?: string | null
           variance?: number | null
           variance_pct?: number | null
+          vendor_equipment_id?: string | null
+          vendor_id?: string | null
         }
-        Relationships: [
-          {
-            foreignKeyName: "pjo_cost_items_pjo_id_fkey"
-            columns: ["pjo_id"]
-            isOneToOne: false
-            referencedRelation: "proforma_job_orders"
-            referencedColumns: ["id"]
-          },
-        ]
+        Relationships: []
       }
-
       pjo_revenue_items: {
         Row: {
           created_at: string | null
@@ -879,17 +724,8 @@ export type Database = {
           unit_price?: number
           updated_at?: string | null
         }
-        Relationships: [
-          {
-            foreignKeyName: "pjo_revenue_items_pjo_id_fkey"
-            columns: ["pjo_id"]
-            isOneToOne: false
-            referencedRelation: "proforma_job_orders"
-            referencedColumns: ["id"]
-          },
-        ]
+        Relationships: []
       }
-
       proforma_job_orders: {
         Row: {
           all_costs_confirmed: boolean | null
@@ -914,13 +750,7 @@ export type Database = {
           notes: string | null
           pjo_number: string
           pod: string | null
-          pod_lat: number | null
-          pod_lng: number | null
-          pod_place_id: string | null
           pol: string | null
-          pol_lat: number | null
-          pol_lng: number | null
-          pol_place_id: string | null
           profit: number | null
           project_id: string | null
           quantity: number | null
@@ -957,13 +787,7 @@ export type Database = {
           notes?: string | null
           pjo_number: string
           pod?: string | null
-          pod_lat?: number | null
-          pod_lng?: number | null
-          pod_place_id?: string | null
           pol?: string | null
-          pol_lat?: number | null
-          pol_lng?: number | null
-          pol_place_id?: string | null
           profit?: number | null
           project_id?: string | null
           quantity?: number | null
@@ -1000,13 +824,7 @@ export type Database = {
           notes?: string | null
           pjo_number?: string
           pod?: string | null
-          pod_lat?: number | null
-          pod_lng?: number | null
-          pod_place_id?: string | null
           pol?: string | null
-          pol_lat?: number | null
-          pol_lng?: number | null
-          pol_place_id?: string | null
           profit?: number | null
           project_id?: string | null
           quantity?: number | null
@@ -1020,31 +838,8 @@ export type Database = {
           total_revenue_calculated?: number | null
           updated_at?: string | null
         }
-        Relationships: [
-          {
-            foreignKeyName: "proforma_job_orders_customer_id_fkey"
-            columns: ["customer_id"]
-            isOneToOne: false
-            referencedRelation: "customers"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "proforma_job_orders_job_order_id_fkey"
-            columns: ["job_order_id"]
-            isOneToOne: false
-            referencedRelation: "job_orders"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "proforma_job_orders_project_id_fkey"
-            columns: ["project_id"]
-            isOneToOne: false
-            referencedRelation: "projects"
-            referencedColumns: ["id"]
-          },
-        ]
+        Relationships: []
       }
-
       projects: {
         Row: {
           created_at: string | null
@@ -1076,17 +871,8 @@ export type Database = {
           status?: string
           updated_at?: string | null
         }
-        Relationships: [
-          {
-            foreignKeyName: "projects_customer_id_fkey"
-            columns: ["customer_id"]
-            isOneToOne: false
-            referencedRelation: "customers"
-            referencedColumns: ["id"]
-          },
-        ]
+        Relationships: []
       }
-
       surat_jalan: {
         Row: {
           cargo_description: string | null
@@ -1166,24 +952,8 @@ export type Database = {
           vehicle_plate?: string | null
           weight_kg?: number | null
         }
-        Relationships: [
-          {
-            foreignKeyName: "surat_jalan_created_by_fkey"
-            columns: ["created_by"]
-            isOneToOne: false
-            referencedRelation: "user_profiles"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "surat_jalan_jo_id_fkey"
-            columns: ["jo_id"]
-            isOneToOne: false
-            referencedRelation: "job_orders"
-            referencedColumns: ["id"]
-          },
-        ]
+        Relationships: []
       }
-
       user_profiles: {
         Row: {
           avatar_url: string | null
@@ -1247,6 +1017,327 @@ export type Database = {
         }
         Relationships: []
       }
+      vendors: {
+        Row: {
+          address: string | null
+          average_rating: number | null
+          bank_account: string | null
+          bank_account_name: string | null
+          bank_branch: string | null
+          bank_name: string | null
+          business_license: string | null
+          city: string | null
+          contact_email: string | null
+          contact_person: string | null
+          contact_phone: string | null
+          contact_position: string | null
+          created_at: string | null
+          created_by: string | null
+          email: string | null
+          id: string
+          is_active: boolean | null
+          is_preferred: boolean | null
+          is_verified: boolean | null
+          legal_name: string | null
+          notes: string | null
+          on_time_rate: number | null
+          phone: string | null
+          postal_code: string | null
+          province: string | null
+          registration_method: string | null
+          tax_id: string | null
+          total_jobs: number | null
+          total_value: number | null
+          updated_at: string | null
+          vendor_code: string
+          vendor_name: string
+          vendor_type: string
+          verified_at: string | null
+          verified_by: string | null
+          website: string | null
+        }
+        Insert: {
+          address?: string | null
+          average_rating?: number | null
+          bank_account?: string | null
+          bank_account_name?: string | null
+          bank_branch?: string | null
+          bank_name?: string | null
+          business_license?: string | null
+          city?: string | null
+          contact_email?: string | null
+          contact_person?: string | null
+          contact_phone?: string | null
+          contact_position?: string | null
+          created_at?: string | null
+          created_by?: string | null
+          email?: string | null
+          id?: string
+          is_active?: boolean | null
+          is_preferred?: boolean | null
+          is_verified?: boolean | null
+          legal_name?: string | null
+          notes?: string | null
+          on_time_rate?: number | null
+          phone?: string | null
+          postal_code?: string | null
+          province?: string | null
+          registration_method?: string | null
+          tax_id?: string | null
+          total_jobs?: number | null
+          total_value?: number | null
+          updated_at?: string | null
+          vendor_code: string
+          vendor_name: string
+          vendor_type: string
+          verified_at?: string | null
+          verified_by?: string | null
+          website?: string | null
+        }
+        Update: {
+          address?: string | null
+          average_rating?: number | null
+          bank_account?: string | null
+          bank_account_name?: string | null
+          bank_branch?: string | null
+          bank_name?: string | null
+          business_license?: string | null
+          city?: string | null
+          contact_email?: string | null
+          contact_person?: string | null
+          contact_phone?: string | null
+          contact_position?: string | null
+          created_at?: string | null
+          created_by?: string | null
+          email?: string | null
+          id?: string
+          is_active?: boolean | null
+          is_preferred?: boolean | null
+          is_verified?: boolean | null
+          legal_name?: string | null
+          notes?: string | null
+          on_time_rate?: number | null
+          phone?: string | null
+          postal_code?: string | null
+          province?: string | null
+          registration_method?: string | null
+          tax_id?: string | null
+          total_jobs?: number | null
+          total_value?: number | null
+          updated_at?: string | null
+          vendor_code?: string
+          vendor_name?: string
+          vendor_type?: string
+          verified_at?: string | null
+          verified_by?: string | null
+          website?: string | null
+        }
+        Relationships: []
+      }
+      vendor_contacts: {
+        Row: {
+          contact_name: string
+          created_at: string | null
+          email: string | null
+          id: string
+          is_primary: boolean | null
+          notes: string | null
+          phone: string | null
+          position: string | null
+          vendor_id: string
+          whatsapp: string | null
+        }
+        Insert: {
+          contact_name: string
+          created_at?: string | null
+          email?: string | null
+          id?: string
+          is_primary?: boolean | null
+          notes?: string | null
+          phone?: string | null
+          position?: string | null
+          vendor_id: string
+          whatsapp?: string | null
+        }
+        Update: {
+          contact_name?: string
+          created_at?: string | null
+          email?: string | null
+          id?: string
+          is_primary?: boolean | null
+          notes?: string | null
+          phone?: string | null
+          position?: string | null
+          vendor_id?: string
+          whatsapp?: string | null
+        }
+        Relationships: []
+      }
+      vendor_documents: {
+        Row: {
+          created_at: string | null
+          document_name: string | null
+          document_type: string
+          expiry_date: string | null
+          file_url: string | null
+          id: string
+          uploaded_by: string | null
+          vendor_id: string
+        }
+        Insert: {
+          created_at?: string | null
+          document_name?: string | null
+          document_type: string
+          expiry_date?: string | null
+          file_url?: string | null
+          id?: string
+          uploaded_by?: string | null
+          vendor_id: string
+        }
+        Update: {
+          created_at?: string | null
+          document_name?: string | null
+          document_type?: string
+          expiry_date?: string | null
+          file_url?: string | null
+          id?: string
+          uploaded_by?: string | null
+          vendor_id?: string
+        }
+        Relationships: []
+      }
+      vendor_equipment: {
+        Row: {
+          brand: string | null
+          capacity_description: string | null
+          capacity_kg: number | null
+          capacity_m3: number | null
+          condition: string | null
+          created_at: string | null
+          daily_rate: number | null
+          equipment_type: string
+          height_m: number | null
+          id: string
+          insurance_expiry: string | null
+          is_available: boolean | null
+          kir_expiry: string | null
+          length_m: number | null
+          model: string | null
+          notes: string | null
+          plate_number: string | null
+          rate_notes: string | null
+          stnk_expiry: string | null
+          updated_at: string | null
+          vendor_id: string
+          width_m: number | null
+          year_made: number | null
+        }
+        Insert: {
+          brand?: string | null
+          capacity_description?: string | null
+          capacity_kg?: number | null
+          capacity_m3?: number | null
+          condition?: string | null
+          created_at?: string | null
+          daily_rate?: number | null
+          equipment_type: string
+          height_m?: number | null
+          id?: string
+          insurance_expiry?: string | null
+          is_available?: boolean | null
+          kir_expiry?: string | null
+          length_m?: number | null
+          model?: string | null
+          notes?: string | null
+          plate_number?: string | null
+          rate_notes?: string | null
+          stnk_expiry?: string | null
+          updated_at?: string | null
+          vendor_id: string
+          width_m?: number | null
+          year_made?: number | null
+        }
+        Update: {
+          brand?: string | null
+          capacity_description?: string | null
+          capacity_kg?: number | null
+          capacity_m3?: number | null
+          condition?: string | null
+          created_at?: string | null
+          daily_rate?: number | null
+          equipment_type?: string
+          height_m?: number | null
+          id?: string
+          insurance_expiry?: string | null
+          is_available?: boolean | null
+          kir_expiry?: string | null
+          length_m?: number | null
+          model?: string | null
+          notes?: string | null
+          plate_number?: string | null
+          rate_notes?: string | null
+          stnk_expiry?: string | null
+          updated_at?: string | null
+          vendor_id?: string
+          width_m?: number | null
+          year_made?: number | null
+        }
+        Relationships: []
+      }
+      vendor_ratings: {
+        Row: {
+          bkk_id: string | null
+          comments: string | null
+          communication_rating: number | null
+          created_at: string | null
+          had_issues: boolean | null
+          id: string
+          issue_description: string | null
+          jo_id: string | null
+          overall_rating: number | null
+          price_rating: number | null
+          punctuality_rating: number | null
+          quality_rating: number | null
+          rated_by: string | null
+          vendor_id: string
+          was_on_time: boolean | null
+        }
+        Insert: {
+          bkk_id?: string | null
+          comments?: string | null
+          communication_rating?: number | null
+          created_at?: string | null
+          had_issues?: boolean | null
+          id?: string
+          issue_description?: string | null
+          jo_id?: string | null
+          overall_rating?: number | null
+          price_rating?: number | null
+          punctuality_rating?: number | null
+          quality_rating?: number | null
+          rated_by?: string | null
+          vendor_id: string
+          was_on_time?: boolean | null
+        }
+        Update: {
+          bkk_id?: string | null
+          comments?: string | null
+          communication_rating?: number | null
+          created_at?: string | null
+          had_issues?: boolean | null
+          id?: string
+          issue_description?: string | null
+          jo_id?: string | null
+          overall_rating?: number | null
+          price_rating?: number | null
+          punctuality_rating?: number | null
+          quality_rating?: number | null
+          rated_by?: string | null
+          vendor_id?: string
+          was_on_time?: boolean | null
+        }
+        Relationships: []
+      }
     }
     Views: {
       [_ in never]: never
@@ -1263,9 +1354,7 @@ export type Database = {
   }
 }
 
-
 type DatabaseWithoutInternals = Omit<Database, "__InternalSupabase">
-
 type DefaultSchema = DatabaseWithoutInternals[Extract<keyof Database, "public">]
 
 export type Tables<
@@ -1322,7 +1411,6 @@ export type TablesInsert<
       : never
     : never
 
-
 export type TablesUpdate<
   DefaultSchemaTableNameOrOptions extends
     | keyof DefaultSchema["Tables"]
@@ -1348,76 +1436,31 @@ export type TablesUpdate<
       : never
     : never
 
-export type Enums<
-  DefaultSchemaEnumNameOrOptions extends
-    | keyof DefaultSchema["Enums"]
-    | { schema: keyof DatabaseWithoutInternals },
-  EnumName extends DefaultSchemaEnumNameOrOptions extends {
-    schema: keyof DatabaseWithoutInternals
-  }
-    ? keyof DatabaseWithoutInternals[DefaultSchemaEnumNameOrOptions["schema"]]["Enums"]
-    : never = never,
-> = DefaultSchemaEnumNameOrOptions extends {
-  schema: keyof DatabaseWithoutInternals
-}
-  ? DatabaseWithoutInternals[DefaultSchemaEnumNameOrOptions["schema"]]["Enums"][EnumName]
-  : DefaultSchemaEnumNameOrOptions extends keyof DefaultSchema["Enums"]
-    ? DefaultSchema["Enums"][DefaultSchemaEnumNameOrOptions]
-    : never
-
-export type CompositeTypes<
-  PublicCompositeTypeNameOrOptions extends
-    | keyof DefaultSchema["CompositeTypes"]
-    | { schema: keyof DatabaseWithoutInternals },
-  CompositeTypeName extends PublicCompositeTypeNameOrOptions extends {
-    schema: keyof DatabaseWithoutInternals
-  }
-    ? keyof DatabaseWithoutInternals[PublicCompositeTypeNameOrOptions["schema"]]["CompositeTypes"]
-    : never = never,
-> = PublicCompositeTypeNameOrOptions extends {
-  schema: keyof DatabaseWithoutInternals
-}
-  ? DatabaseWithoutInternals[PublicCompositeTypeNameOrOptions["schema"]]["CompositeTypes"][CompositeTypeName]
-  : PublicCompositeTypeNameOrOptions extends keyof DefaultSchema["CompositeTypes"]
-    ? DefaultSchema["CompositeTypes"][PublicCompositeTypeNameOrOptions]
-    : never
-
-export const Constants = {
-  public: {
-    Enums: {},
-  },
-} as const
-
 // ============================================
 // BKK (Bukti Kas Keluar) Custom Types
 // ============================================
 
-// BKK Status enum
 export type BKKStatus = 
   | 'pending' 
   | 'approved' 
   | 'rejected' 
   | 'released' 
   | 'settled' 
-  | 'cancelled';
+  | 'cancelled'
 
-// BKK Release Method
-export type BKKReleaseMethod = 'cash' | 'transfer';
+export type BKKReleaseMethod = 'cash' | 'transfer'
 
-// Main BKK type (alias for database row)
-export type BKK = Tables<'bukti_kas_keluar'>;
+export type BKK = Tables<'bukti_kas_keluar'>
 
-// Extended BKK with relations
 export interface BKKWithRelations extends BKK {
   job_order?: Tables<'job_orders'>
   cost_item?: Tables<'pjo_cost_items'>
-  requester?: Tables<'user_profiles'>
-  approver?: Tables<'user_profiles'>
-  releaser?: Tables<'user_profiles'>
-  settler?: Tables<'user_profiles'>
+  requester?: Pick<Tables<'user_profiles'>, 'id' | 'full_name'>
+  approver?: Pick<Tables<'user_profiles'>, 'id' | 'full_name'>
+  releaser?: Pick<Tables<'user_profiles'>, 'id' | 'full_name'>
+  settler?: Pick<Tables<'user_profiles'>, 'id' | 'full_name'>
 }
 
-// Create BKK input
 export interface CreateBKKInput {
   jo_id: string
   pjo_cost_item_id?: string
@@ -1426,22 +1469,20 @@ export interface CreateBKKInput {
   budget_category?: string
   budget_amount?: number
   notes?: string
+  vendor_id?: string
 }
 
-// Release BKK input
 export interface ReleaseBKKInput {
   release_method: BKKReleaseMethod
   release_reference?: string
 }
 
-// Settle BKK input
 export interface SettleBKKInput {
   amount_spent: number
   receipt_urls?: string[]
   notes?: string
 }
 
-// Available budget calculation result
 export interface AvailableBudget {
   budgetAmount: number
   alreadyDisbursed: number
@@ -1449,7 +1490,6 @@ export interface AvailableBudget {
   pendingRequests: number
 }
 
-// Settlement difference calculation
 export interface SettlementDifference {
   releasedAmount: number
   spentAmount: number
@@ -1457,7 +1497,6 @@ export interface SettlementDifference {
   type: 'return' | 'additional' | 'exact'
 }
 
-// BKK Summary totals
 export interface BKKSummaryTotals {
   totalRequested: number
   totalReleased: number
@@ -1471,4 +1510,36 @@ export interface BKKSummaryTotals {
     rejected: number
     cancelled: number
   }
+}
+
+// ============================================
+// PJO Status Type
+// ============================================
+export type PJOStatus = 'draft' | 'pending_approval' | 'approved' | 'rejected'
+
+// ============================================
+// Dashboard Types
+// ============================================
+export interface AdminMetrics {
+  pendingPJOs: number
+  unpaidInvoices: number
+  overdueInvoices: number
+  totalReceivables: number
+}
+
+export interface OpsQueueItem {
+  id: string
+  jo_number: string
+  description: string
+  status: string
+  customer_name: string
+}
+
+export interface ManagerMetrics {
+  totalRevenue: number
+  totalCost: number
+  profit: number
+  profitMargin: number
+  activeJOs: number
+  pendingApprovals: number
 }

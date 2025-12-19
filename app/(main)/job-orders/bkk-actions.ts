@@ -112,6 +112,7 @@ export async function createBKK(
       budget_category: input.budget_category || null,
       budget_amount: input.budget_amount || null,
       notes: input.notes || null,
+      vendor_id: input.vendor_id || null,
       status: 'pending',
       requested_by: profile?.id || null,
       requested_at: new Date().toISOString()
@@ -500,7 +501,8 @@ export async function releaseBKK(
  * 
  * **Feature: bukti-kas-keluar, Property 2: Status Transition Validity**
  * **Feature: bukti-kas-keluar, Property 7: Cost Item Synchronization After Settlement**
- * **Validates: Requirements 4.1, 4.2, 4.6, 4.7, 4.8, 4.9**
+ * **Feature: vendor-management, Property 16: Vendor Metrics Update on BKK Settlement**
+ * **Validates: Requirements 4.1, 4.2, 4.6, 4.7, 4.8, 4.9, 8.4**
  */
 export async function settleBKK(
   bkkId: string,
@@ -529,10 +531,10 @@ export async function settleBKK(
     .eq('user_id', user.id)
     .single()
   
-  // Fetch current BKK
+  // Fetch current BKK (include vendor_id for metrics update)
   const { data: bkk, error: fetchError } = await supabase
     .from('bukti_kas_keluar')
-    .select('status, jo_id, amount_requested, pjo_cost_item_id, budget_amount')
+    .select('status, jo_id, amount_requested, pjo_cost_item_id, budget_amount, vendor_id')
     .eq('id', bkkId)
     .single()
   
@@ -588,6 +590,16 @@ export async function settleBKK(
     
     if (costItemError) {
       console.error('Error updating cost item:', costItemError)
+    }
+  }
+  
+  // Update vendor metrics if vendor is linked
+  // This increments total_jobs and total_value for the vendor
+  if (bkk.vendor_id) {
+    const { updateVendorMetrics } = await import('@/app/(main)/vendors/actions')
+    const metricsResult = await updateVendorMetrics(bkk.vendor_id)
+    if (metricsResult.error) {
+      console.error('Error updating vendor metrics:', metricsResult.error)
     }
   }
   

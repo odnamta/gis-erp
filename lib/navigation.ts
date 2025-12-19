@@ -9,6 +9,7 @@ import {
   BarChart3,
   Calculator,
   Bell,
+  Building2,
   LucideIcon,
 } from 'lucide-react'
 import { UserRole, UserPermissions } from '@/types/permissions'
@@ -66,6 +67,12 @@ export const NAV_ITEMS: NavItem[] = [
     title: 'Job Orders',
     href: '/job-orders',
     icon: Briefcase,
+    roles: ['owner', 'admin', 'manager', 'ops', 'finance'],
+  },
+  {
+    title: 'Vendors',
+    href: '/vendors',
+    icon: Building2,
     roles: ['owner', 'admin', 'manager', 'ops', 'finance'],
   },
   {

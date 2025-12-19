@@ -12,6 +12,9 @@ export type InvoiceStatus = 'draft' | 'sent' | 'partial' | 'paid' | 'overdue' | 
 // Re-export payment types
 export * from './payments'
 
+// Re-export vendor types
+export * from './vendors'
+
 // Invoice Term Types
 export type TriggerType = 'jo_created' | 'surat_jalan' | 'berita_acara' | 'delivery'
 export type PresetType = 'single' | 'dp_final' | 'dp_delivery_final' | 'custom'

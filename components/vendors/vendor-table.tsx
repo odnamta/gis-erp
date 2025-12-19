@@ -1,0 +1,205 @@
+'use client';
+
+import { useRouter } from 'next/navigation';
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from '@/components/ui/table';
+import { Button } from '@/components/ui/button';
+import { Badge } from '@/components/ui/badge';
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from '@/components/ui/dropdown-menu';
+import {
+  MoreHorizontal,
+  Eye,
+  Pencil,
+  Truck,
+  Star,
+  CheckCircle,
+  XCircle,
+  AlertCircle,
+} from 'lucide-react';
+import { VendorWithStats } from '@/types/vendors';
+import { getVendorTypeLabel, formatRating } from '@/lib/vendor-utils';
+
+interface VendorTableProps {
+  vendors: VendorWithStats[];
+  canEdit?: boolean;
+  canRate?: boolean;
+  onRate?: (vendorId: string) => void;
+}
+
+export function VendorTable({ vendors, canEdit, canRate, onRate }: VendorTableProps) {
+  const router = useRouter();
+
+  const handleView = (id: string) => {
+    router.push(`/vendors/${id}`);
+  };
+
+  const handleEdit = (id: string) => {
+    router.push(`/vendors/${id}/edit`);
+  };
+
+  const handleEquipment = (id: string) => {
+    router.push(`/vendors/${id}#equipment`);
+  };
+
+  const getStatusBadge = (vendor: VendorWithStats) => {
+    if (!vendor.is_active) {
+      return (
+        <Badge variant="secondary" className="gap-1">
+          <XCircle className="h-3 w-3" />
+          Inactive
+        </Badge>
+      );
+    }
+
+    if (!vendor.is_verified) {
+      return (
+        <Badge variant="outline" className="gap-1 text-yellow-600 border-yellow-600">
+          <AlertCircle className="h-3 w-3" />
+          Unverified
+        </Badge>
+      );
+    }
+
+    if (vendor.is_preferred) {
+      return (
+        <Badge className="gap-1 bg-yellow-500 hover:bg-yellow-600">
+          <Star className="h-3 w-3" />
+          Preferred
+        </Badge>
+      );
+    }
+
+    return (
+      <Badge variant="outline" className="gap-1 text-green-600 border-green-600">
+        <CheckCircle className="h-3 w-3" />
+        Active
+      </Badge>
+    );
+  };
+
+  if (vendors.length === 0) {
+    return (
+      <div className="text-center py-12 text-muted-foreground">
+        No vendors found. Try adjusting your filters or add a new vendor.
+      </div>
+    );
+  }
+
+  return (
+    <div className="rounded-md border">
+      <Table>
+        <TableHeader>
+          <TableRow>
+            <TableHead className="w-[100px]">Code</TableHead>
+            <TableHead>Vendor Name</TableHead>
+            <TableHead>Type</TableHead>
+            <TableHead>Contact</TableHead>
+            <TableHead className="text-center">Jobs</TableHead>
+            <TableHead className="text-center">Rating</TableHead>
+            <TableHead>Status</TableHead>
+            <TableHead className="w-[70px]"></TableHead>
+          </TableRow>
+        </TableHeader>
+        <TableBody>
+          {vendors.map((vendor) => (
+            <TableRow key={vendor.id}>
+              <TableCell className="font-mono text-sm">
+                {vendor.vendor_code}
+              </TableCell>
+              <TableCell>
+                <div>
+                  <div className="font-medium">{vendor.vendor_name}</div>
+                  {vendor.equipment_count && vendor.equipment_count > 0 && (
+                    <div className="text-xs text-muted-foreground">
+                      {vendor.equipment_count} equipment
+                    </div>
+                  )}
+                </div>
+              </TableCell>
+              <TableCell>
+                <Badge variant="outline">
+                  {getVendorTypeLabel(vendor.vendor_type)}
+                </Badge>
+              </TableCell>
+              <TableCell>
+                {vendor.contact_person ? (
+                  <div>
+                    <div className="text-sm">{vendor.contact_person}</div>
+                    {vendor.contact_phone && (
+                      <div className="text-xs text-muted-foreground">
+                        {vendor.contact_phone}
+                      </div>
+                    )}
+                  </div>
+                ) : (
+                  <span className="text-muted-foreground">-</span>
+                )}
+              </TableCell>
+              <TableCell className="text-center">
+                {vendor.total_jobs > 0 ? vendor.total_jobs : '-'}
+              </TableCell>
+              <TableCell className="text-center">
+                {vendor.average_rating ? (
+                  <div className="flex items-center justify-center gap-1">
+                    <Star className="h-3 w-3 fill-yellow-400 text-yellow-400" />
+                    <span>{formatRating(vendor.average_rating)}</span>
+                  </div>
+                ) : (
+                  <span className="text-muted-foreground">-</span>
+                )}
+              </TableCell>
+              <TableCell>{getStatusBadge(vendor)}</TableCell>
+              <TableCell>
+                <DropdownMenu>
+                  <DropdownMenuTrigger asChild>
+                    <Button variant="ghost" size="icon">
+                      <MoreHorizontal className="h-4 w-4" />
+                      <span className="sr-only">Actions</span>
+                    </Button>
+                  </DropdownMenuTrigger>
+                  <DropdownMenuContent align="end">
+                    <DropdownMenuItem onClick={() => handleView(vendor.id)}>
+                      <Eye className="mr-2 h-4 w-4" />
+                      View Details
+                    </DropdownMenuItem>
+                    {canEdit && (
+                      <DropdownMenuItem onClick={() => handleEdit(vendor.id)}>
+                        <Pencil className="mr-2 h-4 w-4" />
+                        Edit
+                      </DropdownMenuItem>
+                    )}
+                    <DropdownMenuItem onClick={() => handleEquipment(vendor.id)}>
+                      <Truck className="mr-2 h-4 w-4" />
+                      Equipment
+                    </DropdownMenuItem>
+                    {canRate && onRate && (
+                      <>
+                        <DropdownMenuSeparator />
+                        <DropdownMenuItem onClick={() => onRate(vendor.id)}>
+                          <Star className="mr-2 h-4 w-4" />
+                          Rate Vendor
+                        </DropdownMenuItem>
+                      </>
+                    )}
+                  </DropdownMenuContent>
+                </DropdownMenu>
+              </TableCell>
+            </TableRow>
+          ))}
+        </TableBody>
+      </Table>
+    </div>
+  );
+}
