@@ -44,6 +44,27 @@ const pjoSchema = z.object({
   notes: z.string().optional(),
   revenue_items: z.array(revenueItemSchema).optional(),
   cost_items: z.array(costItemSchema).optional(),
+  // Market classification fields
+  cargo_weight_kg: z.number().min(0).optional().nullable(),
+  cargo_length_m: z.number().min(0).optional().nullable(),
+  cargo_width_m: z.number().min(0).optional().nullable(),
+  cargo_height_m: z.number().min(0).optional().nullable(),
+  cargo_value: z.number().min(0).optional().nullable(),
+  duration_days: z.number().min(0).optional().nullable(),
+  is_new_route: z.boolean().optional(),
+  terrain_type: z.enum(['normal', 'mountain', 'unpaved', 'narrow']).optional().nullable(),
+  requires_special_permit: z.boolean().optional(),
+  is_hazardous: z.boolean().optional(),
+  market_type: z.enum(['simple', 'complex']).optional().nullable(),
+  complexity_score: z.number().optional().nullable(),
+  complexity_factors: z.array(z.object({
+    criteria_code: z.string(),
+    criteria_name: z.string(),
+    weight: z.number(),
+    triggered_value: z.string(),
+  })).optional().nullable(),
+  pricing_approach: z.enum(['standard', 'premium', 'negotiated', 'cost_plus']).optional().nullable(),
+  pricing_notes: z.string().optional().nullable(),
 })
 
 export type PJOFormData = z.infer<typeof pjoSchema>
@@ -131,6 +152,22 @@ export async function createPJO(data: PJOFormData): Promise<{ error?: string; id
       status: 'draft',
       created_by: user.id,
       is_active: true,
+      // Market classification fields
+      cargo_weight_kg: data.cargo_weight_kg ?? null,
+      cargo_length_m: data.cargo_length_m ?? null,
+      cargo_width_m: data.cargo_width_m ?? null,
+      cargo_height_m: data.cargo_height_m ?? null,
+      cargo_value: data.cargo_value ?? null,
+      duration_days: data.duration_days ?? null,
+      is_new_route: data.is_new_route ?? false,
+      terrain_type: data.terrain_type ?? null,
+      requires_special_permit: data.requires_special_permit ?? false,
+      is_hazardous: data.is_hazardous ?? false,
+      market_type: data.market_type ?? null,
+      complexity_score: data.complexity_score ?? null,
+      complexity_factors: data.complexity_factors ?? null,
+      pricing_approach: data.pricing_approach ?? null,
+      pricing_notes: data.pricing_notes ?? null,
     })
     .select('id')
     .single()
@@ -244,6 +281,22 @@ export async function updatePJO(
       profit: profit,
       notes: data.notes || null,
       description: data.commodity || '',
+      // Market classification fields
+      cargo_weight_kg: data.cargo_weight_kg ?? null,
+      cargo_length_m: data.cargo_length_m ?? null,
+      cargo_width_m: data.cargo_width_m ?? null,
+      cargo_height_m: data.cargo_height_m ?? null,
+      cargo_value: data.cargo_value ?? null,
+      duration_days: data.duration_days ?? null,
+      is_new_route: data.is_new_route ?? false,
+      terrain_type: data.terrain_type ?? null,
+      requires_special_permit: data.requires_special_permit ?? false,
+      is_hazardous: data.is_hazardous ?? false,
+      market_type: data.market_type ?? null,
+      complexity_score: data.complexity_score ?? null,
+      complexity_factors: data.complexity_factors ?? null,
+      pricing_approach: data.pricing_approach ?? null,
+      pricing_notes: data.pricing_notes ?? null,
       updated_at: new Date().toISOString(),
     })
     .eq('id', id)

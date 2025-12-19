@@ -15,6 +15,9 @@ export * from './payments'
 // Re-export vendor types
 export * from './vendors'
 
+// Re-export market classification types
+export * from './market-classification'
+
 // Invoice Term Types
 export type TriggerType = 'jo_created' | 'surat_jalan' | 'berita_acara' | 'delivery'
 export type PresetType = 'single' | 'dp_final' | 'dp_delivery_final' | 'custom'
@@ -45,6 +48,38 @@ export type PJOCostItem = Tables<'pjo_cost_items'>
 export type InvoiceLineItem = Tables<'invoice_line_items'>
 export type SuratJalan = Tables<'surat_jalan'>
 export type BeritaAcara = Tables<'berita_acara'>
+
+// PJO Status type
+export type PJOStatus = 'draft' | 'pending_approval' | 'approved' | 'rejected'
+
+// Cost Item Status type
+export type CostItemStatus = 'estimated' | 'confirmed' | 'exceeded' | 'under_budget'
+
+// Budget Analysis type
+export interface BudgetAnalysis {
+  totalEstimated: number
+  totalActual: number
+  variance: number
+  variancePercentage: number
+  confirmedCount: number
+  pendingCount: number
+  exceededCount: number
+  underBudgetCount: number
+  isHealthy: boolean
+  allConfirmed: boolean
+}
+
+// PJO with relations for display
+export interface PJOWithRelations extends ProformaJobOrder {
+  projects?: {
+    id: string
+    name: string
+    customers?: {
+      id: string
+      name: string
+    } | null
+  } | null
+}
 
 // Extended types with relations
 export interface JobOrderWithRelations extends JobOrder {

@@ -18,6 +18,7 @@ import { PJOTable } from '@/components/pjo/pjo-table'
 import { PJOFilters } from '@/components/pjo/pjo-filters'
 import { VarianceDashboard } from '@/components/pjo/variance-dashboard'
 import { filterPJOs } from '@/lib/pjo-utils'
+import { filterByMarketType, countByMarketType } from '@/lib/market-classification-utils'
 import { deletePJO } from './actions'
 import { useToast } from '@/hooks/use-toast'
 import { Plus } from 'lucide-react'
@@ -34,6 +35,7 @@ export function PJOListClient({ pjos, canSeeRevenue = true, canCreatePJO = true 
   const [dateFrom, setDateFrom] = useState<Date | undefined>(undefined)
   const [dateTo, setDateTo] = useState<Date | undefined>(undefined)
   const [overrunFilter, setOverrunFilter] = useState(false)
+  const [marketTypeFilter, setMarketTypeFilter] = useState('all')
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false)
   const [pjoToDelete, setPjoToDelete] = useState<PJOWithRelations | null>(null)
   const [isDeleting, setIsDeleting] = useState(false)
@@ -49,6 +51,12 @@ export function PJOListClient({ pjos, canSeeRevenue = true, canCreatePJO = true 
   if (overrunFilter) {
     filteredPJOs = filteredPJOs.filter(pjo => pjo.has_cost_overruns === true)
   }
+  
+  // Apply market type filter
+  filteredPJOs = filterByMarketType(filteredPJOs, marketTypeFilter)
+  
+  // Calculate market type counts from all PJOs (before filtering)
+  const marketTypeCounts = countByMarketType(pjos)
 
   function handleDeleteClick(pjo: PJOWithRelations) {
     setPjoToDelete(pjo)
@@ -78,6 +86,7 @@ export function PJOListClient({ pjos, canSeeRevenue = true, canCreatePJO = true 
     setDateFrom(undefined)
     setDateTo(undefined)
     setOverrunFilter(false)
+    setMarketTypeFilter('all')
   }
 
   return (
@@ -96,15 +105,22 @@ export function PJOListClient({ pjos, canSeeRevenue = true, canCreatePJO = true 
 
       {canSeeRevenue && <VarianceDashboard pjos={pjos} />}
 
+      <div className="flex items-center gap-4 text-sm text-muted-foreground">
+        <span>Simple: {marketTypeCounts.simple}</span>
+        <span>Complex: {marketTypeCounts.complex}</span>
+      </div>
+
       <PJOFilters
         statusFilter={statusFilter}
         dateFrom={dateFrom}
         dateTo={dateTo}
         overrunFilter={overrunFilter}
+        marketTypeFilter={marketTypeFilter}
         onStatusChange={setStatusFilter}
         onDateFromChange={setDateFrom}
         onDateToChange={setDateTo}
         onOverrunFilterChange={setOverrunFilter}
+        onMarketTypeChange={setMarketTypeFilter}
         onClearFilters={handleClearFilters}
       />
 

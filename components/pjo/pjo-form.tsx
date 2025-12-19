@@ -12,7 +12,8 @@ import { Textarea } from '@/components/ui/textarea'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Loader2 } from 'lucide-react'
-import { ProjectWithCustomer, ProformaJobOrder, PJORevenueItem, PJOCostItem } from '@/types'
+import { ProformaJobOrder, PJORevenueItem, PJOCostItem } from '@/types'
+import { ProjectWithCustomer } from '@/components/projects/project-table'
 import { createPJO, updatePJO } from '@/app/(main)/proforma-jo/actions'
 import type { PJOFormData } from '@/app/(main)/proforma-jo/actions'
 import { useToast } from '@/hooks/use-toast'
@@ -21,6 +22,12 @@ import { PlacesAutocomplete, LocationData } from '@/components/ui/places-autocom
 import { RevenueItemsTable, RevenueItemRow } from './revenue-items-table'
 import { CostItemsTable, CostItemRow, CostCategory } from './cost-items-table'
 import { FinancialSummary } from './financial-summary'
+import { CargoSpecificationsSection } from './cargo-specifications-section'
+import { RouteCharacteristicsSection } from './route-characteristics-section'
+import { MarketClassificationDisplay } from './market-classification-display'
+import { PricingApproachSection } from './pricing-approach-section'
+import { useMarketClassification } from '@/hooks/use-market-classification'
+import { CargoSpecifications, RouteCharacteristics, TerrainType, PricingApproach, parseComplexityFactors } from '@/types/market-classification'
 
 const revenueItemSchema = z.object({
   id: z.string().optional(),
@@ -114,9 +121,9 @@ function toCostItemRow(item: PJOCostItem): CostItemRow {
 function toRevenueItemRow(item: PJORevenueItem): RevenueItemRow {
   return {
     id: item.id, description: item.description, quantity: item.quantity,
-    unit: item.unit, unit_price: item.unit_price, subtotal: item.subtotal,
+    unit: item.unit, unit_price: item.unit_price, subtotal: item.subtotal ?? 0,
     source_type: item.source_type as 'quotation' | 'contract' | 'manual' | undefined,
-    source_id: item.source_id,
+    source_id: item.source_id ?? undefined,
   }
 }
 
@@ -133,6 +140,42 @@ export function PJOForm({ projects, pjo, existingRevenueItems = [], existingCost
   const today = new Date().toISOString().split('T')[0]
   const calculatedTotalRevenue = revenueItems.reduce((sum, item) => sum + item.subtotal, 0)
   const calculatedTotalCost = costItems.reduce((sum, item) => sum + item.estimated_amount, 0)
+
+  // Market classification state
+  const [cargoSpecs, setCargoSpecs] = useState<CargoSpecifications>({
+    cargo_weight_kg: pjo?.cargo_weight_kg ?? null,
+    cargo_length_m: pjo?.cargo_length_m ?? null,
+    cargo_width_m: pjo?.cargo_width_m ?? null,
+    cargo_height_m: pjo?.cargo_height_m ?? null,
+    cargo_value: pjo?.cargo_value ?? null,
+    duration_days: pjo?.duration_days ?? null,
+  })
+  const [routeChars, setRouteChars] = useState<RouteCharacteristics>({
+    is_new_route: pjo?.is_new_route ?? false,
+    terrain_type: (pjo?.terrain_type as TerrainType) ?? null,
+    requires_special_permit: pjo?.requires_special_permit ?? false,
+    is_hazardous: pjo?.is_hazardous ?? false,
+  })
+  const [pricingNotes, setPricingNotes] = useState(pjo?.pricing_notes ?? '')
+
+  // Use market classification hook
+  const {
+    classification,
+    isCalculating,
+    pricingApproach,
+    setPricingApproach,
+    recalculate,
+  } = useMarketClassification({
+    cargoSpecs,
+    routeChars,
+    initialClassification: pjo?.market_type ? {
+      market_type: pjo.market_type as 'simple' | 'complex',
+      complexity_score: pjo.complexity_score ?? 0,
+      complexity_factors: parseComplexityFactors(pjo.complexity_factors),
+      requires_engineering: (pjo.complexity_score ?? 0) >= 20,
+    } : null,
+    initialPricingApproach: (pjo?.pricing_approach as PricingApproach) ?? null,
+  })
 
 
   const { register, handleSubmit, setValue, watch, trigger, formState: { errors } } = useForm<PJOFormValues>({
@@ -261,6 +304,22 @@ export function PJOForm({ projects, pjo, existingRevenueItems = [], existingCost
         id: item.id, category: item.category, description: item.description,
         estimated_amount: item.estimated_amount,
       })),
+      // Market classification fields
+      cargo_weight_kg: cargoSpecs.cargo_weight_kg,
+      cargo_length_m: cargoSpecs.cargo_length_m,
+      cargo_width_m: cargoSpecs.cargo_width_m,
+      cargo_height_m: cargoSpecs.cargo_height_m,
+      cargo_value: cargoSpecs.cargo_value,
+      duration_days: cargoSpecs.duration_days,
+      is_new_route: routeChars.is_new_route,
+      terrain_type: routeChars.terrain_type,
+      requires_special_permit: routeChars.requires_special_permit,
+      is_hazardous: routeChars.is_hazardous,
+      market_type: classification?.market_type ?? null,
+      complexity_score: classification?.complexity_score ?? null,
+      complexity_factors: classification?.complexity_factors ?? null,
+      pricing_approach: pricingApproach,
+      pricing_notes: pricingNotes || null,
     }
     setIsLoading(true)
     try {
@@ -347,6 +406,35 @@ export function PJOForm({ projects, pjo, existingRevenueItems = [], existingCost
           </div>
         </CardContent>
       </Card>
+
+      {/* Market Classification Section */}
+      <CargoSpecificationsSection
+        values={cargoSpecs}
+        onChange={setCargoSpecs}
+        disabled={isLoading}
+      />
+
+      <RouteCharacteristicsSection
+        values={routeChars}
+        onChange={setRouteChars}
+        disabled={isLoading}
+      />
+
+      <MarketClassificationDisplay
+        classification={classification}
+        isCalculating={isCalculating}
+        onRecalculate={recalculate}
+        disabled={isLoading}
+      />
+
+      <PricingApproachSection
+        pricingApproach={pricingApproach}
+        pricingNotes={pricingNotes}
+        marketType={classification?.market_type ?? null}
+        onPricingApproachChange={setPricingApproach}
+        onPricingNotesChange={setPricingNotes}
+        disabled={isLoading}
+      />
 
       <Card>
         <CardHeader><CardTitle>Revenue Items</CardTitle></CardHeader>

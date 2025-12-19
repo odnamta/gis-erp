@@ -12,9 +12,11 @@ import {
   TableRow,
 } from '@/components/ui/table'
 import { PJOStatusBadge } from '@/components/ui/pjo-status-badge'
+import { MarketTypeBadge } from '@/components/ui/market-type-badge'
 import { formatIDR, formatDate } from '@/lib/pjo-utils'
 import { Pencil, Eye, Trash2, AlertTriangle } from 'lucide-react'
 import { Badge } from '@/components/ui/badge'
+import { MarketType } from '@/types/market-classification'
 
 interface PJOTableProps {
   pjos: PJOWithRelations[]
@@ -34,6 +36,7 @@ export function PJOTable({ pjos, onDelete, canSeeRevenue = true }: PJOTableProps
             <TableHead>Project</TableHead>
             {canSeeRevenue && <TableHead className="text-right">Revenue</TableHead>}
             {canSeeRevenue && <TableHead className="text-right">Profit</TableHead>}
+            <TableHead>Type</TableHead>
             <TableHead>Status</TableHead>
             <TableHead className="w-[100px]">Actions</TableHead>
           </TableRow>
@@ -41,7 +44,7 @@ export function PJOTable({ pjos, onDelete, canSeeRevenue = true }: PJOTableProps
         <TableBody>
           {pjos.length === 0 ? (
             <TableRow>
-              <TableCell colSpan={canSeeRevenue ? 8 : 6} className="h-24 text-center">
+              <TableCell colSpan={canSeeRevenue ? 9 : 7} className="h-24 text-center">
                 No PJOs found. Create your first PJO to get started.
               </TableCell>
             </TableRow>
@@ -87,6 +90,13 @@ export function PJOTable({ pjos, onDelete, canSeeRevenue = true }: PJOTableProps
                     {formatIDR(pjo.profit)}
                   </TableCell>
                 )}
+                <TableCell>
+                  <MarketTypeBadge
+                    marketType={pjo.market_type as MarketType | null}
+                    score={pjo.complexity_score ?? undefined}
+                    showScore
+                  />
+                </TableCell>
                 <TableCell>
                   <div className="flex items-center gap-2">
                     <PJOStatusBadge status={pjo.status} />

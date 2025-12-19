@@ -31,6 +31,10 @@ import { getCostItems } from '@/app/(main)/proforma-jo/cost-actions'
 import { useToast } from '@/hooks/use-toast'
 import { Pencil, Send, Check, X, DollarSign } from 'lucide-react'
 import { AttachmentsSection } from '@/components/attachments'
+import { MarketTypeBadge } from '@/components/ui/market-type-badge'
+import { MarketType, PricingApproach, TerrainType, ComplexityFactor } from '@/types/market-classification'
+import { Progress } from '@/components/ui/progress'
+import { AlertTriangle } from 'lucide-react'
 
 interface PJODetailViewProps {
   pjo: PJOWithRelations
@@ -289,6 +293,137 @@ export function PJODetailView({ pjo, canApprove = true }: PJODetailViewProps) {
           </div>
         </CardContent>
       </Card>
+
+      {/* Market Classification */}
+      {pjo.market_type && (
+        <Card>
+          <CardHeader>
+            <CardTitle className="flex items-center justify-between">
+              <span>Market Classification</span>
+              <MarketTypeBadge
+                marketType={pjo.market_type as MarketType}
+                score={pjo.complexity_score ?? undefined}
+                showScore
+              />
+            </CardTitle>
+          </CardHeader>
+          <CardContent className="space-y-6">
+            {/* Complexity Score */}
+            <div className="space-y-2">
+              <div className="flex items-center justify-between text-sm">
+                <span className="text-muted-foreground">Complexity Score</span>
+                <span className="font-medium">{pjo.complexity_score ?? 0} / 100</span>
+              </div>
+              <Progress
+                value={Math.min((pjo.complexity_score ?? 0), 100)}
+                className={`h-2 ${(pjo.complexity_score ?? 0) >= 20 ? '[&>div]:bg-orange-500' : '[&>div]:bg-green-500'}`}
+              />
+            </div>
+
+            {/* Engineering Warning */}
+            {pjo.market_type === 'complex' && (
+              <div className="flex items-center gap-2 rounded-md bg-orange-50 p-3 text-orange-800">
+                <AlertTriangle className="h-5 w-5" />
+                <span className="text-sm font-medium">Engineering assessment required for complex projects</span>
+              </div>
+            )}
+
+            {/* Triggered Factors */}
+            {pjo.complexity_factors && Array.isArray(pjo.complexity_factors) && (pjo.complexity_factors as ComplexityFactor[]).length > 0 && (
+              <div className="space-y-2">
+                <Label className="text-muted-foreground">Triggered Complexity Factors</Label>
+                <div className="space-y-1">
+                  {(pjo.complexity_factors as ComplexityFactor[]).map((factor, index) => (
+                    <div key={index} className="flex items-center justify-between text-sm">
+                      <span>{factor.criteria_name}</span>
+                      <span className="text-muted-foreground">
+                        {factor.triggered_value} (+{factor.weight})
+                      </span>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            )}
+
+            {/* Cargo Specifications */}
+            <div className="grid gap-4 md:grid-cols-3">
+              {pjo.cargo_weight_kg && (
+                <div>
+                  <Label className="text-muted-foreground">Cargo Weight</Label>
+                  <p className="font-medium">{Number(pjo.cargo_weight_kg).toLocaleString('id-ID')} kg</p>
+                </div>
+              )}
+              {pjo.cargo_length_m && (
+                <div>
+                  <Label className="text-muted-foreground">Length</Label>
+                  <p className="font-medium">{pjo.cargo_length_m} m</p>
+                </div>
+              )}
+              {pjo.cargo_width_m && (
+                <div>
+                  <Label className="text-muted-foreground">Width</Label>
+                  <p className="font-medium">{pjo.cargo_width_m} m</p>
+                </div>
+              )}
+              {pjo.cargo_height_m && (
+                <div>
+                  <Label className="text-muted-foreground">Height</Label>
+                  <p className="font-medium">{pjo.cargo_height_m} m</p>
+                </div>
+              )}
+              {pjo.cargo_value && (
+                <div>
+                  <Label className="text-muted-foreground">Cargo Value</Label>
+                  <p className="font-medium">{formatIDR(Number(pjo.cargo_value))}</p>
+                </div>
+              )}
+              {pjo.duration_days && (
+                <div>
+                  <Label className="text-muted-foreground">Duration</Label>
+                  <p className="font-medium">{pjo.duration_days} days</p>
+                </div>
+              )}
+            </div>
+
+            {/* Route Characteristics */}
+            <div className="grid gap-4 md:grid-cols-2">
+              {pjo.terrain_type && (
+                <div>
+                  <Label className="text-muted-foreground">Terrain Type</Label>
+                  <p className="font-medium capitalize">{pjo.terrain_type}</p>
+                </div>
+              )}
+              <div className="flex flex-wrap gap-4">
+                {pjo.is_new_route && (
+                  <span className="text-sm bg-blue-100 text-blue-800 px-2 py-1 rounded">New Route</span>
+                )}
+                {pjo.requires_special_permit && (
+                  <span className="text-sm bg-purple-100 text-purple-800 px-2 py-1 rounded">Special Permit</span>
+                )}
+                {pjo.is_hazardous && (
+                  <span className="text-sm bg-red-100 text-red-800 px-2 py-1 rounded">Hazardous</span>
+                )}
+              </div>
+            </div>
+
+            {/* Pricing Approach */}
+            {pjo.pricing_approach && (
+              <div className="grid gap-4 md:grid-cols-2">
+                <div>
+                  <Label className="text-muted-foreground">Pricing Approach</Label>
+                  <p className="font-medium capitalize">{(pjo.pricing_approach as string).replace('_', ' ')}</p>
+                </div>
+                {pjo.pricing_notes && (
+                  <div>
+                    <Label className="text-muted-foreground">Pricing Notes</Label>
+                    <p className="text-sm">{pjo.pricing_notes}</p>
+                  </div>
+                )}
+              </div>
+            )}
+          </CardContent>
+        </Card>
+      )}
 
       {/* Revenue Items */}
       {!itemsLoading && (

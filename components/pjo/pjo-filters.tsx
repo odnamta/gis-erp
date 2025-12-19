@@ -21,15 +21,23 @@ const statusOptions = [
   { value: 'rejected', label: 'Rejected' },
 ]
 
+const marketTypeOptions = [
+  { value: 'all', label: 'All Types' },
+  { value: 'simple', label: 'Simple' },
+  { value: 'complex', label: 'Complex' },
+]
+
 interface PJOFiltersProps {
   statusFilter: string
   dateFrom: Date | undefined
   dateTo: Date | undefined
   overrunFilter?: boolean
+  marketTypeFilter?: string
   onStatusChange: (status: string) => void
   onDateFromChange: (date: Date | undefined) => void
   onDateToChange: (date: Date | undefined) => void
   onOverrunFilterChange?: (checked: boolean) => void
+  onMarketTypeChange?: (marketType: string) => void
   onClearFilters: () => void
 }
 
@@ -38,13 +46,15 @@ export function PJOFilters({
   dateFrom,
   dateTo,
   overrunFilter = false,
+  marketTypeFilter = 'all',
   onStatusChange,
   onDateFromChange,
   onDateToChange,
   onOverrunFilterChange,
+  onMarketTypeChange,
   onClearFilters,
 }: PJOFiltersProps) {
-  const hasFilters = statusFilter !== 'all' || dateFrom || dateTo || overrunFilter
+  const hasFilters = statusFilter !== 'all' || dateFrom || dateTo || overrunFilter || marketTypeFilter !== 'all'
 
   return (
     <div className="flex flex-wrap items-end gap-4">
@@ -63,6 +73,24 @@ export function PJOFilters({
           </SelectContent>
         </Select>
       </div>
+
+      {onMarketTypeChange && (
+        <div className="space-y-2">
+          <Label>Market Type</Label>
+          <Select value={marketTypeFilter} onValueChange={onMarketTypeChange}>
+            <SelectTrigger className="w-[140px]">
+              <SelectValue placeholder="Filter by type" />
+            </SelectTrigger>
+            <SelectContent>
+              {marketTypeOptions.map((option) => (
+                <SelectItem key={option.value} value={option.value}>
+                  {option.label}
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+        </div>
+      )}
 
       <div className="space-y-2">
         <Label>Date From</Label>
