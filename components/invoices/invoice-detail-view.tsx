@@ -135,8 +135,32 @@ export function InvoiceDetailView({ invoice, userRole = 'viewer' }: InvoiceDetai
               {canMarkOverdue && ' (Overdue)'}
             </p>
           </div>
+          {/* Term Information for Split Invoices */}
+          {invoice.invoice_term && (
+            <>
+              <div>
+                <Label className="text-muted-foreground">Payment Term</Label>
+                <p className="font-medium">{invoice.term_description || invoice.invoice_term}</p>
+              </div>
+              <div>
+                <Label className="text-muted-foreground">Term Percentage</Label>
+                <p className="font-medium">{invoice.term_percentage}%</p>
+              </div>
+            </>
+          )}
         </CardContent>
       </Card>
+
+      {/* Split Invoice Indicator */}
+      {invoice.invoice_term && (
+        <Card className="border-amber-200 bg-amber-50 dark:bg-amber-950/20">
+          <CardContent className="py-3">
+            <p className="text-sm text-amber-800 dark:text-amber-400">
+              📄 This is a split invoice ({invoice.term_percentage}% - {invoice.term_description || invoice.invoice_term})
+            </p>
+          </CardContent>
+        </Card>
+      )}
 
       {/* Line Items */}
       <Card>
@@ -166,7 +190,7 @@ export function InvoiceDetailView({ invoice, userRole = 'viewer' }: InvoiceDetai
                     <TableCell className="text-right">{item.quantity}</TableCell>
                     <TableCell>{item.unit || '-'}</TableCell>
                     <TableCell className="text-right">{formatIDR(item.unit_price)}</TableCell>
-                    <TableCell className="text-right font-medium">{formatIDR(item.subtotal)}</TableCell>
+                    <TableCell className="text-right font-medium">{formatIDR(item.subtotal ?? 0)}</TableCell>
                   </TableRow>
                 ))}
               </TableBody>

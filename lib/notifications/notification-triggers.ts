@@ -410,3 +410,85 @@ export async function notifyUserActivity(
     }
   }
 }
+
+interface RevenueDiscrepancyData {
+  joId: string
+  joNumber: string
+  pjoRevenueTotal: number
+  joFinalRevenue: number
+  difference: number
+  customerName?: string
+}
+
+/**
+ * Notify finance and admin when there's a revenue discrepancy between PJO items and JO
+ * This ensures no revenue is left behind when creating invoices
+ */
+export async function notifyRevenueDiscrepancy(data: RevenueDiscrepancyData): Promise<void> {
+  const users = await getUsersByRoles(['finance', 'admin', 'manager'])
+  if (users.length === 0) return
+
+  const formatAmount = (amount: number) =>
+    new Intl.NumberFormat('id-ID', { style: 'currency', currency: 'IDR' }).format(amount)
+
+  await createBulkNotifications(
+    {
+      title: 'Revenue Discrepancy Detected',
+      message: `${data.joNumber}: PJO revenue (${formatAmount(data.pjoRevenueTotal)}) differs from JO revenue (${formatAmount(data.joFinalRevenue)}) by ${formatAmount(Math.abs(data.difference))}`,
+      type: 'budget_alert',
+      priority: 'high',
+      entityType: 'jo',
+      entityId: data.joId,
+      actionUrl: `/job-orders/${data.joId}`,
+      metadata: {
+        jo_number: data.joNumber,
+        pjo_revenue_total: data.pjoRevenueTotal,
+        jo_final_revenue: data.joFinalRevenue,
+        difference: data.difference,
+        customer_name: data.customerName,
+      },
+    },
+    { userIds: users.map((u) => u.id) }
+  )
+}
+
+interface UninvoicedRevenueData {
+  joId: string
+  joNumber: string
+  uninvoicedAmount: number
+  uninvoicedPercent: number
+  totalRevenue: number
+  customerName?: string
+}
+
+/**
+ * Notify finance when a JO has uninvoiced revenue remaining
+ * Triggered when JO is marked as closed but not all terms are invoiced
+ */
+export async function notifyUninvoicedRevenue(data: UninvoicedRevenueData): Promise<void> {
+  const users = await getUsersByRoles(['finance', 'admin'])
+  if (users.length === 0) return
+
+  const formatAmount = (amount: number) =>
+    new Intl.NumberFormat('id-ID', { style: 'currency', currency: 'IDR' }).format(amount)
+
+  await createBulkNotifications(
+    {
+      title: 'Uninvoiced Revenue Alert',
+      message: `${data.joNumber} has ${data.uninvoicedPercent}% (${formatAmount(data.uninvoicedAmount)}) of revenue not yet invoiced`,
+      type: 'budget_alert',
+      priority: 'high',
+      entityType: 'jo',
+      entityId: data.joId,
+      actionUrl: `/job-orders/${data.joId}`,
+      metadata: {
+        jo_number: data.joNumber,
+        uninvoiced_amount: data.uninvoicedAmount,
+        uninvoiced_percent: data.uninvoicedPercent,
+        total_revenue: data.totalRevenue,
+        customer_name: data.customerName,
+      },
+    },
+    { userIds: users.map((u) => u.id) }
+  )
+}

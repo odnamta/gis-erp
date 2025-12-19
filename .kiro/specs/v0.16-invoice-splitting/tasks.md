@@ -1,0 +1,121 @@
+# Implementation Plan
+
+- [x] 1. Database schema migration
+  - [x] 1.1 Add invoice_terms, total_invoiced, invoiceable_amount columns to job_orders table
+    - Add invoice_terms JSONB column with default empty array
+    - Add total_invoiced DECIMAL(15,2) with default 0
+    - Add invoiceable_amount DECIMAL(15,2)
+    - _Requirements: 6.1, 6.2, 6.3_
+  - [x] 1.2 Add invoice_term, term_percentage, term_description columns to invoices table
+    - Add invoice_term VARCHAR(50)
+    - Add term_percentage DECIMAL(5,2)
+    - Add term_description VARCHAR(200)
+    - _Requirements: 6.4, 6.5, 6.6_
+  - [x] 1.3 Update TypeScript database types
+    - Update types/database.ts with new columns for job_orders and invoices
+    - _Requirements: 6.1-6.6_
+
+- [x] 2. Create invoice terms utility functions
+  - [x] 2.1 Create lib/invoice-terms-utils.ts with core functions
+    - Implement INVOICE_TERM_PRESETS constant
+    - Implement getPresetTerms(preset) function
+    - Implement validateTermsTotal(terms) function
+    - Implement calculateTermAmount(revenue, percentage) function
+    - Implement calculateVAT(amount) function
+    - Implement getTermStatus(term, joStatus) function
+    - _Requirements: 1.2, 1.4, 3.1, 3.2, 3.3, 3.4, 3.5_
+  - [x] 2.2 Write property test for percentage validation
+    - **Property 1: Percentage Validation**
+    - **Validates: Requirements 1.4, 1.5**
+  - [x] 2.3 Write property test for preset terms generation
+    - **Property 2: Preset Terms Generation**
+    - **Validates: Requirements 1.2, 2.2, 2.3, 2.4**
+  - [x] 2.4 Write property test for term status determination
+    - **Property 3: Term Status Determination**
+    - **Validates: Requirements 3.1, 3.2, 3.3**
+  - [x] 2.5 Write property test for invoice amount calculation
+    - **Property 4: Invoice Amount Calculation**
+    - **Validates: Requirements 3.4, 3.5**
+  - [x] 2.6 Write property test for term amount recalculation
+    - **Property 7: Term Amount Recalculation**
+    - **Validates: Requirements 5.2, 5.3, 5.4**
+
+- [x] 3. Checkpoint - Ensure all tests pass
+  - Ensure all tests pass, ask the user if questions arise.
+
+- [x] 4. Create invoice terms types
+  - [x] 4.1 Add InvoiceTerm and related types to types/index.ts
+    - Define InvoiceTerm interface
+    - Define TriggerType, PresetType, TermStatus types
+    - Update JobOrder type to include new fields
+    - Update Invoice type to include term fields
+    - _Requirements: 1.1, 3.1, 3.2, 3.3_
+
+- [x] 5. Implement server actions for invoice terms
+  - [x] 5.1 Add saveInvoiceTerms action to job-orders/actions.ts
+    - Validate percentage total equals 100%
+    - Check no invoices exist before allowing modification
+    - Save terms to job_orders.invoice_terms
+    - Update invoiceable_amount from final_revenue
+    - _Requirements: 1.4, 1.5, 1.6_
+  - [x] 5.2 Add generateSplitInvoice action to invoices/actions.ts
+    - Fetch JO with invoice_terms
+    - Calculate term amount and VAT
+    - Create invoice with term metadata
+    - Update term's invoiced status and invoice_id
+    - Update JO's total_invoiced
+    - _Requirements: 3.4, 3.5, 3.6, 4.2_
+  - [x] 5.3 Write property test for total invoiced tracking
+    - **Property 5: Total Invoiced Tracking**
+    - **Validates: Requirements 4.1, 4.2**
+  - [x] 5.4 Write property test for term immutability
+    - **Property 6: Term Immutability After Invoicing**
+    - **Validates: Requirements 1.6**
+
+- [x] 6. Checkpoint - Ensure all tests pass
+  - Ensure all tests pass, ask the user if questions arise.
+
+- [x] 7. Create UI components for invoice terms
+  - [x] 7.1 Create InvoiceTermForm component
+    - Form fields: term name, percentage, description, trigger dropdown
+    - Real-time amount calculation display
+    - Add/Edit mode support
+    - _Requirements: 5.1_
+  - [x] 7.2 Create InvoiceTermsTable component
+    - Display terms with columns: Term, Percentage, Amount, Trigger, Status, Action
+    - Show status badges (Pending, Ready, Locked, Invoiced)
+    - Create Invoice / View Invoice buttons based on status
+    - Total row showing invoiced vs invoiceable amounts
+    - _Requirements: 3.1, 3.2, 3.3, 4.1, 4.3_
+  - [x] 7.3 Create InvoiceTermsSection component
+    - Preset dropdown (Single, DP+Final, DP+Delivery+Final, Custom)
+    - Custom terms editor with add/remove functionality
+    - Percentage validation display
+    - Save Terms button
+    - Lock editing after first invoice generated
+    - _Requirements: 1.1, 1.2, 1.3, 2.1, 5.4_
+
+- [x] 8. Integrate invoice terms into JO detail page
+  - [x] 8.1 Update JODetailView to include InvoiceTermsSection
+    - Add InvoiceTermsSection after Financials card
+    - Pass JO data including invoice_terms and final_revenue
+    - Handle terms save with page refresh
+    - _Requirements: 1.1_
+  - [x] 8.2 Replace single invoice generation with term-based generation
+    - Remove existing "Generate Invoice" button for submitted_to_finance status
+    - Use InvoiceTermsTable for invoice generation per term
+    - Handle invoice creation with term metadata
+    - _Requirements: 3.4, 4.2_
+
+- [x] 9. Update invoice creation flow
+  - [x] 9.1 Modify createInvoice to support term metadata
+    - Accept optional invoice_term, term_percentage, term_description
+    - Store term metadata in invoice record
+    - _Requirements: 3.4, 3.5_
+  - [x] 9.2 Update invoice detail view to show term information
+    - Display term name and percentage if present
+    - Show "Part of split invoice" indicator
+    - _Requirements: 3.3_
+
+- [x] 10. Final Checkpoint - Ensure all tests pass
+  - Ensure all tests pass, ask the user if questions arise.

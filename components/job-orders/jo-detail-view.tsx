@@ -12,8 +12,9 @@ import { JOStatusBadge } from '@/components/ui/jo-status-badge'
 import { formatIDR, formatDate, formatDateTime, COST_CATEGORY_LABELS } from '@/lib/pjo-utils'
 import { markCompleted, submitToFinance, getJORevenueItems, getJOCostItems } from '@/app/(main)/job-orders/actions'
 import { useToast } from '@/hooks/use-toast'
-import { CheckCircle, Send, FileText, ArrowLeft, Loader2 } from 'lucide-react'
+import { CheckCircle, Send, ArrowLeft, Loader2 } from 'lucide-react'
 import { AttachmentsSection } from '@/components/attachments'
+import { InvoiceTermsSection } from './invoice-terms-section'
 
 interface JODetailViewProps {
   jobOrder: JobOrderWithRelations
@@ -116,12 +117,6 @@ export function JODetailView({ jobOrder }: JODetailViewProps) {
             <Button onClick={handleSubmitToFinance} disabled={isLoading}>
               <Send className="mr-2 h-4 w-4" />
               Submit to Finance
-            </Button>
-          )}
-          {jobOrder.status === 'submitted_to_finance' && (
-            <Button onClick={() => router.push(`/invoices/new?joId=${jobOrder.id}`)}>
-              <FileText className="mr-2 h-4 w-4" />
-              Generate Invoice
             </Button>
           )}
         </div>
@@ -247,6 +242,18 @@ export function JODetailView({ jobOrder }: JODetailViewProps) {
           </div>
         </CardContent>
       </Card>
+
+      {/* Invoice Terms - Show when JO is submitted to finance or later */}
+      {['submitted_to_finance', 'invoiced', 'closed'].includes(jobOrder.status) && (
+        <InvoiceTermsSection
+          joId={jobOrder.id}
+          joStatus={jobOrder.status}
+          revenue={jobOrder.final_revenue ?? jobOrder.amount ?? 0}
+          invoiceTerms={jobOrder.invoice_terms}
+          totalInvoiced={jobOrder.total_invoiced ?? 0}
+          pjoRevenueTotal={revenueItems.reduce((sum, item) => sum + (item.subtotal || 0), 0)}
+        />
+      )}
 
       {/* Revenue Breakdown */}
       <Card>

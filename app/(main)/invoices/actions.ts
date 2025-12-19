@@ -6,6 +6,7 @@ import {
   InvoiceWithRelations,
   InvoiceFormData,
   InvoiceStatus,
+  parseInvoiceTerms,
 } from '@/types'
 import {
   formatInvoiceNumber,
@@ -13,6 +14,7 @@ import {
   isValidStatusTransition,
   getDefaultDueDate,
 } from '@/lib/invoice-utils'
+import { calculateTermInvoiceTotals } from '@/lib/invoice-terms-utils'
 import { DEFAULT_SETTINGS } from '@/types/company-settings'
 
 /**
@@ -170,7 +172,7 @@ export async function createInvoice(data: InvoiceFormData): Promise<{
   // Generate invoice number
   const invoiceNumber = await generateInvoiceNumber()
 
-  // Create invoice
+  // Create invoice with optional term metadata
   const { data: invoice, error: invoiceError } = await supabase
     .from('invoices')
     .insert({
@@ -184,6 +186,10 @@ export async function createInvoice(data: InvoiceFormData): Promise<{
       total_amount: grandTotal,
       status: 'draft',
       notes: data.notes || null,
+      // Term metadata for split invoices
+      invoice_term: data.invoice_term || null,
+      term_percentage: data.term_percentage || null,
+      term_description: data.term_description || null,
     })
     .select('id, invoice_number')
     .single()
@@ -461,4 +467,151 @@ export async function updateInvoiceStatus(
   revalidatePath('/dashboard')
 
   return {}
+}
+
+
+/**
+ * Generate a split invoice for a specific term from a Job Order
+ */
+export async function generateSplitInvoice(
+  joId: string,
+  termIndex: number
+): Promise<{ data?: { id: string; invoice_number: string }; error?: string }> {
+  const supabase = await createClient()
+
+  // Fetch JO with invoice terms
+  const { data: jo, error: joError } = await supabase
+    .from('job_orders')
+    .select('*, customers(id, name)')
+    .eq('id', joId)
+    .single()
+
+  if (joError || !jo) {
+    return { error: 'Job Order not found' }
+  }
+
+  // Parse invoice terms
+  const terms = parseInvoiceTerms(jo.invoice_terms)
+  
+  if (terms.length === 0) {
+    return { error: 'No invoice terms configured for this Job Order' }
+  }
+
+  if (termIndex < 0 || termIndex >= terms.length) {
+    return { error: 'Invalid term index' }
+  }
+
+  const term = terms[termIndex]
+
+  // Check if term is already invoiced
+  if (term.invoiced) {
+    return { error: 'This term has already been invoiced' }
+  }
+
+  // Calculate amounts
+  const revenue = jo.final_revenue || jo.amount || 0
+  const { subtotal, vatAmount, totalAmount } = calculateTermInvoiceTotals(revenue, term.percentage)
+
+  // Generate invoice number
+  const invoiceNumber = await generateInvoiceNumber()
+
+  // Get payment terms from company settings
+  const { data: paymentTermsSetting } = await supabase
+    .from('company_settings')
+    .select('value')
+    .eq('key', 'default_payment_terms')
+    .single()
+
+  const paymentTerms = paymentTermsSetting?.value
+    ? parseInt(paymentTermsSetting.value, 10)
+    : DEFAULT_SETTINGS.default_payment_terms
+
+  const dueDate = getDefaultDueDate(paymentTerms)
+
+  // Create invoice with term metadata
+  const { data: invoice, error: invoiceError } = await supabase
+    .from('invoices')
+    .insert({
+      invoice_number: invoiceNumber,
+      jo_id: joId,
+      customer_id: jo.customer_id,
+      invoice_date: new Date().toISOString().split('T')[0],
+      due_date: dueDate.toISOString().split('T')[0],
+      subtotal,
+      tax_amount: vatAmount,
+      total_amount: totalAmount,
+      status: 'draft',
+      invoice_term: term.term,
+      term_percentage: term.percentage,
+      term_description: term.description,
+    })
+    .select('id, invoice_number')
+    .single()
+
+  if (invoiceError || !invoice) {
+    console.error('Error creating split invoice:', invoiceError)
+    return { error: invoiceError?.message || 'Failed to create invoice' }
+  }
+
+  // Create a single line item for the term
+  const { error: lineItemError } = await supabase
+    .from('invoice_line_items')
+    .insert({
+      invoice_id: invoice.id,
+      line_number: 1,
+      description: `${term.description} (${term.percentage}% of ${jo.description || 'Services'})`,
+      quantity: 1,
+      unit: 'LOT',
+      unit_price: subtotal,
+    })
+
+  if (lineItemError) {
+    console.error('Error creating line item:', lineItemError)
+    // Rollback invoice
+    await supabase.from('invoices').delete().eq('id', invoice.id)
+    return { error: 'Failed to create invoice line item' }
+  }
+
+  // Update term as invoiced
+  terms[termIndex] = {
+    ...term,
+    invoiced: true,
+    invoice_id: invoice.id,
+  }
+
+  // Calculate new total invoiced
+  const newTotalInvoiced = (jo.total_invoiced || 0) + totalAmount
+
+  // Update JO with new terms and total_invoiced
+  const { error: joUpdateError } = await supabase
+    .from('job_orders')
+    .update({
+      invoice_terms: JSON.parse(JSON.stringify(terms)),
+      total_invoiced: newTotalInvoiced,
+      updated_at: new Date().toISOString(),
+    })
+    .eq('id', joId)
+
+  if (joUpdateError) {
+    console.error('Error updating JO:', joUpdateError)
+    // Don't rollback - invoice is created
+  }
+
+  // Check if all terms are invoiced - if so, update JO status
+  const allTermsInvoiced = terms.every(t => t.invoiced)
+  if (allTermsInvoiced) {
+    await supabase
+      .from('job_orders')
+      .update({
+        status: 'invoiced',
+        updated_at: new Date().toISOString(),
+      })
+      .eq('id', joId)
+  }
+
+  revalidatePath('/invoices')
+  revalidatePath('/job-orders')
+  revalidatePath(`/job-orders/${joId}`)
+
+  return { data: { id: invoice.id, invoice_number: invoice.invoice_number } }
 }

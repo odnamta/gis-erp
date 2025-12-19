@@ -50,6 +50,7 @@ export type Database = {
         }
         Relationships: []
       }
+
       company_settings: {
         Row: {
           id: string
@@ -107,6 +108,7 @@ export type Database = {
         }
         Relationships: []
       }
+
       document_attachments: {
         Row: {
           created_at: string | null
@@ -154,6 +156,7 @@ export type Database = {
           },
         ]
       }
+
       invoice_line_items: {
         Row: {
           created_at: string | null
@@ -201,6 +204,7 @@ export type Database = {
           },
         ]
       }
+
       invoices: {
         Row: {
           amount_paid: number | null
@@ -211,6 +215,7 @@ export type Database = {
           id: string
           invoice_date: string | null
           invoice_number: string
+          invoice_term: string | null
           jo_id: string
           notes: string | null
           paid_at: string | null
@@ -218,6 +223,8 @@ export type Database = {
           status: string
           subtotal: number
           tax_amount: number
+          term_description: string | null
+          term_percentage: number | null
           total_amount: number
           updated_at: string | null
         }
@@ -230,6 +237,7 @@ export type Database = {
           id?: string
           invoice_date?: string | null
           invoice_number: string
+          invoice_term?: string | null
           jo_id: string
           notes?: string | null
           paid_at?: string | null
@@ -237,6 +245,8 @@ export type Database = {
           status?: string
           subtotal?: number
           tax_amount?: number
+          term_description?: string | null
+          term_percentage?: number | null
           total_amount?: number
           updated_at?: string | null
         }
@@ -249,6 +259,7 @@ export type Database = {
           id?: string
           invoice_date?: string | null
           invoice_number?: string
+          invoice_term?: string | null
           jo_id?: string
           notes?: string | null
           paid_at?: string | null
@@ -256,6 +267,8 @@ export type Database = {
           status?: string
           subtotal?: number
           tax_amount?: number
+          term_description?: string | null
+          term_percentage?: number | null
           total_amount?: number
           updated_at?: string | null
         }
@@ -276,6 +289,7 @@ export type Database = {
           },
         ]
       }
+
       job_orders: {
         Row: {
           amount: number
@@ -287,12 +301,15 @@ export type Database = {
           final_cost: number | null
           final_revenue: number | null
           id: string
+          invoice_terms: Json | null
+          invoiceable_amount: number | null
           jo_number: string
           pjo_id: string | null
           project_id: string | null
           status: string
           submitted_by: string | null
           submitted_to_finance_at: string | null
+          total_invoiced: number | null
           updated_at: string | null
         }
         Insert: {
@@ -305,12 +322,15 @@ export type Database = {
           final_cost?: number | null
           final_revenue?: number | null
           id?: string
+          invoice_terms?: Json | null
+          invoiceable_amount?: number | null
           jo_number: string
           pjo_id?: string | null
           project_id?: string | null
           status?: string
           submitted_by?: string | null
           submitted_to_finance_at?: string | null
+          total_invoiced?: number | null
           updated_at?: string | null
         }
         Update: {
@@ -323,12 +343,15 @@ export type Database = {
           final_cost?: number | null
           final_revenue?: number | null
           id?: string
+          invoice_terms?: Json | null
+          invoiceable_amount?: number | null
           jo_number?: string
           pjo_id?: string | null
           project_id?: string | null
           status?: string
           submitted_by?: string | null
           submitted_to_finance_at?: string | null
+          total_invoiced?: number | null
           updated_at?: string | null
         }
         Relationships: [
@@ -355,6 +378,7 @@ export type Database = {
           },
         ]
       }
+
       notification_preferences: {
         Row: {
           approval_enabled: boolean | null
@@ -399,6 +423,7 @@ export type Database = {
           },
         ]
       }
+
       notifications: {
         Row: {
           action_url: string | null
@@ -461,6 +486,7 @@ export type Database = {
           },
         ]
       }
+
       payments: {
         Row: {
           amount: number
@@ -521,6 +547,7 @@ export type Database = {
           },
         ]
       }
+
       pjo_cost_items: {
         Row: {
           actual_amount: number | null
@@ -586,6 +613,7 @@ export type Database = {
           },
         ]
       }
+
       pjo_revenue_items: {
         Row: {
           created_at: string | null
@@ -639,6 +667,7 @@ export type Database = {
           },
         ]
       }
+
       proforma_job_orders: {
         Row: {
           all_costs_confirmed: boolean | null
@@ -793,6 +822,7 @@ export type Database = {
           },
         ]
       }
+
       projects: {
         Row: {
           created_at: string | null
@@ -912,6 +942,7 @@ export type Database = {
     }
   }
 }
+
 
 type DatabaseWithoutInternals = Omit<Database, "__InternalSupabase">
 
@@ -1035,64 +1066,3 @@ export const Constants = {
     Enums: {},
   },
 } as const
-
-// Custom types for invoice with relations
-export interface InvoiceWithRelations {
-  id: string
-  invoice_number: string
-  jo_id: string
-  customer_id: string
-  invoice_date: string | null
-  due_date: string
-  subtotal: number
-  tax_amount: number
-  total_amount: number
-  amount_paid: number | null
-  status: string
-  notes: string | null
-  sent_at: string | null
-  paid_at: string | null
-  cancelled_at: string | null
-  created_at: string | null
-  updated_at: string | null
-  customers?: {
-    id: string
-    name: string
-    email: string
-    address: string | null
-  } | null
-  job_orders?: {
-    id: string
-    jo_number: string
-    pjo_id: string | null
-  } | null
-  invoice_line_items?: Array<{
-    id: string
-    invoice_id: string
-    line_number: number
-    description: string
-    quantity: number
-    unit: string | null
-    unit_price: number
-    subtotal: number | null
-    created_at: string | null
-    updated_at: string | null
-  }>
-}
-
-// Invoice form data for creating/editing invoices
-export interface InvoiceFormData {
-  jo_id: string
-  customer_id: string
-  invoice_date: string
-  due_date: string
-  notes?: string
-  line_items: InvoiceLineItemInput[]
-}
-
-export interface InvoiceLineItemInput {
-  description: string
-  quantity: number
-  unit: string
-  unit_price: number
-}
