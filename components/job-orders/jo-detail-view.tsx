@@ -17,6 +17,9 @@ import { AttachmentsSection } from '@/components/attachments'
 import { InvoiceTermsSection } from './invoice-terms-section'
 import { SuratJalanSection } from '@/components/surat-jalan/surat-jalan-section'
 import { BeritaAcaraSection } from '@/components/berita-acara/berita-acara-section'
+import { BKKSection } from '@/components/bkk/bkk-section'
+import { getBKKsByJobOrder } from '@/app/(main)/job-orders/bkk-actions'
+import type { BKKWithRelations } from '@/types/database'
 
 interface JODetailViewProps {
   jobOrder: JobOrderWithRelations
@@ -28,6 +31,7 @@ export function JODetailView({ jobOrder }: JODetailViewProps) {
   const [isLoading, setIsLoading] = useState(false)
   const [revenueItems, setRevenueItems] = useState<PJORevenueItem[]>([])
   const [costItems, setCostItems] = useState<PJOCostItem[]>([])
+  const [bkks, setBkks] = useState<BKKWithRelations[]>([])
   const [itemsLoading, setItemsLoading] = useState(true)
 
   const pjo = jobOrder.proforma_job_orders
@@ -44,18 +48,20 @@ export function JODetailView({ jobOrder }: JODetailViewProps) {
       }
       setItemsLoading(true)
       try {
-        const [revenue, cost] = await Promise.all([
+        const [revenue, cost, bkkData] = await Promise.all([
           getJORevenueItems(pjo.id),
           getJOCostItems(pjo.id),
+          getBKKsByJobOrder(jobOrder.id),
         ])
         setRevenueItems(revenue as PJORevenueItem[])
         setCostItems(cost as PJOCostItem[])
+        setBkks(bkkData)
       } finally {
         setItemsLoading(false)
       }
     }
     loadItems()
-  }, [pjo?.id])
+  }, [pjo?.id, jobOrder.id])
 
   async function handleMarkCompleted() {
     setIsLoading(true)
@@ -290,7 +296,7 @@ export function JODetailView({ jobOrder }: JODetailViewProps) {
                     <TableCell className="text-right">{item.quantity}</TableCell>
                     <TableCell>{item.unit}</TableCell>
                     <TableCell className="text-right">{formatIDR(item.unit_price)}</TableCell>
-                    <TableCell className="text-right font-medium">{formatIDR(item.subtotal)}</TableCell>
+                    <TableCell className="text-right font-medium">{formatIDR(item.subtotal ?? 0)}</TableCell>
                   </TableRow>
                 ))}
                 <TableRow className="bg-muted/50 font-semibold">
@@ -323,6 +329,7 @@ export function JODetailView({ jobOrder }: JODetailViewProps) {
                   <TableHead>Category</TableHead>
                   <TableHead>Description</TableHead>
                   <TableHead className="text-right">Estimated</TableHead>
+                  <TableHead className="text-right">BKK Disbursed</TableHead>
                   <TableHead className="text-right">Actual</TableHead>
                   <TableHead className="text-right">Variance</TableHead>
                 </TableRow>
@@ -330,11 +337,19 @@ export function JODetailView({ jobOrder }: JODetailViewProps) {
               <TableBody>
                 {costItems.map((item) => {
                   const variance = (item.actual_amount ?? 0) - item.estimated_amount
+                  // Calculate BKK disbursements for this cost item
+                  const itemBKKs = bkks.filter(b => b.pjo_cost_item_id === item.id)
+                  const disbursed = itemBKKs
+                    .filter(b => ['released', 'settled'].includes(b.status))
+                    .reduce((sum, b) => sum + (b.amount_requested || 0), 0)
                   return (
                     <TableRow key={item.id}>
                       <TableCell>{COST_CATEGORY_LABELS[item.category] || item.category}</TableCell>
                       <TableCell>{item.description}</TableCell>
                       <TableCell className="text-right">{formatIDR(item.estimated_amount)}</TableCell>
+                      <TableCell className="text-right text-blue-600">
+                        {disbursed > 0 ? formatIDR(disbursed) : '-'}
+                      </TableCell>
                       <TableCell className="text-right">{item.actual_amount != null ? formatIDR(item.actual_amount) : '-'}</TableCell>
                       <TableCell className={`text-right ${variance > 0 ? 'text-red-600' : variance < 0 ? 'text-green-600' : ''}`}>
                         {item.actual_amount != null ? formatIDR(variance) : '-'}
@@ -344,6 +359,9 @@ export function JODetailView({ jobOrder }: JODetailViewProps) {
                 })}
                 <TableRow className="bg-muted/50 font-semibold">
                   <TableCell colSpan={3}>Total Cost</TableCell>
+                  <TableCell className="text-right text-blue-600">
+                    {formatIDR(bkks.filter(b => ['released', 'settled'].includes(b.status)).reduce((sum, b) => sum + (b.amount_requested || 0), 0))}
+                  </TableCell>
                   <TableCell className="text-right">{formatIDR(jobOrder.final_cost ?? 0)}</TableCell>
                   <TableCell></TableCell>
                 </TableRow>
@@ -387,13 +405,13 @@ export function JODetailView({ jobOrder }: JODetailViewProps) {
       </Card>
 
       {/* Notes */}
-      {(jobOrder.notes || pjo?.notes) && (
+      {pjo?.notes && (
         <Card>
           <CardHeader>
             <CardTitle>Notes</CardTitle>
           </CardHeader>
           <CardContent>
-            <p className="whitespace-pre-wrap">{jobOrder.notes || pjo?.notes}</p>
+            <p className="whitespace-pre-wrap">{pjo.notes}</p>
           </CardContent>
         </Card>
       )}
@@ -405,6 +423,14 @@ export function JODetailView({ jobOrder }: JODetailViewProps) {
       <BeritaAcaraSection
         joId={jobOrder.id}
         requiresBeritaAcara={jobOrder.requires_berita_acara ?? false}
+      />
+
+      {/* BKK (Cash Disbursement) Section */}
+      <BKKSection
+        jobOrderId={jobOrder.id}
+        bkks={bkks}
+        userRole="ops"
+        canRequest={['active', 'in_progress'].includes(jobOrder.status)}
       />
 
       {/* Attachments */}

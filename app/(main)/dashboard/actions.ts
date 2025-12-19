@@ -304,6 +304,8 @@ import {
   type PaymentDashboardStats,
 } from '@/lib/finance-dashboard-utils'
 
+import type { BKKWithRelations } from '@/types/database'
+
 export interface FinanceDashboardData {
   kpis: FinanceKPIs
   arAging: ARAgingData
@@ -311,6 +313,7 @@ export interface FinanceDashboardData {
   overdueInvoices: OverdueInvoice[]
   recentPayments: RecentPayment[]
   paymentStats?: PaymentDashboardStats
+  pendingBKKs?: BKKWithRelations[]
 }
 
 export async function fetchFinanceDashboardData(): Promise<FinanceDashboardData> {
@@ -382,6 +385,29 @@ export async function fetchFinanceDashboardData(): Promise<FinanceDashboardData>
     payment_date: p.payment_date,
   }))
 
+  // Fetch pending BKKs for approval
+  const { data: pendingBKKsData } = await supabase
+    .from('bukti_kas_keluar')
+    .select(`
+      *,
+      job_order:job_orders (
+        id,
+        jo_number,
+        description
+      ),
+      requester:user_profiles!bukti_kas_keluar_requested_by_fkey (
+        id,
+        full_name
+      ),
+      cost_item:pjo_cost_items (
+        id,
+        category,
+        description
+      )
+    `)
+    .eq('status', 'pending')
+    .order('requested_at', { ascending: true })
+
   // Calculate all metrics
   const kpis = calculateFinanceKPIs(invoices, jobOrders, currentDate)
   const arAging = groupInvoicesByAging(invoices, currentDate)
@@ -397,6 +423,7 @@ export async function fetchFinanceDashboardData(): Promise<FinanceDashboardData>
     overdueInvoices,
     recentPayments,
     paymentStats,
+    pendingBKKs: (pendingBKKsData || []) as BKKWithRelations[],
   }
 }
 

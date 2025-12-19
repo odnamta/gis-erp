@@ -6,6 +6,7 @@ import { PJOPipeline } from './pjo-pipeline'
 import { OverdueInvoicesTable } from './overdue-invoices-table'
 import { RecentPaymentsTable } from './recent-payments-table'
 import { ExportReportDropdown } from './export-report-dropdown'
+import { PendingBKKTable } from './pending-bkk-table'
 import type { 
   FinanceKPIs, 
   ARAgingData, 
@@ -14,6 +15,7 @@ import type {
   RecentPayment,
   PaymentDashboardStats 
 } from '@/lib/finance-dashboard-utils'
+import type { BKKWithRelations } from '@/types/database'
 
 export interface FinanceDashboardData {
   kpis: FinanceKPIs
@@ -22,6 +24,7 @@ export interface FinanceDashboardData {
   overdueInvoices: OverdueInvoice[]
   recentPayments: RecentPayment[]
   paymentStats?: PaymentDashboardStats
+  pendingBKKs?: BKKWithRelations[]
 }
 
 interface FinanceDashboardProps {
@@ -64,6 +67,11 @@ export function FinanceDashboard({ data }: FinanceDashboardProps) {
         {/* Recent Payments */}
         <RecentPaymentsTable payments={data.recentPayments} />
       </div>
+
+      {/* Pending BKK Approvals */}
+      {data.pendingBKKs && data.pendingBKKs.length > 0 && (
+        <PendingBKKTable bkks={data.pendingBKKs} />
+      )}
 
       {/* Overdue Invoices - Full Width */}
       <OverdueInvoicesTable 

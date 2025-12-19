@@ -51,6 +51,137 @@ export type Database = {
         Relationships: []
       }
 
+      bukti_kas_keluar: {
+        Row: {
+          id: string
+          bkk_number: string
+          jo_id: string
+          pjo_cost_item_id: string | null
+          purpose: string
+          amount_requested: number
+          budget_category: string | null
+          budget_amount: number | null
+          status: string
+          requested_by: string | null
+          requested_at: string | null
+          approved_by: string | null
+          approved_at: string | null
+          rejection_reason: string | null
+          released_by: string | null
+          released_at: string | null
+          release_method: string | null
+          release_reference: string | null
+          amount_spent: number | null
+          amount_returned: number | null
+          settled_at: string | null
+          settled_by: string | null
+          receipt_urls: Json | null
+          notes: string | null
+          created_at: string | null
+          updated_at: string | null
+        }
+        Insert: {
+          id?: string
+          bkk_number: string
+          jo_id: string
+          pjo_cost_item_id?: string | null
+          purpose: string
+          amount_requested: number
+          budget_category?: string | null
+          budget_amount?: number | null
+          status?: string
+          requested_by?: string | null
+          requested_at?: string | null
+          approved_by?: string | null
+          approved_at?: string | null
+          rejection_reason?: string | null
+          released_by?: string | null
+          released_at?: string | null
+          release_method?: string | null
+          release_reference?: string | null
+          amount_spent?: number | null
+          amount_returned?: number | null
+          settled_at?: string | null
+          settled_by?: string | null
+          receipt_urls?: Json | null
+          notes?: string | null
+          created_at?: string | null
+          updated_at?: string | null
+        }
+        Update: {
+          id?: string
+          bkk_number?: string
+          jo_id?: string
+          pjo_cost_item_id?: string | null
+          purpose?: string
+          amount_requested?: number
+          budget_category?: string | null
+          budget_amount?: number | null
+          status?: string
+          requested_by?: string | null
+          requested_at?: string | null
+          approved_by?: string | null
+          approved_at?: string | null
+          rejection_reason?: string | null
+          released_by?: string | null
+          released_at?: string | null
+          release_method?: string | null
+          release_reference?: string | null
+          amount_spent?: number | null
+          amount_returned?: number | null
+          settled_at?: string | null
+          settled_by?: string | null
+          receipt_urls?: Json | null
+          notes?: string | null
+          created_at?: string | null
+          updated_at?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "bukti_kas_keluar_jo_id_fkey"
+            columns: ["jo_id"]
+            isOneToOne: false
+            referencedRelation: "job_orders"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "bukti_kas_keluar_pjo_cost_item_id_fkey"
+            columns: ["pjo_cost_item_id"]
+            isOneToOne: false
+            referencedRelation: "pjo_cost_items"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "bukti_kas_keluar_requested_by_fkey"
+            columns: ["requested_by"]
+            isOneToOne: false
+            referencedRelation: "user_profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "bukti_kas_keluar_approved_by_fkey"
+            columns: ["approved_by"]
+            isOneToOne: false
+            referencedRelation: "user_profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "bukti_kas_keluar_released_by_fkey"
+            columns: ["released_by"]
+            isOneToOne: false
+            referencedRelation: "user_profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "bukti_kas_keluar_settled_by_fkey"
+            columns: ["settled_by"]
+            isOneToOne: false
+            referencedRelation: "user_profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+
       berita_acara: {
         Row: {
           ba_number: string
@@ -1256,3 +1387,88 @@ export const Constants = {
     Enums: {},
   },
 } as const
+
+// ============================================
+// BKK (Bukti Kas Keluar) Custom Types
+// ============================================
+
+// BKK Status enum
+export type BKKStatus = 
+  | 'pending' 
+  | 'approved' 
+  | 'rejected' 
+  | 'released' 
+  | 'settled' 
+  | 'cancelled';
+
+// BKK Release Method
+export type BKKReleaseMethod = 'cash' | 'transfer';
+
+// Main BKK type (alias for database row)
+export type BKK = Tables<'bukti_kas_keluar'>;
+
+// Extended BKK with relations
+export interface BKKWithRelations extends BKK {
+  job_order?: Tables<'job_orders'>
+  cost_item?: Tables<'pjo_cost_items'>
+  requester?: Tables<'user_profiles'>
+  approver?: Tables<'user_profiles'>
+  releaser?: Tables<'user_profiles'>
+  settler?: Tables<'user_profiles'>
+}
+
+// Create BKK input
+export interface CreateBKKInput {
+  jo_id: string
+  pjo_cost_item_id?: string
+  purpose: string
+  amount_requested: number
+  budget_category?: string
+  budget_amount?: number
+  notes?: string
+}
+
+// Release BKK input
+export interface ReleaseBKKInput {
+  release_method: BKKReleaseMethod
+  release_reference?: string
+}
+
+// Settle BKK input
+export interface SettleBKKInput {
+  amount_spent: number
+  receipt_urls?: string[]
+  notes?: string
+}
+
+// Available budget calculation result
+export interface AvailableBudget {
+  budgetAmount: number
+  alreadyDisbursed: number
+  available: number
+  pendingRequests: number
+}
+
+// Settlement difference calculation
+export interface SettlementDifference {
+  releasedAmount: number
+  spentAmount: number
+  difference: number
+  type: 'return' | 'additional' | 'exact'
+}
+
+// BKK Summary totals
+export interface BKKSummaryTotals {
+  totalRequested: number
+  totalReleased: number
+  totalSettled: number
+  pendingReturn: number
+  count: {
+    pending: number
+    approved: number
+    released: number
+    settled: number
+    rejected: number
+    cancelled: number
+  }
+}
