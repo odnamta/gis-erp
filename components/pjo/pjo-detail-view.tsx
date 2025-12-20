@@ -35,13 +35,40 @@ import { MarketTypeBadge } from '@/components/ui/market-type-badge'
 import { MarketType, PricingApproach, TerrainType, ComplexityFactor } from '@/types/market-classification'
 import { Progress } from '@/components/ui/progress'
 import { AlertTriangle } from 'lucide-react'
+import { FileQuestion } from 'lucide-react'
+// Engineering components
+import { EngineeringStatusBanner } from '@/components/engineering/engineering-status-banner'
+import { EngineeringAssessmentsSection } from '@/components/engineering/engineering-assessments-section'
+import { AssignEngineeringDialog } from '@/components/engineering/assign-engineering-dialog'
+import { WaiveReviewDialog } from '@/components/engineering/waive-review-dialog'
+import { CompleteReviewDialog } from '@/components/engineering/complete-review-dialog'
+import { CompleteAssessmentDialog } from '@/components/engineering/complete-assessment-dialog'
+import { ApprovalBlockedDialog } from '@/components/engineering/approval-blocked-dialog'
+import {
+  getEngineeringAssessments,
+  initializeEngineeringReview,
+  startAssessment,
+  completeAssessment,
+  completeEngineeringReview,
+  waiveEngineeringReview,
+  cancelAssessment,
+} from '@/app/(main)/proforma-jo/engineering-actions'
+import { canWaiveEngineeringReview, canCompleteAssessment } from '@/lib/engineering-utils'
+import { EngineeringStatus, EngineeringAssessment, AssessmentType } from '@/types/engineering'
+
+interface AssessmentWithUser extends EngineeringAssessment {
+  assigned_user_name?: string | null
+  completed_by_name?: string | null
+}
 
 interface PJODetailViewProps {
   pjo: PJOWithRelations
   canApprove?: boolean
+  userRole?: string | null
+  userId?: string | null
 }
 
-export function PJODetailView({ pjo, canApprove = true }: PJODetailViewProps) {
+export function PJODetailView({ pjo, canApprove = true, userRole, userId }: PJODetailViewProps) {
   const router = useRouter()
   const { toast } = useToast()
   const [isLoading, setIsLoading] = useState(false)
@@ -50,8 +77,27 @@ export function PJODetailView({ pjo, canApprove = true }: PJODetailViewProps) {
   const [revenueItems, setRevenueItems] = useState<PJORevenueItem[]>([])
   const [costItems, setCostItems] = useState<PJOCostItem[]>([])
   const [itemsLoading, setItemsLoading] = useState(true)
+  
+  // Engineering state
+  const [assessments, setAssessments] = useState<AssessmentWithUser[]>([])
+  const [assessmentsLoading, setAssessmentsLoading] = useState(false)
+  const [assignDialogOpen, setAssignDialogOpen] = useState(false)
+  const [waiveDialogOpen, setWaiveDialogOpen] = useState(false)
+  const [completeReviewDialogOpen, setCompleteReviewDialogOpen] = useState(false)
+  const [completeAssessmentDialogOpen, setCompleteAssessmentDialogOpen] = useState(false)
+  const [selectedAssessmentId, setSelectedAssessmentId] = useState<string | null>(null)
+  const [selectedAssessmentType, setSelectedAssessmentType] = useState<AssessmentType | null>(null)
+  const [approvalBlockedDialogOpen, setApprovalBlockedDialogOpen] = useState(false)
 
-  const margin = calculateMargin(pjo.total_revenue, pjo.total_expenses)
+  const margin = calculateMargin(pjo.total_revenue ?? 0, pjo.total_expenses ?? 0)
+  
+  // Engineering permissions
+  const requiresEngineering = pjo.requires_engineering === true
+  const engineeringStatus = (pjo.engineering_status as EngineeringStatus) || 'pending'
+  const canWaive = canWaiveEngineeringReview(userRole)
+  const canAssign = canWaive // Same permission level
+  const isEngineeringBlocking = requiresEngineering && 
+    (engineeringStatus === 'pending' || engineeringStatus === 'in_progress')
 
   const loadItems = async () => {
     setItemsLoading(true)
@@ -67,8 +113,29 @@ export function PJODetailView({ pjo, canApprove = true }: PJODetailViewProps) {
     }
   }
 
+  const loadAssessments = async () => {
+    if (!requiresEngineering) return
+    setAssessmentsLoading(true)
+    try {
+      const result = await getEngineeringAssessments(pjo.id)
+      if (!result.error && result.data) {
+        setAssessments(result.data.map((a: EngineeringAssessment & { 
+          assigned_user?: { full_name?: string; email?: string } | null;
+          completed_user?: { full_name?: string; email?: string } | null;
+        }) => ({
+          ...a,
+          assigned_user_name: a.assigned_user?.full_name || a.assigned_user?.email || null,
+          completed_by_name: a.completed_user?.full_name || a.completed_user?.email || null,
+        })))
+      }
+    } finally {
+      setAssessmentsLoading(false)
+    }
+  }
+
   useEffect(() => {
     loadItems()
+    loadAssessments()
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [pjo.id])
 
@@ -114,17 +181,112 @@ export function PJODetailView({ pjo, canApprove = true }: PJODetailViewProps) {
   }
 
   async function handleApprove() {
+    // Check if engineering is blocking approval
+    if (isEngineeringBlocking) {
+      setApprovalBlockedDialogOpen(true)
+      return
+    }
+
     setIsLoading(true)
     try {
       const result = await approvePJO(pjo.id)
       if (result.error) {
-        toast({ title: 'Error', description: result.error, variant: 'destructive' })
+        // Check if blocked by engineering
+        if (result.blocked) {
+          setApprovalBlockedDialogOpen(true)
+        } else {
+          toast({ title: 'Error', description: result.error, variant: 'destructive' })
+        }
       } else {
         toast({ title: 'Success', description: 'PJO approved' })
         router.refresh()
       }
     } finally {
       setIsLoading(false)
+    }
+  }
+
+  // Engineering action handlers
+  async function handleAssignEngineering(userId: string) {
+    const result = await initializeEngineeringReview(pjo.id, userId)
+    if (result.error) {
+      return { error: result.error }
+    }
+    toast({ title: 'Success', description: 'Engineering review assigned' })
+    router.refresh()
+    loadAssessments()
+    return {}
+  }
+
+  async function handleWaiveReview(reason: string) {
+    const result = await waiveEngineeringReview(pjo.id, reason)
+    if (result.error) {
+      return { error: result.error }
+    }
+    toast({ title: 'Success', description: 'Engineering review waived' })
+    router.refresh()
+    return {}
+  }
+
+  async function handleStartAssessment(assessmentId: string) {
+    const result = await startAssessment(assessmentId)
+    if (result.error) {
+      toast({ title: 'Error', description: result.error, variant: 'destructive' })
+    } else {
+      toast({ title: 'Success', description: 'Assessment started' })
+      loadAssessments()
+    }
+  }
+
+  async function handleCompleteAssessment(data: {
+    findings: string
+    recommendations: string
+    risk_level: 'low' | 'medium' | 'high' | 'critical'
+    additional_cost_estimate?: number
+    cost_justification?: string
+  }) {
+    if (!selectedAssessmentId) return { error: 'No assessment selected' }
+    const result = await completeAssessment(selectedAssessmentId, data)
+    if (result.error) {
+      return { error: result.error }
+    }
+    toast({ title: 'Success', description: 'Assessment completed' })
+    loadAssessments()
+    router.refresh()
+    return {}
+  }
+
+  async function handleCancelAssessment(assessmentId: string) {
+    const result = await cancelAssessment(assessmentId)
+    if (result.error) {
+      toast({ title: 'Error', description: result.error, variant: 'destructive' })
+    } else {
+      toast({ title: 'Success', description: 'Assessment cancelled' })
+      loadAssessments()
+    }
+  }
+
+  async function handleCompleteReview(data: {
+    overall_risk_level: 'low' | 'medium' | 'high' | 'critical'
+    decision: 'approved' | 'approved_with_conditions' | 'not_recommended' | 'rejected'
+    engineering_notes: string
+    apply_additional_costs: boolean
+  }) {
+    const result = await completeEngineeringReview(pjo.id, data)
+    if (result.error) {
+      return { error: result.error }
+    }
+    toast({ title: 'Success', description: 'Engineering review completed' })
+    router.refresh()
+    return {}
+  }
+
+  function openCompleteAssessmentDialog(assessmentId: string) {
+    const assessment = assessments.find(a => a.id === assessmentId)
+    if (assessment) {
+      setSelectedAssessmentId(assessmentId)
+      setSelectedAssessmentType(assessment.assessment_type)
+      setCompleteAssessmentDialogOpen(true)
     }
   }
 
@@ -218,6 +380,28 @@ export function PJODetailView({ pjo, canApprove = true }: PJODetailViewProps) {
         </Card>
       )}
 
+      {/* Engineering Status Banner */}
+      {requiresEngineering && (
+        <EngineeringStatusBanner
+          status={engineeringStatus}
+          assignedTo={pjo.engineering_assigned_to}
+          assignedToName={null} // Would need to fetch user name
+          assignedAt={pjo.engineering_assigned_at}
+          completedAt={pjo.engineering_completed_at}
+          completedByName={null}
+          waivedReason={pjo.engineering_waived_reason}
+          complexityFactors={pjo.complexity_factors as unknown as ComplexityFactor[] | null}
+          complexityScore={pjo.complexity_score ?? undefined}
+          canAssign={canAssign && engineeringStatus === 'pending' && !pjo.engineering_assigned_to}
+          canComplete={canCompleteAssessment(userRole, userId, pjo.engineering_assigned_to) && 
+            (engineeringStatus === 'pending' || engineeringStatus === 'in_progress')}
+          canWaive={canWaive && (engineeringStatus === 'pending' || engineeringStatus === 'in_progress')}
+          onAssign={() => setAssignDialogOpen(true)}
+          onComplete={() => setCompleteReviewDialogOpen(true)}
+          onWaive={() => setWaiveDialogOpen(true)}
+        />
+      )}
+
       {/* Basic Info */}
       <Card>
         <CardHeader>
@@ -308,6 +492,25 @@ export function PJODetailView({ pjo, canApprove = true }: PJODetailViewProps) {
             </CardTitle>
           </CardHeader>
           <CardContent className="space-y-6">
+            {/* Inherited from Quotation indicator */}
+            {pjo.quotation_id && (
+              <div className="flex items-center gap-2 rounded-md bg-blue-50 p-3 text-blue-800 border border-blue-200">
+                <FileQuestion className="h-5 w-5" />
+                <div className="flex-1">
+                  <span className="text-sm font-medium">Inherited from Quotation</span>
+                  {pjo.quotation && (
+                    <Link 
+                      href={`/quotations/${pjo.quotation.id}`}
+                      className="ml-2 text-sm text-blue-600 hover:underline"
+                    >
+                      {pjo.quotation.quotation_number}
+                    </Link>
+                  )}
+                </div>
+                <span className="text-xs text-blue-600 bg-blue-100 px-2 py-1 rounded">Read-only</span>
+              </div>
+            )}
+
             {/* Complexity Score */}
             <div className="space-y-2">
               <div className="flex items-center justify-between text-sm">
@@ -423,6 +626,21 @@ export function PJODetailView({ pjo, canApprove = true }: PJODetailViewProps) {
             )}
           </CardContent>
         </Card>
+      )}
+
+      {/* Engineering Assessments Section */}
+      {requiresEngineering && (engineeringStatus === 'pending' || engineeringStatus === 'in_progress' || engineeringStatus === 'completed') && (
+        <EngineeringAssessmentsSection
+          assessments={assessments}
+          canAddAssessment={false} // Assessments are auto-created on assignment
+          canStartAssessment={canCompleteAssessment(userRole, userId, pjo.engineering_assigned_to)}
+          canCompleteAssessment={canCompleteAssessment(userRole, userId, pjo.engineering_assigned_to)}
+          canCancelAssessment={canWaive}
+          onStartAssessment={handleStartAssessment}
+          onCompleteAssessment={openCompleteAssessmentDialog}
+          onCancelAssessment={handleCancelAssessment}
+          isLoading={assessmentsLoading}
+        />
       )}
 
       {/* Revenue Items */}
@@ -548,6 +766,63 @@ export function PJODetailView({ pjo, canApprove = true }: PJODetailViewProps) {
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>
+
+      {/* Engineering Dialogs */}
+      <AssignEngineeringDialog
+        open={assignDialogOpen}
+        onOpenChange={setAssignDialogOpen}
+        pjoId={pjo.id}
+        pjoNumber={pjo.pjo_number}
+        onAssign={handleAssignEngineering}
+      />
+
+      <WaiveReviewDialog
+        open={waiveDialogOpen}
+        onOpenChange={setWaiveDialogOpen}
+        pjoId={pjo.id}
+        pjoNumber={pjo.pjo_number}
+        onWaive={handleWaiveReview}
+      />
+
+      <CompleteReviewDialog
+        open={completeReviewDialogOpen}
+        onOpenChange={setCompleteReviewDialogOpen}
+        pjoId={pjo.id}
+        assessments={assessments}
+        onComplete={handleCompleteReview}
+      />
+
+      {selectedAssessmentId && selectedAssessmentType && (
+        <CompleteAssessmentDialog
+          open={completeAssessmentDialogOpen}
+          onOpenChange={(open) => {
+            setCompleteAssessmentDialogOpen(open)
+            if (!open) {
+              setSelectedAssessmentId(null)
+              setSelectedAssessmentType(null)
+            }
+          }}
+          assessmentId={selectedAssessmentId}
+          assessmentType={selectedAssessmentType}
+          onComplete={handleCompleteAssessment}
+        />
+      )}
+
+      <ApprovalBlockedDialog
+        open={approvalBlockedDialogOpen}
+        onOpenChange={setApprovalBlockedDialogOpen}
+        engineeringStatus={engineeringStatus}
+        canAssign={canAssign && engineeringStatus === 'pending' && !pjo.engineering_assigned_to}
+        canWaive={canWaive}
+        onAssign={() => {
+          setApprovalBlockedDialogOpen(false)
+          setAssignDialogOpen(true)
+        }}
+        onWaive={() => {
+          setApprovalBlockedDialogOpen(false)
+          setWaiveDialogOpen(true)
+        }}
+      />
     </div>
   )
 }

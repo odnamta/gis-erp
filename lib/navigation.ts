@@ -10,6 +10,7 @@ import {
   Calculator,
   Bell,
   Building2,
+  FileQuestion,
   LucideIcon,
 } from 'lucide-react'
 import { UserRole, UserPermissions } from '@/types/permissions'
@@ -50,6 +51,12 @@ export const NAV_ITEMS: NavItem[] = [
     href: '/projects',
     icon: FolderKanban,
     roles: ['owner', 'admin', 'manager', 'ops', 'finance', 'sales', 'viewer'],
+  },
+  {
+    title: 'Quotations',
+    href: '/quotations',
+    icon: FileQuestion,
+    roles: ['owner', 'admin', 'manager', 'finance', 'sales'],
   },
   {
     title: 'Proforma JO',

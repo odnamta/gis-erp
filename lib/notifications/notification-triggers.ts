@@ -492,3 +492,282 @@ export async function notifyUninvoicedRevenue(data: UninvoicedRevenueData): Prom
     { userIds: users.map((u) => u.id) }
   )
 }
+
+
+// ============================================
+// Engineering Review Notifications
+// ============================================
+
+interface EngineeringAssignmentData {
+  pjo_id: string
+  pjo_number: string
+  assigned_to: string
+  assigned_by?: string
+  complexity_score?: number
+}
+
+interface EngineeringCompletionData {
+  pjo_id: string
+  pjo_number: string
+  decision: string
+  overall_risk_level: string
+  completed_by?: string
+  created_by?: string
+}
+
+/**
+ * Notify user when they are assigned an engineering review
+ * Recipients: Assigned user
+ */
+export async function notifyEngineeringAssigned(data: EngineeringAssignmentData): Promise<void> {
+  if (!data.assigned_to) return
+
+  await createNotification({
+    userId: data.assigned_to,
+    title: 'Engineering Review Assigned',
+    message: `You have been assigned to review PJO ${data.pjo_number}${data.complexity_score ? ` (Complexity: ${data.complexity_score})` : ''}`,
+    type: 'approval',
+    priority: 'high',
+    entityType: 'pjo',
+    entityId: data.pjo_id,
+    actionUrl: `/proforma-jo/${data.pjo_id}`,
+    metadata: {
+      pjo_id: data.pjo_id,
+      pjo_number: data.pjo_number,
+      complexity_score: data.complexity_score,
+      notification_category: 'engineering',
+    },
+  })
+}
+
+/**
+ * Notify PJO creator when engineering review is completed
+ * Recipients: PJO creator
+ */
+export async function notifyEngineeringCompleted(data: EngineeringCompletionData): Promise<void> {
+  if (!data.created_by) return
+
+  const decisionLabel = {
+    approved: 'Approved',
+    approved_with_conditions: 'Approved with Conditions',
+    not_recommended: 'Not Recommended',
+    rejected: 'Rejected',
+  }[data.decision] || data.decision
+
+  const riskLabel = {
+    low: 'Low',
+    medium: 'Medium',
+    high: 'High',
+    critical: 'Critical',
+  }[data.overall_risk_level] || data.overall_risk_level
+
+  await createNotification({
+    userId: data.created_by,
+    title: 'Engineering Review Completed',
+    message: `Engineering review for PJO ${data.pjo_number} is complete. Decision: ${decisionLabel}, Risk Level: ${riskLabel}`,
+    type: 'status_change',
+    priority: data.overall_risk_level === 'critical' || data.overall_risk_level === 'high' 
+      ? 'high' 
+      : 'normal',
+    entityType: 'pjo',
+    entityId: data.pjo_id,
+    actionUrl: `/proforma-jo/${data.pjo_id}`,
+    metadata: {
+      pjo_id: data.pjo_id,
+      pjo_number: data.pjo_number,
+      decision: data.decision,
+      overall_risk_level: data.overall_risk_level,
+      notification_category: 'engineering',
+    },
+  })
+}
+
+/**
+ * Notify managers when engineering review is waived
+ * Recipients: Manager roles
+ */
+export async function notifyEngineeringWaived(data: {
+  pjo_id: string
+  pjo_number: string
+  waived_by?: string
+  waived_reason: string
+}): Promise<void> {
+  const managers = await getUsersByRoles(['manager', 'owner', 'super_admin'])
+  if (managers.length === 0) return
+
+  await createBulkNotifications(
+    {
+      title: 'Engineering Review Waived',
+      message: `Engineering review for PJO ${data.pjo_number} has been waived. Reason: ${data.waived_reason.substring(0, 100)}${data.waived_reason.length > 100 ? '...' : ''}`,
+      type: 'system',
+      priority: 'high',
+      entityType: 'pjo',
+      entityId: data.pjo_id,
+      actionUrl: `/proforma-jo/${data.pjo_id}`,
+      metadata: {
+        pjo_id: data.pjo_id,
+        pjo_number: data.pjo_number,
+        waived_reason: data.waived_reason,
+        notification_category: 'engineering',
+      },
+    },
+    { userIds: managers.map(user => user.id) }
+  )
+}
+
+
+// ============================================
+// Quotation Notifications
+// ============================================
+
+interface QuotationData {
+  id: string
+  quotation_number: string
+  customer_name?: string
+  total_revenue?: number
+  created_by?: string
+}
+
+interface QuotationEngineeringAssignmentData {
+  quotation_id: string
+  quotation_number: string
+  assigned_to: string
+  complexity_score?: number
+}
+
+interface QuotationEngineeringCompletionData {
+  quotation_id: string
+  quotation_number: string
+  decision: string
+  overall_risk_level: string
+  created_by?: string
+}
+
+/**
+ * Notify user when they are assigned an engineering review for a quotation
+ * Recipients: Assigned user
+ */
+export async function notifyQuotationEngineeringAssigned(data: QuotationEngineeringAssignmentData): Promise<void> {
+  if (!data.assigned_to) return
+
+  await createNotification({
+    userId: data.assigned_to,
+    title: 'Quotation Engineering Review Assigned',
+    message: `You have been assigned to review Quotation ${data.quotation_number}${data.complexity_score ? ` (Complexity: ${data.complexity_score})` : ''}`,
+    type: 'approval',
+    priority: 'high',
+    entityType: 'quotation',
+    entityId: data.quotation_id,
+    actionUrl: `/quotations/${data.quotation_id}`,
+    metadata: {
+      quotation_id: data.quotation_id,
+      quotation_number: data.quotation_number,
+      complexity_score: data.complexity_score,
+      notification_category: 'engineering',
+    },
+  })
+}
+
+/**
+ * Notify quotation creator when engineering review is completed
+ * Recipients: Quotation creator
+ */
+export async function notifyQuotationEngineeringCompleted(data: QuotationEngineeringCompletionData): Promise<void> {
+  if (!data.created_by) return
+
+  const decisionLabel = {
+    approved: 'Approved',
+    approved_with_conditions: 'Approved with Conditions',
+    not_recommended: 'Not Recommended',
+    rejected: 'Rejected',
+  }[data.decision] || data.decision
+
+  const riskLabel = {
+    low: 'Low',
+    medium: 'Medium',
+    high: 'High',
+    critical: 'Critical',
+  }[data.overall_risk_level] || data.overall_risk_level
+
+  await createNotification({
+    userId: data.created_by,
+    title: 'Quotation Engineering Review Completed',
+    message: `Engineering review for Quotation ${data.quotation_number} is complete. Decision: ${decisionLabel}, Risk Level: ${riskLabel}`,
+    type: 'status_change',
+    priority: data.overall_risk_level === 'critical' || data.overall_risk_level === 'high' 
+      ? 'high' 
+      : 'normal',
+    entityType: 'quotation',
+    entityId: data.quotation_id,
+    actionUrl: `/quotations/${data.quotation_id}`,
+    metadata: {
+      quotation_id: data.quotation_id,
+      quotation_number: data.quotation_number,
+      decision: data.decision,
+      overall_risk_level: data.overall_risk_level,
+      notification_category: 'engineering',
+    },
+  })
+}
+
+/**
+ * Notify admin and finance when a quotation is won
+ * Recipients: Admin and Finance roles
+ */
+export async function notifyQuotationWon(quotation: QuotationData): Promise<void> {
+  const users = await getUsersByRoles(['admin', 'finance', 'manager'])
+  if (users.length === 0) return
+
+  const amount = quotation.total_revenue
+    ? new Intl.NumberFormat('id-ID', { style: 'currency', currency: 'IDR' }).format(
+        quotation.total_revenue
+      )
+    : 'N/A'
+
+  await createBulkNotifications(
+    {
+      title: 'Quotation Won',
+      message: `${quotation.quotation_number} from ${quotation.customer_name || 'Unknown'} (${amount}) has been won!`,
+      type: 'status_change',
+      priority: 'high',
+      entityType: 'quotation',
+      entityId: quotation.id,
+      actionUrl: `/quotations/${quotation.id}`,
+      metadata: {
+        quotation_number: quotation.quotation_number,
+        customer_name: quotation.customer_name,
+        total_revenue: quotation.total_revenue,
+      },
+    },
+    { userIds: users.map((u) => u.id) }
+  )
+}
+
+/**
+ * Notify quotation creator when deadline is approaching
+ * Recipients: Quotation creator
+ */
+export async function notifyQuotationDeadlineApproaching(quotation: QuotationData & { rfq_deadline: string }): Promise<void> {
+  if (!quotation.created_by) return
+
+  const deadline = new Date(quotation.rfq_deadline)
+  const now = new Date()
+  const daysUntil = Math.ceil((deadline.getTime() - now.getTime()) / (1000 * 60 * 60 * 24))
+
+  await createNotification({
+    userId: quotation.created_by,
+    title: 'Quotation Deadline Approaching',
+    message: `Quotation ${quotation.quotation_number} deadline is in ${daysUntil} day${daysUntil !== 1 ? 's' : ''}`,
+    type: 'deadline',
+    priority: daysUntil <= 1 ? 'urgent' : 'high',
+    entityType: 'quotation',
+    entityId: quotation.id,
+    actionUrl: `/quotations/${quotation.id}`,
+    metadata: {
+      quotation_number: quotation.quotation_number,
+      customer_name: quotation.customer_name,
+      rfq_deadline: quotation.rfq_deadline,
+      days_until_deadline: daysUntil,
+    },
+  })
+}

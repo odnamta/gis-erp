@@ -4,6 +4,7 @@ import { createClient } from '@/lib/supabase/server'
 import { revalidatePath } from 'next/cache'
 import { z } from 'zod'
 import { toRomanMonth, calculateProfit } from '@/lib/pjo-utils'
+import { checkEngineeringRequired, canApprovePJO } from '@/lib/engineering-utils'
 
 const revenueItemSchema = z.object({
   id: z.string().optional(),
@@ -122,6 +123,9 @@ export async function createPJO(data: PJOFormData): Promise<{ error?: string; id
   const pjoNumber = await generatePJONumber()
   const profit = calculateProfit(data.total_revenue, data.total_expenses)
 
+  // Check if engineering review is required based on complexity score
+  const requiresEngineering = checkEngineeringRequired(data.complexity_score)
+
   const { data: newPJO, error } = await supabase
     .from('proforma_job_orders')
     .insert({
@@ -168,6 +172,9 @@ export async function createPJO(data: PJOFormData): Promise<{ error?: string; id
       complexity_factors: data.complexity_factors ?? null,
       pricing_approach: data.pricing_approach ?? null,
       pricing_notes: data.pricing_notes ?? null,
+      // Engineering flag fields
+      requires_engineering: requiresEngineering,
+      engineering_status: requiresEngineering ? 'pending' : null,
     })
     .select('id')
     .single()
@@ -257,6 +264,31 @@ export async function updatePJO(
 
   const profit = calculateProfit(data.total_revenue, data.total_expenses)
 
+  // Check if engineering review is required based on complexity score
+  const requiresEngineering = checkEngineeringRequired(data.complexity_score)
+
+  // Get current engineering status to preserve it if already set
+  const { data: currentPJO } = await supabase
+    .from('proforma_job_orders')
+    .select('requires_engineering, engineering_status')
+    .eq('id', id)
+    .single()
+
+  // Only update engineering fields if the requirement changes
+  // Don't reset status if engineering review is already in progress or completed
+  const engineeringUpdate: Record<string, unknown> = {}
+  if (requiresEngineering !== currentPJO?.requires_engineering) {
+    engineeringUpdate.requires_engineering = requiresEngineering
+    // Only set to pending if newly required and not already set
+    if (requiresEngineering && !currentPJO?.engineering_status) {
+      engineeringUpdate.engineering_status = 'pending'
+    }
+    // If no longer required and was pending, clear the status
+    if (!requiresEngineering && currentPJO?.engineering_status === 'pending') {
+      engineeringUpdate.engineering_status = null
+    }
+  }
+
   const { error } = await supabase
     .from('proforma_job_orders')
     .update({
@@ -297,6 +329,7 @@ export async function updatePJO(
       complexity_factors: data.complexity_factors ?? null,
       pricing_approach: data.pricing_approach ?? null,
       pricing_notes: data.pricing_notes ?? null,
+      ...engineeringUpdate,
       updated_at: new Date().toISOString(),
     })
     .eq('id', id)
@@ -495,7 +528,7 @@ export async function submitForApproval(id: string): Promise<{ error?: string }>
   return {}
 }
 
-export async function approvePJO(id: string): Promise<{ error?: string }> {
+export async function approvePJO(id: string): Promise<{ error?: string; blocked?: boolean; blockReason?: string }> {
   const supabase = await createClient()
 
   const { data: { user } } = await supabase.auth.getUser()
@@ -505,7 +538,7 @@ export async function approvePJO(id: string): Promise<{ error?: string }> {
 
   const { data: existingPJO, error: fetchError } = await supabase
     .from('proforma_job_orders')
-    .select('status, pjo_number, created_by')
+    .select('status, pjo_number, created_by, requires_engineering, engineering_status')
     .eq('id', id)
     .single()
 
@@ -515,6 +548,20 @@ export async function approvePJO(id: string): Promise<{ error?: string }> {
 
   if (existingPJO.status !== 'pending_approval') {
     return { error: 'Only pending approval PJOs can be approved' }
+  }
+
+  // Check engineering status before allowing approval
+  const approvalCheck = canApprovePJO({
+    requires_engineering: existingPJO.requires_engineering,
+    engineering_status: existingPJO.engineering_status,
+  })
+
+  if (!approvalCheck.canApprove) {
+    return {
+      error: approvalCheck.reason || 'Engineering review must be completed before approval',
+      blocked: true,
+      blockReason: approvalCheck.reason,
+    }
   }
 
   const { error } = await supabase

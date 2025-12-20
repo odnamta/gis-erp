@@ -79,6 +79,13 @@ export interface PJOWithRelations extends ProformaJobOrder {
       name: string
     } | null
   } | null
+  // Quotation reference (for PJOs created from quotations)
+  quotation_id?: string | null
+  quotation?: {
+    id: string
+    quotation_number: string
+    title: string
+  } | null
 }
 
 // Extended types with relations

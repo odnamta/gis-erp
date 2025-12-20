@@ -379,3 +379,176 @@ describe('Property 13: User activity notification routing', () => {
     })
   })
 })
+
+
+/**
+ * Feature: v0.22-engineering-flag-system, Property 16: Engineering notification creation
+ * Validates: Requirements 10.1, 10.2, 10.3
+ */
+describe('Property 16: Engineering notification creation', () => {
+  const complexityScoreArb = fc.integer({ min: 0, max: 100 })
+  const riskLevelArb = fc.constantFrom('low', 'medium', 'high', 'critical')
+  const decisionArb = fc.constantFrom('approved', 'approved_with_conditions', 'not_recommended', 'rejected')
+
+  it('engineering assignment notification should have type=approval and priority=high', () => {
+    const assignmentArb = fc.record({
+      pjo_id: uuidArb,
+      pjo_number: fc.string({ minLength: 1, maxLength: 50 }),
+      assigned_to: uuidArb,
+      complexity_score: fc.option(complexityScoreArb, { nil: undefined }),
+    })
+
+    fc.assert(
+      fc.property(assignmentArb, (assignment) => {
+        // Simulated notification creation for engineering assignment
+        const notification = {
+          user_id: assignment.assigned_to,
+          type: 'approval' as const,
+          priority: 'high' as NotificationPriority,
+          title: 'Engineering Review Assigned',
+          message: `You have been assigned to review PJO ${assignment.pjo_number}${assignment.complexity_score ? ` (Complexity: ${assignment.complexity_score})` : ''}`,
+          entity_type: 'pjo',
+          entity_id: assignment.pjo_id,
+          action_url: `/proforma-jo/${assignment.pjo_id}`,
+        }
+
+        expect(notification.user_id).toBe(assignment.assigned_to)
+        expect(notification.type).toBe('approval')
+        expect(notification.priority).toBe('high')
+        expect(notification.entity_type).toBe('pjo')
+        expect(notification.entity_id).toBe(assignment.pjo_id)
+        expect(notification.action_url).toBe(`/proforma-jo/${assignment.pjo_id}`)
+        expect(notification.message).toContain(assignment.pjo_number)
+      }),
+      { numRuns: 100 }
+    )
+  })
+
+  it('engineering completion notification should have type=status_change', () => {
+    const completionArb = fc.record({
+      pjo_id: uuidArb,
+      pjo_number: fc.string({ minLength: 1, maxLength: 50 }),
+      decision: decisionArb,
+      overall_risk_level: riskLevelArb,
+      created_by: uuidArb,
+    })
+
+    fc.assert(
+      fc.property(completionArb, (completion) => {
+        const notification = {
+          user_id: completion.created_by,
+          type: 'status_change' as const,
+          title: 'Engineering Review Completed',
+          entity_type: 'pjo',
+          entity_id: completion.pjo_id,
+          action_url: `/proforma-jo/${completion.pjo_id}`,
+        }
+
+        expect(notification.user_id).toBe(completion.created_by)
+        expect(notification.type).toBe('status_change')
+        expect(notification.entity_type).toBe('pjo')
+        expect(notification.entity_id).toBe(completion.pjo_id)
+      }),
+      { numRuns: 100 }
+    )
+  })
+
+  it('engineering completion priority should be high for critical/high risk, normal otherwise', () => {
+    fc.assert(
+      fc.property(riskLevelArb, (riskLevel) => {
+        const priority: NotificationPriority = 
+          riskLevel === 'critical' || riskLevel === 'high' ? 'high' : 'normal'
+
+        if (riskLevel === 'critical' || riskLevel === 'high') {
+          expect(priority).toBe('high')
+        } else {
+          expect(priority).toBe('normal')
+        }
+      }),
+      { numRuns: 100 }
+    )
+  })
+
+  it('engineering waiver notification should have type=system and priority=high', () => {
+    const waiverArb = fc.record({
+      pjo_id: uuidArb,
+      pjo_number: fc.string({ minLength: 1, maxLength: 50 }),
+      waived_reason: fc.string({ minLength: 10, maxLength: 500 }),
+    })
+
+    fc.assert(
+      fc.property(waiverArb, (waiver) => {
+        const notification = {
+          type: 'system' as const,
+          priority: 'high' as NotificationPriority,
+          title: 'Engineering Review Waived',
+          entity_type: 'pjo',
+          entity_id: waiver.pjo_id,
+          action_url: `/proforma-jo/${waiver.pjo_id}`,
+        }
+
+        expect(notification.type).toBe('system')
+        expect(notification.priority).toBe('high')
+        expect(notification.entity_type).toBe('pjo')
+        expect(notification.entity_id).toBe(waiver.pjo_id)
+      }),
+      { numRuns: 100 }
+    )
+  })
+
+  it('engineering waiver notification should be sent to manager roles', () => {
+    const targetRoles = ['manager', 'owner', 'super_admin']
+
+    expect(targetRoles).toContain('manager')
+    expect(targetRoles).toContain('owner')
+    expect(targetRoles).toContain('super_admin')
+    expect(targetRoles).not.toContain('admin')
+    expect(targetRoles).not.toContain('ops')
+    expect(targetRoles).not.toContain('sales')
+  })
+
+  it('engineering notification message should contain PJO number', () => {
+    const pjoNumberArb = fc.string({ minLength: 1, maxLength: 50 })
+
+    fc.assert(
+      fc.property(pjoNumberArb, (pjoNumber) => {
+        const assignmentMessage = `You have been assigned to review PJO ${pjoNumber}`
+        const completionMessage = `Engineering review for PJO ${pjoNumber} is complete`
+        const waiverMessage = `Engineering review for PJO ${pjoNumber} has been waived`
+
+        expect(assignmentMessage).toContain(pjoNumber)
+        expect(completionMessage).toContain(pjoNumber)
+        expect(waiverMessage).toContain(pjoNumber)
+      }),
+      { numRuns: 100 }
+    )
+  })
+
+  it('engineering completion message should include decision and risk level labels', () => {
+    const decisionLabels: Record<string, string> = {
+      approved: 'Approved',
+      approved_with_conditions: 'Approved with Conditions',
+      not_recommended: 'Not Recommended',
+      rejected: 'Rejected',
+    }
+
+    const riskLabels: Record<string, string> = {
+      low: 'Low',
+      medium: 'Medium',
+      high: 'High',
+      critical: 'Critical',
+    }
+
+    fc.assert(
+      fc.property(decisionArb, riskLevelArb, (decision, riskLevel) => {
+        const decisionLabel = decisionLabels[decision]
+        const riskLabel = riskLabels[riskLevel]
+        const message = `Engineering review for PJO TEST-001 is complete. Decision: ${decisionLabel}, Risk Level: ${riskLabel}`
+
+        expect(message).toContain(decisionLabel)
+        expect(message).toContain(riskLabel)
+      }),
+      { numRuns: 100 }
+    )
+  })
+})

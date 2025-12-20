@@ -13,14 +13,14 @@ inclusion: always
 
 ### Core Business Workflow
 ```
-Marketing → Administration (PJO) → Operations → Administration (JO/Invoice)
+Marketing (Quotation) → Administration (PJO) → Operations → Administration (JO/Invoice)
 ```
 
 | Stage | Activities |
 |-------|-----------|
-| **Marketing** | RFQ Received → Send Offer → Negotiation → Award/Not Awarded |
-| **Engineering** | Create JMP (Journey Management Plan), Equipment Lists, Technical Docs |
-| **Admin (PJO)** | Receive Award → Data Cleaning → Create PJO → Set Cost Targets |
+| **Marketing** | RFQ Received → Create Quotation → Engineering Review (if complex) → Submit to Client → Won/Lost |
+| **Engineering** | Assess complex quotations, Create JMP (Journey Management Plan), Equipment Lists |
+| **Admin (PJO)** | Convert Won Quotation to PJO → Set Cost Targets → Approval Workflow |
 | **Operations** | Receive Budget → Adjust Plan → Coordinate Vendors → Execute → Submit Expenses |
 | **Admin (JO)** | Collect Expenses → Create JO → Generate Invoice → Track Payment |
 
@@ -70,7 +70,11 @@ npx shadcn@latest add <component-name>
 |-------|---------|------------|
 | `customers` | Client companies | id, name, email, phone, address |
 | `projects` | Projects/opportunities | id, customer_id, name, status |
-| `proforma_job_orders` | PJOs with approval workflow | id, pjo_number, status, converted_to_jo |
+| `quotations` | Pre-award quotations with classification | id, quotation_number, status, market_type, complexity_score |
+| `quotation_revenue_items` | Itemized revenue per quotation | id, quotation_id, category, unit_price, subtotal |
+| `quotation_cost_items` | Estimated costs per quotation | id, quotation_id, category, estimated_amount |
+| `pursuit_costs` | Pre-award costs (travel, survey, etc.) | id, quotation_id, category, amount |
+| `proforma_job_orders` | PJOs with approval workflow | id, pjo_number, status, quotation_id |
 | `pjo_revenue_items` | Itemized revenue per PJO | id, pjo_id, description, quantity, unit, unit_price, subtotal |
 | `pjo_cost_items` | Itemized costs with budget tracking | id, pjo_id, category, estimated_amount, actual_amount, status |
 | `job_orders` | Active JOs linked to PJOs | id, jo_number, pjo_id, final_revenue, final_cost, status |
@@ -79,6 +83,11 @@ npx shadcn@latest add <component-name>
 ### Key Relationships
 ```
 customers → projects (1:many)
+projects → quotations (1:many)
+quotations → quotation_revenue_items (1:many)
+quotations → quotation_cost_items (1:many)
+quotations → pursuit_costs (1:many)
+quotations → proforma_job_orders (1:many, via conversion)
 projects → proforma_job_orders (1:many)
 proforma_job_orders → pjo_revenue_items (1:many)
 proforma_job_orders → pjo_cost_items (1:many)
@@ -95,12 +104,15 @@ job_orders → invoices (1:many)
 
 | Role | Department | Can Do | Dashboard Shows |
 |------|-----------|--------|-----------------|
-| `sales` | Marketing | Create/Edit RFQs, Manage Customers | My Opportunities, Win Rate |
-| `engineer` | Engineering | Create JMP, Equipment Lists | Projects Needing Docs |
-| `admin` | Administration | Create PJO/JO, Invoices | PJOs Pending, Unpaid Invoices |
+| `sales` | Marketing | Create/Edit Quotations, Manage Customers | My Quotations, Win Rate |
+| `engineer` | Engineering | Assess Complex Quotations, Create JMP | Quotations Needing Review |
+| `admin` | Administration | Convert Quotations to PJO, Create JO/Invoices | PJOs Pending, Unpaid Invoices |
 | `ops` | Operations | View Budget, Submit Expenses | My Jobs, Budget vs Actual |
 | `manager` | All | Approve PJOs, View All, Reports | Full Dashboard, P&L |
+| `finance` | Finance | View Financials, Profit Margins | Revenue, Costs, Margins |
 | `super_admin` | System | Manage Users, System Settings | System Health, User Activity |
+
+**Note**: `ops` role does NOT have access to Quotations module (they only see JOs after award).
 
 ---
 
@@ -184,6 +196,7 @@ const { data, error } = await supabase.from('customers').select('*')
 
 ### Auto-generated Numbers
 ```
+QUO: QUO-YYYY-NNNN (e.g., QUO-2025-0001)
 PJO: NNNN/CARGO/MM/YYYY (e.g., 0001/CARGO/XII/2025)
 JO:  JO-NNNN/CARGO/MM/YYYY (e.g., JO-0001/CARGO/XII/2025)
 INV: INV-2025-0001
@@ -191,12 +204,19 @@ INV: INV-2025-0001
 
 ### Status Workflows
 ```
-PJO:     draft → pending_approval → approved → rejected
-         (approved PJO can be converted to JO when all costs confirmed)
-JO:      active → completed → submitted_to_finance → invoiced → closed
-Invoice: draft → sent → paid → overdue → cancelled
-Project: active → completed → on_hold
+Quotation: draft → engineering_review → ready → submitted → won/lost/cancelled
+           (complexity_score >= 20 triggers engineering_review)
+PJO:       draft → pending_approval → approved → rejected
+           (approved PJO can be converted to JO when all costs confirmed)
+JO:        active → completed → submitted_to_finance → invoiced → closed
+Invoice:   draft → sent → paid → overdue → cancelled
+Project:   active → completed → on_hold
 ```
+
+### Market Classification
+- **Simple** (complexity_score < 20): Standard cargo, no special requirements
+- **Complex** (complexity_score >= 20): Requires engineering assessment before submission
+- Factors: cargo weight/dimensions, route terrain, special permits, hazardous materials
 
 ### Cost Item Status
 ```

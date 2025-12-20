@@ -11,7 +11,7 @@ import { Label } from '@/components/ui/label'
 import { Textarea } from '@/components/ui/textarea'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
-import { Loader2 } from 'lucide-react'
+import { Loader2, FileQuestion } from 'lucide-react'
 import { ProformaJobOrder, PJORevenueItem, PJOCostItem } from '@/types'
 import { ProjectWithCustomer } from '@/components/projects/project-table'
 import { createPJO, updatePJO } from '@/app/(main)/proforma-jo/actions'
@@ -104,6 +104,9 @@ interface PJOFormProps {
   existingCostItems?: PJOCostItem[]
   preselectedProjectId?: string
   mode: 'create' | 'edit'
+  // If PJO was created from a quotation, classification is inherited and read-only
+  isFromQuotation?: boolean
+  quotationNumber?: string
 }
 
 function toCostItemRow(item: PJOCostItem): CostItemRow {
@@ -127,7 +130,7 @@ function toRevenueItemRow(item: PJORevenueItem): RevenueItemRow {
   }
 }
 
-export function PJOForm({ projects, pjo, existingRevenueItems = [], existingCostItems = [], preselectedProjectId, mode }: PJOFormProps) {
+export function PJOForm({ projects, pjo, existingRevenueItems = [], existingCostItems = [], preselectedProjectId, mode, isFromQuotation = false, quotationNumber }: PJOFormProps) {
   const router = useRouter()
   const { toast } = useToast()
   const [isLoading, setIsLoading] = useState(false)
@@ -408,23 +411,38 @@ export function PJOForm({ projects, pjo, existingRevenueItems = [], existingCost
       </Card>
 
       {/* Market Classification Section */}
+      {isFromQuotation && (
+        <Card className="border-blue-200 bg-blue-50">
+          <CardContent className="pt-6">
+            <div className="flex items-center gap-2 text-blue-800">
+              <FileQuestion className="h-5 w-5" />
+              <span className="font-medium">Classification inherited from Quotation {quotationNumber}</span>
+              <span className="text-xs text-blue-600 bg-blue-100 px-2 py-1 rounded ml-auto">Read-only</span>
+            </div>
+            <p className="text-sm text-blue-600 mt-2">
+              Cargo specifications, route characteristics, and market classification were determined during the quotation phase and cannot be modified.
+            </p>
+          </CardContent>
+        </Card>
+      )}
+
       <CargoSpecificationsSection
         values={cargoSpecs}
         onChange={setCargoSpecs}
-        disabled={isLoading}
+        disabled={isLoading || isFromQuotation}
       />
 
       <RouteCharacteristicsSection
         values={routeChars}
         onChange={setRouteChars}
-        disabled={isLoading}
+        disabled={isLoading || isFromQuotation}
       />
 
       <MarketClassificationDisplay
         classification={classification}
         isCalculating={isCalculating}
         onRecalculate={recalculate}
-        disabled={isLoading}
+        disabled={isLoading || isFromQuotation}
       />
 
       <PricingApproachSection
@@ -433,7 +451,7 @@ export function PJOForm({ projects, pjo, existingRevenueItems = [], existingCost
         marketType={classification?.market_type ?? null}
         onPricingApproachChange={setPricingApproach}
         onPricingNotesChange={setPricingNotes}
-        disabled={isLoading}
+        disabled={isLoading || isFromQuotation}
       />
 
       <Card>

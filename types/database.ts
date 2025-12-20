@@ -50,6 +50,7 @@ export type Database = {
         }
         Relationships: []
       }
+
       berita_acara: {
         Row: {
           ba_number: string
@@ -131,6 +132,7 @@ export type Database = {
           },
         ]
       }
+
       bukti_kas_keluar: {
         Row: {
           amount_requested: number
@@ -271,6 +273,7 @@ export type Database = {
           },
         ]
       }
+
       company_settings: {
         Row: {
           id: string
@@ -364,6 +367,7 @@ export type Database = {
         }
         Relationships: []
       }
+
       document_attachments: {
         Row: {
           created_at: string | null
@@ -411,6 +415,99 @@ export type Database = {
           },
         ]
       }
+      engineering_assessments: {
+        Row: {
+          additional_cost_estimate: number | null
+          assessment_type: string
+          assigned_at: string | null
+          assigned_to: string | null
+          attachment_urls: Json | null
+          completed_at: string | null
+          completed_by: string | null
+          cost_justification: string | null
+          created_at: string | null
+          findings: string | null
+          id: string
+          notes: string | null
+          pjo_id: string | null
+          quotation_id: string | null
+          recommendations: string | null
+          risk_level: string | null
+          status: string | null
+          updated_at: string | null
+        }
+        Insert: {
+          additional_cost_estimate?: number | null
+          assessment_type: string
+          assigned_at?: string | null
+          assigned_to?: string | null
+          attachment_urls?: Json | null
+          completed_at?: string | null
+          completed_by?: string | null
+          cost_justification?: string | null
+          created_at?: string | null
+          findings?: string | null
+          id?: string
+          notes?: string | null
+          pjo_id?: string | null
+          quotation_id?: string | null
+          recommendations?: string | null
+          risk_level?: string | null
+          status?: string | null
+          updated_at?: string | null
+        }
+        Update: {
+          additional_cost_estimate?: number | null
+          assessment_type?: string
+          assigned_at?: string | null
+          assigned_to?: string | null
+          attachment_urls?: Json | null
+          completed_at?: string | null
+          completed_by?: string | null
+          cost_justification?: string | null
+          created_at?: string | null
+          findings?: string | null
+          id?: string
+          notes?: string | null
+          pjo_id?: string | null
+          quotation_id?: string | null
+          recommendations?: string | null
+          risk_level?: string | null
+          status?: string | null
+          updated_at?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "engineering_assessments_assigned_to_fkey"
+            columns: ["assigned_to"]
+            isOneToOne: false
+            referencedRelation: "user_profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "engineering_assessments_completed_by_fkey"
+            columns: ["completed_by"]
+            isOneToOne: false
+            referencedRelation: "user_profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "engineering_assessments_pjo_id_fkey"
+            columns: ["pjo_id"]
+            isOneToOne: false
+            referencedRelation: "proforma_job_orders"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "engineering_assessments_quotation_id_fkey"
+            columns: ["quotation_id"]
+            isOneToOne: false
+            referencedRelation: "quotations"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+
       invoice_line_items: {
         Row: {
           created_at: string | null
@@ -542,6 +639,7 @@ export type Database = {
           },
         ]
       }
+
       job_orders: {
         Row: {
           amount: number
@@ -639,6 +737,7 @@ export type Database = {
           },
         ]
       }
+
       notification_preferences: {
         Row: {
           approval_enabled: boolean | null
@@ -745,6 +844,7 @@ export type Database = {
           },
         ]
       }
+
       payments: {
         Row: {
           amount: number
@@ -805,6 +905,7 @@ export type Database = {
           },
         ]
       }
+
       pjo_cost_items: {
         Row: {
           actual_amount: number | null
@@ -890,6 +991,7 @@ export type Database = {
           },
         ]
       }
+
       pjo_revenue_items: {
         Row: {
           created_at: string | null
@@ -943,6 +1045,7 @@ export type Database = {
           },
         ]
       }
+
       proforma_job_orders: {
         Row: {
           all_costs_confirmed: boolean | null
@@ -964,6 +1067,13 @@ export type Database = {
           customer_id: string
           description: string
           duration_days: number | null
+          engineering_assigned_at: string | null
+          engineering_assigned_to: string | null
+          engineering_completed_at: string | null
+          engineering_completed_by: string | null
+          engineering_notes: string | null
+          engineering_status: string | null
+          engineering_waived_reason: string | null
           estimated_amount: number
           eta: string | null
           etd: string | null
@@ -991,7 +1101,9 @@ export type Database = {
           project_id: string | null
           quantity: number | null
           quantity_unit: string | null
+          quotation_id: string | null
           rejection_reason: string | null
+          requires_engineering: boolean | null
           requires_special_permit: boolean | null
           status: string
           terrain_type: string | null
@@ -1022,6 +1134,13 @@ export type Database = {
           customer_id: string
           description: string
           duration_days?: number | null
+          engineering_assigned_at?: string | null
+          engineering_assigned_to?: string | null
+          engineering_completed_at?: string | null
+          engineering_completed_by?: string | null
+          engineering_notes?: string | null
+          engineering_status?: string | null
+          engineering_waived_reason?: string | null
           estimated_amount?: number
           eta?: string | null
           etd?: string | null
@@ -1049,7 +1168,9 @@ export type Database = {
           project_id?: string | null
           quantity?: number | null
           quantity_unit?: string | null
+          quotation_id?: string | null
           rejection_reason?: string | null
+          requires_engineering?: boolean | null
           requires_special_permit?: boolean | null
           status?: string
           terrain_type?: string | null
@@ -1080,6 +1201,13 @@ export type Database = {
           customer_id?: string
           description?: string
           duration_days?: number | null
+          engineering_assigned_at?: string | null
+          engineering_assigned_to?: string | null
+          engineering_completed_at?: string | null
+          engineering_completed_by?: string | null
+          engineering_notes?: string | null
+          engineering_status?: string | null
+          engineering_waived_reason?: string | null
           estimated_amount?: number
           eta?: string | null
           etd?: string | null
@@ -1107,7 +1235,9 @@ export type Database = {
           project_id?: string | null
           quantity?: number | null
           quantity_unit?: string | null
+          quotation_id?: string | null
           rejection_reason?: string | null
+          requires_engineering?: boolean | null
           requires_special_permit?: boolean | null
           status?: string
           terrain_type?: string | null
@@ -1127,6 +1257,20 @@ export type Database = {
             referencedColumns: ["id"]
           },
           {
+            foreignKeyName: "proforma_job_orders_engineering_assigned_to_fkey"
+            columns: ["engineering_assigned_to"]
+            isOneToOne: false
+            referencedRelation: "user_profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "proforma_job_orders_engineering_completed_by_fkey"
+            columns: ["engineering_completed_by"]
+            isOneToOne: false
+            referencedRelation: "user_profiles"
+            referencedColumns: ["id"]
+          },
+          {
             foreignKeyName: "proforma_job_orders_job_order_id_fkey"
             columns: ["job_order_id"]
             isOneToOne: false
@@ -1140,8 +1284,16 @@ export type Database = {
             referencedRelation: "projects"
             referencedColumns: ["id"]
           },
+          {
+            foreignKeyName: "proforma_job_orders_quotation_id_fkey"
+            columns: ["quotation_id"]
+            isOneToOne: false
+            referencedRelation: "quotations"
+            referencedColumns: ["id"]
+          },
         ]
       }
+
       projects: {
         Row: {
           created_at: string | null
@@ -1183,6 +1335,392 @@ export type Database = {
           },
         ]
       }
+      pursuit_costs: {
+        Row: {
+          amount: number
+          category: string
+          cost_date: string
+          created_at: string | null
+          description: string
+          engineering_portion: number | null
+          id: string
+          incurred_by: string | null
+          marketing_portion: number | null
+          notes: string | null
+          quotation_id: string
+          receipt_url: string | null
+          updated_at: string | null
+        }
+        Insert: {
+          amount: number
+          category: string
+          cost_date: string
+          created_at?: string | null
+          description: string
+          engineering_portion?: number | null
+          id?: string
+          incurred_by?: string | null
+          marketing_portion?: number | null
+          notes?: string | null
+          quotation_id: string
+          receipt_url?: string | null
+          updated_at?: string | null
+        }
+        Update: {
+          amount?: number
+          category?: string
+          cost_date?: string
+          created_at?: string | null
+          description?: string
+          engineering_portion?: number | null
+          id?: string
+          incurred_by?: string | null
+          marketing_portion?: number | null
+          notes?: string | null
+          quotation_id?: string
+          receipt_url?: string | null
+          updated_at?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "pursuit_costs_incurred_by_fkey"
+            columns: ["incurred_by"]
+            isOneToOne: false
+            referencedRelation: "user_profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "pursuit_costs_quotation_id_fkey"
+            columns: ["quotation_id"]
+            isOneToOne: false
+            referencedRelation: "quotations"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+
+      quotation_cost_items: {
+        Row: {
+          category: string
+          created_at: string | null
+          description: string
+          display_order: number | null
+          estimated_amount: number
+          id: string
+          notes: string | null
+          quotation_id: string
+          updated_at: string | null
+          vendor_id: string | null
+          vendor_name: string | null
+        }
+        Insert: {
+          category: string
+          created_at?: string | null
+          description: string
+          display_order?: number | null
+          estimated_amount: number
+          id?: string
+          notes?: string | null
+          quotation_id: string
+          updated_at?: string | null
+          vendor_id?: string | null
+          vendor_name?: string | null
+        }
+        Update: {
+          category?: string
+          created_at?: string | null
+          description?: string
+          display_order?: number | null
+          estimated_amount?: number
+          id?: string
+          notes?: string | null
+          quotation_id?: string
+          updated_at?: string | null
+          vendor_id?: string | null
+          vendor_name?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "quotation_cost_items_quotation_id_fkey"
+            columns: ["quotation_id"]
+            isOneToOne: false
+            referencedRelation: "quotations"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "quotation_cost_items_vendor_id_fkey"
+            columns: ["vendor_id"]
+            isOneToOne: false
+            referencedRelation: "vendors"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      quotation_revenue_items: {
+        Row: {
+          category: string
+          created_at: string | null
+          description: string
+          display_order: number | null
+          id: string
+          notes: string | null
+          quantity: number | null
+          quotation_id: string
+          subtotal: number | null
+          unit: string | null
+          unit_price: number
+          updated_at: string | null
+        }
+        Insert: {
+          category: string
+          created_at?: string | null
+          description: string
+          display_order?: number | null
+          id?: string
+          notes?: string | null
+          quantity?: number | null
+          quotation_id: string
+          subtotal?: number | null
+          unit?: string | null
+          unit_price: number
+          updated_at?: string | null
+        }
+        Update: {
+          category?: string
+          created_at?: string | null
+          description?: string
+          display_order?: number | null
+          id?: string
+          notes?: string | null
+          quantity?: number | null
+          quotation_id?: string
+          subtotal?: number | null
+          unit?: string | null
+          unit_price?: number
+          updated_at?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "quotation_revenue_items_quotation_id_fkey"
+            columns: ["quotation_id"]
+            isOneToOne: false
+            referencedRelation: "quotations"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+
+      quotations: {
+        Row: {
+          cargo_height_m: number | null
+          cargo_length_m: number | null
+          cargo_value: number | null
+          cargo_weight_kg: number | null
+          cargo_width_m: number | null
+          commodity: string | null
+          complexity_factors: Json | null
+          complexity_score: number | null
+          created_at: string | null
+          created_by: string | null
+          customer_id: string
+          destination: string
+          destination_lat: number | null
+          destination_lng: number | null
+          destination_place_id: string | null
+          duration_days: number | null
+          engineering_assigned_at: string | null
+          engineering_assigned_to: string | null
+          engineering_completed_at: string | null
+          engineering_completed_by: string | null
+          engineering_notes: string | null
+          engineering_status: string | null
+          engineering_waived_reason: string | null
+          estimated_shipments: number | null
+          gross_profit: number | null
+          id: string
+          is_active: boolean | null
+          is_hazardous: boolean | null
+          is_new_route: boolean | null
+          market_type: string | null
+          notes: string | null
+          origin: string
+          origin_lat: number | null
+          origin_lng: number | null
+          origin_place_id: string | null
+          outcome_date: string | null
+          outcome_reason: string | null
+          profit_margin: number | null
+          project_id: string | null
+          quotation_number: string
+          requires_engineering: boolean | null
+          requires_special_permit: boolean | null
+          rfq_date: string | null
+          rfq_deadline: string | null
+          rfq_number: string | null
+          rfq_received_date: string | null
+          status: string | null
+          submitted_at: string | null
+          submitted_to: string | null
+          terrain_type: string | null
+          title: string
+          total_cost: number | null
+          total_pursuit_cost: number | null
+          total_revenue: number | null
+          updated_at: string | null
+        }
+        Insert: {
+          cargo_height_m?: number | null
+          cargo_length_m?: number | null
+          cargo_value?: number | null
+          cargo_weight_kg?: number | null
+          cargo_width_m?: number | null
+          commodity?: string | null
+          complexity_factors?: Json | null
+          complexity_score?: number | null
+          created_at?: string | null
+          created_by?: string | null
+          customer_id: string
+          destination: string
+          destination_lat?: number | null
+          destination_lng?: number | null
+          destination_place_id?: string | null
+          duration_days?: number | null
+          engineering_assigned_at?: string | null
+          engineering_assigned_to?: string | null
+          engineering_completed_at?: string | null
+          engineering_completed_by?: string | null
+          engineering_notes?: string | null
+          engineering_status?: string | null
+          engineering_waived_reason?: string | null
+          estimated_shipments?: number | null
+          gross_profit?: number | null
+          id?: string
+          is_active?: boolean | null
+          is_hazardous?: boolean | null
+          is_new_route?: boolean | null
+          market_type?: string | null
+          notes?: string | null
+          origin: string
+          origin_lat?: number | null
+          origin_lng?: number | null
+          origin_place_id?: string | null
+          outcome_date?: string | null
+          outcome_reason?: string | null
+          profit_margin?: number | null
+          project_id?: string | null
+          quotation_number: string
+          requires_engineering?: boolean | null
+          requires_special_permit?: boolean | null
+          rfq_date?: string | null
+          rfq_deadline?: string | null
+          rfq_number?: string | null
+          rfq_received_date?: string | null
+          status?: string | null
+          submitted_at?: string | null
+          submitted_to?: string | null
+          terrain_type?: string | null
+          title: string
+          total_cost?: number | null
+          total_pursuit_cost?: number | null
+          total_revenue?: number | null
+          updated_at?: string | null
+        }
+        Update: {
+          cargo_height_m?: number | null
+          cargo_length_m?: number | null
+          cargo_value?: number | null
+          cargo_weight_kg?: number | null
+          cargo_width_m?: number | null
+          commodity?: string | null
+          complexity_factors?: Json | null
+          complexity_score?: number | null
+          created_at?: string | null
+          created_by?: string | null
+          customer_id?: string
+          destination?: string
+          destination_lat?: number | null
+          destination_lng?: number | null
+          destination_place_id?: string | null
+          duration_days?: number | null
+          engineering_assigned_at?: string | null
+          engineering_assigned_to?: string | null
+          engineering_completed_at?: string | null
+          engineering_completed_by?: string | null
+          engineering_notes?: string | null
+          engineering_status?: string | null
+          engineering_waived_reason?: string | null
+          estimated_shipments?: number | null
+          gross_profit?: number | null
+          id?: string
+          is_active?: boolean | null
+          is_hazardous?: boolean | null
+          is_new_route?: boolean | null
+          market_type?: string | null
+          notes?: string | null
+          origin?: string
+          origin_lat?: number | null
+          origin_lng?: number | null
+          origin_place_id?: string | null
+          outcome_date?: string | null
+          outcome_reason?: string | null
+          profit_margin?: number | null
+          project_id?: string | null
+          quotation_number?: string
+          requires_engineering?: boolean | null
+          requires_special_permit?: boolean | null
+          rfq_date?: string | null
+          rfq_deadline?: string | null
+          rfq_number?: string | null
+          rfq_received_date?: string | null
+          status?: string | null
+          submitted_at?: string | null
+          submitted_to?: string | null
+          terrain_type?: string | null
+          title?: string
+          total_cost?: number | null
+          total_pursuit_cost?: number | null
+          total_revenue?: number | null
+          updated_at?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "quotations_created_by_fkey"
+            columns: ["created_by"]
+            isOneToOne: false
+            referencedRelation: "user_profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "quotations_customer_id_fkey"
+            columns: ["customer_id"]
+            isOneToOne: false
+            referencedRelation: "customers"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "quotations_engineering_assigned_to_fkey"
+            columns: ["engineering_assigned_to"]
+            isOneToOne: false
+            referencedRelation: "user_profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "quotations_engineering_completed_by_fkey"
+            columns: ["engineering_completed_by"]
+            isOneToOne: false
+            referencedRelation: "user_profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "quotations_project_id_fkey"
+            columns: ["project_id"]
+            isOneToOne: false
+            referencedRelation: "projects"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+
       surat_jalan: {
         Row: {
           cargo_description: string | null
@@ -1279,6 +1817,7 @@ export type Database = {
           },
         ]
       }
+
       user_profiles: {
         Row: {
           avatar_url: string | null
@@ -1342,6 +1881,7 @@ export type Database = {
         }
         Relationships: []
       }
+
       vendor_contacts: {
         Row: {
           contact_name: string
@@ -1437,6 +1977,7 @@ export type Database = {
           },
         ]
       }
+
       vendor_equipment: {
         Row: {
           brand: string | null
@@ -1523,6 +2064,7 @@ export type Database = {
           },
         ]
       }
+
       vendor_ratings: {
         Row: {
           bkk_id: string | null
@@ -1606,6 +2148,7 @@ export type Database = {
           },
         ]
       }
+
       vendors: {
         Row: {
           address: string | null
@@ -1753,6 +2296,7 @@ export type Database = {
     }
   }
 }
+
 
 type DatabaseWithoutInternals = Omit<Database, "__InternalSupabase">
 

@@ -56,6 +56,18 @@ export default async function EditPJOPage({ params }: EditPJOPageProps) {
     .eq('is_active', true)
     .order('name')
 
+  // Check if PJO was created from a quotation
+  let quotationNumber: string | undefined
+  const isFromQuotation = !!pjo.quotation_id
+  if (isFromQuotation && pjo.quotation_id) {
+    const { data: quotation } = await supabase
+      .from('quotations')
+      .select('quotation_number')
+      .eq('id', pjo.quotation_id)
+      .single()
+    quotationNumber = quotation?.quotation_number
+  }
+
   return (
     <div className="space-y-6">
       <div className="flex items-center gap-4">
@@ -72,7 +84,9 @@ export default async function EditPJOPage({ params }: EditPJOPageProps) {
         pjo={pjo} 
         existingRevenueItems={(revenueItems || []) as PJORevenueItem[]}
         existingCostItems={(costItems || []) as PJOCostItem[]}
-        mode="edit" 
+        mode="edit"
+        isFromQuotation={isFromQuotation}
+        quotationNumber={quotationNumber}
       />
     </div>
   )
