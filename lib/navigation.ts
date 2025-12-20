@@ -15,6 +15,7 @@ import {
   UserCog,
   Clock,
   Calendar,
+  Wallet,
   LucideIcon,
 } from 'lucide-react'
 import { UserRole, UserPermissions } from '@/types/permissions'
@@ -134,6 +135,10 @@ export const NAV_ITEMS: NavItem[] = [
       {
         title: 'Leave Requests',
         href: '/hr/leave',
+      },
+      {
+        title: 'Payroll',
+        href: '/hr/payroll',
       },
       {
         title: 'My Attendance',
