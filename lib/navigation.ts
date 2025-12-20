@@ -141,6 +141,10 @@ export const NAV_ITEMS: NavItem[] = [
         href: '/hr/payroll',
       },
       {
+        title: 'Manpower Cost',
+        href: '/hr/manpower-cost',
+      },
+      {
         title: 'My Attendance',
         href: '/hr/my-attendance',
       },
