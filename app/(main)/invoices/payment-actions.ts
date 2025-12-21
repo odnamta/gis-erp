@@ -11,6 +11,7 @@ import {
   determineInvoiceStatus,
   canRecordPayment,
 } from '@/lib/payment-utils'
+import { trackPaymentCreation } from '@/lib/onboarding-tracker'
 
 /**
  * Record a new payment against an invoice
@@ -91,6 +92,9 @@ export async function recordPayment(data: PaymentFormData): Promise<{
     console.error('Error creating payment:', paymentError)
     return { error: paymentError?.message || 'Failed to record payment' }
   }
+
+  // Track for onboarding
+  await trackPaymentCreation()
 
   // Calculate new total paid
   const { data: allPayments } = await supabase

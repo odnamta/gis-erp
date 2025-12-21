@@ -4,6 +4,7 @@ import { createClient } from '@/lib/supabase/server'
 import { revalidatePath } from 'next/cache'
 import { SuratJalanFormData, SuratJalanWithRelations, SJStatus } from '@/types'
 import { formatSJNumber, canTransitionSJStatus, validateSJForm } from '@/lib/sj-utils'
+import { trackSuratJalanCreation } from '@/lib/onboarding-tracker'
 
 /**
  * Generate a unique SJ number for the current year
@@ -145,6 +146,9 @@ export async function createSuratJalan(
     console.error('Error creating Surat Jalan:', error)
     return { error: error.message }
   }
+  
+  // Track for onboarding
+  await trackSuratJalanCreation()
   
   revalidatePath(`/job-orders/${joId}`)
   return { id: data.id }

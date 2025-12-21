@@ -31,6 +31,7 @@ import {
 } from '@/lib/market-classification-utils'
 import { PJOClassificationInput } from '@/types/market-classification'
 import { generatePJONumber } from '@/app/(main)/proforma-jo/actions'
+import { trackQuotationCreation } from '@/lib/onboarding-tracker'
 
 // Action result type
 interface ActionResult<T = void> {
@@ -142,6 +143,9 @@ export async function createQuotation(
     if (error) {
       return { success: false, error: error.message }
     }
+    
+    // Track for onboarding
+    await trackQuotationCreation()
     
     revalidatePath('/quotations')
     return { success: true, data: quotation }

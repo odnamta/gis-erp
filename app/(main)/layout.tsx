@@ -6,6 +6,7 @@ import { PermissionProvider } from '@/components/providers/permission-provider'
 import { PreviewProviderWrapper } from '@/components/providers/preview-provider-wrapper'
 import { ensureUserProfile } from '@/lib/permissions-server'
 import { UserProfile } from '@/types/permissions'
+import { OnboardingRouteTracker } from '@/components/onboarding'
 
 export default async function MainLayout({ children }: { children: React.ReactNode }) {
   const supabase = await createClient()
@@ -33,6 +34,7 @@ export default async function MainLayout({ children }: { children: React.ReactNo
             <main className="flex-1 overflow-auto bg-muted/30 p-6">{children}</main>
           </div>
           <Toaster />
+          <OnboardingRouteTracker userId={userProfile?.id || null} />
         </div>
       </PreviewProviderWrapper>
     </PermissionProvider>

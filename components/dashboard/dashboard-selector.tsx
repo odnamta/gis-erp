@@ -9,8 +9,10 @@ import { SalesEngineeringDashboard } from '@/components/dashboard/sales-engineer
 import { ManagerDashboard } from '@/components/dashboard/manager/manager-dashboard'
 import { AdminDashboard } from '@/components/dashboard/admin/admin-dashboard'
 import { OwnerDashboard } from '@/components/dashboard/owner-dashboard'
+import { OnboardingWidget } from '@/components/onboarding'
 import type { SalesEngineeringDashboardData } from '@/lib/sales-engineering-dashboard-utils'
 import type { EnhancedOpsDashboardData } from '@/lib/ops-dashboard-enhanced-utils'
+import type { UserOnboardingData } from '@/types/onboarding'
 
 interface DashboardSelectorProps {
   ownerData?: Parameters<typeof OwnerDashboard>[0]['data']
@@ -32,6 +34,8 @@ interface DashboardSelectorProps {
   userName?: string
   actualRole: string
   userEmail?: string
+  userId?: string
+  onboardingData?: UserOnboardingData | null
 }
 
 export function DashboardSelector({
@@ -47,29 +51,51 @@ export function DashboardSelector({
   userName,
   actualRole,
   userEmail,
+  userId,
+  onboardingData,
 }: DashboardSelectorProps) {
   const { effectiveRole, isPreviewActive } = usePreview()
 
   // Use effective role for dashboard selection (supports preview mode)
   const roleToRender = effectiveRole
 
+  // Check if onboarding widget should be shown
+  const showOnboarding = userId && 
+    onboardingData?.status?.show_onboarding_widget && 
+    !onboardingData?.status?.is_onboarding_complete
+
+  // Wrapper component to add onboarding widget
+  const DashboardWrapper = ({ children }: { children: React.ReactNode }) => {
+    if (!showOnboarding || !userId) {
+      return <>{children}</>
+    }
+    return (
+      <div className="flex flex-col xl:flex-row gap-6">
+        <div className="flex-1 min-w-0">{children}</div>
+        <div className="xl:w-80 shrink-0">
+          <OnboardingWidget userId={userId} />
+        </div>
+      </div>
+    )
+  }
+
   // Render based on effective role
   if (roleToRender === 'owner' && ownerData) {
-    return <OwnerDashboard data={ownerData} />
+    return <DashboardWrapper><OwnerDashboard data={ownerData} /></DashboardWrapper>
   }
 
   // Ops role: Use enhanced dashboard if available, otherwise fallback to original
   if (roleToRender === 'ops') {
     if (enhancedOpsData) {
-      return <EnhancedOpsDashboard data={enhancedOpsData} userName={userName} />
+      return <DashboardWrapper><EnhancedOpsDashboard data={enhancedOpsData} userName={userName} /></DashboardWrapper>
     }
     if (opsData) {
-      return <OpsDashboard data={opsData} userName={userName} />
+      return <DashboardWrapper><OpsDashboard data={opsData} userName={userName} /></DashboardWrapper>
     }
   }
 
   if (roleToRender === 'finance' && financeData) {
-    return <FinanceDashboard data={financeData} />
+    return <DashboardWrapper><FinanceDashboard data={financeData} /></DashboardWrapper>
   }
 
   // Sales role: Show SalesEngineeringDashboard for Hutami or if salesEngineeringData is provided
@@ -78,34 +104,36 @@ export function DashboardSelector({
     const isHutami = userEmail === 'hutamiarini@gama-group.co'
     
     if ((isHutami || salesEngineeringData) && salesEngineeringData) {
-      return <SalesEngineeringDashboard data={salesEngineeringData} userName={userName} />
+      return <DashboardWrapper><SalesEngineeringDashboard data={salesEngineeringData} userName={userName} /></DashboardWrapper>
     }
     
     if (salesData) {
-      return <SalesDashboard initialData={salesData} />
+      return <DashboardWrapper><SalesDashboard initialData={salesData} /></DashboardWrapper>
     }
   }
 
   if (roleToRender === 'manager' && managerData) {
-    return <ManagerDashboard initialData={managerData} userName={userName} />
+    return <DashboardWrapper><ManagerDashboard initialData={managerData} userName={userName} /></DashboardWrapper>
   }
 
   if (roleToRender === 'admin' && adminData) {
-    return <AdminDashboard initialData={adminData} userName={userName} />
+    return <DashboardWrapper><AdminDashboard initialData={adminData} userName={userName} /></DashboardWrapper>
   }
 
   // Fallback to default dashboard
   if (defaultData) {
     return (
-      <DashboardClient
-        initialKPIs={defaultData.kpis}
-        initialAlerts={defaultData.alerts}
-        initialAlertCount={defaultData.alertCount}
-        initialActivities={defaultData.activities}
-        initialQueue={defaultData.queue}
-        initialMetrics={defaultData.metrics}
-        userRole={roleToRender}
-      />
+      <DashboardWrapper>
+        <DashboardClient
+          initialKPIs={defaultData.kpis}
+          initialAlerts={defaultData.alerts}
+          initialAlertCount={defaultData.alertCount}
+          initialActivities={defaultData.activities}
+          initialQueue={defaultData.queue}
+          initialMetrics={defaultData.metrics}
+          userRole={roleToRender}
+        />
+      </DashboardWrapper>
     )
   }
 

@@ -3,6 +3,7 @@
 import { createClient } from '@/lib/supabase/server'
 import { revalidatePath } from 'next/cache'
 import { z } from 'zod'
+import { trackCustomerCreation } from '@/lib/onboarding-tracker'
 
 const customerSchema = z.object({
   name: z.string().min(1, 'Name is required'),
@@ -31,6 +32,9 @@ export async function createCustomer(data: CustomerFormData): Promise<{ error?: 
   if (error) {
     return { error: error.message }
   }
+
+  // Track for onboarding
+  await trackCustomerCreation()
 
   revalidatePath('/customers')
   return {}

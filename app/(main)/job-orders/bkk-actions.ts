@@ -20,6 +20,7 @@ import {
   validateSettleBKKInput,
   calculateBKKSummary
 } from '@/lib/bkk-utils'
+import { trackBKKCreation } from '@/lib/onboarding-tracker'
 
 /**
  * Generate a unique BKK number for the current year
@@ -124,6 +125,9 @@ export async function createBKK(
     console.error('Error creating BKK:', error)
     return { error: error.message }
   }
+  
+  // Track for onboarding
+  await trackBKKCreation()
   
   revalidatePath(`/job-orders/${input.jo_id}`)
   return { id: data.id }

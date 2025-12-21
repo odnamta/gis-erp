@@ -15,6 +15,7 @@ import { getSalesEngineeringDashboardData } from './sales-engineering-actions'
 import { getUserProfile, getOwnerDashboardData } from '@/lib/permissions-server'
 import { getOpsDashboardData } from '@/lib/ops-dashboard-utils'
 import { getEnhancedOpsDashboardData } from '@/lib/ops-dashboard-enhanced-utils'
+import { getUserOnboardingProgress } from '@/lib/onboarding-actions'
 
 // Hutami's email - Marketing Manager who also manages Engineering
 const HUTAMI_EMAIL = 'hutamiarini@gama-group.co'
@@ -24,6 +25,10 @@ export default async function DashboardPage() {
   const profile = await getUserProfile()
   const userRole = profile?.role || 'viewer'
   const userEmail = profile?.email || ''
+  const userId = profile?.id || ''
+
+  // Fetch onboarding data for all users
+  const onboardingData = userId ? await getUserOnboardingProgress(userId) : null
 
   // For owner users, fetch all dashboard data to support preview mode
   if (userRole === 'owner') {
@@ -80,6 +85,8 @@ export default async function DashboardPage() {
         userName={profile?.full_name || undefined}
         userEmail={userEmail}
         actualRole={userRole}
+        userId={userId}
+        onboardingData={onboardingData}
       />
     )
   }
@@ -92,13 +99,22 @@ export default async function DashboardPage() {
         enhancedOpsData={enhancedOpsData}
         userName={profile?.full_name || undefined}
         actualRole={userRole}
+        userId={userId}
+        onboardingData={onboardingData}
       />
     )
   }
 
   if (userRole === 'finance') {
     const financeData = await fetchFinanceDashboardData()
-    return <DashboardSelector financeData={financeData} actualRole={userRole} />
+    return (
+      <DashboardSelector
+        financeData={financeData}
+        actualRole={userRole}
+        userId={userId}
+        onboardingData={onboardingData}
+      />
+    )
   }
 
   if (userRole === 'sales') {
@@ -114,13 +130,23 @@ export default async function DashboardPage() {
           userName={profile?.full_name || undefined}
           userEmail={userEmail}
           actualRole={userRole}
+          userId={userId}
+          onboardingData={onboardingData}
         />
       )
     }
     
     // Regular sales users get the standard sales dashboard
     const salesData = await fetchSalesDashboardData()
-    return <DashboardSelector salesData={salesData} userEmail={userEmail} actualRole={userRole} />
+    return (
+      <DashboardSelector
+        salesData={salesData}
+        userEmail={userEmail}
+        actualRole={userRole}
+        userId={userId}
+        onboardingData={onboardingData}
+      />
+    )
   }
 
   if (userRole === 'manager') {
@@ -130,6 +156,8 @@ export default async function DashboardPage() {
         managerData={managerData}
         userName={profile?.full_name || undefined}
         actualRole={userRole}
+        userId={userId}
+        onboardingData={onboardingData}
       />
     )
   }
@@ -141,6 +169,8 @@ export default async function DashboardPage() {
         adminData={adminData}
         userName={profile?.full_name || undefined}
         actualRole={userRole}
+        userId={userId}
+        onboardingData={onboardingData}
       />
     )
   }
@@ -166,6 +196,8 @@ export default async function DashboardPage() {
         metrics,
       }}
       actualRole={userRole}
+      userId={userId}
+      onboardingData={onboardingData}
     />
   )
 }
