@@ -104,6 +104,15 @@ export type FeatureKey =
   | 'sales_engineering_dashboard.view_pipeline'
   | 'sales_engineering_dashboard.view_engineering'
   | 'sales_engineering_dashboard.refresh'
+  // Asset/Equipment permissions
+  | 'assets.view'
+  | 'assets.create'
+  | 'assets.edit'
+  | 'assets.change_status'
+  | 'assets.view_financials'
+  | 'assets.dispose'
+  | 'assets.upload_documents'
+  | 'assets.nav'
 
 export interface PermissionContextType {
   profile: UserProfile | null

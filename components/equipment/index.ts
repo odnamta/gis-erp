@@ -1,0 +1,13 @@
+// Equipment/Asset components barrel export
+
+export { AssetStatusBadge } from './asset-status-badge'
+export { AssetSummaryCards } from './asset-summary-cards'
+export { AssetFilters } from './asset-filters'
+export { AssetTable } from './asset-table'
+export { AssetForm } from './asset-form'
+export { AssetStatusDialog } from './asset-status-dialog'
+export { AssetDocumentList } from './asset-document-list'
+export { AssetDocumentForm } from './asset-document-form'
+export { AssetDetailView } from './asset-detail-view'
+export { AssetPhotoGallery } from './asset-photo-gallery'
+export { ExpiringDocumentsList } from './expiring-documents-list'

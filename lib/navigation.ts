@@ -15,9 +15,9 @@ import {
   UserCog,
   Clock,
   Calendar,
-  Wallet,
   LucideIcon,
   HelpCircle,
+  Truck,
 } from 'lucide-react'
 import { UserRole, UserPermissions } from '@/types/permissions'
 
@@ -86,6 +86,12 @@ export const NAV_ITEMS: NavItem[] = [
     title: 'Vendors',
     href: '/vendors',
     icon: Building2,
+    roles: ['owner', 'admin', 'manager', 'ops', 'finance'],
+  },
+  {
+    title: 'Equipment',
+    href: '/equipment',
+    icon: Truck,
     roles: ['owner', 'admin', 'manager', 'ops', 'finance'],
   },
   {

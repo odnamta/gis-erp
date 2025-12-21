@@ -155,6 +155,15 @@ const FEATURE_PERMISSION_MAP: Record<FeatureKey, (profile: UserProfile) => boole
   'sales_engineering_dashboard.view_pipeline': (p) => ['sales', 'owner', 'admin', 'manager'].includes(p.role),
   'sales_engineering_dashboard.view_engineering': (p) => ['sales', 'owner', 'admin', 'manager'].includes(p.role),
   'sales_engineering_dashboard.refresh': (p) => ['sales', 'owner', 'admin', 'manager'].includes(p.role),
+  // Asset/Equipment permissions
+  'assets.view': (p) => ['owner', 'admin', 'manager', 'ops', 'finance'].includes(p.role),
+  'assets.create': (p) => ['owner', 'admin', 'manager'].includes(p.role),
+  'assets.edit': (p) => ['owner', 'admin', 'manager'].includes(p.role),
+  'assets.change_status': (p) => ['owner', 'admin', 'manager', 'ops'].includes(p.role),
+  'assets.view_financials': (p) => ['owner', 'admin', 'manager', 'finance'].includes(p.role),
+  'assets.dispose': (p) => ['owner', 'admin'].includes(p.role),
+  'assets.upload_documents': (p) => ['owner', 'admin', 'manager', 'ops'].includes(p.role),
+  'assets.nav': (p) => ['owner', 'admin', 'manager', 'ops', 'finance'].includes(p.role),
 }
 
 /**
@@ -578,4 +587,72 @@ export function canViewEngineeringWorkload(profile: UserProfile | null): boolean
  */
 export function canRefreshSalesEngineeringDashboard(profile: UserProfile | null): boolean {
   return canAccessFeature(profile, 'sales_engineering_dashboard.refresh')
+}
+
+
+// ============================================
+// Asset/Equipment Permission Helpers
+// ============================================
+
+/**
+ * Check if user can view assets
+ * Property 18: Owner, Admin, Manager, Ops, Finance roles SHALL have access
+ */
+export function canViewAssets(profile: UserProfile | null): boolean {
+  return canAccessFeature(profile, 'assets.view')
+}
+
+/**
+ * Check if user can create assets
+ * Property 18: Only Owner, Admin, Manager roles SHALL have access
+ */
+export function canCreateAsset(profile: UserProfile | null): boolean {
+  return canAccessFeature(profile, 'assets.create')
+}
+
+/**
+ * Check if user can edit assets
+ * Property 18: Only Owner, Admin, Manager roles SHALL have access
+ */
+export function canEditAsset(profile: UserProfile | null): boolean {
+  return canAccessFeature(profile, 'assets.edit')
+}
+
+/**
+ * Check if user can change asset status
+ * Property 18: Owner, Admin, Manager, Ops roles SHALL have access
+ */
+export function canChangeAssetStatus(profile: UserProfile | null): boolean {
+  return canAccessFeature(profile, 'assets.change_status')
+}
+
+/**
+ * Check if user can view asset financial information
+ * Property 18: Only Owner, Admin, Manager, Finance roles SHALL have access
+ */
+export function canViewAssetFinancials(profile: UserProfile | null): boolean {
+  return canAccessFeature(profile, 'assets.view_financials')
+}
+
+/**
+ * Check if user can dispose/delete assets
+ * Property 18: Only Owner, Admin roles SHALL have access
+ */
+export function canDisposeAsset(profile: UserProfile | null): boolean {
+  return canAccessFeature(profile, 'assets.dispose')
+}
+
+/**
+ * Check if user can upload asset documents
+ * Property 18: Owner, Admin, Manager, Ops roles SHALL have access
+ */
+export function canUploadAssetDocuments(profile: UserProfile | null): boolean {
+  return canAccessFeature(profile, 'assets.upload_documents')
+}
+
+/**
+ * Check if assets/equipment should be shown in navigation
+ */
+export function canSeeAssetsNav(profile: UserProfile | null): boolean {
+  return canAccessFeature(profile, 'assets.nav')
 }
