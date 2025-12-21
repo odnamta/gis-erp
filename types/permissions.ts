@@ -92,6 +92,13 @@ export type FeatureKey =
   | 'attendance.manage_holidays'
   | 'attendance.view_reports'
   | 'attendance.nav'
+  // Finance Dashboard Enhanced permissions
+  | 'finance_dashboard.view'
+  | 'finance_dashboard.view_ar_ap'
+  | 'finance_dashboard.view_cash_position'
+  | 'finance_dashboard.view_profit_margins'
+  | 'finance_dashboard.refresh'
+  | 'finance_dashboard.view_bkk_pending'
 
 export interface PermissionContextType {
   profile: UserProfile | null

@@ -143,6 +143,13 @@ const FEATURE_PERMISSION_MAP: Record<FeatureKey, (profile: UserProfile) => boole
   'attendance.manage_holidays': (p) => ['owner', 'admin'].includes(p.role),
   'attendance.view_reports': (p) => ['owner', 'admin', 'manager', 'finance'].includes(p.role),
   'attendance.nav': () => true, // All authenticated users can see attendance nav
+  // Finance Dashboard Enhanced permissions
+  'finance_dashboard.view': (p) => ['finance', 'owner', 'admin', 'manager'].includes(p.role),
+  'finance_dashboard.view_ar_ap': (p) => ['finance', 'owner', 'admin', 'manager'].includes(p.role),
+  'finance_dashboard.view_cash_position': (p) => ['finance', 'owner', 'admin'].includes(p.role),
+  'finance_dashboard.view_profit_margins': (p) => ['finance', 'owner', 'admin'].includes(p.role),
+  'finance_dashboard.refresh': (p) => ['finance', 'owner', 'admin'].includes(p.role),
+  'finance_dashboard.view_bkk_pending': (p) => ['finance', 'owner', 'admin', 'manager'].includes(p.role),
 }
 
 /**
@@ -481,4 +488,55 @@ export function canViewAttendanceReports(profile: UserProfile | null): boolean {
  */
 export function canSeeAttendanceNav(profile: UserProfile | null): boolean {
   return canAccessFeature(profile, 'attendance.nav')
+}
+
+
+// ============================================
+// Finance Dashboard Enhanced Permission Helpers
+// ============================================
+
+/**
+ * Check if user can view the finance dashboard
+ * Property 10: Role-Based Access Control - Finance role SHALL have access
+ */
+export function canViewFinanceDashboard(profile: UserProfile | null): boolean {
+  return canAccessFeature(profile, 'finance_dashboard.view')
+}
+
+/**
+ * Check if user can view AR/AP totals
+ * Property 10: Roles in ['finance', 'owner', 'admin', 'manager'] SHALL have access
+ */
+export function canViewARAPTotals(profile: UserProfile | null): boolean {
+  return canAccessFeature(profile, 'finance_dashboard.view_ar_ap')
+}
+
+/**
+ * Check if user can view cash position details
+ * Property 10: Roles in ['finance', 'owner', 'admin'] SHALL have access
+ */
+export function canViewCashPosition(profile: UserProfile | null): boolean {
+  return canAccessFeature(profile, 'finance_dashboard.view_cash_position')
+}
+
+/**
+ * Check if user can view profit margins
+ * Property 10: Roles in ['finance', 'owner', 'admin'] SHALL have access
+ */
+export function canViewProfitMargins(profile: UserProfile | null): boolean {
+  return canAccessFeature(profile, 'finance_dashboard.view_profit_margins')
+}
+
+/**
+ * Check if user can refresh the finance dashboard data
+ */
+export function canRefreshFinanceDashboard(profile: UserProfile | null): boolean {
+  return canAccessFeature(profile, 'finance_dashboard.refresh')
+}
+
+/**
+ * Check if user can view pending BKK approvals
+ */
+export function canViewPendingBKK(profile: UserProfile | null): boolean {
+  return canAccessFeature(profile, 'finance_dashboard.view_bkk_pending')
 }

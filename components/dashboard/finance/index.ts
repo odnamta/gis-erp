@@ -5,3 +5,12 @@ export { PJOPipeline } from './pjo-pipeline'
 export { OverdueInvoicesTable } from './overdue-invoices-table'
 export { RecentPaymentsTable } from './recent-payments-table'
 export { ExportReportDropdown, exportARAgingToCSV } from './export-report-dropdown'
+
+// Enhanced Finance Dashboard (v0.9.8)
+export { FinanceDashboardEnhanced, FinanceDashboardEnhancedSkeleton } from './finance-dashboard-enhanced'
+export { EnhancedSummaryCards } from './enhanced-summary-cards'
+export { AROverviewCard, APOverviewCard } from './ar-ap-overview-cards'
+export { PendingApprovalsCard } from './pending-approvals-card'
+export { RevenueTrendChart } from './revenue-trend-chart'
+export { QuickActionsBar } from './quick-actions-bar'
+export { DashboardHeader } from './dashboard-header'
