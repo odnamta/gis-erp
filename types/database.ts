@@ -988,6 +988,48 @@ export type Database = {
           },
         ]
       }
+      guided_tours: {
+        Row: {
+          applicable_roles: string[] | null
+          created_at: string | null
+          description: string | null
+          display_order: number | null
+          estimated_minutes: number | null
+          id: string
+          is_active: boolean | null
+          start_route: string
+          steps: Json
+          tour_code: string
+          tour_name: string
+        }
+        Insert: {
+          applicable_roles?: string[] | null
+          created_at?: string | null
+          description?: string | null
+          display_order?: number | null
+          estimated_minutes?: number | null
+          id?: string
+          is_active?: boolean | null
+          start_route: string
+          steps?: Json
+          tour_code: string
+          tour_name: string
+        }
+        Update: {
+          applicable_roles?: string[] | null
+          created_at?: string | null
+          description?: string | null
+          display_order?: number | null
+          estimated_minutes?: number | null
+          id?: string
+          is_active?: boolean | null
+          start_route?: string
+          steps?: Json
+          tour_code?: string
+          tour_name?: string
+        }
+        Relationships: []
+      }
       holidays: {
         Row: {
           created_at: string | null
@@ -3289,6 +3331,51 @@ export type Database = {
           user_id?: string | null
         }
         Relationships: []
+      }
+      user_tour_progress: {
+        Row: {
+          completed_at: string | null
+          current_step: number | null
+          id: string
+          started_at: string | null
+          status: string | null
+          tour_id: string
+          user_id: string
+        }
+        Insert: {
+          completed_at?: string | null
+          current_step?: number | null
+          id?: string
+          started_at?: string | null
+          status?: string | null
+          tour_id: string
+          user_id: string
+        }
+        Update: {
+          completed_at?: string | null
+          current_step?: number | null
+          id?: string
+          started_at?: string | null
+          status?: string | null
+          tour_id?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "user_tour_progress_tour_id_fkey"
+            columns: ["tour_id"]
+            isOneToOne: false
+            referencedRelation: "guided_tours"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "user_tour_progress_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "user_profiles"
+            referencedColumns: ["id"]
+          },
+        ]
       }
 
       vendor_contacts: {

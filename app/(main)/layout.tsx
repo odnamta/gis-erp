@@ -7,6 +7,7 @@ import { PreviewProviderWrapper } from '@/components/providers/preview-provider-
 import { ensureUserProfile } from '@/lib/permissions-server'
 import { UserProfile } from '@/types/permissions'
 import { OnboardingRouteTracker } from '@/components/onboarding'
+import { TourProvider } from '@/components/guided-tours'
 
 export default async function MainLayout({ children }: { children: React.ReactNode }) {
   const supabase = await createClient()
@@ -27,15 +28,17 @@ export default async function MainLayout({ children }: { children: React.ReactNo
   return (
     <PermissionProvider initialProfile={userProfile}>
       <PreviewProviderWrapper>
-        <div className="flex h-screen">
-          <Sidebar />
-          <div className="flex flex-1 flex-col overflow-hidden">
-            <Header user={userInfo} />
-            <main className="flex-1 overflow-auto bg-muted/30 p-6">{children}</main>
+        <TourProvider>
+          <div className="flex h-screen">
+            <Sidebar />
+            <div className="flex flex-1 flex-col overflow-hidden">
+              <Header user={userInfo} />
+              <main className="flex-1 overflow-auto bg-muted/30 p-6">{children}</main>
+            </div>
+            <Toaster />
+            <OnboardingRouteTracker userId={userProfile?.id || null} />
           </div>
-          <Toaster />
-          <OnboardingRouteTracker userId={userProfile?.id || null} />
-        </div>
+        </TourProvider>
       </PreviewProviderWrapper>
     </PermissionProvider>
   )

@@ -117,6 +117,12 @@ export function OnboardingWidget({
             <ChevronRight className="h-4 w-4 ml-1" />
           </Button>
         </Link>
+
+        <Link href="/help/tours" className="block">
+          <Button variant="ghost" className="w-full text-muted-foreground" size="sm">
+            📚 Take a Guided Tour
+          </Button>
+        </Link>
       </CardContent>
     </Card>
   );

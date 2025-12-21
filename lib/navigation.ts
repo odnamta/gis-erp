@@ -17,6 +17,7 @@ import {
   Calendar,
   Wallet,
   LucideIcon,
+  HelpCircle,
 } from 'lucide-react'
 import { UserRole, UserPermissions } from '@/types/permissions'
 
@@ -186,6 +187,22 @@ export const NAV_ITEMS: NavItem[] = [
       {
         title: 'Activity Log',
         href: '/settings/activity-log',
+      },
+    ],
+  },
+  {
+    title: 'Help',
+    href: '/help/tours',
+    icon: HelpCircle,
+    roles: ['owner', 'admin', 'manager', 'ops', 'finance', 'sales', 'viewer'],
+    children: [
+      {
+        title: 'Guided Tours',
+        href: '/help/tours',
+      },
+      {
+        title: 'Onboarding',
+        href: '/onboarding',
       },
     ],
   },
