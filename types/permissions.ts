@@ -124,6 +124,16 @@ export type FeatureKey =
   | 'training.manage_session'
   | 'training.view_compliance'
   | 'training.nav'
+  // Audit permissions
+  | 'audits.view'
+  | 'audits.create'
+  | 'audits.conduct'
+  | 'audits.complete'
+  | 'audits.manage_types'
+  | 'audits.create_finding'
+  | 'audits.close_finding'
+  | 'audits.verify_finding'
+  | 'audits.nav'
 
 export interface PermissionContextType {
   profile: UserProfile | null

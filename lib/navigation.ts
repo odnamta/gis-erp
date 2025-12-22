@@ -136,6 +136,18 @@ export const NAV_ITEMS: NavItem[] = [
         href: '/hse/incidents/report',
       },
       {
+        title: 'Audits & Inspections',
+        href: '/hse/audits',
+      },
+      {
+        title: 'Audit Types',
+        href: '/hse/audits/types',
+      },
+      {
+        title: 'All Findings',
+        href: '/hse/audits/findings',
+      },
+      {
         title: 'Documents',
         href: '/hse/documents',
       },

@@ -175,6 +175,16 @@ const FEATURE_PERMISSION_MAP: Record<FeatureKey, (profile: UserProfile) => boole
   'training.manage_session': (p) => ['owner', 'admin', 'manager'].includes(p.role),
   'training.view_compliance': (p) => ['owner', 'admin', 'manager'].includes(p.role),
   'training.nav': () => true, // All authenticated users can see training nav
+  // Audit permissions
+  'audits.view': () => true, // All authenticated users can view audits
+  'audits.create': (p) => ['owner', 'admin', 'manager', 'ops'].includes(p.role),
+  'audits.conduct': (p) => ['owner', 'admin', 'manager', 'ops'].includes(p.role),
+  'audits.complete': (p) => ['owner', 'admin', 'manager', 'ops'].includes(p.role),
+  'audits.manage_types': (p) => ['owner', 'admin'].includes(p.role),
+  'audits.create_finding': (p) => ['owner', 'admin', 'manager', 'ops'].includes(p.role),
+  'audits.close_finding': (p) => ['owner', 'admin', 'manager', 'ops'].includes(p.role),
+  'audits.verify_finding': (p) => ['owner', 'admin', 'manager'].includes(p.role),
+  'audits.nav': () => true, // All authenticated users can see audits nav
 }
 
 /**
@@ -750,4 +760,80 @@ export function canViewTrainingCompliance(profile: UserProfile | null): boolean 
  */
 export function canSeeTrainingNav(profile: UserProfile | null): boolean {
   return canAccessFeature(profile, 'training.nav')
+}
+
+
+// ============================================
+// Audit Permission Helpers
+// ============================================
+
+/**
+ * Check if user can view audits
+ * Property: All authenticated users SHALL have view access
+ */
+export function canViewAudits(profile: UserProfile | null): boolean {
+  return canAccessFeature(profile, 'audits.view')
+}
+
+/**
+ * Check if user can create audits
+ * Property: Owner, Admin, Manager, Ops roles SHALL have access
+ */
+export function canCreateAudit(profile: UserProfile | null): boolean {
+  return canAccessFeature(profile, 'audits.create')
+}
+
+/**
+ * Check if user can conduct audits
+ * Property: Owner, Admin, Manager, Ops roles SHALL have access
+ */
+export function canConductAudit(profile: UserProfile | null): boolean {
+  return canAccessFeature(profile, 'audits.conduct')
+}
+
+/**
+ * Check if user can complete audits
+ * Property: Owner, Admin, Manager, Ops roles SHALL have access
+ */
+export function canCompleteAudit(profile: UserProfile | null): boolean {
+  return canAccessFeature(profile, 'audits.complete')
+}
+
+/**
+ * Check if user can manage audit types
+ * Property: Only Owner, Admin roles SHALL have access
+ */
+export function canManageAuditTypes(profile: UserProfile | null): boolean {
+  return canAccessFeature(profile, 'audits.manage_types')
+}
+
+/**
+ * Check if user can create findings
+ * Property: Owner, Admin, Manager, Ops roles SHALL have access
+ */
+export function canCreateFinding(profile: UserProfile | null): boolean {
+  return canAccessFeature(profile, 'audits.create_finding')
+}
+
+/**
+ * Check if user can close findings
+ * Property: Owner, Admin, Manager, Ops roles SHALL have access
+ */
+export function canCloseFinding(profile: UserProfile | null): boolean {
+  return canAccessFeature(profile, 'audits.close_finding')
+}
+
+/**
+ * Check if user can verify findings
+ * Property: Owner, Admin, Manager roles SHALL have access
+ */
+export function canVerifyFinding(profile: UserProfile | null): boolean {
+  return canAccessFeature(profile, 'audits.verify_finding')
+}
+
+/**
+ * Check if audits should be shown in navigation
+ */
+export function canSeeAuditsNav(profile: UserProfile | null): boolean {
+  return canAccessFeature(profile, 'audits.nav')
 }
