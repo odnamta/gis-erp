@@ -79,6 +79,13 @@ npx shadcn@latest add <component-name>
 | `pjo_cost_items` | Itemized costs with budget tracking | id, pjo_id, category, estimated_amount, actual_amount, status |
 | `job_orders` | Active JOs linked to PJOs | id, jo_number, pjo_id, final_revenue, final_cost, status |
 | `invoices` | Invoices with payment tracking | id, invoice_number, jo_id, status |
+| `route_surveys` | Route survey records | id, survey_number, project_id, status |
+| `journey_management_plans` | JMP records | id, jmp_number, project_id, status |
+| `technical_assessments` | Engineering assessments | id, assessment_number, project_id, status |
+| `drawing_categories` | Drawing type classification | id, category_code, category_name, numbering_prefix |
+| `drawings` | Engineering drawings register | id, drawing_number, category_id, status, current_revision |
+| `drawing_revisions` | Drawing version history | id, drawing_id, revision_number, change_description |
+| `drawing_transmittals` | Drawing distribution tracking | id, transmittal_number, recipient_company, status |
 
 ### Key Relationships
 ```
@@ -93,6 +100,15 @@ proforma_job_orders → pjo_revenue_items (1:many)
 proforma_job_orders → pjo_cost_items (1:many)
 proforma_job_orders → job_orders (1:1)
 job_orders → invoices (1:many)
+
+# Engineering Module
+projects → route_surveys (1:many)
+projects → journey_management_plans (1:many)
+projects → technical_assessments (1:many)
+projects → drawings (1:many)
+drawing_categories → drawings (1:many)
+drawings → drawing_revisions (1:many)
+projects → drawing_transmittals (1:many)
 ```
 
 ### Cost Categories
@@ -200,6 +216,8 @@ QUO: QUO-YYYY-NNNN (e.g., QUO-2025-0001)
 PJO: NNNN/CARGO/MM/YYYY (e.g., 0001/CARGO/XII/2025)
 JO:  JO-NNNN/CARGO/MM/YYYY (e.g., JO-0001/CARGO/XII/2025)
 INV: INV-2025-0001
+DRW: {PREFIX}-YYYY-NNNN (e.g., GA-2025-0001, LP-2025-0002)
+TR:  TR-YYYY-NNNN (e.g., TR-2025-0001)
 ```
 
 ### Status Workflows
@@ -211,6 +229,8 @@ PJO:       draft → pending_approval → approved → rejected
 JO:        active → completed → submitted_to_finance → invoiced → closed
 Invoice:   draft → sent → paid → overdue → cancelled
 Project:   active → completed → on_hold
+Drawing:   draft → for_review → for_approval → approved → issued → superseded
+Transmittal: draft → sent → acknowledged
 ```
 
 ### Market Classification

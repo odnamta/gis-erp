@@ -217,6 +217,14 @@ export const NAV_ITEMS: NavItem[] = [
         title: 'Active Journeys',
         href: '/engineering/jmp/active',
       },
+      {
+        title: 'Drawings',
+        href: '/engineering/drawings',
+      },
+      {
+        title: 'Transmittals',
+        href: '/engineering/drawings/transmittals',
+      },
     ],
   },
   {
