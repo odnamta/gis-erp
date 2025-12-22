@@ -282,6 +282,14 @@ export async function logDailyUtilization(
       return { success: false, error: meterValidation.error };
     }
 
+    // Check for existing log to handle fuel cost tracking properly
+    const { data: existingLog } = await supabase
+      .from('asset_daily_logs')
+      .select('id, fuel_cost')
+      .eq('asset_id', input.assetId)
+      .eq('log_date', input.logDate)
+      .single();
+
     // Upsert daily log
     const { data: log, error: upsertError } = await supabase
       .from('asset_daily_logs')
@@ -322,8 +330,51 @@ export async function logDailyUtilization(
         .eq('id', input.assetId);
     }
 
+    // v0.44: Create/update cost tracking record for fuel cost (Task 5.2)
+    if (input.fuelCost && input.fuelCost > 0) {
+      // Check if there's an existing cost tracking record for this daily log
+      const { data: existingCostRecord } = await supabase
+        .from('asset_cost_tracking')
+        .select('id')
+        .eq('reference_type', 'daily_log')
+        .eq('reference_id', log.id)
+        .single();
+
+      if (existingCostRecord) {
+        // Update existing cost record
+        await supabase
+          .from('asset_cost_tracking')
+          .update({
+            amount: input.fuelCost,
+            cost_date: input.logDate,
+            notes: input.fuelLiters ? `${input.fuelLiters} liters` : null,
+          })
+          .eq('id', existingCostRecord.id);
+      } else {
+        // Create new cost record
+        await supabase.from('asset_cost_tracking').insert({
+          asset_id: input.assetId,
+          cost_type: 'fuel',
+          cost_date: input.logDate,
+          amount: input.fuelCost,
+          reference_type: 'daily_log',
+          reference_id: log.id,
+          notes: input.fuelLiters ? `${input.fuelLiters} liters` : null,
+          created_by: user?.id || null,
+        });
+      }
+    } else if (existingLog?.fuel_cost && (!input.fuelCost || input.fuelCost === 0)) {
+      // If fuel cost was removed, delete the cost tracking record
+      await supabase
+        .from('asset_cost_tracking')
+        .delete()
+        .eq('reference_type', 'daily_log')
+        .eq('reference_id', log.id);
+    }
+
     revalidatePath('/equipment');
     revalidatePath('/equipment/utilization');
+    revalidatePath('/equipment/costing');
     revalidatePath(`/equipment/${input.assetId}`);
 
     return {

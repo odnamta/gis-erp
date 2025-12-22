@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from 'react'
 import { useRouter, useParams } from 'next/navigation'
-import { ArrowLeft, Edit, Loader2, RefreshCw, Plus, FileText, ImageIcon, Wrench, Eye, ClipboardList, Link2 } from 'lucide-react'
+import { ArrowLeft, Edit, Loader2, RefreshCw, Plus, FileText, ImageIcon, Wrench, Eye, ClipboardList, Link2, Calculator, TrendingDown } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'
@@ -359,6 +359,53 @@ export default function AssetDetailPage() {
             <div className="rounded-lg border p-4">
               <p className="text-sm text-muted-foreground">Current Assignment</p>
               <p className="text-2xl font-bold">{asset.assigned_to_job_id ? 'Assigned' : 'Available'}</p>
+            </div>
+          </div>
+        </CardContent>
+      </Card>
+
+      {/* Costing Section */}
+      <Card>
+        <CardHeader className="flex flex-row items-center justify-between">
+          <CardTitle className="flex items-center gap-2">
+            <Calculator className="h-5 w-5" />
+            Costing & Depreciation
+          </CardTitle>
+          <div className="flex gap-2">
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={() => router.push(`/equipment/${assetId}/depreciation`)}
+            >
+              <TrendingDown className="mr-2 h-4 w-4" />
+              Depreciation
+            </Button>
+            <Button
+              size="sm"
+              onClick={() => router.push(`/equipment/${assetId}/costs`)}
+            >
+              <Calculator className="mr-2 h-4 w-4" />
+              View Costs
+            </Button>
+          </div>
+        </CardHeader>
+        <CardContent>
+          <div className="grid gap-4 md:grid-cols-4">
+            <div className="rounded-lg border p-4">
+              <p className="text-sm text-muted-foreground">Purchase Price</p>
+              <p className="text-2xl font-bold">{formatIDR(asset.purchase_price || 0)}</p>
+            </div>
+            <div className="rounded-lg border p-4">
+              <p className="text-sm text-muted-foreground">Book Value</p>
+              <p className="text-2xl font-bold">{formatIDR(asset.book_value || asset.purchase_price || 0)}</p>
+            </div>
+            <div className="rounded-lg border p-4">
+              <p className="text-sm text-muted-foreground">Accumulated Depreciation</p>
+              <p className="text-2xl font-bold text-orange-600">{formatIDR(asset.accumulated_depreciation || 0)}</p>
+            </div>
+            <div className="rounded-lg border p-4">
+              <p className="text-sm text-muted-foreground">Salvage Value</p>
+              <p className="text-2xl font-bold">{formatIDR(asset.salvage_value || 0)}</p>
             </div>
           </div>
         </CardContent>

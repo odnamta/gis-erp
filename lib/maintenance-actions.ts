@@ -307,7 +307,23 @@ export async function createMaintenanceRecord(
     await updateNextMaintenanceDue(input.scheduleId, input.odometerKm, input.maintenanceDate);
   }
 
+  // v0.44: Create cost tracking record for maintenance cost (Task 5.1)
+  const totalMaintenanceCost = (input.laborCost || 0) + partsCost + (input.externalCost || 0);
+  if (totalMaintenanceCost > 0) {
+    await supabase.from('asset_cost_tracking').insert({
+      asset_id: input.assetId,
+      cost_type: 'maintenance',
+      cost_date: input.maintenanceDate,
+      amount: totalMaintenanceCost,
+      reference_type: 'maintenance_record',
+      reference_id: record.id,
+      notes: input.description || null,
+      created_by: user?.id || null,
+    });
+  }
+
   revalidatePath('/equipment/maintenance');
+  revalidatePath('/equipment/costing');
   revalidatePath(`/equipment/${input.assetId}`);
   
   return { success: true, record: transformMaintenanceRecordRow(record) };

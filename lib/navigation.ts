@@ -103,6 +103,10 @@ export const NAV_ITEMS: NavItem[] = [
         href: '/equipment/utilization',
       },
       {
+        title: 'Costing',
+        href: '/equipment/costing',
+      },
+      {
         title: 'Maintenance',
         href: '/equipment/maintenance',
       },
