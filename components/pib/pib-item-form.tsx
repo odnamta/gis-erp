@@ -18,6 +18,8 @@ import {
 } from '@/components/ui/dialog'
 import { PIBItem, PIBItemFormData, DEFAULT_PPN_RATE } from '@/types/pib'
 import { calculateItemTotalPrice, calculateItemDuties, formatCurrency } from '@/lib/pib-utils'
+import { HSCodeDropdown } from '@/components/hs-codes/hs-code-dropdown'
+import type { HSCodeRates } from '@/types/hs-codes'
 import { Loader2 } from 'lucide-react'
 
 const itemSchema = z.object({
@@ -200,15 +202,26 @@ export function PIBItemForm({
           <div className="grid gap-4 md:grid-cols-2">
             <div className="space-y-2">
               <Label htmlFor="hs_code">HS Code *</Label>
-              <Input
-                id="hs_code"
-                {...register('hs_code')}
-                placeholder="e.g., 8471.30.00"
+              <HSCodeDropdown
+                value={watch('hs_code')}
+                onChange={(code, rates) => {
+                  setValue('hs_code', code)
+                  if (rates) {
+                    setValue('hs_description', '')
+                    setValue('bm_rate', rates.bmRate)
+                    setValue('ppn_rate', rates.ppnRate)
+                    setValue('pph_rate', rates.pphRate)
+                    if (rates.hasRestrictions) {
+                      setValue('requires_permit', true)
+                      setValue('permit_type', rates.restrictionType || 'Import License')
+                    }
+                  }
+                }}
+                placeholder="Search HS code..."
                 disabled={isLoading}
+                showRestrictionWarning={true}
+                error={errors.hs_code?.message}
               />
-              {errors.hs_code && (
-                <p className="text-sm text-destructive">{errors.hs_code.message}</p>
-              )}
             </div>
             <div className="space-y-2">
               <Label htmlFor="hs_description">HS Description</Label>

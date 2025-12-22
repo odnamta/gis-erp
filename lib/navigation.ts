@@ -212,6 +212,14 @@ export const NAV_ITEMS: NavItem[] = [
         title: 'Export Documents (PEB)',
         href: '/customs/export',
       },
+      {
+        title: 'HS Code Database',
+        href: '/customs/hs-codes',
+      },
+      {
+        title: 'Duty Calculator',
+        href: '/customs/hs-codes/calculator',
+      },
     ],
   },
   {

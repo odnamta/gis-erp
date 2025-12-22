@@ -15,9 +15,12 @@ import {
   DialogTitle,
   DialogFooter,
 } from '@/components/ui/dialog'
+import { Alert, AlertDescription } from '@/components/ui/alert'
 import { PEBItem, PEBItemFormData } from '@/types/peb'
 import { calculateItemTotalPrice, formatCurrency } from '@/lib/peb-utils'
-import { Loader2 } from 'lucide-react'
+import { HSCodeDropdown } from '@/components/hs-codes/hs-code-dropdown'
+import type { HSCodeRates } from '@/types/hs-codes'
+import { Loader2, AlertTriangle } from 'lucide-react'
 
 const itemSchema = z.object({
   hs_code: z.string().min(1, 'HS code is required'),
@@ -53,10 +56,12 @@ export function PEBItemForm({
 }: PEBItemFormProps) {
   const [isLoading, setIsLoading] = useState(false)
   const [calculatedTotal, setCalculatedTotal] = useState(0)
+  const [hasExportRestriction, setHasExportRestriction] = useState(false)
 
   const {
     register,
     handleSubmit,
+    setValue,
     watch,
     reset,
     formState: { errors },
@@ -140,14 +145,29 @@ export function PEBItemForm({
           <div className="grid gap-4 md:grid-cols-2">
             <div className="space-y-2">
               <Label htmlFor="hs_code">HS Code *</Label>
-              <Input
-                id="hs_code"
-                {...register('hs_code')}
-                placeholder="e.g., 8471.30.00"
+              <HSCodeDropdown
+                value={watch('hs_code')}
+                onChange={(code, rates) => {
+                  setValue('hs_code', code)
+                  if (rates) {
+                    setValue('hs_description', '')
+                    setHasExportRestriction(rates.hasExportRestrictions)
+                  } else {
+                    setHasExportRestriction(false)
+                  }
+                }}
+                placeholder="Search HS code..."
                 disabled={isLoading}
+                showRestrictionWarning={false}
+                error={errors.hs_code?.message}
               />
-              {errors.hs_code && (
-                <p className="text-sm text-destructive">{errors.hs_code.message}</p>
+              {hasExportRestriction && (
+                <Alert variant="destructive" className="mt-2">
+                  <AlertTriangle className="h-4 w-4" />
+                  <AlertDescription>
+                    This HS code has export restrictions. Please ensure you have the required permits.
+                  </AlertDescription>
+                </Alert>
               )}
             </div>
             <div className="space-y-2">
