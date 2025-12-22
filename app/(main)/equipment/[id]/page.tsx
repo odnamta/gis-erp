@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from 'react'
 import { useRouter, useParams } from 'next/navigation'
-import { ArrowLeft, Edit, Loader2, RefreshCw, Plus, FileText, ImageIcon, Wrench, Eye } from 'lucide-react'
+import { ArrowLeft, Edit, Loader2, RefreshCw, Plus, FileText, ImageIcon, Wrench, Eye, ClipboardList, Link2 } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'
@@ -318,6 +318,49 @@ export default function AssetDetailPage() {
               </TableBody>
             </Table>
           )}
+        </CardContent>
+      </Card>
+
+      {/* Utilization Section */}
+      <Card>
+        <CardHeader className="flex flex-row items-center justify-between">
+          <CardTitle className="flex items-center gap-2">
+            <ClipboardList className="h-5 w-5" />
+            Utilization Tracking
+          </CardTitle>
+          <div className="flex gap-2">
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={() => router.push(`/equipment/${assetId}/logs`)}
+            >
+              <ClipboardList className="mr-2 h-4 w-4" />
+              Daily Logs
+            </Button>
+            <Button
+              size="sm"
+              onClick={() => router.push(`/equipment/${assetId}/assign`)}
+            >
+              <Link2 className="mr-2 h-4 w-4" />
+              Assign
+            </Button>
+          </div>
+        </CardHeader>
+        <CardContent>
+          <div className="grid gap-4 md:grid-cols-3">
+            <div className="rounded-lg border p-4">
+              <p className="text-sm text-muted-foreground">Current Odometer</p>
+              <p className="text-2xl font-bold">{asset.current_units?.toLocaleString() || 0} km</p>
+            </div>
+            <div className="rounded-lg border p-4">
+              <p className="text-sm text-muted-foreground">Status</p>
+              <p className="text-2xl font-bold capitalize">{asset.status}</p>
+            </div>
+            <div className="rounded-lg border p-4">
+              <p className="text-sm text-muted-foreground">Current Assignment</p>
+              <p className="text-2xl font-bold">{asset.assigned_to_job_id ? 'Assigned' : 'Available'}</p>
+            </div>
+          </div>
         </CardContent>
       </Card>
 
