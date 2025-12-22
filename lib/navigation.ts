@@ -18,6 +18,7 @@ import {
   LucideIcon,
   HelpCircle,
   Truck,
+  ShieldAlert,
 } from 'lucide-react'
 import { UserRole, UserPermissions } from '@/types/permissions'
 
@@ -113,6 +114,26 @@ export const NAV_ITEMS: NavItem[] = [
       {
         title: 'Maintenance Schedules',
         href: '/equipment/maintenance/schedules',
+      },
+    ],
+  },
+  {
+    title: 'HSE',
+    href: '/hse',
+    icon: ShieldAlert,
+    roles: ['owner', 'admin', 'manager', 'ops', 'finance', 'sales', 'viewer'],
+    children: [
+      {
+        title: 'Dashboard',
+        href: '/hse',
+      },
+      {
+        title: 'Incidents',
+        href: '/hse/incidents',
+      },
+      {
+        title: 'Report Incident',
+        href: '/hse/incidents/report',
       },
     ],
   },
