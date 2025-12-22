@@ -624,10 +624,17 @@ describe('Depreciation Utils Property Tests', () => {
     });
 
     it('should return false when depreciation_start_date is null/undefined', () => {
+      // Use integer offset from base date to avoid NaN dates
+      const safeDateArb = fc.integer({ min: 0, max: 2190 }).map(days => {
+        const d = new Date('2020-01-01');
+        d.setDate(d.getDate() + days);
+        return d;
+      });
+      
       fc.assert(
         fc.property(
           fc.constantFrom(null, undefined),
-          fc.date({ min: new Date('2020-01-01'), max: new Date('2025-12-31') }),
+          safeDateArb,
           (startDate, processingDate) => {
             const result = isEligibleForDepreciation(
               'active',
@@ -642,9 +649,16 @@ describe('Depreciation Utils Property Tests', () => {
     });
 
     it('should return true when active and start date <= processing date', () => {
+      // Use integer offset from base date to avoid NaN dates
+      const safeDateArb = fc.integer({ min: 0, max: 1825 }).map(days => {
+        const d = new Date('2020-01-01');
+        d.setDate(d.getDate() + days);
+        return d;
+      });
+      
       fc.assert(
         fc.property(
-          fc.date({ min: new Date('2020-01-01'), max: new Date('2024-12-31') }),
+          safeDateArb,
           (startDate) => {
             // Processing date is after start date
             const processingDate = new Date(startDate.getTime() + 86400000 * 30); // 30 days later
@@ -662,9 +676,16 @@ describe('Depreciation Utils Property Tests', () => {
     });
 
     it('should return false when start date is after processing date', () => {
+      // Use integer offset from base date to avoid NaN dates
+      const safeDateArb = fc.integer({ min: 0, max: 730 }).map(days => {
+        const d = new Date('2024-01-01');
+        d.setDate(d.getDate() + days);
+        return d;
+      });
+      
       fc.assert(
         fc.property(
-          fc.date({ min: new Date('2024-01-01'), max: new Date('2025-12-31') }),
+          safeDateArb,
           (startDate) => {
             // Processing date is before start date
             const processingDate = new Date(startDate.getTime() - 86400000 * 30); // 30 days earlier

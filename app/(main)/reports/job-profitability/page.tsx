@@ -2,13 +2,12 @@
 
 import { useState, useEffect, useCallback, useMemo } from 'react'
 import Link from 'next/link'
-import { ArrowLeft, TrendingUp, TrendingDown, DollarSign, Percent } from 'lucide-react'
-import { format } from 'date-fns'
+import { ArrowLeft, TrendingUp, TrendingDown } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
-import { ReportTable, ReportSkeleton, ReportEmptyState, ReportSummary } from '@/components/reports'
+import { ReportTable, ReportSkeleton, ReportEmptyState } from '@/components/reports'
 import { usePermissions } from '@/components/providers/permission-provider'
 import { canAccessReport } from '@/lib/reports/report-permissions'
 import {
@@ -30,6 +29,7 @@ const columns: ReportColumn<JobProfitabilityData>[] = [
   { key: 'projectName', header: 'Project' },
   { key: 'revenue', header: 'Revenue', align: 'right', format: 'currency' },
   { key: 'directCost', header: 'Direct Cost', align: 'right', format: 'currency' },
+  { key: 'equipmentCost', header: 'Equipment', align: 'right', format: 'currency' },
   { key: 'overhead', header: 'Overhead', align: 'right', format: 'currency' },
   { key: 'netProfit', header: 'Net Profit', align: 'right', format: 'currency' },
   { key: 'netMargin', header: 'Margin %', align: 'right', format: 'percentage' },
@@ -62,6 +62,7 @@ export default function JobProfitabilityReportPage() {
           jo_number,
           final_revenue,
           final_cost,
+          equipment_cost,
           status,
           created_at,
           customers (id, name),
@@ -72,12 +73,25 @@ export default function JobProfitabilityReportPage() {
 
       if (jobError) throw jobError
 
-      // Transform to profitability data (overhead is 0 for now until overhead module is integrated)
-      const profitabilityData: JobProfitabilityData[] = (jobOrders || []).map(job => {
+      // Transform to profitability data
+      type JobOrderRow = {
+        id: string
+        jo_number: string
+        final_revenue: number | null
+        final_cost: number | null
+        equipment_cost: number | null
+        status: string
+        created_at: string | null
+        customers: { id: string; name: string } | null
+        projects: { id: string; name: string } | null
+      }
+      
+      const profitabilityData: JobProfitabilityData[] = ((jobOrders || []) as unknown as JobOrderRow[]).map(job => {
         const revenue = job.final_revenue ?? 0
         const directCost = job.final_cost ?? 0
+        const equipmentCost = job.equipment_cost ?? 0
         const overhead = 0 // Will be populated when overhead allocations are available
-        const netProfit = revenue - directCost - overhead
+        const netProfit = revenue - directCost - equipmentCost - overhead
         const netMargin = revenue > 0 ? (netProfit / revenue) * 100 : 0
 
         return {
@@ -87,6 +101,7 @@ export default function JobProfitabilityReportPage() {
           projectName: job.projects?.name ?? 'Unknown',
           revenue,
           directCost,
+          equipmentCost,
           overhead,
           netProfit,
           netMargin,
@@ -255,7 +270,7 @@ export default function JobProfitabilityReportPage() {
       ) : (
         <>
           {/* Summary Cards */}
-          <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-4">
+          <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-7 gap-4">
             <Card>
               <CardContent className="pt-4">
                 <div className="text-sm text-muted-foreground">Total Jobs</div>
@@ -272,6 +287,12 @@ export default function JobProfitabilityReportPage() {
               <CardContent className="pt-4">
                 <div className="text-sm text-muted-foreground">Direct Cost</div>
                 <div className="text-2xl font-bold">{formatCurrency(summary.totalDirectCost)}</div>
+              </CardContent>
+            </Card>
+            <Card>
+              <CardContent className="pt-4">
+                <div className="text-sm text-muted-foreground">Equipment</div>
+                <div className="text-2xl font-bold">{formatCurrency(summary.totalEquipmentCost)}</div>
               </CardContent>
             </Card>
             <Card>

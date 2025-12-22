@@ -8,8 +8,10 @@ import {
   calculateProfitabilitySummary,
   sortJobsByMargin,
   validateProfitabilityFilters,
+  transformJobToProfitabilityData,
   JobProfitabilityData,
 } from '@/lib/reports/profitability-utils'
+import { JobOrderWithRelations } from '@/types'
 
 // Safe date arbitrary using integer offset from base date
 const baseDateArb = fc.integer({ min: 0, max: 730 }).map(days => {
@@ -41,11 +43,12 @@ const consistentJobArb = fc
     projectName: fc.string({ minLength: 1 }),
     revenue: fc.float({ min: 0, max: 1000000, noNaN: true }),
     directCost: fc.float({ min: 0, max: 500000, noNaN: true }),
+    equipmentCost: fc.float({ min: 0, max: 200000, noNaN: true }),
     overhead: fc.float({ min: 0, max: 100000, noNaN: true }),
     createdAt: baseDateArb,
   })
   .map((job) => {
-    const netProfit = job.revenue - job.directCost - job.overhead
+    const netProfit = job.revenue - job.directCost - job.equipmentCost - job.overhead
     const netMargin = job.revenue > 0 ? (netProfit / job.revenue) * 100 : 0
     return { ...job, netProfit, netMargin }
   }) as fc.Arbitrary<JobProfitabilityData>
@@ -54,19 +57,20 @@ describe('Profitability Utils', () => {
   /**
    * **Feature: reports-module-foundation, Property 15: Net profit calculation**
    * *For any* job in the profitability report, net_profit must equal
-   * revenue minus direct_cost minus overhead.
-   * **Validates: Requirements 6.2**
+   * revenue minus direct_cost minus equipment_cost minus overhead.
+   * **Validates: Requirements 6.2, v0.45 Task 11.1**
    */
   describe('Property 15: Net profit calculation', () => {
-    it('should calculate net profit as revenue - directCost - overhead', () => {
+    it('should calculate net profit as revenue - directCost - equipmentCost - overhead', () => {
       fc.assert(
         fc.property(
           fc.float({ min: 0, max: 10000000, noNaN: true }),
           fc.float({ min: 0, max: 10000000, noNaN: true }),
+          fc.float({ min: 0, max: 5000000, noNaN: true }),
           fc.float({ min: 0, max: 1000000, noNaN: true }),
-          (revenue, directCost, overhead) => {
-            const result = calculateNetProfit(revenue, directCost, overhead)
-            const expected = revenue - directCost - overhead
+          (revenue, directCost, equipmentCost, overhead) => {
+            const result = calculateNetProfit(revenue, directCost, equipmentCost, overhead)
+            const expected = revenue - directCost - equipmentCost - overhead
             expect(Math.abs(result - expected)).toBeLessThan(0.001)
           }
         ),
@@ -74,19 +78,30 @@ describe('Profitability Utils', () => {
       )
     })
 
-    it('should return positive profit when revenue exceeds costs', () => {
-      const result = calculateNetProfit(100000, 60000, 10000)
+    it('should return positive profit when revenue exceeds all costs', () => {
+      const result = calculateNetProfit(100000, 50000, 10000, 10000)
       expect(result).toBe(30000)
     })
 
     it('should return negative profit when costs exceed revenue', () => {
-      const result = calculateNetProfit(50000, 60000, 10000)
-      expect(result).toBe(-20000)
+      const result = calculateNetProfit(50000, 40000, 15000, 10000)
+      expect(result).toBe(-15000)
     })
 
     it('should return zero when revenue equals total costs', () => {
-      const result = calculateNetProfit(100000, 80000, 20000)
+      const result = calculateNetProfit(100000, 60000, 20000, 20000)
       expect(result).toBe(0)
+    })
+
+    it('should include equipment cost in calculation', () => {
+      // Without equipment cost
+      const withoutEquipment = calculateNetProfit(100000, 60000, 0, 10000)
+      // With equipment cost
+      const withEquipment = calculateNetProfit(100000, 60000, 5000, 10000)
+      
+      expect(withoutEquipment).toBe(30000)
+      expect(withEquipment).toBe(25000)
+      expect(withoutEquipment - withEquipment).toBe(5000) // Difference equals equipment cost
     })
   })
 
@@ -249,9 +264,9 @@ describe('Profitability Utils', () => {
   /**
    * **Feature: reports-module-foundation, Property 19: Profitability summary consistency**
    * *For any* set of jobs in the profitability report, the summary totals
-   * (totalRevenue, totalCost, totalOverhead, totalNetProfit) must equal the sum
+   * (totalRevenue, totalCost, totalEquipmentCost, totalOverhead, totalNetProfit) must equal the sum
    * of the corresponding values from individual jobs.
-   * **Validates: Requirements 6.7**
+   * **Validates: Requirements 6.7, v0.45 Task 11.1**
    */
   describe('Property 19: Profitability summary consistency', () => {
     it('should have summary totals equal sum of individual job values', () => {
@@ -261,11 +276,13 @@ describe('Profitability Utils', () => {
 
           const expectedRevenue = jobs.reduce((sum, j) => sum + j.revenue, 0)
           const expectedDirectCost = jobs.reduce((sum, j) => sum + j.directCost, 0)
+          const expectedEquipmentCost = jobs.reduce((sum, j) => sum + j.equipmentCost, 0)
           const expectedOverhead = jobs.reduce((sum, j) => sum + j.overhead, 0)
           const expectedNetProfit = jobs.reduce((sum, j) => sum + j.netProfit, 0)
 
           expect(Math.abs(summary.totalRevenue - expectedRevenue)).toBeLessThan(0.01)
           expect(Math.abs(summary.totalDirectCost - expectedDirectCost)).toBeLessThan(0.01)
+          expect(Math.abs(summary.totalEquipmentCost - expectedEquipmentCost)).toBeLessThan(0.01)
           expect(Math.abs(summary.totalOverhead - expectedOverhead)).toBeLessThan(0.01)
           expect(Math.abs(summary.totalNetProfit - expectedNetProfit)).toBeLessThan(0.01)
           expect(summary.totalJobs).toBe(jobs.length)
@@ -279,9 +296,48 @@ describe('Profitability Utils', () => {
       expect(summary.totalJobs).toBe(0)
       expect(summary.totalRevenue).toBe(0)
       expect(summary.totalDirectCost).toBe(0)
+      expect(summary.totalEquipmentCost).toBe(0)
       expect(summary.totalOverhead).toBe(0)
       expect(summary.totalNetProfit).toBe(0)
       expect(summary.averageMargin).toBe(0)
+    })
+
+    it('should include equipment cost in summary', () => {
+      const jobs: JobProfitabilityData[] = [
+        {
+          joId: '1',
+          joNumber: 'JO-001',
+          customerName: 'A',
+          projectName: 'P1',
+          revenue: 100000,
+          directCost: 50000,
+          equipmentCost: 10000,
+          overhead: 10000,
+          netProfit: 30000,
+          netMargin: 30,
+          createdAt: new Date(),
+        },
+        {
+          joId: '2',
+          joNumber: 'JO-002',
+          customerName: 'B',
+          projectName: 'P2',
+          revenue: 200000,
+          directCost: 100000,
+          equipmentCost: 20000,
+          overhead: 20000,
+          netProfit: 60000,
+          netMargin: 30,
+          createdAt: new Date(),
+        },
+      ]
+
+      const summary = calculateProfitabilitySummary(jobs)
+      expect(summary.totalEquipmentCost).toBe(30000)
+      expect(summary.totalRevenue).toBe(300000)
+      expect(summary.totalDirectCost).toBe(150000)
+      expect(summary.totalOverhead).toBe(30000)
+      expect(summary.totalNetProfit).toBe(90000)
     })
   })
 
@@ -413,6 +469,89 @@ describe('Profitability Utils', () => {
       })
       expect(result.valid).toBe(false)
       expect(result.error).toContain('margin')
+    })
+  })
+
+  /**
+   * **Feature: v0.45-equipment-job-integration, Task 11.2: Profit Integration Tests**
+   * Tests that equipment cost is properly included in job profitability calculations.
+   * **Validates: Requirements 7.1, 7.2**
+   */
+  describe('v0.45 Equipment Cost Integration', () => {
+    it('should include equipment_cost in transformJobToProfitabilityData', () => {
+      const mockJob = {
+        id: 'jo-123',
+        jo_number: 'JO-0001/CARGO/XII/2025',
+        final_revenue: 100000000,
+        final_cost: 60000000,
+        equipment_cost: 5000000,
+        overhead_total: 10000000,
+        status: 'completed',
+        created_at: '2025-01-15T00:00:00Z',
+        customers: { name: 'Test Customer' },
+        projects: { name: 'Test Project' },
+      } as unknown as JobOrderWithRelations & { overhead_total?: number; equipment_cost?: number }
+
+      const result = transformJobToProfitabilityData(mockJob)
+
+      expect(result.equipmentCost).toBe(5000000)
+      expect(result.revenue).toBe(100000000)
+      expect(result.directCost).toBe(60000000)
+      expect(result.overhead).toBe(10000000)
+      // Net profit = 100M - 60M - 5M - 10M = 25M
+      expect(result.netProfit).toBe(25000000)
+      // Net margin = 25M / 100M * 100 = 25%
+      expect(result.netMargin).toBe(25)
+    })
+
+    it('should handle missing equipment_cost as 0', () => {
+      const mockJob = {
+        id: 'jo-123',
+        jo_number: 'JO-0001/CARGO/XII/2025',
+        final_revenue: 100000000,
+        final_cost: 60000000,
+        status: 'completed',
+        created_at: '2025-01-15T00:00:00Z',
+        customers: { name: 'Test Customer' },
+        projects: { name: 'Test Project' },
+      } as unknown as JobOrderWithRelations & { overhead_total?: number; equipment_cost?: number }
+
+      const result = transformJobToProfitabilityData(mockJob)
+
+      expect(result.equipmentCost).toBe(0)
+      // Net profit = 100M - 60M - 0 - 0 = 40M
+      expect(result.netProfit).toBe(40000000)
+    })
+
+    it('should correctly calculate profit with all cost components', () => {
+      fc.assert(
+        fc.property(
+          fc.float({ min: 1000000, max: 1000000000, noNaN: true }),
+          fc.float({ min: 0, max: 500000000, noNaN: true }),
+          fc.float({ min: 0, max: 100000000, noNaN: true }),
+          fc.float({ min: 0, max: 100000000, noNaN: true }),
+          (revenue, directCost, equipmentCost, overhead) => {
+            const mockJob = {
+              id: 'jo-123',
+              jo_number: 'JO-0001/CARGO/XII/2025',
+              final_revenue: revenue,
+              final_cost: directCost,
+              equipment_cost: equipmentCost,
+              overhead_total: overhead,
+              status: 'completed',
+              created_at: '2025-01-15T00:00:00Z',
+              customers: { name: 'Test Customer' },
+              projects: { name: 'Test Project' },
+            } as unknown as JobOrderWithRelations & { overhead_total?: number; equipment_cost?: number }
+
+            const result = transformJobToProfitabilityData(mockJob)
+
+            const expectedProfit = revenue - directCost - equipmentCost - overhead
+            expect(Math.abs(result.netProfit - expectedProfit)).toBeLessThan(0.01)
+          }
+        ),
+        { numRuns: 100 }
+      )
     })
   })
 })

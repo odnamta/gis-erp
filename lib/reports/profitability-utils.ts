@@ -9,6 +9,7 @@ export interface JobProfitabilityData {
   projectName: string
   revenue: number
   directCost: number
+  equipmentCost: number
   overhead: number
   netProfit: number
   netMargin: number
@@ -27,16 +28,17 @@ export interface ProfitabilitySummary {
   totalJobs: number
   totalRevenue: number
   totalDirectCost: number
+  totalEquipmentCost: number
   totalOverhead: number
   totalNetProfit: number
   averageMargin: number
 }
 
 /**
- * Calculate net profit: revenue - direct cost - overhead
+ * Calculate net profit: revenue - direct cost - equipment cost - overhead
  */
-export function calculateNetProfit(revenue: number, directCost: number, overhead: number): number {
-  return revenue - directCost - overhead
+export function calculateNetProfit(revenue: number, directCost: number, equipmentCost: number, overhead: number): number {
+  return revenue - directCost - equipmentCost - overhead
 }
 
 /**
@@ -97,6 +99,7 @@ export function calculateProfitabilitySummary(jobs: JobProfitabilityData[]): Pro
       totalJobs: 0,
       totalRevenue: 0,
       totalDirectCost: 0,
+      totalEquipmentCost: 0,
       totalOverhead: 0,
       totalNetProfit: 0,
       averageMargin: 0,
@@ -105,6 +108,7 @@ export function calculateProfitabilitySummary(jobs: JobProfitabilityData[]): Pro
 
   const totalRevenue = jobs.reduce((sum, job) => sum + job.revenue, 0)
   const totalDirectCost = jobs.reduce((sum, job) => sum + job.directCost, 0)
+  const totalEquipmentCost = jobs.reduce((sum, job) => sum + job.equipmentCost, 0)
   const totalOverhead = jobs.reduce((sum, job) => sum + job.overhead, 0)
   const totalNetProfit = jobs.reduce((sum, job) => sum + job.netProfit, 0)
   
@@ -115,6 +119,7 @@ export function calculateProfitabilitySummary(jobs: JobProfitabilityData[]): Pro
     totalJobs: jobs.length,
     totalRevenue,
     totalDirectCost,
+    totalEquipmentCost,
     totalOverhead,
     totalNetProfit,
     averageMargin,
@@ -177,12 +182,13 @@ export function validateProfitabilityFilters(
  * Transform job order data to profitability data
  */
 export function transformJobToProfitabilityData(
-  job: JobOrderWithRelations & { overhead_total?: number }
+  job: JobOrderWithRelations & { overhead_total?: number; equipment_cost?: number }
 ): JobProfitabilityData {
   const revenue = job.final_revenue ?? 0
   const directCost = job.final_cost ?? 0
+  const equipmentCost = job.equipment_cost ?? 0
   const overhead = job.overhead_total ?? 0
-  const netProfit = calculateNetProfit(revenue, directCost, overhead)
+  const netProfit = calculateNetProfit(revenue, directCost, equipmentCost, overhead)
   const netMargin = calculateNetMargin(netProfit, revenue)
 
   return {
@@ -192,6 +198,7 @@ export function transformJobToProfitabilityData(
     projectName: job.projects?.name ?? 'Unknown',
     revenue,
     directCost,
+    equipmentCost,
     overhead,
     netProfit,
     netMargin,

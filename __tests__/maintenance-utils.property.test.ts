@@ -281,9 +281,16 @@ describe('Maintenance Utils Property Tests', () => {
     });
 
     it('should calculate next due date as completion date plus interval days', () => {
+      // Use integer offset from base date to avoid NaN dates
+      const safeDateArb = fc.integer({ min: 0, max: 3650 }).map(days => {
+        const d = new Date('2020-01-01');
+        d.setDate(d.getDate() + days);
+        return d;
+      });
+      
       fc.assert(
         fc.property(
-          fc.date({ min: new Date('2020-01-01'), max: new Date('2030-12-31') }),
+          safeDateArb,
           fc.integer({ min: 1, max: 365 }),
           (completionDate, intervalDays) => {
             const result = calculateNextDueDate('days', intervalDays, completionDate);
@@ -305,9 +312,16 @@ describe('Maintenance Utils Property Tests', () => {
     });
 
     it('should calculate next due date as 6 months for date-based (KIR) schedules', () => {
+      // Use integer offset from base date to avoid NaN dates
+      const safeDateArb = fc.integer({ min: 0, max: 3650 }).map(days => {
+        const d = new Date('2020-01-01');
+        d.setDate(d.getDate() + days);
+        return d;
+      });
+      
       fc.assert(
         fc.property(
-          fc.date({ min: new Date('2020-01-01'), max: new Date('2030-06-30') }),
+          safeDateArb,
           (completionDate) => {
             const result = calculateNextDueDate('date', undefined, completionDate);
             
