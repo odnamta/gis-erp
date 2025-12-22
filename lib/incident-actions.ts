@@ -46,6 +46,14 @@ import {
   notifyIncidentClosed,
 } from './notifications/incident-notifications';
 
+// Type helper for tables not yet in database.types.ts
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+type AnyTable = any;
+
+// Helper function to bypass type checking for incident tables
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+const fromIncidentTable = (supabase: any, table: string) => supabase.from(table) as AnyTable;
+
 // =====================================================
 // INCIDENT CATEGORIES
 // =====================================================
@@ -61,8 +69,7 @@ export async function getIncidentCategories(): Promise<{
   try {
     const supabase = await createClient();
 
-    const { data, error } = await supabase
-      .from('incident_categories')
+    const { data, error } = await fromIncidentTable(supabase, 'incident_categories')
       .select('*')
       .eq('is_active', true)
       .order('display_order', { ascending: true });
@@ -120,15 +127,13 @@ export async function reportIncident(
     }
 
     // Get category to check if investigation is required
-    const { data: category } = await supabase
-      .from('incident_categories')
+    const { data: category } = await fromIncidentTable(supabase, 'incident_categories')
       .select('requires_investigation')
       .eq('id', input.categoryId)
       .single();
 
     // Create incident
-    const { data: incident, error: insertError } = await supabase
-      .from('incidents')
+    const { data: incident, error: insertError } = await fromIncidentTable(supabase, 'incidents')
       .insert({
         category_id: input.categoryId,
         severity: input.severity,
@@ -174,7 +179,7 @@ export async function reportIncident(
         statement: p.statement || null,
       }));
 
-      await supabase.from('incident_persons').insert(personRecords);
+      await fromIncidentTable(supabase, 'incident_persons').insert(personRecords);
     }
 
     // Log history
@@ -189,8 +194,7 @@ export async function reportIncident(
 
     // Notify supervisor if assigned
     if (input.supervisorId) {
-      await supabase
-        .from('incidents')
+      await fromIncidentTable(supabase, 'incidents')
         .update({ supervisor_notified_at: new Date().toISOString() })
         .eq('id', incident.id);
     }
@@ -226,8 +230,7 @@ export async function getIncident(
   try {
     const supabase = await createClient();
 
-    const { data, error } = await supabase
-      .from('incidents')
+    const { data, error } = await fromIncidentTable(supabase, 'incidents')
       .select(`
         *,
         incident_categories!inner (category_code, category_name),
@@ -246,8 +249,7 @@ export async function getIncident(
     }
 
     // Get persons involved
-    const { data: persons } = await supabase
-      .from('incident_persons')
+    const { data: persons } = await fromIncidentTable(supabase, 'incident_persons')
       .select(`
         *,
         employees (full_name)
@@ -276,7 +278,7 @@ export async function getIncident(
 
     // Transform persons
     if (persons) {
-      incident.persons = persons.map((p) => {
+      incident.persons = persons.map((p: IncidentPersonRow & { employees?: { full_name: string } | null }) => {
         const person = transformPersonRow(p as IncidentPersonRow);
         const emp = p.employees as { full_name: string } | null;
         person.employeeName = emp?.full_name;
@@ -300,8 +302,7 @@ export async function getIncidents(
   try {
     const supabase = await createClient();
 
-    let query = supabase
-      .from('incidents')
+    let query = fromIncidentTable(supabase, 'incidents')
       .select(`
         *,
         incident_categories!inner (category_code, category_name),
@@ -371,7 +372,7 @@ export async function getIncidents(
     }
 
     // Transform the data
-    const incidents = (data || []).map((row) => {
+    const incidents = (data || []).map((row: IncidentRow & { incident_categories: { category_code: string; category_name: string }; employees: { full_name: string } | null; investigator: { full_name: string } | null }) => {
       const incident = transformIncidentRow(row as IncidentRow);
       const category = row.incident_categories as { category_code: string; category_name: string };
       const reporter = row.employees as { full_name: string } | null;
@@ -409,15 +410,13 @@ export async function startInvestigation(
     const { data: { user } } = await supabase.auth.getUser();
 
     // Get incident details for notification
-    const { data: incidentData } = await supabase
-      .from('incidents')
+    const { data: incidentData } = await fromIncidentTable(supabase, 'incidents')
       .select('incident_number, title')
       .eq('id', incidentId)
       .single();
 
     // Update incident
-    const { error } = await supabase
-      .from('incidents')
+    const { error } = await fromIncidentTable(supabase, 'incidents')
       .update({
         status: 'under_investigation',
         investigator_id: investigatorId,
@@ -475,8 +474,7 @@ export async function updateRootCause(
 
     const { data: { user } } = await supabase.auth.getUser();
 
-    const { error } = await supabase
-      .from('incidents')
+    const { error } = await fromIncidentTable(supabase, 'incidents')
       .update({
         root_cause: input.rootCause,
         contributing_factors: input.contributingFactors,
@@ -520,8 +518,7 @@ export async function completeInvestigation(
     const { data: { user } } = await supabase.auth.getUser();
 
     // Get incident to check root cause
-    const { data: incident } = await supabase
-      .from('incidents')
+    const { data: incident } = await fromIncidentTable(supabase, 'incidents')
       .select('root_cause')
       .eq('id', incidentId)
       .single();
@@ -530,8 +527,7 @@ export async function completeInvestigation(
       return { success: false, error: 'Root cause must be documented before completing investigation' };
     }
 
-    const { error } = await supabase
-      .from('incidents')
+    const { error } = await fromIncidentTable(supabase, 'incidents')
       .update({
         status: 'pending_actions',
         investigation_completed_at: new Date().toISOString(),
@@ -583,8 +579,7 @@ export async function addCorrectiveAction(
     const { data: { user } } = await supabase.auth.getUser();
 
     // Get current actions and incident details
-    const { data: incident } = await supabase
-      .from('incidents')
+    const { data: incident } = await fromIncidentTable(supabase, 'incidents')
       .select('corrective_actions, incident_number')
       .eq('id', incidentId)
       .single();
@@ -612,8 +607,7 @@ export async function addCorrectiveAction(
     const currentActions = (incident.corrective_actions || []) as IncidentAction[];
     const updatedActions = [...currentActions, newAction];
 
-    const { error } = await supabase
-      .from('incidents')
+    const { error } = await fromIncidentTable(supabase, 'incidents')
       .update({
         corrective_actions: updatedActions,
         updated_at: new Date().toISOString(),
@@ -667,8 +661,7 @@ export async function addPreventiveAction(
     const { data: { user } } = await supabase.auth.getUser();
 
     // Get current actions and incident details
-    const { data: incident } = await supabase
-      .from('incidents')
+    const { data: incident } = await fromIncidentTable(supabase, 'incidents')
       .select('preventive_actions, incident_number')
       .eq('id', incidentId)
       .single();
@@ -696,8 +689,7 @@ export async function addPreventiveAction(
     const currentActions = (incident.preventive_actions || []) as IncidentAction[];
     const updatedActions = [...currentActions, newAction];
 
-    const { error } = await supabase
-      .from('incidents')
+    const { error } = await fromIncidentTable(supabase, 'incidents')
       .update({
         preventive_actions: updatedActions,
         updated_at: new Date().toISOString(),
@@ -754,8 +746,7 @@ export async function completeAction(
     const field = actionType === 'corrective' ? 'corrective_actions' : 'preventive_actions';
 
     // Get current actions
-    const { data: incident } = await supabase
-      .from('incidents')
+    const { data: incident } = await fromIncidentTable(supabase, 'incidents')
       .select(field)
       .eq('id', incidentId)
       .single();
@@ -778,8 +769,7 @@ export async function completeAction(
       completedAt: new Date().toISOString(),
     };
 
-    const { error } = await supabase
-      .from('incidents')
+    const { error } = await fromIncidentTable(supabase, 'incidents')
       .update({
         [field]: actions,
         updated_at: new Date().toISOString(),
@@ -827,8 +817,7 @@ export async function closeIncident(
     const { data: { user } } = await supabase.auth.getUser();
 
     // Get incident to validate closure
-    const { data: incident } = await supabase
-      .from('incidents')
+    const { data: incident } = await fromIncidentTable(supabase, 'incidents')
       .select('*')
       .eq('id', incidentId)
       .single();
@@ -841,12 +830,11 @@ export async function closeIncident(
     const incidentData = transformIncidentRow(incident as IncidentRow);
     
     // Get persons for validation
-    const { data: persons } = await supabase
-      .from('incident_persons')
+    const { data: persons } = await fromIncidentTable(supabase, 'incident_persons')
       .select('*')
       .eq('incident_id', incidentId);
 
-    incidentData.persons = (persons || []).map((p) => transformPersonRow(p as IncidentPersonRow));
+    incidentData.persons = (persons || []).map((p: IncidentPersonRow) => transformPersonRow(p as IncidentPersonRow));
 
     // Import canCloseIncident from utils
     const { canCloseIncident } = await import('./incident-utils');
@@ -857,8 +845,7 @@ export async function closeIncident(
     }
 
     // Close the incident
-    const { error } = await supabase
-      .from('incidents')
+    const { error } = await fromIncidentTable(supabase, 'incidents')
       .update({
         status: 'closed',
         closed_at: new Date().toISOString(),
@@ -914,8 +901,7 @@ export async function rejectIncident(
 
     const { data: { user } } = await supabase.auth.getUser();
 
-    const { data: incident } = await supabase
-      .from('incidents')
+    const { data: incident } = await fromIncidentTable(supabase, 'incidents')
       .select('status')
       .eq('id', incidentId)
       .single();
@@ -928,8 +914,7 @@ export async function rejectIncident(
       return { success: false, error: 'Only reported incidents can be rejected' };
     }
 
-    const { error } = await supabase
-      .from('incidents')
+    const { error } = await fromIncidentTable(supabase, 'incidents')
       .update({
         status: 'rejected',
         closure_notes: reason,
@@ -979,8 +964,7 @@ export async function addPersonToIncident(
   try {
     const supabase = await createClient();
 
-    const { data, error } = await supabase
-      .from('incident_persons')
+    const { data, error } = await fromIncidentTable(supabase, 'incident_persons')
       .insert({
         incident_id: incidentId,
         person_type: person.personType,
@@ -1025,8 +1009,7 @@ export async function removePersonFromIncident(
     const supabase = await createClient();
 
     // Get incident ID first
-    const { data: person } = await supabase
-      .from('incident_persons')
+    const { data: person } = await fromIncidentTable(supabase, 'incident_persons')
       .select('incident_id')
       .eq('id', personId)
       .single();
@@ -1035,8 +1018,7 @@ export async function removePersonFromIncident(
       return { success: false, error: 'Person not found' };
     }
 
-    const { error } = await supabase
-      .from('incident_persons')
+    const { error } = await fromIncidentTable(supabase, 'incident_persons')
       .delete()
       .eq('id', personId);
 
@@ -1067,8 +1049,7 @@ export async function getIncidentHistory(
   try {
     const supabase = await createClient();
 
-    const { data, error } = await supabase
-      .from('incident_history')
+    const { data, error } = await fromIncidentTable(supabase, 'incident_history')
       .select(`
         *,
         user_profiles (full_name)
@@ -1081,7 +1062,7 @@ export async function getIncidentHistory(
       return { success: false, error: 'Failed to fetch history' };
     }
 
-    const history = (data || []).map((row) => {
+    const history = (data || []).map((row: IncidentHistoryRow & { user_profiles?: { full_name: string } | null }) => {
       const entry = transformHistoryRow(row as IncidentHistoryRow);
       const user = row.user_profiles as { full_name: string } | null;
       entry.performedByName = user?.full_name;
@@ -1109,7 +1090,7 @@ async function logIncidentHistory(
   try {
     const supabase = await createClient();
 
-    await supabase.from('incident_history').insert({
+    await fromIncidentTable(supabase, 'incident_history').insert({
       incident_id: incidentId,
       action_type: actionType,
       description,
@@ -1141,8 +1122,7 @@ export async function getIncidentStatistics(
     const endDate = `${currentYear}-12-31`;
 
     // Get all incidents for the year
-    const { data: incidents, error } = await supabase
-      .from('incidents')
+    const { data: incidents, error } = await fromIncidentTable(supabase, 'incidents')
       .select(`
         *,
         incident_persons (person_type, days_lost)
@@ -1157,7 +1137,7 @@ export async function getIncidentStatistics(
     }
 
     // Transform incidents
-    const transformedIncidents: Incident[] = (incidents || []).map((row) => {
+    const transformedIncidents: Incident[] = (incidents || []).map((row: IncidentRow & { incident_persons?: IncidentPersonRow[] }) => {
       const incident = transformIncidentRow(row as IncidentRow);
       incident.persons = (row.incident_persons || []).map((p: IncidentPersonRow) => 
         transformPersonRow(p)
@@ -1231,20 +1211,17 @@ export async function getIncidentDashboardSummary(): Promise<{
     const endOfMonth = new Date(now.getFullYear(), now.getMonth() + 1, 0).toISOString().split('T')[0];
 
     // Get open incidents count
-    const { count: openIncidents } = await supabase
-      .from('incidents')
+    const { count: openIncidents } = await fromIncidentTable(supabase, 'incidents')
       .select('*', { count: 'exact', head: true })
       .in('status', ['reported', 'under_investigation', 'pending_actions']);
 
     // Get under investigation count
-    const { count: underInvestigation } = await supabase
-      .from('incidents')
+    const { count: underInvestigation } = await fromIncidentTable(supabase, 'incidents')
       .select('*', { count: 'exact', head: true })
       .eq('status', 'under_investigation');
 
     // Get near misses MTD
-    const { count: nearMissesMTD } = await supabase
-      .from('incidents')
+    const { count: nearMissesMTD } = await fromIncidentTable(supabase, 'incidents')
       .select('*', { count: 'exact', head: true })
       .eq('incident_type', 'near_miss')
       .gte('incident_date', startOfMonth)
@@ -1252,8 +1229,7 @@ export async function getIncidentDashboardSummary(): Promise<{
       .neq('status', 'rejected');
 
     // Get injuries MTD (accidents with injured persons)
-    const { data: accidentsMTD } = await supabase
-      .from('incidents')
+    const { data: accidentsMTD } = await fromIncidentTable(supabase, 'incidents')
       .select(`
         id,
         incident_persons!inner (person_type)
@@ -1263,13 +1239,12 @@ export async function getIncidentDashboardSummary(): Promise<{
       .lte('incident_date', endOfMonth)
       .neq('status', 'rejected');
 
-    const injuriesMTD = (accidentsMTD || []).filter((inc) =>
-      (inc.incident_persons as { person_type: string }[]).some((p) => p.person_type === 'injured')
+    const injuriesMTD = (accidentsMTD || []).filter((inc: { incident_persons: { person_type: string }[] }) =>
+      inc.incident_persons.some((p) => p.person_type === 'injured')
     ).length;
 
     // Get all incidents for LTI calculation
-    const { data: allIncidents } = await supabase
-      .from('incidents')
+    const { data: allIncidents } = await fromIncidentTable(supabase, 'incidents')
       .select(`
         *,
         incident_persons (person_type, days_lost)
@@ -1277,7 +1252,7 @@ export async function getIncidentDashboardSummary(): Promise<{
       .eq('incident_type', 'accident')
       .neq('status', 'rejected');
 
-    const transformedIncidents: Incident[] = (allIncidents || []).map((row) => {
+    const transformedIncidents: Incident[] = (allIncidents || []).map((row: IncidentRow & { incident_persons?: IncidentPersonRow[] }) => {
       const incident = transformIncidentRow(row as IncidentRow);
       incident.persons = (row.incident_persons || []).map((p: IncidentPersonRow) =>
         transformPersonRow(p)
