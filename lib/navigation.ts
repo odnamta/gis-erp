@@ -143,6 +143,22 @@ export const NAV_ITEMS: NavItem[] = [
         title: 'Permits',
         href: '/hse/permits',
       },
+      {
+        title: 'Training',
+        href: '/hse/training',
+      },
+      {
+        title: 'Training Courses',
+        href: '/hse/training/courses',
+      },
+      {
+        title: 'Training Records',
+        href: '/hse/training/records',
+      },
+      {
+        title: 'Training Sessions',
+        href: '/hse/training/sessions',
+      },
     ],
   },
   {

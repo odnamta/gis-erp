@@ -164,6 +164,17 @@ const FEATURE_PERMISSION_MAP: Record<FeatureKey, (profile: UserProfile) => boole
   'assets.dispose': (p) => ['owner', 'admin'].includes(p.role),
   'assets.upload_documents': (p) => ['owner', 'admin', 'manager', 'ops'].includes(p.role),
   'assets.nav': (p) => ['owner', 'admin', 'manager', 'ops', 'finance'].includes(p.role),
+  // Training permissions
+  'training.view': (p) => ['owner', 'admin', 'manager', 'ops', 'finance', 'sales', 'viewer'].includes(p.role),
+  'training.view_own': () => true, // All authenticated users can view their own training records
+  'training.create_course': (p) => ['owner', 'admin'].includes(p.role),
+  'training.edit_course': (p) => ['owner', 'admin'].includes(p.role),
+  'training.create_record': (p) => ['owner', 'admin', 'manager'].includes(p.role),
+  'training.edit_record': (p) => ['owner', 'admin', 'manager'].includes(p.role),
+  'training.create_session': (p) => ['owner', 'admin', 'manager'].includes(p.role),
+  'training.manage_session': (p) => ['owner', 'admin', 'manager'].includes(p.role),
+  'training.view_compliance': (p) => ['owner', 'admin', 'manager'].includes(p.role),
+  'training.nav': () => true, // All authenticated users can see training nav
 }
 
 /**
@@ -655,4 +666,88 @@ export function canUploadAssetDocuments(profile: UserProfile | null): boolean {
  */
 export function canSeeAssetsNav(profile: UserProfile | null): boolean {
   return canAccessFeature(profile, 'assets.nav')
+}
+
+
+// ============================================
+// Training Permission Helpers
+// ============================================
+
+/**
+ * Check if user can view training module
+ * Property 10: All authenticated users SHALL have view access
+ */
+export function canViewTraining(profile: UserProfile | null): boolean {
+  return canAccessFeature(profile, 'training.view')
+}
+
+/**
+ * Check if user can view their own training records
+ * Property 10: All authenticated users SHALL have access to their own records
+ */
+export function canViewOwnTraining(profile: UserProfile | null): boolean {
+  return canAccessFeature(profile, 'training.view_own')
+}
+
+/**
+ * Check if user can create training courses
+ * Property 10: Only Owner, Admin roles SHALL have access
+ */
+export function canCreateTrainingCourse(profile: UserProfile | null): boolean {
+  return canAccessFeature(profile, 'training.create_course')
+}
+
+/**
+ * Check if user can edit training courses
+ * Property 10: Only Owner, Admin roles SHALL have access
+ */
+export function canEditTrainingCourse(profile: UserProfile | null): boolean {
+  return canAccessFeature(profile, 'training.edit_course')
+}
+
+/**
+ * Check if user can create training records
+ * Property 10: Owner, Admin, Manager roles SHALL have access
+ */
+export function canCreateTrainingRecord(profile: UserProfile | null): boolean {
+  return canAccessFeature(profile, 'training.create_record')
+}
+
+/**
+ * Check if user can edit training records
+ * Property 10: Owner, Admin, Manager roles SHALL have access
+ */
+export function canEditTrainingRecord(profile: UserProfile | null): boolean {
+  return canAccessFeature(profile, 'training.edit_record')
+}
+
+/**
+ * Check if user can create training sessions
+ * Property 10: Owner, Admin, Manager roles SHALL have access
+ */
+export function canCreateTrainingSession(profile: UserProfile | null): boolean {
+  return canAccessFeature(profile, 'training.create_session')
+}
+
+/**
+ * Check if user can manage training sessions (complete, cancel, add participants)
+ * Property 10: Owner, Admin, Manager roles SHALL have access
+ */
+export function canManageTrainingSession(profile: UserProfile | null): boolean {
+  return canAccessFeature(profile, 'training.manage_session')
+}
+
+/**
+ * Check if user can view compliance matrix and reports
+ * Property 10: Owner, Admin, Manager roles SHALL have access
+ */
+export function canViewTrainingCompliance(profile: UserProfile | null): boolean {
+  return canAccessFeature(profile, 'training.view_compliance')
+}
+
+/**
+ * Check if training should be shown in navigation
+ */
+export function canSeeTrainingNav(profile: UserProfile | null): boolean {
+  return canAccessFeature(profile, 'training.nav')
 }

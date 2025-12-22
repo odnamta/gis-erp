@@ -113,6 +113,17 @@ export type FeatureKey =
   | 'assets.dispose'
   | 'assets.upload_documents'
   | 'assets.nav'
+  // Training permissions
+  | 'training.view'
+  | 'training.view_own'
+  | 'training.create_course'
+  | 'training.edit_course'
+  | 'training.create_record'
+  | 'training.edit_record'
+  | 'training.create_session'
+  | 'training.manage_session'
+  | 'training.view_compliance'
+  | 'training.nav'
 
 export interface PermissionContextType {
   profile: UserProfile | null
