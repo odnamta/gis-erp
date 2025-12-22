@@ -1,6 +1,9 @@
+import { redirect } from 'next/navigation'
 import { PIBForm } from '@/components/pib'
 import { getCustomsOffices, getImportTypes } from '@/lib/pib-actions'
 import { createClient } from '@/lib/supabase/server'
+import { getCurrentUserProfile } from '@/lib/auth-utils'
+import { canCreatePIB } from '@/lib/permissions'
 import { FileText } from 'lucide-react'
 
 async function getFormData() {
@@ -30,6 +33,12 @@ async function getFormData() {
 }
 
 export default async function NewPIBPage() {
+  // Permission check
+  const profile = await getCurrentUserProfile()
+  if (!canCreatePIB(profile)) {
+    redirect('/customs/import')
+  }
+
   const { customsOffices, importTypes, jobOrders, customers } = await getFormData()
 
   return (

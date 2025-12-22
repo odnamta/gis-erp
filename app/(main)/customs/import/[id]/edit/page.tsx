@@ -2,6 +2,8 @@ import { notFound, redirect } from 'next/navigation'
 import { PIBForm } from '@/components/pib'
 import { getPIBDocument, getCustomsOffices, getImportTypes } from '@/lib/pib-actions'
 import { createClient } from '@/lib/supabase/server'
+import { getCurrentUserProfile } from '@/lib/auth-utils'
+import { canEditPIB } from '@/lib/permissions'
 import { FileText } from 'lucide-react'
 
 interface PageProps {
@@ -39,6 +41,12 @@ async function getFormData(id: string) {
 }
 
 export default async function EditPIBPage({ params }: PageProps) {
+  // Permission check
+  const profile = await getCurrentUserProfile()
+  if (!canEditPIB(profile)) {
+    redirect('/customs/import')
+  }
+
   const { id } = await params
   const { pib, error, customsOffices, importTypes, jobOrders, customers } =
     await getFormData(id)

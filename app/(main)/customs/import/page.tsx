@@ -1,11 +1,14 @@
 import { Suspense } from 'react'
 import Link from 'next/link'
+import { redirect } from 'next/navigation'
 import { Button } from '@/components/ui/button'
 import { PIBSummaryCards, PIBList, PIBFiltersComponent } from '@/components/pib'
 import { getPIBDocuments, getPIBStatistics, getCustomsOffices } from '@/lib/pib-actions'
 import { PIBFilters } from '@/types/pib'
 import { Plus, FileText } from 'lucide-react'
 import { Skeleton } from '@/components/ui/skeleton'
+import { getCurrentUserProfile } from '@/lib/auth-utils'
+import { canViewPIB, canCreatePIB } from '@/lib/permissions'
 
 interface PageProps {
   searchParams: Promise<{
@@ -61,6 +64,12 @@ async function PIBContent({ filters }: { filters: PIBFilters }) {
 }
 
 export default async function CustomsImportPage({ searchParams }: PageProps) {
+  // Permission check
+  const profile = await getCurrentUserProfile()
+  if (!canViewPIB(profile)) {
+    redirect('/dashboard')
+  }
+
   const params = await searchParams
   
   const filters: PIBFilters = {
@@ -70,6 +79,8 @@ export default async function CustomsImportPage({ searchParams }: PageProps) {
     date_to: params.date_to,
     search: params.search,
   }
+
+  const showCreateButton = canCreatePIB(profile)
 
   return (
     <div className="container mx-auto py-6 space-y-6">
@@ -84,12 +95,14 @@ export default async function CustomsImportPage({ searchParams }: PageProps) {
             </p>
           </div>
         </div>
-        <Button asChild>
-          <Link href="/customs/import/new">
-            <Plus className="mr-2 h-4 w-4" />
-            New PIB
-          </Link>
-        </Button>
+        {showCreateButton && (
+          <Button asChild>
+            <Link href="/customs/import/new">
+              <Plus className="mr-2 h-4 w-4" />
+              New PIB
+            </Link>
+          </Button>
+        )}
       </div>
 
       {/* Content */}

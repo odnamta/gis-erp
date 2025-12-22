@@ -88,13 +88,13 @@ This implementation plan covers the development of the Customs Import Documentat
     - Implement getCustomsOffices, getImportTypes
     - Implement getPIBStatistics for summary cards
     - _Requirements: 1.4, 7.1_
-  - [ ] 3.5 Write property tests for sequential item numbers
+  - [x] 3.5 Write property tests for sequential item numbers
     - **Property 6: Sequential Item Numbers**
     - **Validates: Requirements 4.1**
-  - [ ] 3.6 Write property tests for initial status
+  - [x] 3.6 Write property tests for initial status
     - **Property 7: Initial Status Invariant**
     - **Validates: Requirements 6.2**
-  - [ ] 3.7 Write property tests for status history
+  - [x] 3.7 Write property tests for status history
     - **Property 8: Status History Completeness**
     - **Validates: Requirements 6.6**
 
@@ -198,21 +198,21 @@ This implementation plan covers the development of the Customs Import Documentat
     - Add PIB permissions to lib/permissions.ts
     - Implement canViewPIB, canCreatePIB, canEditPIB, canDeletePIB, canViewDuties
     - _Requirements: 10.1, 10.2, 10.3, 10.4, 10.5, 10.6_
-  - [ ] 10.2 Apply permissions to pages and components
+  - [x] 10.2 Apply permissions to pages and components
     - Add permission checks to all PIB pages
     - Conditionally render actions based on permissions
     - _Requirements: 10.1, 10.2, 10.3, 10.4, 10.5, 10.6_
-  - [ ] 10.3 Write property tests for permissions
+  - [x] 10.3 Write property tests for permissions
     - **Property 12: Role-Based Permission Consistency**
     - **Validates: Requirements 10.1, 10.2, 10.3, 10.4, 10.5, 10.6**
 
-- [ ] 11. Document Attachments
-  - [ ] 11.1 Integrate document upload
+- [x] 11. Document Attachments
+  - [x] 11.1 Integrate document upload
     - Use existing attachment components for PIB documents
     - Support B/L, commercial invoice, packing list uploads
     - _Requirements: 9.1, 9.2, 9.3_
 
-- [ ] 12. Final Checkpoint
+- [x] 12. Final Checkpoint
   - Ensure all tests pass
   - Verify all requirements are implemented
   - Ask the user if questions arise

@@ -1,10 +1,10 @@
 /**
  * Document Attachments Types
- * Types for file attachments on PJO, JO, Invoice, Customer, and Project entities
+ * Types for file attachments on PJO, JO, Invoice, Customer, Project, and PIB entities
  */
 
 // Entity types that can have attachments
-export type AttachmentEntityType = 'pjo' | 'jo' | 'invoice' | 'customer' | 'project';
+export type AttachmentEntityType = 'pjo' | 'jo' | 'invoice' | 'customer' | 'project' | 'pib';
 
 // Document attachment record from database
 export interface DocumentAttachment {

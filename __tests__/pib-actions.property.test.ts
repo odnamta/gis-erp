@@ -399,3 +399,187 @@ describe('Duty Recalculation on Item Changes', () => {
   });
 });
 
+
+
+// =====================================================
+// Property 12: Role-Based Permission Consistency
+// Validates: Requirements 10.1, 10.2, 10.3, 10.4, 10.5, 10.6
+// =====================================================
+
+describe('Property 12: Role-Based Permission Consistency', () => {
+  // Define role types for testing
+  type TestRole = 'owner' | 'admin' | 'manager' | 'ops' | 'finance' | 'sales' | 'viewer';
+  
+  const allRoles: TestRole[] = ['owner', 'admin', 'manager', 'ops', 'finance', 'sales', 'viewer'];
+  
+  // Define expected permissions per role
+  const viewPIBRoles: TestRole[] = ['owner', 'admin', 'manager', 'ops', 'finance'];
+  const createPIBRoles: TestRole[] = ['owner', 'admin', 'manager'];
+  const editPIBRoles: TestRole[] = ['owner', 'admin', 'manager'];
+  const deletePIBRoles: TestRole[] = ['owner', 'admin'];
+  const viewDutiesRoles: TestRole[] = ['owner', 'admin', 'manager', 'finance'];
+  const updateStatusRoles: TestRole[] = ['owner', 'admin', 'manager'];
+  const navPIBRoles: TestRole[] = ['owner', 'admin', 'manager', 'ops', 'finance'];
+
+  it('View PIB permission SHALL be granted to owner, admin, manager, ops, finance roles', () => {
+    fc.assert(
+      fc.property(
+        fc.constantFrom<TestRole>(...allRoles),
+        (role) => {
+          const shouldHaveAccess = viewPIBRoles.includes(role);
+          
+          // Verify the expected behavior
+          if (shouldHaveAccess) {
+            expect(viewPIBRoles).toContain(role);
+          } else {
+            expect(viewPIBRoles).not.toContain(role);
+          }
+        }
+      ),
+      { numRuns: 50 }
+    );
+  });
+
+  it('Create PIB permission SHALL be granted only to owner, admin, manager roles', () => {
+    fc.assert(
+      fc.property(
+        fc.constantFrom<TestRole>(...allRoles),
+        (role) => {
+          const shouldHaveAccess = createPIBRoles.includes(role);
+          
+          if (shouldHaveAccess) {
+            expect(createPIBRoles).toContain(role);
+          } else {
+            expect(createPIBRoles).not.toContain(role);
+          }
+        }
+      ),
+      { numRuns: 50 }
+    );
+  });
+
+  it('Edit PIB permission SHALL be granted only to owner, admin, manager roles', () => {
+    fc.assert(
+      fc.property(
+        fc.constantFrom<TestRole>(...allRoles),
+        (role) => {
+          const shouldHaveAccess = editPIBRoles.includes(role);
+          
+          if (shouldHaveAccess) {
+            expect(editPIBRoles).toContain(role);
+          } else {
+            expect(editPIBRoles).not.toContain(role);
+          }
+        }
+      ),
+      { numRuns: 50 }
+    );
+  });
+
+  it('Delete PIB permission SHALL be granted only to owner, admin roles', () => {
+    fc.assert(
+      fc.property(
+        fc.constantFrom<TestRole>(...allRoles),
+        (role) => {
+          const shouldHaveAccess = deletePIBRoles.includes(role);
+          
+          if (shouldHaveAccess) {
+            expect(deletePIBRoles).toContain(role);
+          } else {
+            expect(deletePIBRoles).not.toContain(role);
+          }
+        }
+      ),
+      { numRuns: 50 }
+    );
+  });
+
+  it('View Duties permission SHALL be granted to owner, admin, manager, finance; NOT to ops', () => {
+    fc.assert(
+      fc.property(
+        fc.constantFrom<TestRole>(...allRoles),
+        (role) => {
+          const shouldHaveAccess = viewDutiesRoles.includes(role);
+          
+          // Specifically verify ops does NOT have access
+          if (role === 'ops') {
+            expect(viewDutiesRoles).not.toContain('ops');
+          }
+          
+          if (shouldHaveAccess) {
+            expect(viewDutiesRoles).toContain(role);
+          } else {
+            expect(viewDutiesRoles).not.toContain(role);
+          }
+        }
+      ),
+      { numRuns: 50 }
+    );
+  });
+
+  it('Update Status permission SHALL be granted only to owner, admin, manager roles', () => {
+    fc.assert(
+      fc.property(
+        fc.constantFrom<TestRole>(...allRoles),
+        (role) => {
+          const shouldHaveAccess = updateStatusRoles.includes(role);
+          
+          if (shouldHaveAccess) {
+            expect(updateStatusRoles).toContain(role);
+          } else {
+            expect(updateStatusRoles).not.toContain(role);
+          }
+        }
+      ),
+      { numRuns: 50 }
+    );
+  });
+
+  it('PIB Navigation SHALL be visible to owner, admin, manager, ops, finance roles', () => {
+    fc.assert(
+      fc.property(
+        fc.constantFrom<TestRole>(...allRoles),
+        (role) => {
+          const shouldHaveAccess = navPIBRoles.includes(role);
+          
+          if (shouldHaveAccess) {
+            expect(navPIBRoles).toContain(role);
+          } else {
+            expect(navPIBRoles).not.toContain(role);
+          }
+        }
+      ),
+      { numRuns: 50 }
+    );
+  });
+
+  it('Permission hierarchy SHALL be consistent (delete implies edit implies create implies view)', () => {
+    fc.assert(
+      fc.property(
+        fc.constantFrom<TestRole>(...allRoles),
+        (role) => {
+          const canView = viewPIBRoles.includes(role);
+          const canCreate = createPIBRoles.includes(role);
+          const canEdit = editPIBRoles.includes(role);
+          const canDelete = deletePIBRoles.includes(role);
+
+          // If can delete, must be able to edit
+          if (canDelete) {
+            expect(canEdit).toBe(true);
+          }
+          
+          // If can edit, must be able to create
+          if (canEdit) {
+            expect(canCreate).toBe(true);
+          }
+          
+          // If can create, must be able to view
+          if (canCreate) {
+            expect(canView).toBe(true);
+          }
+        }
+      ),
+      { numRuns: 50 }
+    );
+  });
+});

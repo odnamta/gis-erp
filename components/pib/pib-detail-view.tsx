@@ -30,12 +30,13 @@ import { StatusHistory } from './status-history'
 import { StatusUpdateDialog } from './status-update-dialog'
 import { PIBItemsTable } from './pib-items-table'
 import { DutiesSummary } from './duties-summary'
+import { AttachmentsSection } from '@/components/attachments/attachments-section'
 import {
   formatCurrency,
   formatPIBDate,
   formatTransportMode,
-  canEditPIB,
-  canDeletePIB,
+  canEditPIB as canEditPIBStatus,
+  canDeletePIB as canDeletePIBStatus,
   getNextAllowedStatuses,
 } from '@/lib/pib-utils'
 import {
@@ -59,8 +60,16 @@ import {
   Paperclip,
 } from 'lucide-react'
 
+interface PIBPermissions {
+  canEdit: boolean
+  canDelete: boolean
+  canViewDuties: boolean
+  canUpdateStatus: boolean
+}
+
 interface PIBDetailViewProps {
   pib: PIBDocumentWithRelations
+  permissions?: PIBPermissions
 }
 
 function TransportIcon({ mode }: { mode: string | null }) {
@@ -77,7 +86,7 @@ function TransportIcon({ mode }: { mode: string | null }) {
   }
 }
 
-export function PIBDetailView({ pib }: PIBDetailViewProps) {
+export function PIBDetailView({ pib, permissions }: PIBDetailViewProps) {
   const router = useRouter()
   const { toast } = useToast()
   const [items, setItems] = useState<PIBItem[]>([])
@@ -87,9 +96,16 @@ export function PIBDetailView({ pib }: PIBDetailViewProps) {
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false)
   const [isDeleting, setIsDeleting] = useState(false)
 
-  const isEditable = canEditPIB(pib.status)
-  const isDeletable = canDeletePIB(pib.status)
-  const canUpdateStatus = getNextAllowedStatuses(pib.status).length > 0
+  // Combine status-based and role-based permissions
+  const statusAllowsEdit = canEditPIBStatus(pib.status)
+  const statusAllowsDelete = canDeletePIBStatus(pib.status)
+  const hasStatusTransitions = getNextAllowedStatuses(pib.status).length > 0
+
+  // Final permission checks (role + status)
+  const isEditable = statusAllowsEdit && (permissions?.canEdit ?? true)
+  const isDeletable = statusAllowsDelete && (permissions?.canDelete ?? true)
+  const canUpdateStatus = hasStatusTransitions && (permissions?.canUpdateStatus ?? true)
+  const canViewDuties = permissions?.canViewDuties ?? true
 
   const loadData = async () => {
     setIsLoading(true)
@@ -194,9 +210,15 @@ export function PIBDetailView({ pib }: PIBDetailViewProps) {
             <Package className="h-4 w-4" />
             Items ({items.length})
           </TabsTrigger>
-          <TabsTrigger value="duties" className="flex items-center gap-2">
-            <Calculator className="h-4 w-4" />
-            Duties
+          {canViewDuties && (
+            <TabsTrigger value="duties" className="flex items-center gap-2">
+              <Calculator className="h-4 w-4" />
+              Duties
+            </TabsTrigger>
+          )}
+          <TabsTrigger value="documents" className="flex items-center gap-2">
+            <Paperclip className="h-4 w-4" />
+            Documents
           </TabsTrigger>
           <TabsTrigger value="history" className="flex items-center gap-2">
             <History className="h-4 w-4" />
@@ -444,25 +466,37 @@ export function PIBDetailView({ pib }: PIBDetailViewProps) {
         </TabsContent>
 
         {/* Duties Tab */}
-        <TabsContent value="duties">
-          <DutiesSummary
-            fobValue={pib.fob_value || 0}
-            freightValue={pib.freight_value || 0}
-            insuranceValue={pib.insurance_value || 0}
-            cifValue={pib.cif_value || 0}
-            exchangeRate={pib.exchange_rate}
-            cifValueIdr={pib.cif_value_idr}
-            beaMasuk={pib.bea_masuk}
-            ppn={pib.ppn}
-            pphImport={pib.pph_import}
-            totalDuties={pib.total_duties}
-            currency={pib.currency}
-          />
-        </TabsContent>
+        {canViewDuties && (
+          <TabsContent value="duties">
+            <DutiesSummary
+              fobValue={pib.fob_value || 0}
+              freightValue={pib.freight_value || 0}
+              insuranceValue={pib.insurance_value || 0}
+              cifValue={pib.cif_value || 0}
+              exchangeRate={pib.exchange_rate}
+              cifValueIdr={pib.cif_value_idr}
+              beaMasuk={pib.bea_masuk}
+              ppn={pib.ppn}
+              pphImport={pib.pph_import}
+              totalDuties={pib.total_duties}
+              currency={pib.currency}
+            />
+          </TabsContent>
+        )}
 
         {/* History Tab */}
         <TabsContent value="history">
           <StatusHistory history={history} />
+        </TabsContent>
+
+        {/* Documents Tab */}
+        <TabsContent value="documents">
+          <AttachmentsSection
+            entityType="pib"
+            entityId={pib.id}
+            title="PIB Documents"
+            maxFiles={20}
+          />
         </TabsContent>
       </Tabs>
 
