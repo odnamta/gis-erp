@@ -39,6 +39,12 @@ import {
   calculateTotalDaysLost,
   getOpenInvestigationsCount,
 } from './incident-utils';
+import {
+  notifyIncidentReported,
+  notifyInvestigatorAssigned,
+  notifyActionAssigned,
+  notifyIncidentClosed,
+} from './notifications/incident-notifications';
 
 // =====================================================
 // INCIDENT CATEGORIES
@@ -188,6 +194,15 @@ export async function reportIncident(
         .update({ supervisor_notified_at: new Date().toISOString() })
         .eq('id', incident.id);
     }
+
+    // Send notifications to HSE team and supervisor
+    await notifyIncidentReported(
+      incident.id,
+      incident.incident_number,
+      input.title,
+      input.severity,
+      input.supervisorId
+    );
 
     revalidatePath('/hse');
     revalidatePath('/hse/incidents');
@@ -393,6 +408,13 @@ export async function startInvestigation(
 
     const { data: { user } } = await supabase.auth.getUser();
 
+    // Get incident details for notification
+    const { data: incidentData } = await supabase
+      .from('incidents')
+      .select('incident_number, title')
+      .eq('id', incidentId)
+      .single();
+
     // Update incident
     const { error } = await supabase
       .from('incidents')
@@ -419,6 +441,16 @@ export async function startInvestigation(
       'under_investigation',
       user?.id
     );
+
+    // Notify investigator
+    if (incidentData) {
+      await notifyInvestigatorAssigned(
+        incidentId,
+        incidentData.incident_number,
+        incidentData.title,
+        investigatorId
+      );
+    }
 
     revalidatePath('/hse');
     revalidatePath('/hse/incidents');
@@ -550,10 +582,10 @@ export async function addCorrectiveAction(
 
     const { data: { user } } = await supabase.auth.getUser();
 
-    // Get current actions
+    // Get current actions and incident details
     const { data: incident } = await supabase
       .from('incidents')
-      .select('corrective_actions')
+      .select('corrective_actions, incident_number')
       .eq('id', incidentId)
       .single();
 
@@ -603,6 +635,16 @@ export async function addCorrectiveAction(
       user?.id
     );
 
+    // Notify responsible person
+    await notifyActionAssigned(
+      incidentId,
+      incident.incident_number,
+      action.description,
+      action.responsibleId,
+      'corrective',
+      action.dueDate
+    );
+
     revalidatePath(`/hse/incidents/${incidentId}`);
 
     return { success: true };
@@ -624,10 +666,10 @@ export async function addPreventiveAction(
 
     const { data: { user } } = await supabase.auth.getUser();
 
-    // Get current actions
+    // Get current actions and incident details
     const { data: incident } = await supabase
       .from('incidents')
-      .select('preventive_actions')
+      .select('preventive_actions, incident_number')
       .eq('id', incidentId)
       .single();
 
@@ -675,6 +717,16 @@ export async function addPreventiveAction(
       null,
       null,
       user?.id
+    );
+
+    // Notify responsible person
+    await notifyActionAssigned(
+      incidentId,
+      incident.incident_number,
+      action.description,
+      action.responsibleId,
+      'preventive',
+      action.dueDate
     );
 
     revalidatePath(`/hse/incidents/${incidentId}`);
@@ -829,6 +881,14 @@ export async function closeIncident(
       incident.status,
       'closed',
       user?.id
+    );
+
+    // Notify reporter that incident is closed
+    await notifyIncidentClosed(
+      incidentId,
+      incident.incident_number,
+      incident.title,
+      incident.reported_by
     );
 
     revalidatePath('/hse');

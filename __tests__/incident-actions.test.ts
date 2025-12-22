@@ -251,10 +251,21 @@ describe('v0.46 Incident Actions', () => {
   describe('startInvestigation', () => {
     it('should update status to under_investigation', async () => {
       let updatedStatus = '';
+      let selectCalled = false;
 
       mockSupabaseClient.from.mockImplementation((table: string) => {
         if (table === 'incidents') {
           return {
+            select: vi.fn().mockImplementation(() => {
+              selectCalled = true;
+              return {
+                eq: vi.fn().mockReturnThis(),
+                single: vi.fn().mockResolvedValue({
+                  data: { incident_number: 'INC-2024-00001', title: 'Test Incident' },
+                  error: null,
+                }),
+              };
+            }),
             update: vi.fn().mockImplementation((data) => {
               updatedStatus = data.status;
               return {
@@ -268,6 +279,13 @@ describe('v0.46 Incident Actions', () => {
         if (table === 'incident_history') {
           return { insert: vi.fn().mockResolvedValue({ error: null }) };
         }
+        if (table === 'employees') {
+          return {
+            select: vi.fn().mockReturnThis(),
+            eq: vi.fn().mockReturnThis(),
+            single: vi.fn().mockResolvedValue({ data: { user_id: 'user-123' }, error: null }),
+          };
+        }
         return createChainableMock({ data: null, error: null });
       });
 
@@ -278,9 +296,33 @@ describe('v0.46 Incident Actions', () => {
     });
 
     it('should handle database errors', async () => {
-      mockSupabaseClient.from.mockReturnValue({
-        update: vi.fn().mockReturnThis(),
-        eq: vi.fn().mockResolvedValue({ error: { message: 'DB error' } }),
+      mockSupabaseClient.from.mockImplementation((table: string) => {
+        if (table === 'incidents') {
+          return {
+            select: vi.fn().mockReturnThis(),
+            eq: vi.fn().mockReturnThis(),
+            single: vi.fn().mockResolvedValue({
+              data: { incident_number: 'INC-2024-00001', title: 'Test Incident' },
+              error: null,
+            }),
+            update: vi.fn().mockReturnValue({
+              eq: vi.fn().mockReturnValue({
+                eq: vi.fn().mockResolvedValue({ error: { message: 'DB error' } }),
+              }),
+            }),
+          };
+        }
+        if (table === 'incident_history') {
+          return { insert: vi.fn().mockResolvedValue({ error: null }) };
+        }
+        if (table === 'employees') {
+          return {
+            select: vi.fn().mockReturnThis(),
+            eq: vi.fn().mockReturnThis(),
+            single: vi.fn().mockResolvedValue({ data: { user_id: 'user-123' }, error: null }),
+          };
+        }
+        return createChainableMock({ data: null, error: null });
       });
 
       const result = await startInvestigation('inc-123', 'investigator-456');
