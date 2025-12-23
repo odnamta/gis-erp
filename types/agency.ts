@@ -1015,3 +1015,560 @@ export interface RateLookupParams {
 
 // Cutoff warning level
 export type CutoffWarningLevel = 'none' | 'warning' | 'alert';
+
+
+// =====================================================
+// v0.73: AGENCY - BILL OF LADING & DOCUMENTATION TYPES
+// =====================================================
+
+// B/L Status Types
+export type BLStatus = 'draft' | 'submitted' | 'issued' | 'released' | 'surrendered' | 'amended';
+
+export const BL_STATUSES: BLStatus[] = ['draft', 'submitted', 'issued', 'released', 'surrendered', 'amended'];
+
+export const BL_STATUS_LABELS: Record<BLStatus, string> = {
+  draft: 'Draft',
+  submitted: 'Submitted',
+  issued: 'Issued',
+  released: 'Released',
+  surrendered: 'Surrendered',
+  amended: 'Amended',
+};
+
+export const BL_STATUS_COLORS: Record<BLStatus, string> = {
+  draft: 'bg-gray-100 text-gray-800',
+  submitted: 'bg-blue-100 text-blue-800',
+  issued: 'bg-green-100 text-green-800',
+  released: 'bg-purple-100 text-purple-800',
+  surrendered: 'bg-orange-100 text-orange-800',
+  amended: 'bg-yellow-100 text-yellow-800',
+};
+
+// B/L Type
+export type BLType = 'original' | 'seaway_bill' | 'telex_release' | 'surrender';
+
+export const BL_TYPES: BLType[] = ['original', 'seaway_bill', 'telex_release', 'surrender'];
+
+export const BL_TYPE_LABELS: Record<BLType, string> = {
+  original: 'Original B/L',
+  seaway_bill: 'Seaway Bill',
+  telex_release: 'Telex Release',
+  surrender: 'Surrender',
+};
+
+// Shipping Instruction Status
+export type SIStatus = 'draft' | 'submitted' | 'confirmed' | 'amended';
+
+export const SI_STATUSES: SIStatus[] = ['draft', 'submitted', 'confirmed', 'amended'];
+
+export const SI_STATUS_LABELS: Record<SIStatus, string> = {
+  draft: 'Draft',
+  submitted: 'Submitted',
+  confirmed: 'Confirmed',
+  amended: 'Amended',
+};
+
+export const SI_STATUS_COLORS: Record<SIStatus, string> = {
+  draft: 'bg-gray-100 text-gray-800',
+  submitted: 'bg-blue-100 text-blue-800',
+  confirmed: 'bg-green-100 text-green-800',
+  amended: 'bg-yellow-100 text-yellow-800',
+};
+
+// Arrival Notice Status
+export type ArrivalNoticeStatus = 'pending' | 'notified' | 'cleared' | 'delivered';
+
+export const ARRIVAL_NOTICE_STATUSES: ArrivalNoticeStatus[] = ['pending', 'notified', 'cleared', 'delivered'];
+
+export const ARRIVAL_NOTICE_STATUS_LABELS: Record<ArrivalNoticeStatus, string> = {
+  pending: 'Pending',
+  notified: 'Notified',
+  cleared: 'Cleared',
+  delivered: 'Delivered',
+};
+
+export const ARRIVAL_NOTICE_STATUS_COLORS: Record<ArrivalNoticeStatus, string> = {
+  pending: 'bg-gray-100 text-gray-800',
+  notified: 'bg-blue-100 text-blue-800',
+  cleared: 'bg-green-100 text-green-800',
+  delivered: 'bg-emerald-100 text-emerald-800',
+};
+
+// Manifest Status
+export type ManifestStatus = 'draft' | 'submitted' | 'approved';
+
+export const MANIFEST_STATUSES: ManifestStatus[] = ['draft', 'submitted', 'approved'];
+
+export const MANIFEST_STATUS_LABELS: Record<ManifestStatus, string> = {
+  draft: 'Draft',
+  submitted: 'Submitted',
+  approved: 'Approved',
+};
+
+export const MANIFEST_STATUS_COLORS: Record<ManifestStatus, string> = {
+  draft: 'bg-gray-100 text-gray-800',
+  submitted: 'bg-blue-100 text-blue-800',
+  approved: 'bg-green-100 text-green-800',
+};
+
+// Manifest Type
+export type ManifestType = 'inward' | 'outward';
+
+export const MANIFEST_TYPES: ManifestType[] = ['inward', 'outward'];
+
+export const MANIFEST_TYPE_LABELS: Record<ManifestType, string> = {
+  inward: 'Inward',
+  outward: 'Outward',
+};
+
+// B/L Container Detail
+export interface BLContainer {
+  containerNo: string;
+  sealNo: string;
+  type: ContainerType;
+  packages: number;
+  weightKg: number;
+}
+
+// Estimated Charge
+export interface EstimatedCharge {
+  chargeType: string;
+  amount: number;
+  currency: string;
+}
+
+// Bill of Lading
+export interface BillOfLading {
+  id: string;
+  blNumber: string;
+  bookingId: string;
+  jobOrderId?: string;
+  blType: BLType;
+  originalCount: number;
+  shippingLineId?: string;
+  carrierBlNumber?: string;
+  vesselName: string;
+  voyageNumber?: string;
+  flag?: string;
+  portOfLoading: string;
+  portOfDischarge: string;
+  placeOfReceipt?: string;
+  placeOfDelivery?: string;
+  shippedOnBoardDate?: string;
+  blDate?: string;
+  shipperName: string;
+  shipperAddress?: string;
+  consigneeName?: string;
+  consigneeAddress?: string;
+  consigneeToOrder: boolean;
+  notifyPartyName?: string;
+  notifyPartyAddress?: string;
+  cargoDescription: string;
+  marksAndNumbers?: string;
+  numberOfPackages?: number;
+  packageType?: string;
+  grossWeightKg?: number;
+  measurementCbm?: number;
+  containers: BLContainer[];
+  freightTerms: FreightTerms;
+  freightAmount?: number;
+  freightCurrency?: string;
+  status: BLStatus;
+  issuedAt?: string;
+  releasedAt?: string;
+  draftBlUrl?: string;
+  finalBlUrl?: string;
+  remarks?: string;
+  createdBy?: string;
+  createdAt: string;
+  updatedAt: string;
+  // Joined fields
+  booking?: FreightBooking;
+  shippingLine?: ShippingLine;
+}
+
+// Shipping Instruction
+export interface ShippingInstruction {
+  id: string;
+  siNumber: string;
+  bookingId: string;
+  blId?: string;
+  status: SIStatus;
+  submittedAt?: string;
+  confirmedAt?: string;
+  shipperName: string;
+  shipperAddress: string;
+  shipperContact?: string;
+  consigneeName?: string;
+  consigneeAddress?: string;
+  consigneeToOrder: boolean;
+  toOrderText?: string;
+  notifyPartyName?: string;
+  notifyPartyAddress?: string;
+  secondNotifyName?: string;
+  secondNotifyAddress?: string;
+  cargoDescription: string;
+  marksAndNumbers?: string;
+  hsCode?: string;
+  numberOfPackages?: number;
+  packageType?: string;
+  grossWeightKg?: number;
+  netWeightKg?: number;
+  measurementCbm?: number;
+  blTypeRequested?: BLType;
+  originalsRequired: number;
+  copiesRequired: number;
+  freightTerms: FreightTerms;
+  specialInstructions?: string;
+  lcNumber?: string;
+  lcIssuingBank?: string;
+  lcTerms?: string;
+  documentsRequired: string[];
+  createdBy?: string;
+  createdAt: string;
+  updatedAt: string;
+  // Joined fields
+  booking?: FreightBooking;
+  bl?: BillOfLading;
+}
+
+// Arrival Notice
+export interface ArrivalNotice {
+  id: string;
+  noticeNumber: string;
+  blId: string;
+  bookingId?: string;
+  vesselName: string;
+  voyageNumber?: string;
+  eta: string;
+  ata?: string;
+  portOfDischarge: string;
+  terminal?: string;
+  berth?: string;
+  containerNumbers: string[];
+  cargoDescription?: string;
+  freeTimeDays: number;
+  freeTimeExpires?: string;
+  estimatedCharges: EstimatedCharge[];
+  deliveryInstructions?: string;
+  deliveryAddress?: string;
+  consigneeNotified: boolean;
+  notifiedAt?: string;
+  notifiedBy?: string;
+  status: ArrivalNoticeStatus;
+  clearedAt?: string;
+  deliveredAt?: string;
+  notes?: string;
+  createdAt: string;
+  // Joined fields
+  bl?: BillOfLading;
+  booking?: FreightBooking;
+}
+
+// Cargo Manifest
+export interface CargoManifest {
+  id: string;
+  manifestNumber: string;
+  manifestType: ManifestType;
+  vesselName: string;
+  voyageNumber?: string;
+  portOfLoading?: string;
+  portOfDischarge?: string;
+  departureDate?: string;
+  arrivalDate?: string;
+  totalBls: number;
+  totalContainers: number;
+  totalPackages: number;
+  totalWeightKg: number;
+  totalCbm: number;
+  blIds: string[];
+  status: ManifestStatus;
+  submittedTo?: string;
+  submittedAt?: string;
+  documentUrl?: string;
+  createdAt: string;
+  // Joined fields
+  bls?: BillOfLading[];
+}
+
+// B/L Totals
+export interface BLTotals {
+  totalContainers: number;
+  totalPackages: number;
+  totalWeightKg: number;
+  totalCbm: number;
+}
+
+// Manifest Totals
+export interface ManifestTotals {
+  totalBls: number;
+  totalContainers: number;
+  totalPackages: number;
+  totalWeightKg: number;
+  totalCbm: number;
+}
+
+// Form Data Types
+export interface BLFormData {
+  bookingId: string;
+  jobOrderId?: string;
+  blType: BLType;
+  originalCount?: number;
+  shippingLineId?: string;
+  carrierBlNumber?: string;
+  vesselName: string;
+  voyageNumber?: string;
+  flag?: string;
+  portOfLoading: string;
+  portOfDischarge: string;
+  placeOfReceipt?: string;
+  placeOfDelivery?: string;
+  shippedOnBoardDate?: string;
+  blDate?: string;
+  shipperName: string;
+  shipperAddress?: string;
+  consigneeName?: string;
+  consigneeAddress?: string;
+  consigneeToOrder?: boolean;
+  notifyPartyName?: string;
+  notifyPartyAddress?: string;
+  cargoDescription: string;
+  marksAndNumbers?: string;
+  numberOfPackages?: number;
+  packageType?: string;
+  grossWeightKg?: number;
+  measurementCbm?: number;
+  containers?: BLContainer[];
+  freightTerms?: FreightTerms;
+  freightAmount?: number;
+  freightCurrency?: string;
+  remarks?: string;
+}
+
+export interface SIFormData {
+  bookingId: string;
+  shipperName: string;
+  shipperAddress: string;
+  shipperContact?: string;
+  consigneeName?: string;
+  consigneeAddress?: string;
+  consigneeToOrder?: boolean;
+  toOrderText?: string;
+  notifyPartyName?: string;
+  notifyPartyAddress?: string;
+  secondNotifyName?: string;
+  secondNotifyAddress?: string;
+  cargoDescription: string;
+  marksAndNumbers?: string;
+  hsCode?: string;
+  numberOfPackages?: number;
+  packageType?: string;
+  grossWeightKg?: number;
+  netWeightKg?: number;
+  measurementCbm?: number;
+  blTypeRequested?: BLType;
+  originalsRequired?: number;
+  copiesRequired?: number;
+  freightTerms?: FreightTerms;
+  specialInstructions?: string;
+  lcNumber?: string;
+  lcIssuingBank?: string;
+  lcTerms?: string;
+  documentsRequired?: string[];
+}
+
+export interface ArrivalNoticeFormData {
+  blId: string;
+  bookingId?: string;
+  vesselName: string;
+  voyageNumber?: string;
+  eta: string;
+  ata?: string;
+  portOfDischarge: string;
+  terminal?: string;
+  berth?: string;
+  containerNumbers?: string[];
+  cargoDescription?: string;
+  freeTimeDays?: number;
+  estimatedCharges?: EstimatedCharge[];
+  deliveryInstructions?: string;
+  deliveryAddress?: string;
+  notes?: string;
+}
+
+export interface ManifestFormData {
+  manifestType: ManifestType;
+  vesselName: string;
+  voyageNumber?: string;
+  portOfLoading?: string;
+  portOfDischarge?: string;
+  departureDate?: string;
+  arrivalDate?: string;
+  blIds?: string[];
+}
+
+// Database Row Types (snake_case for Supabase)
+export interface BillOfLadingRow {
+  id: string;
+  bl_number: string;
+  booking_id: string;
+  job_order_id?: string;
+  bl_type: string;
+  original_count: number;
+  shipping_line_id?: string;
+  carrier_bl_number?: string;
+  vessel_name: string;
+  voyage_number?: string;
+  flag?: string;
+  port_of_loading: string;
+  port_of_discharge: string;
+  place_of_receipt?: string;
+  place_of_delivery?: string;
+  shipped_on_board_date?: string;
+  bl_date?: string;
+  shipper_name: string;
+  shipper_address?: string;
+  consignee_name?: string;
+  consignee_address?: string;
+  consignee_to_order: boolean;
+  notify_party_name?: string;
+  notify_party_address?: string;
+  cargo_description: string;
+  marks_and_numbers?: string;
+  number_of_packages?: number;
+  package_type?: string;
+  gross_weight_kg?: number;
+  measurement_cbm?: number;
+  containers: BLContainer[];
+  freight_terms: string;
+  freight_amount?: number;
+  freight_currency?: string;
+  status: string;
+  issued_at?: string;
+  released_at?: string;
+  draft_bl_url?: string;
+  final_bl_url?: string;
+  remarks?: string;
+  created_by?: string;
+  created_at: string;
+  updated_at: string;
+}
+
+export interface ShippingInstructionRow {
+  id: string;
+  si_number: string;
+  booking_id: string;
+  bl_id?: string;
+  status: string;
+  submitted_at?: string;
+  confirmed_at?: string;
+  shipper_name: string;
+  shipper_address: string;
+  shipper_contact?: string;
+  consignee_name?: string;
+  consignee_address?: string;
+  consignee_to_order: boolean;
+  to_order_text?: string;
+  notify_party_name?: string;
+  notify_party_address?: string;
+  second_notify_name?: string;
+  second_notify_address?: string;
+  cargo_description: string;
+  marks_and_numbers?: string;
+  hs_code?: string;
+  number_of_packages?: number;
+  package_type?: string;
+  gross_weight_kg?: number;
+  net_weight_kg?: number;
+  measurement_cbm?: number;
+  bl_type_requested?: string;
+  originals_required: number;
+  copies_required: number;
+  freight_terms: string;
+  special_instructions?: string;
+  lc_number?: string;
+  lc_issuing_bank?: string;
+  lc_terms?: string;
+  documents_required: string[];
+  created_by?: string;
+  created_at: string;
+  updated_at: string;
+}
+
+export interface ArrivalNoticeRow {
+  id: string;
+  notice_number: string;
+  bl_id: string;
+  booking_id?: string;
+  vessel_name: string;
+  voyage_number?: string;
+  eta: string;
+  ata?: string;
+  port_of_discharge: string;
+  terminal?: string;
+  berth?: string;
+  container_numbers: string[];
+  cargo_description?: string;
+  free_time_days: number;
+  free_time_expires?: string;
+  estimated_charges: EstimatedCharge[];
+  delivery_instructions?: string;
+  delivery_address?: string;
+  consignee_notified: boolean;
+  notified_at?: string;
+  notified_by?: string;
+  status: string;
+  cleared_at?: string;
+  delivered_at?: string;
+  notes?: string;
+  created_at: string;
+}
+
+export interface CargoManifestRow {
+  id: string;
+  manifest_number: string;
+  manifest_type: string;
+  vessel_name: string;
+  voyage_number?: string;
+  port_of_loading?: string;
+  port_of_discharge?: string;
+  departure_date?: string;
+  arrival_date?: string;
+  total_bls: number;
+  total_containers: number;
+  total_packages: number;
+  total_weight_kg: number;
+  total_cbm: number;
+  bl_ids: string[];
+  status: string;
+  submitted_to?: string;
+  submitted_at?: string;
+  document_url?: string;
+  created_at: string;
+}
+
+// Filter Types
+export interface BLFilters {
+  search?: string;
+  status?: BLStatus;
+  bookingId?: string;
+  shippingLineId?: string;
+  dateFrom?: string;
+  dateTo?: string;
+}
+
+export interface SIFilters {
+  search?: string;
+  status?: SIStatus;
+  bookingId?: string;
+  dateFrom?: string;
+  dateTo?: string;
+}
+
+export interface ManifestFilters {
+  search?: string;
+  status?: ManifestStatus;
+  manifestType?: ManifestType;
+  dateFrom?: string;
+  dateTo?: string;
+}

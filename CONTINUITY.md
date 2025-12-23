@@ -1,35 +1,36 @@
 # Continuity Ledger
 
 ## Goal
-v0.72 Agency - Booking Management - Spec complete, ready for implementation
+v0.73 Agency - Bill of Lading & Documentation - Complete
 
 ## Constraints/Assumptions
 - Next.js 15 + TypeScript + Supabase stack
 - Supabase project ID: ljbkjtaowrdddvjhsygj
-- Builds on v0.71 Agency - Shipping Line & Agent Management (complete)
-- Uses existing shipping_lines, ports, shipping_rates tables from v0.71
+- Builds on v0.72 Agency - Booking Management (complete)
+- Uses existing freight_bookings, shipping_lines tables from v0.71/v0.72
 
 ## Key Decisions
-- Booking number format: BKG-YYYY-NNNNN
-- Status workflow: draft → requested → confirmed → amended → shipped → completed
-- Amendment tracking with old/new value JSON storage
-- Container management as separate table linked to bookings
-- 8 correctness properties for property-based testing
-- All property tests required (comprehensive approach)
+- Requirements approved
+- 11 correctness properties identified for property-based testing
+- Using fast-check for property testing
+- Document number formats: SI-YYYY-NNNNN, AN-YYYY-NNNNN, MF-YYYY-NNNNN
+- Container number validation: ISO 6346 format (4 letters + 7 digits)
 
 ## State
 - Done: 
-  - v0.71 complete
-  - Created requirements.md for v0.72 (10 requirements)
-  - Created design.md for v0.72 (8 correctness properties)
-  - Created tasks.md for v0.72 (20 task groups, all required)
-- Now: Spec complete
-- Next: User can start implementation by opening tasks.md and clicking "Start task"
+  - v0.71 complete (Shipping Line & Agent Management)
+  - v0.72 complete (Booking Management)
+  - v0.73 spec complete
+  - All 20 tasks complete
+  - All 54 property tests passing (including Property 10: Issued B/L Deletion Prevention)
+  - Build succeeds (warnings only, no errors)
+  - tasks.md updated with all checkboxes marked complete
+- Now: Push to GitHub
+- Next: None - v0.73 complete
 
 ## Open Questions
 - None
 
 ## Working Set
-- .kiro/specs/v0.72-agency-booking-management/requirements.md
-- .kiro/specs/v0.72-agency-booking-management/design.md
-- .kiro/specs/v0.72-agency-booking-management/tasks.md
+- .kiro/specs/v0.73-agency-bl-documentation/tasks.md
+- __tests__/bl-documentation-utils.property.test.ts
