@@ -48,6 +48,20 @@ export const NAV_ITEMS: NavItem[] = [
     href: '/dashboard',
     icon: LayoutDashboard,
     roles: ['owner', 'admin', 'manager', 'ops', 'finance', 'sales', 'viewer'],
+    children: [
+      {
+        title: 'Overview',
+        href: '/dashboard',
+      },
+      {
+        title: 'Executive KPI',
+        href: '/dashboard/executive',
+      },
+      {
+        title: 'Financial Analytics',
+        href: '/dashboard/executive/finance',
+      },
+    ],
   },
   {
     title: 'Customers',

@@ -1,35 +1,40 @@
-# Continuity Ledger - v0.61 Executive Dashboard KPI
+# Continuity Ledger - v0.62 Financial Analytics
 
 ## Goal (incl. success criteria):
-Complete v0.61 Executive Dashboard KPI Overview implementation and push to GitHub.
+Complete v0.62 Financial Analytics implementation and push to GitHub.
 - All tasks complete ✅
-- Bug fixes applied ✅
+- All property tests passing (32/32) ✅
+- Build successful ✅
 - Pushed to GitHub ✅
 
 ## Constraints/Assumptions:
 - Next.js 15 + TypeScript + TailwindCSS + shadcn/ui
 - Supabase project ID: ljbkjtaowrdddvjhsygj
-- Follow existing patterns from steering files
+- Follow existing patterns from v0.61 Executive Dashboard
 - Property tests use fast-check with 100 iterations minimum
+- Currency format: Indonesian Rupiah (IDR)
+- Date format: DD/MM/YYYY
 
 ## Key decisions:
-- Server component fetches user profile for role-based filtering
-- Client component handles interactive features (period selection, export, refresh)
-- KPIs filtered by user role via visible_to_roles array
-- Export generates CSV/JSON with configurable options
-- Use `any` type assertions for tables not in generated Supabase types (kpi_definitions, kpi_targets, dashboard_layouts, incidents)
-- Fixed column names: amount_paid (not paid_amount), total_revenue (not total_value)
-- TrendChart uses SVG line chart (not bar chart) per Requirement 12.3
-- Layout customization uses native HTML5 drag-drop API (no external library)
-- Export dialog supports CSV and JSON formats with configurable fields
+- Database tables: budget_items, monthly_actuals, cash_flow_transactions, cash_flow_forecast
+- Views: customer_profitability, job_type_profitability, monthly_pl_summary
+- Server component fetches data, client component handles interactivity
+- Charts use Recharts library (AreaChart, BarChart, PieChart)
+- Export supports CSV and JSON formats
+- Navigation added under Dashboard with children
 
 ## State:
 
 ### Done:
-- Task 1-12: All v0.61 tasks complete ✅
-- Bug fixes: ESLint no-explicit-any errors fixed
-- Added react-dropzone dependency
-- Fixed type assertions in resource-scheduling components
+- Task 1.1-1.5: Database schema (tables, views, RLS)
+- Task 2.1-2.5: TypeScript types and utility functions
+- Task 4.1-4.9: Server actions with property tests
+- Task 6.1-6.5: Data display components
+- Task 7.1-7.4: Chart components
+- Task 8.1-8.8: Page layout and integration
+- Task 10.1-10.3: Export functionality
+- Task 11.1: Navigation link added
+- Task 12: Final checkpoint complete
 
 ### Now:
 - Pushing to GitHub
@@ -41,9 +46,10 @@ Complete v0.61 Executive Dashboard KPI Overview implementation and push to GitHu
 None
 
 ## Working set:
-- app/(main)/dashboard/executive/page.tsx
-- app/(main)/dashboard/executive/executive-dashboard-client.tsx
-- lib/executive-dashboard-actions.ts
-- lib/executive-dashboard-utils.ts
-- types/executive-dashboard.ts
-- components/executive-dashboard/*
+- types/financial-analytics.ts
+- lib/financial-analytics-utils.ts
+- lib/financial-analytics-actions.ts
+- lib/navigation.ts
+- components/financial-analytics/*
+- app/(main)/dashboard/executive/finance/page.tsx
+- __tests__/financial-analytics-*.property.test.ts
