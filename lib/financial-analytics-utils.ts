@@ -234,7 +234,6 @@ export function aggregateCashFlowByDate(
   startDate: Date,
   endDate: Date
 ): CashFlowChartData[] {
-  const result: CashFlowChartData[] = [];
   const currentDate = new Date();
   
   // Create a map of dates to data

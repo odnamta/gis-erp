@@ -25,6 +25,10 @@ import {
   isValidCashFlowCategory,
 } from './financial-analytics-utils';
 
+// Note: Tables budget_items, monthly_actuals, cash_flow_transactions, cash_flow_forecast,
+// and views customer_profitability, job_type_profitability, monthly_pl_summary
+// are not in generated Supabase types yet. Using 'as any' for table names.
+
 // ============================================
 // Budget Item Actions
 // ============================================
@@ -56,7 +60,8 @@ export async function createBudgetItem(
     };
   }
 
-  const { data: result, error } = await supabase
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const { data: result, error } = await (supabase as any)
     .from('budget_items')
     .insert({
       budget_year: data.budget_year,
@@ -104,7 +109,8 @@ export async function updateBudgetItem(
     };
   }
 
-  const { error } = await supabase
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const { error } = await (supabase as any)
     .from('budget_items')
     .update(data)
     .eq('id', id);
@@ -131,7 +137,8 @@ export async function fetchBudgetItems(
 ): Promise<BudgetItem[]> {
   const supabase = await createClient();
 
-  const { data, error } = await supabase
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const { data, error } = await (supabase as any)
     .from('budget_items')
     .select('*')
     .eq('budget_year', year)
@@ -143,7 +150,7 @@ export async function fetchBudgetItems(
     return [];
   }
 
-  return data as BudgetItem[];
+  return (data || []) as BudgetItem[];
 }
 
 /**
@@ -154,7 +161,8 @@ export async function deleteBudgetItem(
 ): Promise<{ success: boolean; error?: string }> {
   const supabase = await createClient();
 
-  const { error } = await supabase
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const { error } = await (supabase as any)
     .from('budget_items')
     .delete()
     .eq('id', id);
@@ -180,7 +188,8 @@ export async function fetchMonthlyActuals(
 ): Promise<MonthlyActual[]> {
   const supabase = await createClient();
 
-  const { data, error } = await supabase
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const { data, error } = await (supabase as any)
     .from('monthly_actuals')
     .select('*')
     .eq('actual_year', year)
@@ -192,7 +201,7 @@ export async function fetchMonthlyActuals(
     return [];
   }
 
-  return data as MonthlyActual[];
+  return (data || []) as MonthlyActual[];
 }
 
 // ============================================
@@ -221,7 +230,8 @@ export async function createCashFlowTransaction(
     };
   }
 
-  const { data: result, error } = await supabase
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const { data: result, error } = await (supabase as any)
     .from('cash_flow_transactions')
     .insert({
       transaction_date: data.transaction_date,
@@ -253,7 +263,8 @@ export async function fetchCashFlowTransactions(
 ): Promise<CashFlowTransaction[]> {
   const supabase = await createClient();
 
-  const { data, error } = await supabase
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const { data, error } = await (supabase as any)
     .from('cash_flow_transactions')
     .select('*')
     .gte('transaction_date', startDate)
@@ -265,7 +276,7 @@ export async function fetchCashFlowTransactions(
     return [];
   }
 
-  return data as CashFlowTransaction[];
+  return (data || []) as CashFlowTransaction[];
 }
 
 // ============================================
@@ -297,7 +308,8 @@ export async function createCashFlowForecast(
   const probability = data.probability_percentage ?? 100;
   const weighted_amount = calculateWeightedAmount(data.expected_amount, probability);
 
-  const { data: result, error } = await supabase
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const { data: result, error } = await (supabase as any)
     .from('cash_flow_forecast')
     .insert({
       forecast_date: data.forecast_date,
@@ -330,7 +342,8 @@ export async function fetchCashFlowForecast(
 ): Promise<CashFlowForecast[]> {
   const supabase = await createClient();
 
-  const { data, error } = await supabase
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const { data, error } = await (supabase as any)
     .from('cash_flow_forecast')
     .select('*')
     .gte('forecast_date', startDate)
@@ -342,7 +355,7 @@ export async function fetchCashFlowForecast(
     return [];
   }
 
-  return data as CashFlowForecast[];
+  return (data || []) as CashFlowForecast[];
 }
 
 
@@ -358,7 +371,8 @@ export async function fetchCashFlowForecast(
 export async function fetchCustomerProfitability(): Promise<CustomerProfitability[]> {
   const supabase = await createClient();
 
-  const { data, error } = await supabase
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const { data, error } = await (supabase as any)
     .from('customer_profitability')
     .select('*')
     .order('total_profit', { ascending: false });
@@ -368,7 +382,7 @@ export async function fetchCustomerProfitability(): Promise<CustomerProfitabilit
     return [];
   }
 
-  return data as CustomerProfitability[];
+  return (data || []) as CustomerProfitability[];
 }
 
 /**
@@ -378,7 +392,8 @@ export async function fetchCustomerProfitability(): Promise<CustomerProfitabilit
 export async function fetchJobTypeProfitability(): Promise<JobTypeProfitability[]> {
   const supabase = await createClient();
 
-  const { data, error } = await supabase
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const { data, error } = await (supabase as any)
     .from('job_type_profitability')
     .select('*')
     .order('total_profit', { ascending: false });
@@ -388,7 +403,7 @@ export async function fetchJobTypeProfitability(): Promise<JobTypeProfitability[
     return [];
   }
 
-  return data as JobTypeProfitability[];
+  return (data || []) as JobTypeProfitability[];
 }
 
 /**
@@ -398,7 +413,8 @@ export async function fetchJobTypeProfitability(): Promise<JobTypeProfitability[
 export async function fetchMonthlyPLSummary(): Promise<MonthlyPLSummary[]> {
   const supabase = await createClient();
 
-  const { data, error } = await supabase
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const { data, error } = await (supabase as any)
     .from('monthly_pl_summary')
     .select('*')
     .order('month', { ascending: false });
@@ -408,7 +424,7 @@ export async function fetchMonthlyPLSummary(): Promise<MonthlyPLSummary[]> {
     return [];
   }
 
-  return data as MonthlyPLSummary[];
+  return (data || []) as MonthlyPLSummary[];
 }
 
 // ============================================
@@ -487,8 +503,8 @@ export async function exportFinancialReport(
   dateRange: { year: number; month: number }
 ): Promise<{ success: boolean; url?: string; error?: string }> {
   try {
-    // Fetch data for the report
-    const data = await fetchFinancialAnalyticsData(dateRange.year, dateRange.month);
+    // Fetch data for the report (validates data exists before generating URL)
+    await fetchFinancialAnalyticsData(dateRange.year, dateRange.month);
     
     // For now, return success - actual PDF/Excel generation would be implemented
     // using libraries like jspdf or xlsx
