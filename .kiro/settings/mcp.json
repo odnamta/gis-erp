@@ -49,7 +49,9 @@
       ],
       "disabled": false,
       "autoApprove": [
-        "install-component"
+        "install-component",
+        "list-components",
+        "get-component-docs"
       ]
     }
   }

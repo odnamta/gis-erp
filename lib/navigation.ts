@@ -126,6 +126,10 @@ export const NAV_ITEMS: NavItem[] = [
     roles: ['owner', 'admin', 'manager', 'ops', 'finance', 'sales'],
     children: [
       {
+        title: 'Bookings',
+        href: '/agency/bookings',
+      },
+      {
         title: 'Shipping Lines',
         href: '/agency/shipping-lines',
       },

@@ -1,28 +1,35 @@
 # Continuity Ledger
 
 ## Goal
-v0.71 Agency - Shipping Line & Agent Management
+v0.72 Agency - Booking Management - Spec complete, ready for implementation
 
 ## Constraints/Assumptions
 - Next.js 15 + TypeScript + Supabase stack
 - Supabase project ID: ljbkjtaowrdddvjhsygj
+- Builds on v0.71 Agency - Shipping Line & Agent Management (complete)
+- Uses existing shipping_lines, ports, shipping_rates tables from v0.71
 
 ## Key Decisions
-- All server actions implemented in app/actions/agency-actions.ts
-- Database tables created with RLS enabled
+- Booking number format: BKG-YYYY-NNNNN
+- Status workflow: draft → requested → confirmed → amended → shipped → completed
+- Amendment tracking with old/new value JSON storage
+- Container management as separate table linked to bookings
+- 8 correctness properties for property-based testing
+- All property tests required (comprehensive approach)
 
 ## State
 - Done: 
-  - Tasks 1-11 complete (Database, Types, Utilities, Server Actions, Checkpoints, Shipping Lines UI, Port Agents UI, Service Providers UI, Shipping Rates UI, Navigation and Layout, Final Checkpoint)
-  - All 88 property-based tests pass
-  - All utility files have no TypeScript diagnostics
-  - All UI components have no TypeScript diagnostics
-  - Server actions have type errors due to Supabase types not being regenerated (expected - types need regeneration after migration)
-- Now: Task 11 - Final Checkpoint complete
-- Next: None - v0.71 Agency Management module complete
+  - v0.71 complete
+  - Created requirements.md for v0.72 (10 requirements)
+  - Created design.md for v0.72 (8 correctness properties)
+  - Created tasks.md for v0.72 (20 task groups, all required)
+- Now: Spec complete
+- Next: User can start implementation by opening tasks.md and clicking "Start task"
 
 ## Open Questions
-- Supabase types need to be regenerated to include new agency tables (run `npx supabase gen types typescript`)
+- None
 
 ## Working Set
-- .kiro/specs/v0.71-agency-shipping-line-agent-management/tasks.md
+- .kiro/specs/v0.72-agency-booking-management/requirements.md
+- .kiro/specs/v0.72-agency-booking-management/design.md
+- .kiro/specs/v0.72-agency-booking-management/tasks.md
