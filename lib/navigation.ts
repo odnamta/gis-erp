@@ -21,6 +21,7 @@ import {
   ShieldAlert,
   Package,
   Compass,
+  Ship,
 } from 'lucide-react'
 import { UserRole, UserPermissions } from '@/types/permissions'
 
@@ -117,6 +118,34 @@ export const NAV_ITEMS: NavItem[] = [
     href: '/vendors',
     icon: Building2,
     roles: ['owner', 'admin', 'manager', 'ops', 'finance'],
+  },
+  {
+    title: 'Agency',
+    href: '/agency/shipping-lines',
+    icon: Ship,
+    roles: ['owner', 'admin', 'manager', 'ops', 'finance', 'sales'],
+    children: [
+      {
+        title: 'Shipping Lines',
+        href: '/agency/shipping-lines',
+      },
+      {
+        title: 'Port Agents',
+        href: '/agency/port-agents',
+      },
+      {
+        title: 'Service Providers',
+        href: '/agency/service-providers',
+      },
+      {
+        title: 'Shipping Rates',
+        href: '/agency/shipping-rates',
+      },
+      {
+        title: 'Manage Rates',
+        href: '/agency/shipping-rates/manage',
+      },
+    ],
   },
   {
     title: 'Equipment',
