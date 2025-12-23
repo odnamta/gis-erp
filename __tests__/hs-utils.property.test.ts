@@ -1,10 +1,16 @@
 import { describe, it, expect } from 'vitest';
 
+function escapeRegex(str: string): string {
+  return str.replace(/[.*+?^${}()|[\]\\]/g, '\\' + '$' + '&');
+}
+
 function calculateRelevance(query: string, description: string): number {
   const lowerQuery = query.toLowerCase();
   const lowerDesc = description.toLowerCase();
   if (lowerDesc === lowerQuery) return 100;
   if (lowerDesc.startsWith(lowerQuery)) return 90;
+  const wordBoundaryRegex = new RegExp('\\b' + escapeRegex(lowerQuery) + '\\b', 'i');
+  if (wordBoundaryRegex.test(lowerDesc)) return 80;
   if (lowerDesc.includes(lowerQuery)) return 70;
   return 0;
 }

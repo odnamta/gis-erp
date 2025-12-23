@@ -206,6 +206,10 @@ export const NAV_ITEMS: NavItem[] = [
     roles: ['owner', 'admin', 'manager', 'ops'],
     children: [
       {
+        title: 'Resources',
+        href: '/engineering/resources',
+      },
+      {
         title: 'Route Surveys',
         href: '/engineering/surveys',
       },
