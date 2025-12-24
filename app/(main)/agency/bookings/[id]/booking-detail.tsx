@@ -17,6 +17,7 @@ import {
   BookingContainer,
   BookingAmendment,
   BookingStatusHistory,
+  BookingFinancialSummary,
   CONTAINER_STATUS_LABELS,
   AMENDMENT_STATUS_LABELS,
   AMENDMENT_TYPE_LABELS,
@@ -33,6 +34,7 @@ import {
   requestAmendment,
 } from '@/app/actions/booking-actions';
 import { getNextValidStatuses, formatCurrency, getCutoffWarningLevel, getDaysUntilCutoff } from '@/lib/booking-utils';
+import { ProfitabilitySummaryCompact } from '@/components/cost-revenue/profitability-summary';
 import {
   ArrowLeft,
   Edit,
@@ -40,7 +42,6 @@ import {
   Package,
   Users,
   FileText,
-  Clock,
   AlertTriangle,
   CheckCircle,
   XCircle,
@@ -49,6 +50,7 @@ import {
   MapPin,
   Calendar,
   DollarSign,
+  TrendingUp,
 } from 'lucide-react';
 import { toast } from 'sonner';
 
@@ -57,6 +59,7 @@ interface BookingDetailProps {
   containers: BookingContainer[];
   amendments: BookingAmendment[];
   statusHistory: BookingStatusHistory[];
+  financialSummary?: BookingFinancialSummary;
 }
 
 export function BookingDetail({
@@ -64,6 +67,7 @@ export function BookingDetail({
   containers,
   amendments,
   statusHistory,
+  financialSummary,
 }: BookingDetailProps) {
   const router = useRouter();
   const [isLoading, setIsLoading] = useState(false);
@@ -155,6 +159,12 @@ export function BookingDetail({
         </div>
 
         <div className="flex items-center gap-2">
+          <Link href={`/agency/bookings/${booking.id}/financials`}>
+            <Button variant="outline">
+              <TrendingUp className="h-4 w-4 mr-2" />
+              Financials
+            </Button>
+          </Link>
           {booking.status === 'draft' && (
             <Link href={`/agency/bookings/${booking.id}/edit`}>
               <Button variant="outline">
@@ -188,6 +198,32 @@ export function BookingDetail({
               : `Cutoff in ${daysUntilCutoff} day${daysUntilCutoff !== 1 ? 's' : ''}`}
           </span>
         </div>
+      )}
+
+      {/* Financial Summary */}
+      {financialSummary && (
+        <Card>
+          <CardContent className="pt-4">
+            <div className="flex items-center justify-between">
+              <div className="flex items-center gap-2 text-sm font-medium text-muted-foreground mb-2">
+                <TrendingUp className="h-4 w-4" />
+                <span>Financial Summary</span>
+              </div>
+              <Link href={`/agency/bookings/${booking.id}/financials`}>
+                <Button variant="ghost" size="sm" className="text-xs">
+                  View Details →
+                </Button>
+              </Link>
+            </div>
+            <ProfitabilitySummaryCompact
+              totalRevenue={financialSummary.totalRevenue}
+              totalCost={financialSummary.totalCost}
+              grossProfit={financialSummary.grossProfit}
+              profitMarginPct={financialSummary.profitMarginPct}
+              targetMargin={financialSummary.targetMarginPct}
+            />
+          </CardContent>
+        </Card>
       )}
 
       {/* Action Buttons */}

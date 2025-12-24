@@ -7,6 +7,7 @@ import {
   getBookingAmendments,
   getStatusHistory,
 } from '@/app/actions/booking-actions';
+import { getBookingFinancialSummary } from '@/app/actions/profitability-actions';
 import { Loader2 } from 'lucide-react';
 
 export const dynamic = 'force-dynamic';
@@ -18,16 +19,19 @@ interface BookingDetailPageProps {
 export default async function BookingDetailPage({ params }: BookingDetailPageProps) {
   const { id } = await params;
   
-  const [booking, containers, amendments, statusHistory] = await Promise.all([
+  const [booking, containers, amendments, statusHistory, financialSummaryResult] = await Promise.all([
     getBooking(id),
     getBookingContainers(id),
     getBookingAmendments(id),
     getStatusHistory(id),
+    getBookingFinancialSummary(id),
   ]);
 
   if (!booking) {
     notFound();
   }
+
+  const financialSummary = financialSummaryResult.success ? financialSummaryResult.data : undefined;
 
   return (
     <Suspense
@@ -42,6 +46,7 @@ export default async function BookingDetailPage({ params }: BookingDetailPagePro
         containers={containers}
         amendments={amendments}
         statusHistory={statusHistory}
+        financialSummary={financialSummary}
       />
     </Suspense>
   );

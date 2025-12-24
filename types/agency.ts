@@ -2120,3 +2120,435 @@ export function getDelaySeverity(delayHours: number): DelaySeverity {
   if (delayHours < DELAY_SEVERITY_THRESHOLDS.severe) return 'moderate';
   return 'severe';
 }
+
+
+// =====================================================
+// v0.75: AGENCY - COST & REVENUE MANAGEMENT TYPES
+// =====================================================
+
+// Charge category types
+export type ChargeCategory = 'freight' | 'origin' | 'destination' | 'documentation' | 'customs' | 'other';
+
+export const CHARGE_CATEGORIES: ChargeCategory[] = ['freight', 'origin', 'destination', 'documentation', 'customs', 'other'];
+
+export const CHARGE_CATEGORY_LABELS: Record<ChargeCategory, string> = {
+  freight: 'Freight',
+  origin: 'Origin',
+  destination: 'Destination',
+  documentation: 'Documentation',
+  customs: 'Customs',
+  other: 'Other',
+};
+
+// Charge type classification
+export type ChargeTypeClass = 'revenue' | 'cost' | 'both';
+
+export const CHARGE_TYPE_CLASSES: ChargeTypeClass[] = ['revenue', 'cost', 'both'];
+
+export const CHARGE_TYPE_CLASS_LABELS: Record<ChargeTypeClass, string> = {
+  revenue: 'Revenue Only',
+  cost: 'Cost Only',
+  both: 'Both',
+};
+
+// Payment status for costs
+export type CostPaymentStatus = 'unpaid' | 'partial' | 'paid';
+
+export const COST_PAYMENT_STATUSES: CostPaymentStatus[] = ['unpaid', 'partial', 'paid'];
+
+export const COST_PAYMENT_STATUS_LABELS: Record<CostPaymentStatus, string> = {
+  unpaid: 'Unpaid',
+  partial: 'Partial',
+  paid: 'Paid',
+};
+
+export const COST_PAYMENT_STATUS_COLORS: Record<CostPaymentStatus, string> = {
+  unpaid: 'bg-red-100 text-red-800',
+  partial: 'bg-yellow-100 text-yellow-800',
+  paid: 'bg-green-100 text-green-800',
+};
+
+// Billing status for revenue
+export type RevenueBillingStatus = 'unbilled' | 'billed' | 'paid';
+
+export const REVENUE_BILLING_STATUSES: RevenueBillingStatus[] = ['unbilled', 'billed', 'paid'];
+
+export const REVENUE_BILLING_STATUS_LABELS: Record<RevenueBillingStatus, string> = {
+  unbilled: 'Unbilled',
+  billed: 'Billed',
+  paid: 'Paid',
+};
+
+export const REVENUE_BILLING_STATUS_COLORS: Record<RevenueBillingStatus, string> = {
+  unbilled: 'bg-gray-100 text-gray-800',
+  billed: 'bg-blue-100 text-blue-800',
+  paid: 'bg-green-100 text-green-800',
+};
+
+// Vendor invoice payment status
+export type VendorInvoicePaymentStatus = 'unpaid' | 'partial' | 'paid';
+
+export const VENDOR_INVOICE_PAYMENT_STATUSES: VendorInvoicePaymentStatus[] = ['unpaid', 'partial', 'paid'];
+
+export const VENDOR_INVOICE_PAYMENT_STATUS_LABELS: Record<VendorInvoicePaymentStatus, string> = {
+  unpaid: 'Unpaid',
+  partial: 'Partial',
+  paid: 'Paid',
+};
+
+// Charge type entity
+export interface AgencyChargeType {
+  id: string;
+  chargeCode: string;
+  chargeName: string;
+  chargeCategory: ChargeCategory;
+  chargeType: ChargeTypeClass;
+  defaultCurrency: string;
+  isTaxable: boolean;
+  displayOrder: number;
+  isActive: boolean;
+  createdAt: string;
+}
+
+// Shipment cost entity
+export interface ShipmentCost {
+  id: string;
+  bookingId?: string;
+  blId?: string;
+  jobOrderId?: string;
+  chargeTypeId: string;
+  description?: string;
+  currency: string;
+  unitPrice: number;
+  quantity: number;
+  amount: number;
+  exchangeRate: number;
+  amountIdr: number;
+  isTaxable: boolean;
+  taxRate: number;
+  taxAmount: number;
+  totalAmount: number;
+  vendorId?: string;
+  vendorName?: string;
+  vendorInvoiceNumber?: string;
+  vendorInvoiceDate?: string;
+  paymentStatus: CostPaymentStatus;
+  paidAmount: number;
+  paidDate?: string;
+  paymentReference?: string;
+  notes?: string;
+  createdBy?: string;
+  createdAt: string;
+  // Joined fields
+  chargeType?: AgencyChargeType;
+  vendor?: ServiceProvider;
+}
+
+// Shipment revenue entity
+export interface ShipmentRevenue {
+  id: string;
+  bookingId?: string;
+  blId?: string;
+  jobOrderId?: string;
+  invoiceId?: string;
+  chargeTypeId: string;
+  description?: string;
+  currency: string;
+  unitPrice: number;
+  quantity: number;
+  amount: number;
+  exchangeRate: number;
+  amountIdr: number;
+  isTaxable: boolean;
+  taxRate: number;
+  taxAmount: number;
+  totalAmount: number;
+  billingStatus: RevenueBillingStatus;
+  notes?: string;
+  createdBy?: string;
+  createdAt: string;
+  // Joined fields
+  chargeType?: AgencyChargeType;
+  invoice?: { id: string; invoiceNumber: string };
+}
+
+// Vendor invoice entity
+export interface AgencyVendorInvoice {
+  id: string;
+  invoiceNumber: string;
+  vendorId: string;
+  vendorName?: string;
+  invoiceDate: string;
+  dueDate?: string;
+  currency: string;
+  subtotal: number;
+  taxAmount: number;
+  totalAmount: number;
+  paymentStatus: VendorInvoicePaymentStatus;
+  paidAmount: number;
+  costIds: string[];
+  documentUrl?: string;
+  notes?: string;
+  createdAt: string;
+  // Joined fields
+  vendor?: ServiceProvider;
+  costs?: ShipmentCost[];
+}
+
+// Shipment profitability summary (from view)
+export interface ShipmentProfitability {
+  bookingId: string;
+  bookingNumber: string;
+  customerId?: string;
+  customerName?: string;
+  jobOrderId?: string;
+  joNumber?: string;
+  totalRevenue: number;
+  revenueTax: number;
+  totalCost: number;
+  costTax: number;
+  grossProfit: number;
+  profitMarginPct: number;
+  status: string;
+}
+
+// Financial summary for a booking
+export interface BookingFinancialSummary {
+  totalRevenue: number;
+  totalRevenueTax: number;
+  totalCost: number;
+  totalCostTax: number;
+  grossProfit: number;
+  profitMarginPct: number;
+  targetMarginPct: number;
+  isTargetMet: boolean;
+  unbilledRevenue: number;
+  unpaidCosts: number;
+}
+
+// Form data types
+export interface ShipmentCostFormData {
+  bookingId?: string;
+  blId?: string;
+  jobOrderId?: string;
+  chargeTypeId: string;
+  description?: string;
+  currency: string;
+  unitPrice: number;
+  quantity: number;
+  exchangeRate?: number;
+  isTaxable?: boolean;
+  taxRate?: number;
+  vendorId?: string;
+  vendorName?: string;
+  vendorInvoiceNumber?: string;
+  vendorInvoiceDate?: string;
+  notes?: string;
+}
+
+export interface ShipmentRevenueFormData {
+  bookingId?: string;
+  blId?: string;
+  jobOrderId?: string;
+  invoiceId?: string;
+  chargeTypeId: string;
+  description?: string;
+  currency: string;
+  unitPrice: number;
+  quantity: number;
+  exchangeRate?: number;
+  isTaxable?: boolean;
+  taxRate?: number;
+  notes?: string;
+}
+
+export interface VendorInvoiceFormData {
+  invoiceNumber: string;
+  vendorId: string;
+  vendorName?: string;
+  invoiceDate: string;
+  dueDate?: string;
+  currency?: string;
+  subtotal?: number;
+  taxAmount?: number;
+  totalAmount?: number;
+  costIds?: string[];
+  documentUrl?: string;
+  notes?: string;
+}
+
+export interface ChargeTypeFormData {
+  chargeCode: string;
+  chargeName: string;
+  chargeCategory: ChargeCategory;
+  chargeType: ChargeTypeClass;
+  defaultCurrency?: string;
+  isTaxable?: boolean;
+  displayOrder?: number;
+}
+
+// Database row types (snake_case for Supabase)
+export interface AgencyChargeTypeRow {
+  id: string;
+  charge_code: string;
+  charge_name: string;
+  charge_category: string;
+  charge_type: string;
+  default_currency: string;
+  is_taxable: boolean;
+  display_order: number;
+  is_active: boolean;
+  created_at: string;
+}
+
+export interface ShipmentCostRow {
+  id: string;
+  booking_id?: string;
+  bl_id?: string;
+  job_order_id?: string;
+  charge_type_id: string;
+  description?: string;
+  currency: string;
+  unit_price: number;
+  quantity: number;
+  amount: number;
+  exchange_rate: number;
+  amount_idr: number;
+  is_taxable: boolean;
+  tax_rate: number;
+  tax_amount: number;
+  total_amount: number;
+  vendor_id?: string;
+  vendor_name?: string;
+  vendor_invoice_number?: string;
+  vendor_invoice_date?: string;
+  payment_status: string;
+  paid_amount: number;
+  paid_date?: string;
+  payment_reference?: string;
+  notes?: string;
+  created_by?: string;
+  created_at: string;
+}
+
+export interface ShipmentRevenueRow {
+  id: string;
+  booking_id?: string;
+  bl_id?: string;
+  job_order_id?: string;
+  invoice_id?: string;
+  charge_type_id: string;
+  description?: string;
+  currency: string;
+  unit_price: number;
+  quantity: number;
+  amount: number;
+  exchange_rate: number;
+  amount_idr: number;
+  is_taxable: boolean;
+  tax_rate: number;
+  tax_amount: number;
+  total_amount: number;
+  billing_status: string;
+  notes?: string;
+  created_by?: string;
+  created_at: string;
+}
+
+export interface AgencyVendorInvoiceRow {
+  id: string;
+  invoice_number: string;
+  vendor_id: string;
+  vendor_name?: string;
+  invoice_date: string;
+  due_date?: string;
+  currency: string;
+  subtotal: number;
+  tax_amount: number;
+  total_amount: number;
+  payment_status: string;
+  paid_amount: number;
+  cost_ids: string[];
+  document_url?: string;
+  notes?: string;
+  created_at: string;
+}
+
+export interface ShipmentProfitabilityRow {
+  booking_id: string;
+  booking_number: string;
+  customer_id?: string;
+  customer_name?: string;
+  job_order_id?: string;
+  jo_number?: string;
+  total_revenue: number;
+  revenue_tax: number;
+  total_cost: number;
+  cost_tax: number;
+  gross_profit: number;
+  profit_margin_pct: number;
+  status: string;
+}
+
+// Filter types
+export interface CostFilters {
+  bookingId?: string;
+  blId?: string;
+  jobOrderId?: string;
+  chargeTypeId?: string;
+  vendorId?: string;
+  paymentStatus?: CostPaymentStatus;
+  dateFrom?: string;
+  dateTo?: string;
+}
+
+export interface RevenueFilters {
+  bookingId?: string;
+  blId?: string;
+  jobOrderId?: string;
+  chargeTypeId?: string;
+  billingStatus?: RevenueBillingStatus;
+  invoiceId?: string;
+  dateFrom?: string;
+  dateTo?: string;
+}
+
+export interface VendorInvoiceFilters {
+  vendorId?: string;
+  paymentStatus?: VendorInvoicePaymentStatus;
+  dateFrom?: string;
+  dateTo?: string;
+  dueDateFrom?: string;
+  dueDateTo?: string;
+}
+
+export interface ProfitabilityFilters {
+  customerId?: string;
+  dateFrom?: string;
+  dateTo?: string;
+  status?: string;
+  minMargin?: number;
+  maxMargin?: number;
+}
+
+// Currency conversion result
+export interface CurrencyConversionResult {
+  originalAmount: number;
+  originalCurrency: string;
+  convertedAmount: number;
+  targetCurrency: string;
+  exchangeRate: number;
+}
+
+// Margin indicator type
+export type MarginIndicator = 'above_target' | 'below_target' | 'at_target';
+
+export const MARGIN_INDICATOR_COLORS: Record<MarginIndicator, string> = {
+  above_target: 'text-green-600',
+  below_target: 'text-red-600',
+  at_target: 'text-yellow-600',
+};
+
+// Default values
+export const DEFAULT_TAX_RATE = 11; // Indonesian VAT rate
+export const DEFAULT_TARGET_MARGIN = 20; // Default target profit margin %

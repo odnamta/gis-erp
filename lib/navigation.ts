@@ -177,6 +177,21 @@ export const NAV_ITEMS: NavItem[] = [
         title: 'Manage Rates',
         href: '/agency/shipping-rates/manage',
       },
+      {
+        title: 'Profitability Report',
+        href: '/agency/reports/profitability',
+        roles: ['owner', 'admin', 'manager', 'finance'],
+      },
+      {
+        title: 'Unbilled Revenue',
+        href: '/agency/reports/unbilled',
+        roles: ['owner', 'admin', 'manager', 'finance'],
+      },
+      {
+        title: 'Vendor Payables',
+        href: '/agency/reports/payables',
+        roles: ['owner', 'admin', 'manager', 'finance'],
+      },
     ],
   },
   {
