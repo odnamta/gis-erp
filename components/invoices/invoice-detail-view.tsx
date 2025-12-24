@@ -22,9 +22,10 @@ import { PDFButtons } from '@/components/pdf/pdf-buttons'
 interface InvoiceDetailViewProps {
   invoice: InvoiceWithRelations
   userRole?: string
+  userId?: string
 }
 
-export function InvoiceDetailView({ invoice, userRole = 'viewer' }: InvoiceDetailViewProps) {
+export function InvoiceDetailView({ invoice, userRole = 'viewer', userId }: InvoiceDetailViewProps) {
   const router = useRouter()
   const { toast } = useToast()
   const [isLoading, setIsLoading] = useState(false)
@@ -74,6 +75,8 @@ export function InvoiceDetailView({ invoice, userRole = 'viewer' }: InvoiceDetai
             documentType="invoice"
             documentId={invoice.id}
             documentNumber={invoice.invoice_number}
+            userId={userId}
+            showGenerateButton={!!userId}
           />
           {invoice.status === 'draft' && (
             <Button onClick={() => handleStatusChange('sent')} disabled={isLoading}>

@@ -20,6 +20,7 @@ import { AssignEngineeringDialog } from '@/components/engineering/assign-enginee
 import { WaiveReviewDialog } from '@/components/engineering/waive-review-dialog'
 import { CompleteReviewDialog } from '@/components/engineering/complete-review-dialog'
 import { CompleteAssessmentDialog } from '@/components/engineering/complete-assessment-dialog'
+import { PDFButtons } from '@/components/pdf/pdf-buttons'
 import { canWaiveEngineeringReview, canCompleteAssessment } from '@/lib/engineering-utils'
 import { EngineeringStatus, EngineeringAssessment, AssessmentType } from '@/types/engineering'
 import {
@@ -232,6 +233,13 @@ export function QuotationDetailView({ quotation, userRole, userId }: QuotationDe
           </div>
         </div>
         <div className="flex gap-2">
+          <PDFButtons
+            documentType="quotation"
+            documentId={quotation.id}
+            documentNumber={quotation.quotation_number}
+            userId={userId || undefined}
+            showGenerateButton={!!userId}
+          />
           {isEditable && (
             <Button variant="outline" asChild>
               <Link href={`/quotations/${quotation.id}/edit`}>

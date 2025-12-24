@@ -21,15 +21,17 @@ import { BeritaAcaraSection } from '@/components/berita-acara/berita-acara-secti
 import { BKKSection } from '@/components/bkk/bkk-section'
 import { ProfitabilitySection } from './profitability-section'
 import { JobCustomsSection } from '@/components/customs-fees/job-customs-section'
+import { PDFButtons } from '@/components/pdf/pdf-buttons'
 import { getBKKsByJobOrder } from '@/app/(main)/job-orders/bkk-actions'
 import type { BKKWithRelations } from '@/types/database'
 import type { JobOverheadAllocationWithCategory } from '@/types/overhead'
 
 interface JODetailViewProps {
   jobOrder: JobOrderWithRelations
+  userId?: string
 }
 
-export function JODetailView({ jobOrder }: JODetailViewProps) {
+export function JODetailView({ jobOrder, userId }: JODetailViewProps) {
   const router = useRouter()
   const { toast } = useToast()
   const [isLoading, setIsLoading] = useState(false)
@@ -135,6 +137,13 @@ export function JODetailView({ jobOrder }: JODetailViewProps) {
           </div>
         </div>
         <div className="flex gap-2">
+          <PDFButtons
+            documentType="job_order"
+            documentId={jobOrder.id}
+            documentNumber={jobOrder.jo_number}
+            userId={userId}
+            showGenerateButton={!!userId}
+          />
           {(jobOrder.status === 'active' || jobOrder.status === 'in_progress') && (
             <Button onClick={handleMarkCompleted} disabled={isLoading}>
               <CheckCircle className="mr-2 h-4 w-4" />

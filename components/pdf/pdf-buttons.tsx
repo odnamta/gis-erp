@@ -1,10 +1,11 @@
 'use client'
 
 import { Button } from '@/components/ui/button'
-import { Eye, Download, Loader2 } from 'lucide-react'
+import { Eye, Download, Loader2, FileText } from 'lucide-react'
 import { useState } from 'react'
+import { GenerateDialog } from '@/components/document-generation/generate-dialog'
 
-export type PDFDocumentType = 'invoice' | 'surat-jalan' | 'berita-acara'
+export type PDFDocumentType = 'invoice' | 'surat-jalan' | 'berita-acara' | 'quotation' | 'job_order'
 
 interface PDFButtonsProps {
   documentType: PDFDocumentType
@@ -13,6 +14,8 @@ interface PDFButtonsProps {
   size?: 'default' | 'sm' | 'lg' | 'icon'
   variant?: 'default' | 'outline' | 'ghost'
   showLabels?: boolean
+  userId?: string
+  showGenerateButton?: boolean
 }
 
 export function PDFButtons({
@@ -22,9 +25,28 @@ export function PDFButtons({
   size = 'sm',
   variant = 'outline',
   showLabels = true,
+  userId,
+  showGenerateButton = false,
 }: PDFButtonsProps) {
   const [isViewing, setIsViewing] = useState(false)
   const [isDownloading, setIsDownloading] = useState(false)
+  const [generateDialogOpen, setGenerateDialogOpen] = useState(false)
+
+  // Map document types for the generation dialog
+  const getEntityType = (): 'invoice' | 'quotation' | 'job_order' | null => {
+    switch (documentType) {
+      case 'invoice':
+        return 'invoice'
+      case 'quotation':
+        return 'quotation'
+      case 'job_order':
+        return 'job_order'
+      default:
+        return null
+    }
+  }
+
+  const entityType = getEntityType()
 
   const getPDFUrl = (download: boolean) => {
     const baseUrl = `/api/pdf/${documentType}/${documentId}`
@@ -64,6 +86,26 @@ export function PDFButtons({
 
   return (
     <div className="flex gap-2">
+      {showGenerateButton && entityType && userId && (
+        <>
+          <Button
+            variant={variant}
+            size={size}
+            onClick={() => setGenerateDialogOpen(true)}
+          >
+            <FileText className="h-4 w-4" />
+            {showLabels && <span className="ml-2">Generate PDF</span>}
+          </Button>
+          <GenerateDialog
+            open={generateDialogOpen}
+            onOpenChange={setGenerateDialogOpen}
+            entityType={entityType}
+            entityId={documentId}
+            entityNumber={documentNumber}
+            userId={userId}
+          />
+        </>
+      )}
       <Button
         variant={variant}
         size={size}

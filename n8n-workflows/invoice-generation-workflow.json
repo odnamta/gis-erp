@@ -1,0 +1,570 @@
+{
+  "name": "Invoice PDF Generation",
+  "nodes": [
+    {
+      "parameters": {
+        "httpMethod": "POST",
+        "path": "generate-invoice",
+        "responseMode": "responseNode",
+        "options": {}
+      },
+      "id": "webhook-trigger",
+      "name": "Webhook Trigger",
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 2,
+      "position": [250, 300],
+      "webhookId": "invoice-generation"
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict"
+          },
+          "conditions": [
+            {
+              "id": "validate-invoice-id",
+              "leftValue": "={{ $json.invoice_id }}",
+              "rightValue": "",
+              "operator": {
+                "type": "string",
+                "operation": "notEmpty"
+              }
+            },
+            {
+              "id": "validate-user-id",
+              "leftValue": "={{ $json.user_id }}",
+              "rightValue": "",
+              "operator": {
+                "type": "string",
+                "operation": "notEmpty"
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "id": "validate-input",
+      "name": "Validate Input",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2,
+      "position": [470, 300]
+    },
+    {
+      "parameters": {
+        "operation": "select",
+        "schema": {
+          "__rl": true,
+          "value": "public",
+          "mode": "list",
+          "cachedResultName": "public"
+        },
+        "table": {
+          "__rl": true,
+          "value": "invoices",
+          "mode": "list",
+          "cachedResultName": "invoices"
+        },
+        "returnAll": false,
+        "limit": 1,
+        "filterType": "string",
+        "filterString": "={{ 'id=eq.' + $json.invoice_id }}",
+        "options": {
+          "queryName": "select=*,customers(id,name,email,phone,address),job_orders(id,jo_number)"
+        }
+      },
+      "id": "fetch-invoice",
+      "name": "Fetch Invoice Data",
+      "type": "n8n-nodes-base.supabase",
+      "typeVersion": 1,
+      "position": [690, 200],
+      "credentials": {
+        "supabaseApi": {
+          "id": "{{SUPABASE_CREDENTIAL_ID}}",
+          "name": "Supabase API"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "operation": "select",
+        "schema": {
+          "__rl": true,
+          "value": "public",
+          "mode": "list",
+          "cachedResultName": "public"
+        },
+        "table": {
+          "__rl": true,
+          "value": "invoice_line_items",
+          "mode": "list",
+          "cachedResultName": "invoice_line_items"
+        },
+        "returnAll": true,
+        "filterType": "string",
+        "filterString": "={{ 'invoice_id=eq.' + $('Webhook Trigger').item.json.invoice_id }}",
+        "options": {
+          "queryName": "order=line_number.asc"
+        }
+      },
+      "id": "fetch-line-items",
+      "name": "Fetch Line Items",
+      "type": "n8n-nodes-base.supabase",
+      "typeVersion": 1,
+      "position": [690, 400],
+      "credentials": {
+        "supabaseApi": {
+          "id": "{{SUPABASE_CREDENTIAL_ID}}",
+          "name": "Supabase API"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "operation": "select",
+        "schema": {
+          "__rl": true,
+          "value": "public",
+          "mode": "list",
+          "cachedResultName": "public"
+        },
+        "table": {
+          "__rl": true,
+          "value": "document_templates",
+          "mode": "list",
+          "cachedResultName": "document_templates"
+        },
+        "returnAll": false,
+        "limit": 1,
+        "filterType": "string",
+        "filterString": "template_code=eq.INV_STANDARD&is_active=eq.true",
+        "options": {}
+      },
+      "id": "fetch-template",
+      "name": "Fetch Template",
+      "type": "n8n-nodes-base.supabase",
+      "typeVersion": 1,
+      "position": [690, 600],
+      "credentials": {
+        "supabaseApi": {
+          "id": "{{SUPABASE_CREDENTIAL_ID}}",
+          "name": "Supabase API"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "mode": "combine",
+        "mergeByFields": {
+          "values": []
+        },
+        "combinationMode": "mergeByPosition",
+        "options": {}
+      },
+      "id": "merge-data",
+      "name": "Merge Data",
+      "type": "n8n-nodes-base.merge",
+      "typeVersion": 3,
+      "position": [910, 300]
+    },
+    {
+      "parameters": {
+        "jsCode": "// Build invoice variables for template processing\nconst invoice = $('Fetch Invoice Data').first().json;\nconst lineItems = $('Fetch Line Items').all().map(item => item.json);\nconst template = $('Fetch Template').first().json;\nconst webhookData = $('Webhook Trigger').first().json;\n\n// Format date helper\nfunction formatDate(dateString) {\n  if (!dateString) return '';\n  try {\n    const date = new Date(dateString);\n    return date.toLocaleDateString('id-ID', {\n      day: '2-digit',\n      month: '2-digit',\n      year: 'numeric'\n    });\n  } catch {\n    return dateString;\n  }\n}\n\n// Build items array with calculated amounts\nconst items = lineItems.map(item => ({\n  description: item.description || '',\n  quantity: Number(item.quantity) || 1,\n  unit: item.unit || 'unit',\n  unit_price: Number(item.unit_price) || 0,\n  amount: item.subtotal !== null \n    ? Number(item.subtotal) \n    : (Number(item.quantity) || 1) * (Number(item.unit_price) || 0)\n}));\n\n// Calculate totals\nconst subtotal = Number(invoice.subtotal) || items.reduce((sum, item) => sum + item.amount, 0);\nconst tax_amount = Number(invoice.tax_amount) || subtotal * 0.11;\nconst total_amount = Number(invoice.total_amount) || subtotal + tax_amount;\n\n// Build variables context\nconst variables = {\n  invoice_number: invoice.invoice_number || '',\n  invoice_date: formatDate(invoice.invoice_date),\n  due_date: formatDate(invoice.due_date),\n  customer_name: invoice.customers?.name || '',\n  customer_address: invoice.customers?.address || '',\n  customer_email: invoice.customers?.email || '',\n  jo_number: invoice.job_orders?.jo_number || '',\n  items: items,\n  subtotal: subtotal,\n  tax_amount: tax_amount,\n  total_amount: total_amount,\n  notes: invoice.notes || '',\n  invoice_term: invoice.invoice_term || '',\n  term_description: invoice.term_description || ''\n};\n\nreturn {\n  invoice_id: webhookData.invoice_id,\n  user_id: webhookData.user_id,\n  template: template,\n  variables: variables,\n  document_number: invoice.invoice_number\n};"
+      },
+      "id": "build-variables",
+      "name": "Build Variables",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [1130, 300]
+    },
+    {
+      "parameters": {
+        "jsCode": "// Process template with variable substitution\nconst data = $input.first().json;\nconst template = data.template;\nconst variables = data.variables;\n\n// Variable substitution function\nfunction substituteVariable(template, varName, value) {\n  const stringValue = value === null || value === undefined ? '' : String(value);\n  const pattern = new RegExp('\\\\{\\\\{\\\\s*' + varName.replace(/[.*+?^${}()|[\\]\\\\]/g, '\\\\$&') + '\\\\s*\\\\}\\\\}', 'g');\n  return template.replace(pattern, stringValue);\n}\n\n// Process loops\nfunction processLoop(template, loopName, items) {\n  const escapedName = loopName.replace(/[.*+?^${}()|[\\]\\\\]/g, '\\\\$&');\n  const loopPattern = new RegExp(\n    '\\\\{\\\\{#\\\\s*' + escapedName + '\\\\s*\\\\}\\\\}([\\\\s\\\\S]*?)\\\\{\\\\{/\\\\s*' + escapedName + '\\\\s*\\\\}\\\\}',\n    'g'\n  );\n  \n  return template.replace(loopPattern, (_, loopContent) => {\n    if (!Array.isArray(items) || items.length === 0) return '';\n    \n    return items.map(item => {\n      let rendered = loopContent;\n      for (const [key, value] of Object.entries(item)) {\n        rendered = substituteVariable(rendered, key, value);\n      }\n      return rendered;\n    }).join('');\n  });\n}\n\n// Start with HTML template\nlet html = template.html_template || '';\n\n// Inject CSS styles\nif (template.css_styles) {\n  html = substituteVariable(html, 'styles', template.css_styles);\n}\n\n// Inject letterhead if enabled\nconst letterheadHtml = `\n<div class=\"letterhead\" style=\"text-align: center; margin-bottom: 20px;\">\n  <h2 style=\"margin: 0;\">PT. Gama Intisamudera</h2>\n  <p style=\"margin: 5px 0; font-size: 12px;\">Heavy-Haul Logistics Solutions</p>\n  <p style=\"margin: 5px 0; font-size: 11px;\">Jl. Example Address No. 123, Jakarta, Indonesia</p>\n  <p style=\"margin: 5px 0; font-size: 11px;\">Tel: +62 21 1234567 | Email: info@gama-group.co</p>\n</div>\n`;\n\nif (template.include_letterhead) {\n  html = substituteVariable(html, 'letterhead', letterheadHtml);\n} else {\n  html = substituteVariable(html, 'letterhead', '');\n}\n\n// Process items loop\nhtml = processLoop(html, 'items', variables.items);\n\n// Substitute all other variables\nfor (const [key, value] of Object.entries(variables)) {\n  if (key !== 'items') {\n    html = substituteVariable(html, key, value);\n  }\n}\n\nreturn {\n  ...data,\n  processed_html: html\n};"
+      },
+      "id": "process-template",
+      "name": "Process Template",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [1350, 300]
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "={{$env.HTML2PDF_API_URL}}",
+        "authentication": "genericCredentialType",
+        "genericAuthType": "httpHeaderAuth",
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={\n  \"html\": {{ JSON.stringify($json.processed_html) }},\n  \"options\": {\n    \"format\": \"{{ $json.template.page_size || 'A4' }}\",\n    \"landscape\": {{ $json.template.orientation === 'landscape' }},\n    \"margin\": {\n      \"top\": \"{{ $json.template.margins?.top || 20 }}mm\",\n      \"right\": \"{{ $json.template.margins?.right || 20 }}mm\",\n      \"bottom\": \"{{ $json.template.margins?.bottom || 20 }}mm\",\n      \"left\": \"{{ $json.template.margins?.left || 20 }}mm\"\n    },\n    \"displayHeaderFooter\": {{ !!$json.template.header_html || !!$json.template.footer_html }}\n  }\n}",
+        "options": {
+          "response": {
+            "response": {
+              "responseFormat": "file"
+            }
+          }
+        }
+      },
+      "id": "convert-to-pdf",
+      "name": "Convert to PDF",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [1570, 300],
+      "credentials": {
+        "httpHeaderAuth": {
+          "id": "{{HTML2PDF_CREDENTIAL_ID}}",
+          "name": "HTML2PDF API Key"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "jsCode": "// Prepare file for upload\nconst prevData = $('Process Template').first().json;\nconst pdfBinary = $input.first().binary;\n\nconst now = new Date();\nconst year = now.getFullYear();\nconst month = String(now.getMonth() + 1).padStart(2, '0');\nconst timestamp = now.getTime();\n\n// Sanitize document number for filename\nconst sanitizedNumber = (prevData.document_number || 'document')\n  .replace(/[^a-zA-Z0-9_-]/g, '_')\n  .replace(/_+/g, '_');\n\nconst filename = `${sanitizedNumber}_${timestamp}.pdf`;\nconst storagePath = `invoice/${year}/${month}/${filename}`;\n\nreturn {\n  ...prevData,\n  storage_path: storagePath,\n  filename: filename,\n  binary: pdfBinary\n};"
+      },
+      "id": "prepare-upload",
+      "name": "Prepare Upload",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [1790, 300]
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "={{$env.SUPABASE_URL}}/storage/v1/object/generated-documents/{{ $json.storage_path }}",
+        "authentication": "genericCredentialType",
+        "genericAuthType": "httpHeaderAuth",
+        "sendBody": true,
+        "contentType": "binaryData",
+        "inputDataFieldName": "=data",
+        "options": {
+          "response": {
+            "response": {
+              "responseFormat": "json"
+            }
+          }
+        }
+      },
+      "id": "upload-to-storage",
+      "name": "Upload to Storage",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [2010, 300],
+      "credentials": {
+        "httpHeaderAuth": {
+          "id": "{{SUPABASE_STORAGE_CREDENTIAL_ID}}",
+          "name": "Supabase Storage API Key"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "jsCode": "// Build file URL and prepare record data\nconst prevData = $('Prepare Upload').first().json;\nconst uploadResult = $input.first().json;\n\nconst supabaseUrl = $env.SUPABASE_URL;\nconst fileUrl = `${supabaseUrl}/storage/v1/object/public/generated-documents/${prevData.storage_path}`;\n\n// Estimate file size (will be updated with actual size)\nconst fileSizeKb = Math.round((prevData.processed_html?.length || 0) * 2 / 1024);\n\nreturn {\n  template_id: prevData.template.id,\n  document_type: 'invoice',\n  document_number: prevData.document_number,\n  entity_type: 'invoice',\n  entity_id: prevData.invoice_id,\n  file_url: fileUrl,\n  file_name: prevData.filename,\n  file_size_kb: fileSizeKb,\n  generated_at: new Date().toISOString(),\n  generated_by: prevData.user_id,\n  variables_data: prevData.variables\n};"
+      },
+      "id": "build-record",
+      "name": "Build Record",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [2230, 300]
+    },
+    {
+      "parameters": {
+        "operation": "insert",
+        "schema": {
+          "__rl": true,
+          "value": "public",
+          "mode": "list",
+          "cachedResultName": "public"
+        },
+        "table": {
+          "__rl": true,
+          "value": "generated_documents",
+          "mode": "list",
+          "cachedResultName": "generated_documents"
+        },
+        "columns": {
+          "mappingMode": "defineBelow",
+          "value": {
+            "template_id": "={{ $json.template_id }}",
+            "document_type": "={{ $json.document_type }}",
+            "document_number": "={{ $json.document_number }}",
+            "entity_type": "={{ $json.entity_type }}",
+            "entity_id": "={{ $json.entity_id }}",
+            "file_url": "={{ $json.file_url }}",
+            "file_name": "={{ $json.file_name }}",
+            "file_size_kb": "={{ $json.file_size_kb }}",
+            "generated_at": "={{ $json.generated_at }}",
+            "generated_by": "={{ $json.generated_by }}",
+            "variables_data": "={{ JSON.stringify($json.variables_data) }}"
+          }
+        },
+        "options": {}
+      },
+      "id": "create-record",
+      "name": "Create Document Record",
+      "type": "n8n-nodes-base.supabase",
+      "typeVersion": 1,
+      "position": [2450, 300],
+      "credentials": {
+        "supabaseApi": {
+          "id": "{{SUPABASE_CREDENTIAL_ID}}",
+          "name": "Supabase API"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "operation": "update",
+        "schema": {
+          "__rl": true,
+          "value": "public",
+          "mode": "list",
+          "cachedResultName": "public"
+        },
+        "table": {
+          "__rl": true,
+          "value": "invoices",
+          "mode": "list",
+          "cachedResultName": "invoices"
+        },
+        "columns": {
+          "mappingMode": "defineBelow",
+          "value": {
+            "pdf_url": "={{ $('Build Record').first().json.file_url }}"
+          }
+        },
+        "filterType": "string",
+        "filterString": "={{ 'id=eq.' + $('Build Record').first().json.entity_id }}",
+        "options": {}
+      },
+      "id": "update-invoice",
+      "name": "Update Invoice PDF URL",
+      "type": "n8n-nodes-base.supabase",
+      "typeVersion": 1,
+      "position": [2670, 300],
+      "credentials": {
+        "supabaseApi": {
+          "id": "{{SUPABASE_CREDENTIAL_ID}}",
+          "name": "Supabase API"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "respondWith": "json",
+        "responseBody": "={\n  \"success\": true,\n  \"document\": {\n    \"id\": \"{{ $('Create Document Record').first().json.id }}\",\n    \"file_url\": \"{{ $('Build Record').first().json.file_url }}\",\n    \"file_name\": \"{{ $('Build Record').first().json.file_name }}\",\n    \"document_number\": \"{{ $('Build Record').first().json.document_number }}\",\n    \"generated_at\": \"{{ $('Build Record').first().json.generated_at }}\"\n  }\n}",
+        "options": {}
+      },
+      "id": "success-response",
+      "name": "Success Response",
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1.1,
+      "position": [2890, 300]
+    },
+    {
+      "parameters": {
+        "respondWith": "json",
+        "responseBody": "={\n  \"success\": false,\n  \"error\": \"Invalid input: invoice_id and user_id are required\"\n}",
+        "options": {
+          "responseCode": 400
+        }
+      },
+      "id": "validation-error",
+      "name": "Validation Error Response",
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1.1,
+      "position": [690, 500]
+    }
+  ],
+  "connections": {
+    "Webhook Trigger": {
+      "main": [
+        [
+          {
+            "node": "Validate Input",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Validate Input": {
+      "main": [
+        [
+          {
+            "node": "Fetch Invoice Data",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "Fetch Line Items",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "Fetch Template",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Validation Error Response",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Fetch Invoice Data": {
+      "main": [
+        [
+          {
+            "node": "Merge Data",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Fetch Line Items": {
+      "main": [
+        [
+          {
+            "node": "Merge Data",
+            "type": "main",
+            "index": 1
+          }
+        ]
+      ]
+    },
+    "Fetch Template": {
+      "main": [
+        [
+          {
+            "node": "Merge Data",
+            "type": "main",
+            "index": 2
+          }
+        ]
+      ]
+    },
+    "Merge Data": {
+      "main": [
+        [
+          {
+            "node": "Build Variables",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Build Variables": {
+      "main": [
+        [
+          {
+            "node": "Process Template",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Process Template": {
+      "main": [
+        [
+          {
+            "node": "Convert to PDF",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Convert to PDF": {
+      "main": [
+        [
+          {
+            "node": "Prepare Upload",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Prepare Upload": {
+      "main": [
+        [
+          {
+            "node": "Upload to Storage",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Upload to Storage": {
+      "main": [
+        [
+          {
+            "node": "Build Record",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Build Record": {
+      "main": [
+        [
+          {
+            "node": "Create Document Record",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Create Document Record": {
+      "main": [
+        [
+          {
+            "node": "Update Invoice PDF URL",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Update Invoice PDF URL": {
+      "main": [
+        [
+          {
+            "node": "Success Response",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "settings": {
+    "executionOrder": "v1"
+  },
+  "staticData": null,
+  "tags": [
+    {
+      "name": "document-generation"
+    },
+    {
+      "name": "invoice"
+    }
+  ],
+  "triggerCount": 1,
+  "meta": {
+    "templateCredsSetupCompleted": false,
+    "instanceId": "gama-erp"
+  }
+}
