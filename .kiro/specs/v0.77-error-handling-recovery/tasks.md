@@ -6,33 +6,33 @@ This implementation plan covers the v0.77 Error Handling & Recovery feature, inc
 
 ## Tasks
 
-- [ ] 1. Database Schema Setup
-  - [ ] 1.1 Create error_tracking table with indexes
+- [x] 1. Database Schema Setup
+  - [x] 1.1 Create error_tracking table with indexes
     - Create table with all columns: id, error_code, error_hash, timestamp, error_type, error_message, error_stack, module, function_name, user_id, session_id, request_method, request_path, request_body, request_params, environment, version, status, resolved_at, resolved_by, resolution_notes, occurrence_count, first_seen_at, last_seen_at
     - Add indexes on error_hash, status, timestamp
     - Add RLS policies for admin access
     - _Requirements: 1.1, 1.2, 1.3, 1.4, 1.5, 1.6, 3.1, 3.2_
-  - [ ] 1.2 Create deleted_records table with indexes
+  - [x] 1.2 Create deleted_records table with indexes
     - Create table with columns: id, deleted_at, deleted_by, source_table, source_id, record_data, recovered_at, recovered_by, purge_after
     - Add indexes on source_table, purge_after, (source_table, source_id)
     - Add RLS policies for admin access
     - _Requirements: 4.1, 4.2, 4.5_
-  - [ ] 1.3 Create validation_errors table with indexes
+  - [x] 1.3 Create validation_errors table with indexes
     - Create table with columns: id, timestamp, entity_type, entity_id, field_name, field_value, validation_rule, error_message, user_id, corrected, corrected_at
     - Add index on (entity_type, field_name)
     - Add RLS policies
     - _Requirements: 5.1, 5.2, 5.3_
-  - [ ] 1.4 Create job_failures table with indexes
+  - [x] 1.4 Create job_failures table with indexes
     - Create table with columns: id, job_type, job_id, failed_at, error_message, error_stack, job_data, retry_count, max_retries, next_retry_at, status, resolved_at
     - Add indexes on status, next_retry_at (partial)
     - Add RLS policies
     - _Requirements: 6.1, 6.2, 6.4, 6.5, 6.6_
 
-- [ ] 2. Custom Error Classes and Types
-  - [ ] 2.1 Create TypeScript types for error handling
+- [x] 2. Custom Error Classes and Types
+  - [x] 2.1 Create TypeScript types for error handling
     - Create types/error-handling.ts with ErrorStatus, JobStatus, ErrorTracking, DeletedRecord, ValidationError, JobFailure, ErrorSummary types
     - _Requirements: 3.1, 6.6_
-  - [ ] 2.2 Implement custom error classes
+  - [x] 2.2 Implement custom error classes
     - Create lib/error-handling/errors.ts with AppError interface
     - Implement ValidationError, NotFoundError, AuthorizationError, ConflictError classes
     - Each class must have code, statusCode, isOperational properties
@@ -41,213 +41,216 @@ This implementation plan covers the v0.77 Error Handling & Recovery feature, inc
     - **Property 5: Operational Error Messages**
     - **Validates: Requirements 2.1, 2.2, 2.3, 2.4**
 
-- [ ] 3. Error Handler Core
-  - [ ] 3.1 Implement error hash generation
+- [x] 3. Error Handler Core
+  - [x] 3.1 Implement error hash generation
     - Create generateErrorHash function using error type, message, and module
     - Use crypto hash (SHA-256) truncated to 64 chars
     - _Requirements: 1.2_
-  - [ ] 3.2 Write property test for error hash determinism
+  - [x] 3.2 Write property test for error hash determinism
     - **Property 1: Error Hash Determinism**
     - **Validates: Requirements 1.2**
-  - [ ] 3.3 Implement error code generation
+  - [x] 3.3 Implement error code generation
     - Create generateErrorCode function with format ERR-YYYYMMDD-XXXX
     - Ensure uniqueness using timestamp + random suffix
     - _Requirements: 1.6_
-  - [ ] 3.4 Write property test for error code uniqueness
+  - [x] 3.4 Write property test for error code uniqueness
     - **Property 4: Error Code Uniqueness**
     - **Validates: Requirements 1.6**
-  - [ ] 3.5 Implement main error handler
+  - [x] 3.5 Implement main error handler
     - Create handleError function in lib/error-handling/handler.ts
     - Distinguish operational vs non-operational errors
     - Return appropriate ErrorResponse format
     - _Requirements: 2.5, 2.6_
-  - [ ] 3.6 Write property test for non-operational error safety
+  - [x] 3.6 Write property test for non-operational error safety
     - **Property 6: Non-Operational Error Safety**
     - **Validates: Requirements 2.5, 2.6**
 
-- [ ] 4. Checkpoint - Core Error Handling
+- [x] 4. Checkpoint - Core Error Handling
   - Ensure all tests pass, ask the user if questions arise.
 
-- [ ] 5. Error Tracking Service
-  - [ ] 5.1 Implement trackError function
+- [x] 5. Error Tracking Service
+  - [x] 5.1 Implement trackError function
     - Create lib/error-handling/tracking.ts
     - Check for existing error by hash, increment count or create new
     - Store all context (user, request, environment)
     - _Requirements: 1.1, 1.3, 1.4, 1.5_
-  - [ ] 5.2 Write property test for error occurrence counting
+  - [x] 5.2 Write property test for error occurrence counting
     - **Property 2: Error Occurrence Counting**
     - **Validates: Requirements 1.3**
-  - [ ] 5.3 Write property test for error context storage
+  - [x] 5.3 Write property test for error context storage
     - **Property 3: Error Context Storage**
     - **Validates: Requirements 1.4, 1.5**
-  - [ ] 5.4 Implement error status management
+  - [x] 5.4 Implement error status management
     - Create updateErrorStatus function
     - Record resolved_at, resolved_by, resolution_notes when resolving
     - _Requirements: 3.1, 3.2_
-  - [ ] 5.5 Write property test for error status transitions
+  - [x] 5.5 Write property test for error status transitions
     - **Property 7: Error Status Transitions**
     - **Validates: Requirements 3.1, 3.2**
-  - [ ] 5.6 Implement error filtering and queries
+  - [x] 5.6 Implement error filtering and queries
     - Create getErrors function with filters (status, module, errorType, dateRange)
     - Create getErrorSummary function for dashboard
     - _Requirements: 3.4, 7.1, 7.2_
-  - [ ] 5.7 Write property test for error filtering
+  - [x] 5.7 Write property test for error filtering
     - **Property 8: Error Filtering**
     - **Validates: Requirements 3.4**
 
-- [ ] 6. Recovery Service
-  - [ ] 6.1 Implement softDeleteWithRecovery function
+- [x] 6. Recovery Service
+  - [x] 6.1 Implement softDeleteWithRecovery function
     - Create lib/error-handling/recovery.ts
     - Fetch record, store in deleted_records, set is_active=false
     - Calculate purge_after as 90 days from now
     - _Requirements: 4.1, 4.2, 4.5_
-  - [ ] 6.2 Write property test for soft delete record preservation
+  - [x] 6.2 Write property test for soft delete record preservation
     - **Property 9: Soft Delete Record Preservation**
     - **Validates: Requirements 4.1, 4.2**
-  - [ ] 6.3 Write property test for purge date calculation
+  - [x] 6.3 Write property test for purge date calculation
     - **Property 11: Purge Date Calculation**
     - **Validates: Requirements 4.5**
-  - [ ] 6.4 Implement recoverDeletedRecord function
+  - [x] 6.4 Implement recoverDeletedRecord function
     - Restore record to original table with is_active=true
     - Update deleted_records with recovered_at, recovered_by
     - Throw NotFoundError if record not in deleted_records
     - _Requirements: 4.3, 4.4, 4.6_
-  - [ ] 6.5 Write property test for delete-recover round trip
+  - [x] 6.5 Write property test for delete-recover round trip
     - **Property 10: Delete-Recover Round Trip**
     - **Validates: Requirements 4.3, 4.4**
-  - [ ] 6.6 Implement getDeletedRecords query function
+  - [x] 6.6 Implement getDeletedRecords query function
     - Filter by source_table, date range, recovered status
     - _Requirements: 7.5_
-  - [ ] 6.7 Implement purgeExpiredRecords function
+  - [x] 6.7 Implement purgeExpiredRecords function
     - Delete records where purge_after < now AND recovered_at IS NULL
     - Return count of purged records
     - _Requirements: 8.2, 8.3, 8.4_
-  - [ ] 6.8 Write property test for auto-purge execution
+  - [x] 6.8 Write property test for auto-purge execution
     - **Property 19: Auto-Purge Execution**
     - **Validates: Requirements 8.2, 8.3**
-  - [ ] 6.9 Write property test for purge count reporting
+  - [x] 6.9 Write property test for purge count reporting
     - **Property 20: Purge Count Reporting**
     - **Validates: Requirements 8.4**
 
-- [ ] 7. Checkpoint - Recovery Service
-  - Ensure all tests pass, ask the user if questions arise.
+- [x] 7. Checkpoint - Recovery Service
+  - All 11 recovery service tests passing
 
-- [ ] 8. Validation Error Logger
-  - [ ] 8.1 Implement logValidationError function
+- [x] 8. Validation Error Logger
+  - [x] 8.1 Implement logValidationError function
     - Create lib/error-handling/validation-logger.ts
     - Store entity_type, entity_id, field_name, field_value, validation_rule, error_message, user_id
     - _Requirements: 5.1, 5.2_
-  - [ ] 8.2 Implement markValidationCorrected function
+  - [x] 8.2 Implement markValidationCorrected function
     - Update corrected=true and corrected_at timestamp
     - _Requirements: 5.3_
-  - [ ] 8.3 Write property test for validation error logging
+  - [x] 8.3 Write property test for validation error logging
     - **Property 12: Validation Error Logging**
     - **Validates: Requirements 5.1, 5.2, 5.3**
-  - [ ] 8.4 Implement getValidationErrors query function
+  - [x] 8.4 Implement getValidationErrors query function
     - Filter by entity_type, field_name, date range
     - _Requirements: 5.4_
-  - [ ] 8.5 Write property test for validation error filtering
+  - [x] 8.5 Write property test for validation error filtering
     - **Property 13: Validation Error Filtering**
     - **Validates: Requirements 5.4**
 
-- [ ] 9. Job Failure Handler
-  - [ ] 9.1 Implement recordJobFailure function
+- [x] 9. Job Failure Handler
+  - [x] 9.1 Implement recordJobFailure function
     - Create lib/error-handling/job-handler.ts
     - Store job_type, job_id, error_message, error_stack, job_data
     - Set initial retry_count=0, status='failed'
     - _Requirements: 6.1_
-  - [ ] 9.2 Write property test for job failure recording
+  - [x] 9.2 Write property test for job failure recording
     - **Property 14: Job Failure Recording**
     - **Validates: Requirements 6.1**
-  - [ ] 9.3 Implement calculateRetryDelay function
+  - [x] 9.3 Implement calculateRetryDelay function
     - Use formula: BASE_DELAY_MS * 2^retry_count
     - BASE_DELAY_MS = 1000 (1 second)
     - _Requirements: 6.3_
-  - [ ] 9.4 Write property test for exponential backoff calculation
+  - [x] 9.4 Write property test for exponential backoff calculation
     - **Property 16: Exponential Backoff Calculation**
     - **Validates: Requirements 6.3**
-  - [ ] 9.5 Implement scheduleRetry function
+  - [x] 9.5 Implement scheduleRetry function
     - Check if retry_count < max_retries
     - If yes: increment retry_count, set status='retrying', calculate next_retry_at
     - If no: set status='abandoned'
     - _Requirements: 6.2, 6.4_
-  - [ ] 9.6 Write property test for job retry scheduling
+  - [x] 9.6 Write property test for job retry scheduling
     - **Property 15: Job Retry Scheduling**
     - **Validates: Requirements 6.2**
-  - [ ] 9.7 Write property test for job abandonment
+  - [x] 9.7 Write property test for job abandonment
     - **Property 17: Job Abandonment**
     - **Validates: Requirements 6.4**
-  - [ ] 9.8 Implement markJobResolved function
+  - [x] 9.8 Implement markJobResolved function
     - Set status='resolved' and resolved_at timestamp
     - _Requirements: 6.5_
-  - [ ] 9.9 Write property test for job resolution
+  - [x] 9.9 Write property test for job resolution
     - **Property 18: Job Resolution**
     - **Validates: Requirements 6.5**
-  - [ ] 9.10 Implement getJobsForRetry query function
+  - [x] 9.10 Implement getJobsForRetry query function
     - Get jobs where status='retrying' AND next_retry_at <= now
     - _Requirements: 6.2_
 
-- [ ] 10. Checkpoint - Services Complete
-  - Ensure all tests pass, ask the user if questions arise.
+- [x] 10. Checkpoint - Services Complete
+  - All 76 property tests passing
 
-- [ ] 11. Server Actions
-  - [ ] 11.1 Create error tracking server actions
-    - Create app/actions/error-tracking.ts
-    - Actions: getErrorsAction, updateErrorStatusAction, getErrorSummaryAction
+- [x] 11. Server Actions
+  - [x] 11.1 Create error tracking server actions
+    - Create app/actions/error-tracking-actions.ts
+    - Actions: getErrorsAction, updateErrorStatusAction, getErrorSummaryAction, getErrorByIdAction
     - _Requirements: 3.2, 3.4, 7.1, 7.2, 7.4_
-  - [ ] 11.2 Create recovery server actions
-    - Create app/actions/recovery.ts
-    - Actions: getDeletedRecordsAction, recoverRecordAction
+  - [x] 11.2 Create recovery server actions
+    - Create app/actions/recovery-actions.ts
+    - Actions: getDeletedRecordsAction, recoverRecordAction, getDeletedRecordsByTableAction, getRecoveryStatsAction
     - _Requirements: 4.3, 7.5_
-  - [ ] 11.3 Create validation error server actions
-    - Create app/actions/validation-errors.ts
-    - Actions: getValidationErrorsAction, markCorrectedAction
+  - [x] 11.3 Create validation error server actions
+    - Create app/actions/validation-error-actions.ts
+    - Actions: getValidationErrorsAction, markCorrectedAction, getValidationErrorStatsAction
     - _Requirements: 5.3, 5.4_
-  - [ ] 11.4 Create job failure server actions
-    - Create app/actions/job-failures.ts
-    - Actions: getJobFailuresAction, retryJobAction
+  - [x] 11.4 Create job failure server actions
+    - Create app/actions/job-failure-actions.ts
+    - Actions: getJobFailuresAction, retryJobAction, markJobResolvedAction, getJobFailureStatsAction, getJobsForRetryAction
     - _Requirements: 6.2_
 
-- [ ] 12. Admin Dashboard UI
-  - [ ] 12.1 Create error dashboard page
+- [x] 12. Admin Dashboard UI
+  - [x] 12.1 Create error dashboard page
     - Create app/(main)/admin/errors/page.tsx
     - Display error summary by status
     - Show top recurring errors
     - _Requirements: 7.1, 7.2_
-  - [ ] 12.2 Create error list component
-    - Create components/error-handling/error-list.tsx
+  - [x] 12.2 Create error list component
+    - Integrated in app/(main)/admin/errors/error-dashboard-client.tsx
     - Table with filtering by status, module, type, date
     - _Requirements: 3.4, 7.3_
-  - [ ] 12.3 Create error detail dialog
-    - Create components/error-handling/error-detail-dialog.tsx
+  - [x] 12.3 Create error detail dialog
+    - Integrated in app/(main)/admin/errors/error-dashboard-client.tsx
     - Show full error context, stack trace, user info
     - Allow status update and resolution notes
     - _Requirements: 7.3, 7.4_
-  - [ ] 12.4 Create deleted records page
+  - [x] 12.4 Create deleted records page
     - Create app/(main)/admin/recovery/page.tsx
     - List deleted records grouped by table
     - Recovery button for each record
     - _Requirements: 7.5_
-  - [ ] 12.5 Create deleted records list component
-    - Create components/error-handling/deleted-records-list.tsx
+  - [x] 12.5 Create deleted records list component
+    - Integrated in app/(main)/admin/recovery/recovery-client.tsx
     - Show source_table, source_id, deleted_at, deleted_by
     - Recovery action button
     - _Requirements: 4.3, 7.5_
-  - [ ] 12.6 Create job failures page
-    - Create app/(main)/admin/jobs/page.tsx
+  - [x] 12.6 Create job failures page
+    - Create app/(main)/admin/jobs/page.tsx + job-failures-client.tsx
     - List failed jobs with status
     - Retry button for eligible jobs
     - _Requirements: 6.2, 6.6_
 
-- [ ] 13. Navigation Integration
-  - [ ] 13.1 Add admin error management navigation
-    - Add "Error Tracking" link to admin navigation
-    - Add "Data Recovery" link to admin navigation
-    - Add "Job Failures" link to admin navigation
+- [x] 13. Navigation Integration
+  - [x] 13.1 Add admin error management navigation
+    - Added "Error Tracking" link to admin navigation in lib/navigation.ts
+    - Added "Data Recovery" link to admin navigation
+    - Added "Job Failures" link to admin navigation
     - _Requirements: 7.1_
 
-- [ ] 14. Final Checkpoint
-  - Ensure all tests pass, ask the user if questions arise.
+- [x] 14. Final Checkpoint
+  - All 76 property tests passing
+  - All server actions implemented
+  - All admin UI pages complete
+  - Navigation integrated
 
 ## Notes
 

@@ -511,6 +511,18 @@ export const NAV_ITEMS: NavItem[] = [
         title: 'Log Retention',
         href: '/admin/audit-logs/retention',
       },
+      {
+        title: 'Error Tracking',
+        href: '/admin/errors',
+      },
+      {
+        title: 'Data Recovery',
+        href: '/admin/recovery',
+      },
+      {
+        title: 'Job Failures',
+        href: '/admin/jobs',
+      },
     ],
   },
   {

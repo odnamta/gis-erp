@@ -1,0 +1,59 @@
+import { redirect } from 'next/navigation'
+import { createClient } from '@/lib/supabase/server'
+import { getJobFailuresAction, getJobFailureStatsAction } from '@/app/actions/job-failure-actions'
+import { JobFailuresClient } from './job-failures-client'
+
+/**
+ * Job Failures Page - Server Component
+ * 
+ * v0.77: Error Handling & Recovery Module
+ * Requirements: 6.2, 6.6
+ */
+export default async function JobFailuresPage() {
+  const supabase = await createClient()
+  
+  const { data: { user } } = await supabase.auth.getUser()
+  if (!user) {
+    redirect('/login')
+  }
+  
+  const { data: profile } = await supabase
+    .from('user_profiles')
+    .select('id, role, email, full_name')
+    .eq('user_id', user.id)
+    .single()
+  
+  const isAuthorized = profile && ['admin', 'owner', 'super_admin'].includes(profile.role)
+  if (!isAuthorized) {
+    redirect('/dashboard')
+  }
+  
+  const [failuresResult, statsResult] = await Promise.all([
+    getJobFailuresAction(),
+    getJobFailureStatsAction(),
+  ])
+  
+  const failures = failuresResult.success && failuresResult.data ? failuresResult.data : []
+  const stats = statsResult.success && statsResult.data ? statsResult.data : null
+
+  return (
+    <div className="space-y-6">
+      <div>
+        <h2 className="text-3xl font-bold tracking-tight">Job Failures</h2>
+        <p className="text-muted-foreground">
+          Monitor failed background jobs and manage retry attempts
+        </p>
+      </div>
+
+      <JobFailuresClient
+        initialFailures={failures}
+        initialStats={stats}
+        currentUser={{
+          id: profile.id,
+          email: profile.email,
+          role: profile.role,
+        }}
+      />
+    </div>
+  )
+}
