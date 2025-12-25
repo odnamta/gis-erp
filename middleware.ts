@@ -3,6 +3,10 @@ import { updateSession } from '@/lib/supabase/middleware'
 import { createServerClient } from '@supabase/ssr'
 import { DEFAULT_ROLE_HOMEPAGES, DEFAULT_FALLBACK_ROUTE } from '@/types/homepage-routing'
 import { UserRole } from '@/types/permissions'
+import {
+  applySecurityHeaders,
+  shouldSkipSecurityChecks,
+} from '@/lib/security/middleware'
 
 // Routes that don't require authentication
 const PUBLIC_ROUTES = ['/login', '/auth/callback', '/account-deactivated']
@@ -34,8 +38,14 @@ function getHomepageForRole(role: string, customHomepage?: string | null): strin
 }
 
 export async function middleware(request: NextRequest) {
-  const { supabaseResponse, user } = await updateSession(request)
   const { pathname } = request.nextUrl
+
+  // Skip security checks for static assets
+  if (shouldSkipSecurityChecks(pathname)) {
+    return NextResponse.next()
+  }
+
+  const { supabaseResponse, user } = await updateSession(request)
 
   const isPublicRoute = PUBLIC_ROUTES.some(route => pathname.startsWith(route))
 
@@ -111,7 +121,8 @@ export async function middleware(request: NextRequest) {
     }
   }
 
-  return supabaseResponse
+  // Apply security headers to the response (Requirements 8.1-8.5)
+  return applySecurityHeaders(supabaseResponse)
 }
 
 export const config = {
