@@ -45,11 +45,11 @@ import {
   getRetentionSummary,
   updateRetentionConfig,
   archiveLogs,
-  formatBytes,
   DEFAULT_RETENTION_PERIODS,
   MIN_RETENTION_PERIODS,
   LogType,
 } from '@/app/actions/retention-actions'
+import { formatBytes } from '@/lib/format-utils'
 import { RetentionConfig, AuditStorageStats } from '@/types/audit'
 import { useToast } from '@/hooks/use-toast'
 import { format, formatDistanceToNow } from 'date-fns'
