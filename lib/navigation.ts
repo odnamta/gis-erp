@@ -13,8 +13,6 @@ import {
   FileQuestion,
   FileStack,
   UserCog,
-  Clock,
-  Calendar,
   LucideIcon,
   HelpCircle,
   Truck,
@@ -414,18 +412,6 @@ export const NAV_ITEMS: NavItem[] = [
     roles: ['owner', 'director', 'marketing_manager', 'finance_manager', 'operations_manager', 'administration', 'finance', 'marketing', 'ops'],
   },
   {
-    title: 'My Attendance',
-    href: '/hr/my-attendance',
-    icon: Clock,
-    roles: ['owner', 'director', 'marketing_manager', 'finance_manager', 'operations_manager', 'sysadmin', 'administration', 'finance', 'marketing', 'ops', 'engineer', 'hr', 'hse'],
-  },
-  {
-    title: 'My Leave',
-    href: '/hr/my-leave',
-    icon: Calendar,
-    roles: ['owner', 'director', 'marketing_manager', 'finance_manager', 'operations_manager', 'sysadmin', 'administration', 'finance', 'marketing', 'ops', 'engineer', 'hr', 'hse'],
-  },
-  {
     title: 'HR',
     href: '/hr/employees',
     icon: UserCog,
@@ -450,14 +436,6 @@ export const NAV_ITEMS: NavItem[] = [
       {
         title: 'Manpower Cost',
         href: '/hr/manpower-cost',
-      },
-      {
-        title: 'My Attendance',
-        href: '/hr/my-attendance',
-      },
-      {
-        title: 'My Leave',
-        href: '/hr/my-leave',
       },
       {
         title: 'Schedules',
@@ -547,20 +525,37 @@ export const NAV_ITEMS: NavItem[] = [
     title: 'Settings',
     href: '/settings',
     icon: Settings,
-    roles: ['owner', 'director', 'marketing_manager', 'finance_manager', 'operations_manager', 'sysadmin', 'administration', 'finance', 'marketing', 'ops', 'engineer', 'hr', 'hse'],
+    roles: ['owner', 'director', 'marketing_manager', 'finance_manager', 'operations_manager', 'sysadmin'],
     children: [
+      {
+        title: 'Company',
+        href: '/settings/company',
+        roles: ['owner', 'director', 'sysadmin'],
+      },
       {
         title: 'Users',
         href: '/settings/users',
-        permission: 'can_manage_users',
+        roles: ['owner', 'director', 'sysadmin'],
       },
       {
         title: 'Overhead Allocation',
         href: '/finance/settings/overhead',
+        roles: ['owner', 'director', 'sysadmin', 'finance_manager'],
+      },
+      {
+        title: 'Document Templates',
+        href: '/settings/document-templates',
+        roles: ['owner', 'director', 'sysadmin', 'marketing_manager', 'finance_manager', 'operations_manager'],
+      },
+      {
+        title: 'Notification Templates',
+        href: '/settings/notification-templates',
+        roles: ['owner', 'director', 'sysadmin'],
       },
       {
         title: 'Activity Log',
         href: '/settings/activity-log',
+        roles: ['owner', 'director', 'sysadmin', 'marketing_manager', 'finance_manager', 'operations_manager'],
       },
       {
         title: 'Scheduled Tasks',
@@ -570,16 +565,6 @@ export const NAV_ITEMS: NavItem[] = [
       {
         title: 'Integrations',
         href: '/settings/integrations',
-        roles: ['owner', 'director', 'sysadmin'],
-      },
-      {
-        title: 'Document Templates',
-        href: '/settings/document-templates',
-        roles: ['owner', 'director', 'sysadmin'],
-      },
-      {
-        title: 'Notification Templates',
-        href: '/settings/notification-templates',
         roles: ['owner', 'director', 'sysadmin'],
       },
     ],
