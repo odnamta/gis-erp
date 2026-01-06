@@ -45,10 +45,9 @@ import {
   getRetentionSummary,
   updateRetentionConfig,
   archiveLogs,
-  DEFAULT_RETENTION_PERIODS,
-  MIN_RETENTION_PERIODS,
   LogType,
 } from '@/app/actions/retention-actions'
+import { DEFAULT_RETENTION_PERIODS, MIN_RETENTION_PERIODS } from '@/lib/retention-constants'
 import { formatBytes } from '@/lib/format-utils'
 import { RetentionConfig, AuditStorageStats } from '@/types/audit'
 import { useToast } from '@/hooks/use-toast'

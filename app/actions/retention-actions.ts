@@ -20,6 +20,10 @@ import {
   ArchiveRequest,
   ArchiveResult,
 } from '@/types/audit';
+import type { LogType } from '@/lib/retention-constants';
+
+// Re-export LogType for convenience
+export type { LogType } from '@/lib/retention-constants';
 
 // =====================================================
 // TYPES
@@ -33,11 +37,6 @@ interface ActionResult<T> {
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 type AnyTable = any;
-
-/**
- * Log type for retention operations
- */
-export type LogType = 'audit_logs' | 'system_logs' | 'login_history' | 'data_access_logs';
 
 /**
  * Table statistics from database
@@ -64,23 +63,20 @@ interface ArchiveRecord {
 }
 
 // =====================================================
-// CONSTANTS
+// CONSTANTS - Import from lib/retention-constants.ts for client use
 // =====================================================
 
-/**
- * Default retention periods in days
- */
-export const DEFAULT_RETENTION_PERIODS: RetentionPeriods = {
+// These are kept here for internal use but re-exported from lib/retention-constants.ts
+// for client components since 'use server' files can only export async functions
+
+const DEFAULT_RETENTION_PERIODS: RetentionPeriods = {
   audit_logs: 365,      // 1 year
   system_logs: 90,      // 3 months
   login_history: 180,   // 6 months
   data_access_logs: 365, // 1 year
 };
 
-/**
- * Minimum retention periods in days (for safety)
- */
-export const MIN_RETENTION_PERIODS: RetentionPeriods = {
+const MIN_RETENTION_PERIODS: RetentionPeriods = {
   audit_logs: 30,
   system_logs: 7,
   login_history: 30,
