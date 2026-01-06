@@ -117,7 +117,7 @@ export function ErrorDashboardClient({ initialErrors, initialSummary, currentUse
     setIsUpdating(false)
   }
 
-  const formatDate = (dateStr: string | null) => {
+  const formatDate = (dateStr: string | null | undefined) => {
     if (!dateStr) return '-'
     return new Date(dateStr).toLocaleString('id-ID', {
       day: '2-digit',
