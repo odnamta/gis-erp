@@ -35,17 +35,19 @@ import type { ErrorStatus } from '@/types/error-handling'
 
 interface ErrorRecord {
   id: string
-  error_code: string
-  error_hash: string | null
-  timestamp: string
-  error_type: string
-  error_message: string
-  error_stack: string | null
-  module: string | null
-  status: ErrorStatus | null
-  occurrence_count: number | null
-  first_seen_at: string | null
-  last_seen_at: string | null
+  error_code?: string
+  error_hash?: string | null
+  timestamp?: string
+  error_type?: string
+  error_message?: string
+  error_stack?: string | null
+  module?: string | null
+  status?: ErrorStatus | null
+  occurrence_count?: number | null
+  first_seen_at?: string | null
+  last_seen_at?: string | null
+  // Allow additional fields from database
+  [key: string]: unknown
 }
 
 interface ErrorSummary {
