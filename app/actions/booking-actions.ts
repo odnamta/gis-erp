@@ -8,22 +8,22 @@ import { createClient } from '@/lib/supabase/server';
 import { revalidatePath } from 'next/cache';
 import {
   FreightBooking,
-  FreightBookingRow,
   BookingFormData,
   BookingContainer,
-  BookingContainerRow,
   ContainerFormData,
   BookingAmendment,
-  BookingAmendmentRow,
   AmendmentFormData,
   BookingStatusHistory,
-  BookingStatusHistoryRow,
   BookingStatus,
   BookingFilters,
   ShippingRate,
+  ShippingLine,
+  Port,
+  ShippingTerms,
   FreightCalculation,
   RateLookupParams,
   ContainerType,
+  BookingStats,
 } from '@/types/agency';
 import {
   isValidStatusTransition,
@@ -36,13 +36,8 @@ import {
 // TYPE CONVERTERS
 // =====================================================
 
-function rowToBooking(row: FreightBookingRow & {
-  shipping_lines?: { line_name: string; line_code: string };
-  origin_port?: { port_name: string; port_code: string };
-  destination_port?: { port_name: string; port_code: string };
-  customers?: { id: string; name: string };
-  job_orders?: { id: string; jo_number: string };
-}): FreightBooking {
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+function rowToBooking(row: any): FreightBooking {
   return {
     id: row.id,
     bookingNumber: row.booking_number,
@@ -114,7 +109,8 @@ function rowToBooking(row: FreightBookingRow & {
   };
 }
 
-function rowToContainer(row: BookingContainerRow): BookingContainer {
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+function rowToContainer(row: any): BookingContainer {
   return {
     id: row.id,
     bookingId: row.booking_id,
@@ -132,7 +128,8 @@ function rowToContainer(row: BookingContainerRow): BookingContainer {
   };
 }
 
-function rowToAmendment(row: BookingAmendmentRow): BookingAmendment {
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+function rowToAmendment(row: any): BookingAmendment {
   return {
     id: row.id,
     bookingId: row.booking_id,
@@ -150,7 +147,8 @@ function rowToAmendment(row: BookingAmendmentRow): BookingAmendment {
   };
 }
 
-function rowToStatusHistory(row: BookingStatusHistoryRow): BookingStatusHistory {
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+function rowToStatusHistory(row: any): BookingStatusHistory {
   return {
     id: row.id,
     bookingId: row.booking_id,
@@ -216,7 +214,8 @@ export async function createBooking(data: BookingFormData): Promise<{ success: b
 
     const { data: result, error } = await supabase
       .from('freight_bookings')
-      .insert(insertData)
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      .insert(insertData as any)
       .select(`
         *,
         shipping_lines:shipping_line_id(line_name, line_code),
@@ -298,7 +297,7 @@ export async function updateBooking(id: string, data: BookingFormData): Promise<
 
     const { data: result, error } = await supabase
       .from('freight_bookings')
-      .update(updateData)
+      .update(updateData as Record<string, unknown>)
       .eq('id', id)
       .select(`
         *,
@@ -465,7 +464,7 @@ export async function submitBookingRequest(id: string): Promise<{ success: boole
       .eq('booking_id', id);
 
     const containerizedTypes = ['general', 'reefer'];
-    if (containerizedTypes.includes(booking.commodity_type) && (!containers || containers.length === 0)) {
+    if (containerizedTypes.includes(booking.commodity_type || '') && (!containers || containers.length === 0)) {
       return { success: false, error: 'At least one container is required for containerized cargo' };
     }
 
@@ -722,7 +721,8 @@ export async function addContainer(bookingId: string, data: ContainerFormData): 
 
     const { data: result, error } = await supabase
       .from('booking_containers')
-      .insert(insertData)
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      .insert(insertData as any)
       .select()
       .single();
 
@@ -753,7 +753,7 @@ export async function updateContainer(id: string, data: ContainerFormData): Prom
 
     const { data: result, error } = await supabase
       .from('booking_containers')
-      .update(updateData)
+      .update(updateData as Record<string, unknown>)
       .eq('id', id)
       .select()
       .single();
@@ -820,9 +820,8 @@ export async function requestAmendment(bookingId: string, data: AmendmentFormDat
       .eq('booking_id', bookingId);
 
     const amendments = (existingAmendments || []).map(a => ({
-      ...a,
       amendmentNumber: a.amendment_number,
-    })) as BookingAmendment[];
+    })) as unknown as BookingAmendment[];
     
     const nextNumber = getNextAmendmentNumber(amendments);
 
@@ -839,7 +838,8 @@ export async function requestAmendment(bookingId: string, data: AmendmentFormDat
 
     const { data: result, error } = await supabase
       .from('booking_amendments')
-      .insert(insertData)
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      .insert(insertData as any)
       .select()
       .single();
 
@@ -998,27 +998,27 @@ export async function lookupRates(params: RateLookupParams): Promise<ShippingRat
       shippingLineId: row.shipping_line_id,
       originPortId: row.origin_port_id,
       destinationPortId: row.destination_port_id,
-      containerType: row.container_type,
+      containerType: row.container_type as ContainerType,
       oceanFreight: row.ocean_freight,
-      currency: row.currency,
-      baf: row.baf,
-      caf: row.caf,
-      pss: row.pss,
-      ens: row.ens,
+      currency: row.currency || 'USD',
+      baf: row.baf || 0,
+      caf: row.caf || 0,
+      pss: row.pss || 0,
+      ens: row.ens || 0,
       otherSurcharges: row.other_surcharges || [],
       totalRate: row.total_rate,
       transitDays: row.transit_days,
       frequency: row.frequency,
       validFrom: row.valid_from,
       validTo: row.valid_to,
-      terms: row.terms,
+      terms: row.terms as ShippingTerms,
       notes: row.notes,
       isActive: row.is_active,
       createdAt: row.created_at,
-      shippingLine: row.shipping_lines,
-      originPort: row.origin_port,
-      destinationPort: row.destination_port,
-    }));
+      shippingLine: row.shipping_lines as unknown as Partial<ShippingLine>,
+      originPort: row.origin_port as unknown as Port,
+      destinationPort: row.destination_port as unknown as Port,
+    })) as unknown as ShippingRate[];
   } catch (error) {
     console.error('Error looking up rates:', error);
     return [];
@@ -1055,15 +1055,7 @@ export async function getStatusHistory(bookingId: string): Promise<BookingStatus
 // BOOKING STATISTICS
 // =====================================================
 
-export async function getBookingStats(): Promise<{
-  total: number;
-  draft: number;
-  requested: number;
-  confirmed: number;
-  shipped: number;
-  completed: number;
-  cancelled: number;
-}> {
+export async function getBookingStats(): Promise<BookingStats> {
   try {
     const supabase = await createClient();
     
@@ -1073,8 +1065,7 @@ export async function getBookingStats(): Promise<{
 
     if (error) throw error;
 
-    const stats = {
-      total: data?.length || 0,
+    const counts = {
       draft: 0,
       requested: 0,
       confirmed: 0,
@@ -1084,23 +1075,31 @@ export async function getBookingStats(): Promise<{
     };
 
     for (const booking of data || []) {
-      const status = booking.status as keyof typeof stats;
-      if (status in stats && status !== 'total') {
-        stats[status]++;
+      const status = booking.status as keyof typeof counts;
+      if (status in counts) {
+        counts[status]++;
       }
     }
 
-    return stats;
+    return {
+      totalBookings: data?.length || 0,
+      draftCount: counts.draft,
+      requestedCount: counts.requested,
+      confirmedCount: counts.confirmed,
+      shippedCount: counts.shipped,
+      completedCount: counts.completed,
+      cancelledCount: counts.cancelled,
+    };
   } catch (error) {
     console.error('Error getting booking stats:', error);
     return {
-      total: 0,
-      draft: 0,
-      requested: 0,
-      confirmed: 0,
-      shipped: 0,
-      completed: 0,
-      cancelled: 0,
+      totalBookings: 0,
+      draftCount: 0,
+      requestedCount: 0,
+      confirmedCount: 0,
+      shippedCount: 0,
+      completedCount: 0,
+      cancelledCount: 0,
     };
   }
 }

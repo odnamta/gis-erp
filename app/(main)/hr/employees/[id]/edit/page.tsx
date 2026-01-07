@@ -11,6 +11,7 @@ import {
 } from '../../actions';
 import { createClient } from '@/lib/supabase/server';
 import { canEditEmployee, canEditEmployeeSalary } from '@/lib/permissions';
+import { UserProfile } from '@/types/permissions';
 
 interface PageProps {
   params: Promise<{ id: string }>;
@@ -27,11 +28,13 @@ export default async function EditEmployeePage({ params }: PageProps) {
     redirect('/login');
   }
 
-  const { data: userProfile } = await supabase
+  const { data: userProfileData } = await supabase
     .from('user_profiles')
     .select('*')
     .eq('user_id', user.id)
     .single();
+
+  const userProfile = userProfileData as unknown as UserProfile | null;
 
   // Check permission
   if (!canEditEmployee(userProfile)) {

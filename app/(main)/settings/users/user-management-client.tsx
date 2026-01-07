@@ -77,7 +77,7 @@ export function UserManagementClient({ users, currentUserId }: UserManagementCli
   const router = useRouter()
   const { toast } = useToast()
   const [editingUser, setEditingUser] = useState<UserProfile | null>(null)
-  const [selectedRole, setSelectedRole] = useState<UserRole>('viewer')
+  const [selectedRole, setSelectedRole] = useState<UserRole>('ops')
   const [customPermissions, setCustomPermissions] = useState({
     can_see_revenue: false,
     can_see_profit: false,
@@ -93,7 +93,7 @@ export function UserManagementClient({ users, currentUserId }: UserManagementCli
   const [showAddDialog, setShowAddDialog] = useState(false)
   const [newUserEmail, setNewUserEmail] = useState('')
   const [newUserName, setNewUserName] = useState('')
-  const [newUserRole, setNewUserRole] = useState<UserRole>('viewer')
+  const [newUserRole, setNewUserRole] = useState<UserRole>('ops')
 
   const assignableRoles = getAssignableRoles()
 
@@ -195,7 +195,7 @@ export function UserManagementClient({ users, currentUserId }: UserManagementCli
         setShowAddDialog(false)
         setNewUserEmail('')
         setNewUserName('')
-        setNewUserRole('viewer')
+        setNewUserRole('ops')
         router.refresh()
       } else {
         toast({

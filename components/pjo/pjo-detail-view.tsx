@@ -141,7 +141,7 @@ export function PJODetailView({ pjo, canApprove = true, userRole, userId }: PJOD
 
   const totalRevenue = revenueItems.length > 0 
     ? calculateRevenueTotal(revenueItems) 
-    : pjo.total_revenue
+    : (pjo.total_revenue ?? 0)
   const budget = analyzeBudget(costItems)
   const hasItemizedData = revenueItems.length > 0 || costItems.length > 0
   const isEditable = pjo.status === 'draft'
@@ -532,11 +532,11 @@ export function PJODetailView({ pjo, canApprove = true, userRole, userId }: PJOD
             )}
 
             {/* Triggered Factors */}
-            {pjo.complexity_factors && Array.isArray(pjo.complexity_factors) && (pjo.complexity_factors as ComplexityFactor[]).length > 0 && (
+            {pjo.complexity_factors && Array.isArray(pjo.complexity_factors) && (pjo.complexity_factors as unknown as ComplexityFactor[]).length > 0 && (
               <div className="space-y-2">
                 <Label className="text-muted-foreground">Triggered Complexity Factors</Label>
                 <div className="space-y-1">
-                  {(pjo.complexity_factors as ComplexityFactor[]).map((factor, index) => (
+                  {(pjo.complexity_factors as unknown as ComplexityFactor[]).map((factor, index) => (
                     <div key={index} className="flex items-center justify-between text-sm">
                       <span>{factor.criteria_name}</span>
                       <span className="text-muted-foreground">
@@ -696,16 +696,16 @@ export function PJODetailView({ pjo, canApprove = true, userRole, userId }: PJOD
           <CardContent className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
             <div>
               <Label className="text-muted-foreground">Total Revenue</Label>
-              <p className="text-lg font-semibold">{formatIDR(pjo.total_revenue)}</p>
+              <p className="text-lg font-semibold">{formatIDR(pjo.total_revenue ?? 0)}</p>
             </div>
             <div>
               <Label className="text-muted-foreground">Total Expenses</Label>
-              <p className="text-lg font-semibold">{formatIDR(pjo.total_expenses)}</p>
+              <p className="text-lg font-semibold">{formatIDR(pjo.total_expenses ?? 0)}</p>
             </div>
             <div>
               <Label className="text-muted-foreground">Profit</Label>
-              <p className={`text-lg font-semibold ${pjo.profit >= 0 ? 'text-green-600' : 'text-red-600'}`}>
-                {formatIDR(pjo.profit)}
+              <p className={`text-lg font-semibold ${(pjo.profit ?? 0) >= 0 ? 'text-green-600' : 'text-red-600'}`}>
+                {formatIDR(pjo.profit ?? 0)}
               </p>
             </div>
             <div>

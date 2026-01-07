@@ -589,7 +589,7 @@ export function transformPortRow(row: Record<string, unknown>): import('@/types/
  * Transform database row to ShippingRate object
  */
 export function transformShippingRateRow(row: Record<string, unknown>): import('@/types/agency').ShippingRate {
-  return {
+  const result: Record<string, unknown> = {
     id: row.id as string,
     shippingLineId: row.shipping_line_id as string,
     originPortId: row.origin_port_id as string,
@@ -611,12 +611,15 @@ export function transformShippingRateRow(row: Record<string, unknown>): import('
     notes: row.notes as string | undefined,
     isActive: row.is_active as boolean,
     createdAt: row.created_at as string,
-    // View fields
-    lineName: row.line_name as string | undefined,
-    lineCode: row.line_code as string | undefined,
-    originPort: row.origin_port as string | undefined,
-    originCode: row.origin_code as string | undefined,
-    destinationPort: row.destination_port as string | undefined,
-    destinationCode: row.destination_code as string | undefined,
   };
+  
+  // View fields - add conditionally
+  if (row.line_name) result.lineName = row.line_name as string;
+  if (row.line_code) result.lineCode = row.line_code as string;
+  if (row.origin_port) result.originPort = row.origin_port;
+  if (row.origin_code) result.originCode = row.origin_code as string;
+  if (row.destination_port) result.destinationPort = row.destination_port;
+  if (row.destination_code) result.destinationCode = row.destination_code as string;
+  
+  return result as unknown as import('@/types/agency').ShippingRate;
 }

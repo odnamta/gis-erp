@@ -84,7 +84,7 @@ export function RevenueForm({
     watch,
     formState: { errors },
   } = useForm<RevenueFormValues>({
-    resolver: zodResolver(revenueFormSchema),
+    resolver: zodResolver(revenueFormSchema) as any,
     defaultValues: {
       chargeTypeId: revenue?.chargeTypeId || '',
       description: revenue?.description || '',
@@ -174,7 +174,7 @@ export function RevenueForm({
   };
 
   return (
-    <form onSubmit={handleSubmit(handleFormSubmit)} className="space-y-6">
+    <form onSubmit={handleSubmit(handleFormSubmit as any)} className="space-y-6">
       {/* Charge Type Selection */}
       <div className="space-y-2">
         <Label htmlFor="chargeTypeId">Charge Type *</Label>

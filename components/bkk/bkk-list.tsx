@@ -34,7 +34,7 @@ import { Label } from '@/components/ui/label'
 import { BKKStatusBadge } from '@/components/ui/bkk-status-badge'
 import { formatBKKCurrency, getAvailableActions } from '@/lib/bkk-utils'
 import { approveBKK, rejectBKK, cancelBKK } from '@/app/(main)/job-orders/bkk-actions'
-import type { BKKWithRelations, BKKStatus } from '@/types/database'
+import type { BKKWithRelations, BKKStatus } from '@/types'
 import { Eye, X, Check, Banknote, FileCheck } from 'lucide-react'
 import { toast } from 'sonner'
 

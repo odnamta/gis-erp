@@ -30,7 +30,7 @@ export async function getSkillCategories(): Promise<SkillCategory[]> {
     return [];
   }
   
-  return data || [];
+  return (data || []) as unknown as SkillCategory[];
 }
 
 // ============================================
@@ -54,7 +54,7 @@ export async function getSkills(): Promise<Skill[]> {
     return [];
   }
   
-  return data || [];
+  return (data || []) as unknown as Skill[];
 }
 
 export async function getSkillById(id: string): Promise<Skill | null> {
@@ -74,7 +74,7 @@ export async function getSkillById(id: string): Promise<Skill | null> {
     return null;
   }
   
-  return data;
+  return data as unknown as Skill;
 }
 
 // ============================================
@@ -101,7 +101,7 @@ export async function getEmployeeSkills(employeeId: string): Promise<EmployeeSki
     return [];
   }
   
-  return data || [];
+  return (data || []) as unknown as EmployeeSkill[];
 }
 
 export async function addEmployeeSkill(
@@ -228,7 +228,7 @@ export async function getSkillGapAnalysis(): Promise<SkillGapAnalysis[]> {
     return [];
   }
   
-  return data || [];
+  return (data || []) as unknown as SkillGapAnalysis[];
 }
 
 // ============================================
@@ -251,7 +251,7 @@ export async function getExpiringCertifications(
     return [];
   }
   
-  return data || [];
+  return (data || []) as unknown as ExpiringCertification[];
 }
 
 // ============================================

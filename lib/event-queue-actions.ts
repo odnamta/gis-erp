@@ -32,7 +32,7 @@ export async function queueEvent(
         retry_count: 0,
         max_retries: DEFAULT_MAX_RETRIES,
         scheduled_for: scheduledFor?.toISOString() || new Date().toISOString(),
-      })
+      } as any)
       .select()
       .single();
 

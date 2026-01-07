@@ -222,11 +222,11 @@ export function CostConfirmationSection({ items, onRefresh }: CostConfirmationSe
             <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mt-4 pt-4 border-t">
               <div>
                 <p className="text-sm text-muted-foreground">Total Budget</p>
-                <p className="text-lg font-semibold">{formatIDR(budget.total_estimated)}</p>
+                <p className="text-lg font-semibold">{formatIDR(budget.total_estimated ?? 0)}</p>
               </div>
               <div>
                 <p className="text-sm text-muted-foreground">Confirmed Actual</p>
-                <p className="text-lg font-semibold">{formatIDR(budget.total_actual)}</p>
+                <p className="text-lg font-semibold">{formatIDR(budget.total_actual ?? 0)}</p>
               </div>
               <div>
                 <p className="text-sm text-muted-foreground">Items Confirmed</p>
@@ -234,8 +234,8 @@ export function CostConfirmationSection({ items, onRefresh }: CostConfirmationSe
               </div>
               <div>
                 <p className="text-sm text-muted-foreground">Overall Variance</p>
-                <p className={`text-lg font-semibold ${budget.total_variance > 0 ? 'text-amber-600' : 'text-green-600'}`}>
-                  {budget.total_variance >= 0 ? '+' : ''}{budget.variance_pct.toFixed(1)}%
+                <p className={`text-lg font-semibold ${(budget.total_variance ?? 0) > 0 ? 'text-amber-600' : 'text-green-600'}`}>
+                  {(budget.total_variance ?? 0) >= 0 ? '+' : ''}{(budget.variance ?? 0).toFixed(1)}%
                 </p>
               </div>
             </div>

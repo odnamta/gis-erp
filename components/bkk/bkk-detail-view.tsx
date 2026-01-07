@@ -5,7 +5,7 @@ import { Badge } from '@/components/ui/badge'
 import { Separator } from '@/components/ui/separator'
 import { BKKStatusBadge } from '@/components/ui/bkk-status-badge'
 import { formatBKKCurrency } from '@/lib/bkk-utils'
-import type { BKKWithRelations, BKKStatus } from '@/types/database'
+import type { BKKWithRelations, BKKStatus } from '@/types'
 import { format } from 'date-fns'
 import { ExternalLink } from 'lucide-react'
 

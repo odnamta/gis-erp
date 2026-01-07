@@ -27,12 +27,12 @@ async function getUserRole(): Promise<string> {
   if (!user) return 'viewer';
   
   const { data: profile } = await supabase
-    .from('profiles')
+    .from('user_profiles')
     .select('role')
     .eq('id', user.id)
     .single();
   
-  return profile?.role || 'viewer';
+  return (profile as any)?.role || 'viewer';
 }
 
 export default async function CategoryPage({ params }: CategoryPageProps) {

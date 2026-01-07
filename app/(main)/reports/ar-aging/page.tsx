@@ -10,7 +10,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { ReportTable, ReportSkeleton, ReportEmptyState } from '@/components/reports'
 import { usePermissions } from '@/components/providers/permission-provider'
 import { canAccessReport } from '@/lib/reports/report-permissions'
-import { buildARAgingReportData, filterByBucket } from '@/lib/reports/ar-aging-utils'
+import { buildARAgingReportData, filterByBucket, InvoiceData } from '@/lib/reports/ar-aging-utils'
 import { formatCurrency } from '@/lib/reports/report-utils'
 import { logReportExecution, logExportAction } from '@/lib/reports/report-execution-service'
 import { createClient } from '@/lib/supabase/client'
@@ -56,7 +56,7 @@ export default function ARAgingReportPage() {
 
       if (invoiceError) throw invoiceError
 
-      const data = buildARAgingReportData(invoices || [])
+      const data = buildARAgingReportData(invoices as unknown as InvoiceData[] || [])
       setReportData(data)
 
       // Log report execution

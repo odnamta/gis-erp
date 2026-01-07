@@ -83,11 +83,11 @@ export async function performWorkflowTransition(
   } else if (documentType === 'bkk') {
     // BKK uses disbursements table (or bukti_kas_keluar) with workflow_status column
     // Using type assertion since table may not exist in types yet
-    const { data, error } = await (supabase as unknown as { from: (table: string) => unknown })
+    const { data, error } = await (supabase as unknown as { from: (table: string) => { select: (cols: string) => { eq: (col: string, val: string) => { single: () => Promise<{ data: RawDocumentData | null; error: Error | null }> } } } })
       .from('bukti_kas_keluar')
       .select('id, workflow_status, bkk_number')
       .eq('id', documentId)
-      .single() as { data: RawDocumentData | null; error: unknown }
+      .single()
     
     if (error || !data) {
       return { success: false, error: 'Document not found' }
@@ -139,10 +139,10 @@ export async function performWorkflowTransition(
   if (documentType === 'bkk') {
     updateData.workflow_status = targetStatus
     
-    const { error } = await (supabase as unknown as { from: (table: string) => unknown })
+    const { error } = await (supabase as unknown as { from: (table: string) => { update: (data: Record<string, unknown>) => { eq: (col: string, val: string) => Promise<{ error: Error | null }> } } })
       .from('bukti_kas_keluar')
       .update(updateData)
-      .eq('id', documentId) as { error: unknown }
+      .eq('id', documentId)
     
     if (error) {
       return { success: false, error: String(error) }
@@ -358,11 +358,11 @@ export async function getWorkflowStatus(
       workflowData = data as unknown as RawDocumentData
     }
   } else if (documentType === 'bkk') {
-    const { data } = await (supabase as unknown as { from: (table: string) => unknown })
+    const { data } = await (supabase as unknown as { from: (table: string) => { select: (cols: string) => { eq: (col: string, val: string) => { single: () => Promise<{ data: RawDocumentData | null }> } } } })
       .from('bukti_kas_keluar')
       .select('id, workflow_status, checked_by, checked_at, approved_by, approved_at, rejected_by, rejected_at, rejection_reason')
       .eq('id', documentId)
-      .single() as { data: RawDocumentData | null }
+      .single()
     
     if (data) {
       currentStatus = (data.workflow_status || 'draft') as WorkflowStatus
@@ -467,12 +467,12 @@ export async function getPendingDocuments(
       }
     }
   } else if (documentType === 'bkk') {
-    const { data } = await (supabase as unknown as { from: (table: string) => unknown })
+    const { data } = await (supabase as unknown as { from: (table: string) => { select: (cols: string) => { in: (col: string, vals: string[]) => { order: (col: string, opts: { ascending: boolean }) => { limit: (n: number) => Promise<{ data: RawDocumentData[] | null }> } } } } })
       .from('bukti_kas_keluar')
       .select('id, bkk_number, workflow_status, created_at')
       .in('workflow_status', actionableStatuses)
       .order('created_at', { ascending: false })
-      .limit(limit) as { data: RawDocumentData[] | null }
+      .limit(limit)
     
     if (data) {
       for (const doc of data) {

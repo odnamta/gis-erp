@@ -186,11 +186,11 @@ export function getChangedFieldDetails(
  * @returns Formatted description object with summary and details
  */
 export function formatAuditLogDescription(entry: AuditLogEntry): FormattedAuditDescription {
-  const actionLabel = ACTION_LABELS[entry.action] || entry.action;
-  const moduleLabel = MODULE_LABELS[entry.module] || entry.module;
+  const actionLabel = ACTION_LABELS[entry.action || ''] || entry.action || '';
+  const moduleLabel = MODULE_LABELS[entry.module || ''] || entry.module || '';
   
   // Build summary
-  let summary = `${actionLabel} ${entry.entity_type}`;
+  let summary = `${actionLabel} ${entry.entity_type || ''}`;
   if (entry.entity_reference) {
     summary += ` (${entry.entity_reference})`;
   }
@@ -212,9 +212,12 @@ export function formatAuditLogDescription(entry: AuditLogEntry): FormattedAuditD
   }
   
   return {
+    action: actionLabel,
+    module: moduleLabel,
+    entityReference: entry.entity_reference ?? undefined,
+    description: details || summary,
     summary,
-    details,
-    changed_fields_summary,
+    changed_fields_summary: changed_fields_summary ?? undefined,
   };
 }
 
@@ -277,7 +280,7 @@ export function filterAuditLogs(
     // Filter by module (single or array)
     if (filters.module) {
       const modules = Array.isArray(filters.module) ? filters.module : [filters.module];
-      if (!modules.includes(entry.module)) {
+      if (!entry.module || !modules.includes(entry.module)) {
         return false;
       }
     }
@@ -285,7 +288,7 @@ export function filterAuditLogs(
     // Filter by entity_type (single or array)
     if (filters.entity_type) {
       const entityTypes = Array.isArray(filters.entity_type) ? filters.entity_type : [filters.entity_type];
-      if (!entityTypes.includes(entry.entity_type)) {
+      if (!entry.entity_type || !entityTypes.includes(entry.entity_type)) {
         return false;
       }
     }
@@ -305,7 +308,7 @@ export function filterAuditLogs(
 
     // Filter by date range
     if (filters.start_date) {
-      const entryDate = new Date(entry.timestamp);
+      const entryDate = new Date(entry.timestamp || '');
       const startDate = new Date(filters.start_date);
       startDate.setHours(0, 0, 0, 0);
       if (entryDate < startDate) {
@@ -314,7 +317,7 @@ export function filterAuditLogs(
     }
 
     if (filters.end_date) {
-      const entryDate = new Date(entry.timestamp);
+      const entryDate = new Date(entry.timestamp || '');
       const endDate = new Date(filters.end_date);
       endDate.setHours(23, 59, 59, 999);
       if (entryDate > endDate) {
@@ -381,29 +384,34 @@ export function paginateAuditLogs(
   entries: AuditLogEntry[],
   pagination: AuditLogPagination
 ): PaginatedAuditLogs {
-  const { page, page_size, sort_by = 'timestamp', sort_order = 'desc' } = pagination;
+  const { page, pageSize, page_size, sort_by = 'timestamp', sort_order = 'desc' } = pagination;
+  const effectivePageSize = page_size ?? pageSize;
   
   // Validate pagination
-  const validPageSize = Math.min(Math.max(1, page_size), MAX_PAGE_SIZE);
+  const validPageSize = Math.min(Math.max(1, effectivePageSize), MAX_PAGE_SIZE);
   const validPage = Math.max(1, page);
   
   // Sort entries
-  const sorted = sortAuditLogs(entries, sort_by, sort_order);
+  const sorted = sortAuditLogs(entries, sort_by as keyof AuditLogEntry, sort_order);
   
   // Calculate pagination
   const total = sorted.length;
-  const total_pages = Math.ceil(total / validPageSize);
+  const totalPages = Math.ceil(total / validPageSize);
   const offset = (validPage - 1) * validPageSize;
   
   // Slice for current page
   const data = sorted.slice(offset, offset + validPageSize);
   
   return {
+    logs: data,
     data,
     total,
     page: validPage,
+    pageSize: validPageSize,
     page_size: validPageSize,
-    total_pages,
+    totalPages,
+    total_pages: totalPages,
+    hasMore: validPage < totalPages,
   };
 }
 
@@ -503,7 +511,7 @@ export function countByAction(entries: AuditLogEntry[]): Record<string, number> 
   const counts: Record<string, number> = {};
   
   for (const entry of entries) {
-    const action = entry.action;
+    const action = entry.action || 'unknown';
     counts[action] = (counts[action] || 0) + 1;
   }
   
@@ -517,7 +525,7 @@ export function countByModule(entries: AuditLogEntry[]): Record<string, number> 
   const counts: Record<string, number> = {};
   
   for (const entry of entries) {
-    const moduleName = entry.module;
+    const moduleName = entry.module || 'unknown';
     counts[moduleName] = (counts[moduleName] || 0) + 1;
   }
   
@@ -531,7 +539,7 @@ export function countByEntityType(entries: AuditLogEntry[]): Record<string, numb
   const counts: Record<string, number> = {};
   
   for (const entry of entries) {
-    const entityType = entry.entity_type;
+    const entityType = entry.entity_type || 'unknown';
     counts[entityType] = (counts[entityType] || 0) + 1;
   }
   
@@ -555,7 +563,7 @@ export function getUniqueUsers(entries: AuditLogEntry[]): Array<{
         existing.count++;
       } else {
         userMap.set(entry.user_id, {
-          user_email: entry.user_email,
+          user_email: entry.user_email ?? null,
           count: 1,
         });
       }
@@ -590,12 +598,12 @@ export function calculateFailureRate(entries: AuditLogEntry[]): number {
  */
 export function formatForCsvExport(entry: AuditLogEntry): Record<string, string> {
   return {
-    timestamp: entry.timestamp,
+    timestamp: entry.timestamp || '',
     user_email: entry.user_email || '',
     user_role: entry.user_role || '',
-    action: formatAction(entry.action),
-    module: formatModule(entry.module),
-    entity_type: entry.entity_type,
+    action: formatAction(entry.action || ''),
+    module: formatModule(entry.module || ''),
+    entity_type: entry.entity_type || '',
     entity_id: entry.entity_id || '',
     entity_reference: entry.entity_reference || '',
     description: entry.description || '',

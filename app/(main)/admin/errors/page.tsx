@@ -33,21 +33,8 @@ export default async function ErrorDashboardPage() {
     getErrorSummaryAction(),
   ])
   
-  const errors = errorsResult.success && errorsResult.data ? errorsResult.data as Array<{
-    id: string
-    error_code?: string
-    error_hash?: string | null
-    timestamp?: string
-    error_type?: string
-    error_message?: string
-    error_stack?: string | null
-    module?: string | null
-    status?: string | null
-    occurrence_count?: number | null
-    first_seen_at?: string | null
-    last_seen_at?: string | null
-    [key: string]: unknown
-  }> : []
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const errors = errorsResult.success && errorsResult.data ? errorsResult.data as any[] : []
   const summary = summaryResult.success && summaryResult.data ? summaryResult.data : null
 
   return (

@@ -270,10 +270,10 @@ export async function getTrainingRecords(filters?: RecordFilters): Promise<Train
     throw new Error('Gagal mengambil data pelatihan');
   }
 
-  return (data || []).map((row: TrainingRecordRow & { 
+  return ((data || []) as unknown as (TrainingRecordRow & { 
     employees: { employee_code: string; full_name: string; departments: { department_name: string } };
     safety_training_courses: { course_code: string; course_name: string };
-  }) => ({
+  })[]).map((row) => ({
     ...transformRecordRow(row),
     employeeCode: row.employees?.employee_code,
     employeeName: row.employees?.full_name,
@@ -450,7 +450,7 @@ export async function completeTrainingRecord(
   let status = 'completed';
 
   if (course.requires_assessment && completionData.assessmentScore !== undefined) {
-    const result = calculateAssessmentResult(completionData.assessmentScore, course.passing_score);
+    const result = calculateAssessmentResult(completionData.assessmentScore, course.passing_score ?? 70);
     assessmentPassed = result.passed;
     status = result.status;
   }
@@ -538,7 +538,7 @@ export async function getSessions(filters?: SessionFilters): Promise<TrainingSes
   }
 
   // Get participant counts
-  const sessionIds = (data || []).map((s: TrainingSessionRow) => s.id);
+  const sessionIds = ((data || []) as unknown as TrainingSessionRow[]).map((s) => s.id);
   const { data: participantCounts } = await supabase
     .from('training_session_participants')
     .select('session_id')
@@ -549,10 +549,10 @@ export async function getSessions(filters?: SessionFilters): Promise<TrainingSes
     countMap[p.session_id] = (countMap[p.session_id] || 0) + 1;
   });
 
-  return (data || []).map((row: TrainingSessionRow & {
+  return ((data || []) as unknown as (TrainingSessionRow & {
     safety_training_courses: { course_code: string; course_name: string };
     trainer: { full_name: string } | null;
-  }) => ({
+  })[]).map((row) => ({
     ...transformSessionRow(row),
     courseCode: row.safety_training_courses?.course_code,
     courseName: row.safety_training_courses?.course_name,
@@ -856,9 +856,9 @@ export async function getSessionParticipants(sessionId: string): Promise<Session
     throw new Error('Gagal mengambil data peserta');
   }
 
-  return (data || []).map((row: SessionParticipantRow & {
+  return ((data || []) as unknown as (SessionParticipantRow & {
     employees: { employee_code: string; full_name: string; departments: { department_name: string } };
-  }) => ({
+  })[]).map((row) => ({
     ...transformParticipantRow(row),
     employeeCode: row.employees?.employee_code,
     employeeName: row.employees?.full_name,

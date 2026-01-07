@@ -39,7 +39,7 @@ export function CertificationEditor({ value, onChange, disabled }: Certification
     <div className="space-y-4">
       {/* Existing certifications */}
       {value.map((cert, index) => {
-        const status = cert.expiry_date ? getCertificationStatus(cert.expiry_date) : 'valid'
+        const status = cert.expiry_date ? getCertificationStatus(cert.expiry_date as any) : 'valid'
         return (
           <Card key={index} className="relative">
             <CardContent className="pt-4">

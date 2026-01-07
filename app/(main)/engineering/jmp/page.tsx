@@ -1,6 +1,6 @@
 import { Suspense } from 'react';
 import { JmpStatusCards } from '@/components/jmp/jmp-status-cards';
-import { JmpList } from '@/components/jmp/jmp-list';
+import { JmpListWrapper } from '@/components/jmp/jmp-list-wrapper';
 import { getJmpStatusCounts, getJmpList, getCustomersForSelection } from '@/lib/jmp-actions';
 import { Skeleton } from '@/components/ui/skeleton';
 
@@ -16,7 +16,7 @@ async function JmpContent() {
   return (
     <div className="space-y-6">
       <JmpStatusCards counts={statusCounts} />
-      <JmpList initialJmps={jmps} customers={customers} />
+      <JmpListWrapper initialJmps={jmps} customers={customers} />
     </div>
   );
 }

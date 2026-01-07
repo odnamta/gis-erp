@@ -130,7 +130,7 @@ export async function getLoginHistory(
     const totalPages = Math.ceil(total / pageSize);
     
     const result: PaginatedLoginHistory = {
-      data: (data || []) as LoginHistoryEntry[],
+      data: (data || []) as unknown as LoginHistoryEntry[],
       total,
       page,
       page_size: pageSize,
@@ -168,7 +168,7 @@ export async function getUserSessionStats(
     
     if (error) throw error;
     
-    const entries = (data || []) as LoginHistoryEntry[];
+    const entries = (data || []) as unknown as LoginHistoryEntry[];
     
     // Calculate statistics using utility function
     const stats = calculateSessionStatistics(userId, entries);
@@ -210,7 +210,7 @@ export async function recordLogin(
     
     if (error) throw error;
     
-    return { success: true, data: data as LoginHistoryEntry };
+    return { success: true, data: data as unknown as LoginHistoryEntry };
   } catch (error) {
     console.error('Error recording login:', error);
     return { success: false, error: 'Failed to record login' };
@@ -251,19 +251,22 @@ export async function recordLogout(
       return { success: false, error: 'No active session found for user' };
     }
     
+    // Cast to any to access properties
+    const session = activeSession as any;
+    
     // Calculate logout update using utility function
-    const logoutUpdate = createLogoutUpdate(activeSession.login_at);
+    const logoutUpdate = createLogoutUpdate(session.login_at);
     
     const { data, error } = await supabase
       .from('login_history' as AnyTable)
       .update(logoutUpdate)
-      .eq('id', activeSession.id)
+      .eq('id', session.id)
       .select()
       .single();
     
     if (error) throw error;
     
-    return { success: true, data: data as LoginHistoryEntry };
+    return { success: true, data: data as unknown as LoginHistoryEntry };
   } catch (error) {
     console.error('Error recording logout:', error);
     return { success: false, error: 'Failed to record logout' };
@@ -296,7 +299,7 @@ export async function recordFailedLogin(
     
     if (error) throw error;
     
-    return { success: true, data: data as LoginHistoryEntry };
+    return { success: true, data: data as unknown as LoginHistoryEntry };
   } catch (error) {
     console.error('Error recording failed login:', error);
     return { success: false, error: 'Failed to record failed login' };
@@ -352,7 +355,7 @@ export async function exportLoginHistory(
     
     if (error) throw error;
     
-    const entries = (data || []) as LoginHistoryEntry[];
+    const entries = (data || []) as unknown as LoginHistoryEntry[];
     
     // Generate CSV using utility function
     const csv = exportToCsv(entries);
@@ -386,7 +389,7 @@ export async function getLoginHistoryFilterOptions(): Promise<ActionResult<{
       .select('login_method')
       .not('login_method', 'is', null);
     
-    const loginMethods = [...new Set((methodData || []).map((d: { login_method: string }) => d.login_method))].filter(Boolean).sort();
+    const loginMethods = [...new Set(((methodData || []) as any[]).map((d) => d.login_method))].filter(Boolean).sort();
     
     // Get distinct device types
     const { data: deviceData } = await supabase
@@ -394,7 +397,7 @@ export async function getLoginHistoryFilterOptions(): Promise<ActionResult<{
       .select('device_type')
       .not('device_type', 'is', null);
     
-    const deviceTypes = [...new Set((deviceData || []).map((d: { device_type: string }) => d.device_type))].filter(Boolean).sort();
+    const deviceTypes = [...new Set(((deviceData || []) as any[]).map((d) => d.device_type))].filter(Boolean).sort();
     
     // Get distinct browsers
     const { data: browserData } = await supabase
@@ -402,7 +405,7 @@ export async function getLoginHistoryFilterOptions(): Promise<ActionResult<{
       .select('browser')
       .not('browser', 'is', null);
     
-    const browsers = [...new Set((browserData || []).map((d: { browser: string }) => d.browser))].filter(Boolean).sort();
+    const browsers = [...new Set(((browserData || []) as any[]).map((d) => d.browser))].filter(Boolean).sort();
     
     // Get distinct operating systems
     const { data: osData } = await supabase
@@ -410,7 +413,7 @@ export async function getLoginHistoryFilterOptions(): Promise<ActionResult<{
       .select('os')
       .not('os', 'is', null);
     
-    const operatingSystems = [...new Set((osData || []).map((d: { os: string }) => d.os))].filter(Boolean).sort();
+    const operatingSystems = [...new Set(((osData || []) as any[]).map((d) => d.os))].filter(Boolean).sort();
     
     return {
       success: true,
@@ -443,7 +446,7 @@ export async function getActiveSessions(): Promise<ActionResult<LoginHistoryEntr
     
     if (error) throw error;
     
-    return { success: true, data: (data || []) as LoginHistoryEntry[] };
+    return { success: true, data: (data || []) as unknown as LoginHistoryEntry[] };
   } catch (error) {
     console.error('Error fetching active sessions:', error);
     return { success: false, error: 'Failed to fetch active sessions' };
@@ -473,7 +476,7 @@ export async function getRecentFailedLogins(
     
     if (error) throw error;
     
-    return { success: true, data: (data || []) as LoginHistoryEntry[] };
+    return { success: true, data: (data || []) as unknown as LoginHistoryEntry[] };
   } catch (error) {
     console.error('Error fetching recent failed logins:', error);
     return { success: false, error: 'Failed to fetch recent failed logins' };
@@ -505,7 +508,7 @@ export async function getLoginHistorySummary(
     
     if (error) throw error;
     
-    const entries = (data || []) as LoginHistoryEntry[];
+    const entries = (data || []) as unknown as LoginHistoryEntry[];
     
     const totalLogins = entries.length;
     const successfulLogins = entries.filter(e => e.status === 'success').length;

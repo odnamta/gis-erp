@@ -17,16 +17,20 @@ export async function checkConversionReadiness(pjoId: string): Promise<Conversio
 
   if (pjoError || !pjo) {
     return {
+      can_convert: false,
+      reasons: ['PJO not found'],
+      warnings: [],
+      all_costs_confirmed: false,
+      has_revenue_items: false,
+      has_cost_items: false,
+      budget_health: 'critical',
       ready: false,
       blockers: ['PJO not found'],
       summary: {
-        total_revenue: 0,
-        total_cost: 0,
-        profit: 0,
-        margin: 0,
-        cost_items_confirmed: 0,
-        cost_items_total: 0,
-        has_overruns: false,
+        totalRevenue: 0,
+        totalCost: 0,
+        estimatedProfit: 0,
+        profitMargin: 0,
       },
     }
   }
@@ -84,16 +88,20 @@ export async function checkConversionReadiness(pjoId: string): Promise<Conversio
   const margin = calculateMargin(totalRevenue, totalCostActual)
 
   return {
+    can_convert: blockers.length === 0,
+    reasons: blockers,
+    warnings: hasOverruns ? ['Some cost items have exceeded estimates'] : [],
+    all_costs_confirmed: costItemsConfirmed === costItemsTotal && costItemsTotal > 0,
+    has_revenue_items: (revenueItems?.length ?? 0) > 0 || totalRevenue > 0,
+    has_cost_items: costItemsTotal > 0,
+    budget_health: hasOverruns ? 'warning' : margin < 0 ? 'critical' : 'healthy',
     ready: blockers.length === 0,
     blockers,
     summary: {
-      total_revenue: totalRevenue,
-      total_cost: totalCostActual,
-      profit,
-      margin,
-      cost_items_confirmed: costItemsConfirmed,
-      cost_items_total: costItemsTotal,
-      has_overruns: hasOverruns,
+      totalRevenue,
+      totalCost: totalCostActual,
+      estimatedProfit: profit,
+      profitMargin: margin,
     },
   }
 }
@@ -103,8 +111,8 @@ export async function convertToJobOrder(pjoId: string): Promise<{ error?: string
 
   // Check readiness first
   const readiness = await checkConversionReadiness(pjoId)
-  if (!readiness.ready) {
-    return { error: readiness.blockers.join('; ') }
+  if (!readiness.can_convert) {
+    return { error: (readiness.blockers || readiness.reasons).join('; ') }
   }
 
   // Get PJO details
@@ -150,9 +158,9 @@ export async function convertToJobOrder(pjoId: string): Promise<{ error?: string
       project_id: pjo.project_id,
       customer_id: pjo.customer_id,
       description: pjo.description || pjo.commodity || '',
-      amount: readiness.summary.total_revenue,
-      final_revenue: readiness.summary.total_revenue,
-      final_cost: readiness.summary.total_cost,
+      amount: readiness.summary?.totalRevenue ?? 0,
+      final_revenue: readiness.summary?.totalRevenue ?? 0,
+      final_cost: readiness.summary?.totalCost ?? 0,
       status: 'active',
       converted_from_pjo_at: now.toISOString(),
     })

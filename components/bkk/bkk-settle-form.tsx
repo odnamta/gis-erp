@@ -10,7 +10,7 @@ import { Textarea } from '@/components/ui/textarea'
 import { Alert, AlertDescription } from '@/components/ui/alert'
 import { formatBKKCurrency, calculateSettlementDifference } from '@/lib/bkk-utils'
 import { settleBKK } from '@/app/(main)/job-orders/bkk-actions'
-import type { BKKWithRelations, SettleBKKInput } from '@/types/database'
+import type { BKKWithRelations, SettleBKKInput } from '@/types'
 import { ArrowDown, ArrowUp, Minus, Loader2, Upload, X } from 'lucide-react'
 import { toast } from 'sonner'
 

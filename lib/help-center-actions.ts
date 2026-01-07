@@ -75,7 +75,7 @@ export async function getArticlesForRole(
     return [];
   }
 
-  return (data || []).map((row: HelpArticleRow) => mapDbRowToArticle(row));
+  return (data || []).map((row) => mapDbRowToArticle(row as unknown as HelpArticleRow));
 }
 
 /**
@@ -100,7 +100,7 @@ export async function getArticleBySlug(
     return null;
   }
 
-  return mapDbRowToArticle(data as HelpArticleRow);
+  return mapDbRowToArticle(data as unknown as HelpArticleRow);
 }
 
 /**
@@ -128,7 +128,7 @@ export async function getContextualArticles(
     return [];
   }
 
-  return (data || []).map((row: HelpArticleRow) => mapDbRowToArticle(row));
+  return (data || []).map((row) => mapDbRowToArticle(row as unknown as HelpArticleRow));
 }
 
 /**
@@ -153,7 +153,7 @@ export async function getArticlesByCategory(
     return [];
   }
 
-  return (data || []).map((row: HelpArticleRow) => mapDbRowToArticle(row));
+  return (data || []).map((row) => mapDbRowToArticle(row as unknown as HelpArticleRow));
 }
 
 /**
@@ -179,7 +179,7 @@ export async function getRelatedArticles(
     return [];
   }
 
-  return (data || []).map((row: HelpArticleRow) => mapDbRowToArticle(row));
+  return (data || []).map((row) => mapDbRowToArticle(row as unknown as HelpArticleRow));
 }
 
 // =====================================================
@@ -205,7 +205,7 @@ export async function getFAQsForRole(
     return [];
   }
 
-  return (data || []).map((row: HelpFAQRow) => mapDbRowToFAQ(row));
+  return (data || []).map((row) => mapDbRowToFAQ(row as unknown as HelpFAQRow));
 }
 
 // =====================================================
@@ -220,20 +220,26 @@ export async function incrementViewCount(
 ): Promise<void> {
   const supabase = await createClient();
 
-  const { error } = await supabase.rpc('increment_help_article_view', {
-    article_id: articleId,
-  });
+  // Try to increment using RPC if available, otherwise do manual increment
+  const { data: article, error: fetchError } = await supabase
+    .from('help_articles')
+    .select('view_count')
+    .eq('id', articleId)
+    .single();
 
-  if (error) {
-    // Try direct update if RPC doesn't exist
-    const { error: updateError } = await supabase
-      .from('help_articles')
-      .update({ view_count: supabase.rpc('increment', { row_id: articleId }) })
-      .eq('id', articleId);
+  if (fetchError) {
+    console.error('Error fetching article for view count:', fetchError);
+    return;
+  }
 
-    if (updateError) {
-      console.error('Error incrementing view count:', updateError);
-    }
+  const currentCount = (article?.view_count as number) || 0;
+  const { error: updateError } = await supabase
+    .from('help_articles')
+    .update({ view_count: currentCount + 1 })
+    .eq('id', articleId);
+
+  if (updateError) {
+    console.error('Error incrementing view count:', updateError);
   }
 }
 

@@ -66,7 +66,7 @@ export async function assignAsset(
     const hasOpenAssignment = (existingAssignments?.length ?? 0) > 0;
 
     // Validate assignment
-    const validation = validateAssignment(asset.status, hasOpenAssignment);
+    const validation = validateAssignment(asset.status || '', hasOpenAssignment);
     if (!validation.valid) {
       return { success: false, error: validation.error };
     }
@@ -500,10 +500,11 @@ export async function getUtilizationTrend(
     const monthlyAverages = new Map<string, { total: number; count: number }>();
     
     for (const row of data || []) {
-      const existing = monthlyAverages.get(row.month) || { total: 0, count: 0 };
+      const monthKey = row.month || '';
+      const existing = monthlyAverages.get(monthKey) || { total: 0, count: 0 };
       existing.total += row.utilization_rate || 0;
       existing.count += 1;
-      monthlyAverages.set(row.month, existing);
+      monthlyAverages.set(monthKey, existing);
     }
 
     const trend = monthStrings.reverse().map((month) => {

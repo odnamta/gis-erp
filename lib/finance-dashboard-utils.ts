@@ -3,7 +3,7 @@
  * Provides calculations for AR aging, overdue invoices, payments, and KPIs
  */
 
-import type { Invoice, JobOrder, ProformaJobOrder } from '@/types/database'
+import type { Invoice, JobOrder, ProformaJobOrder } from '@/types'
 
 // Types
 export type AgingBucketType = 'current' | 'days31to60' | 'days61to90' | 'over90'

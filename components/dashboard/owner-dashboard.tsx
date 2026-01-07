@@ -55,14 +55,18 @@ interface OwnerDashboardProps {
   }
 }
 
-const ROLE_COLORS: Record<UserRole, string> = {
+const ROLE_COLORS: Record<string, string> = {
   owner: 'bg-amber-100 text-amber-800',
-  admin: 'bg-red-100 text-red-800',
+  director: 'bg-indigo-100 text-indigo-800',
   manager: 'bg-blue-100 text-blue-800',
-  ops: 'bg-green-100 text-green-800',
+  sysadmin: 'bg-red-100 text-red-800',
+  administration: 'bg-pink-100 text-pink-800',
   finance: 'bg-purple-100 text-purple-800',
-  sales: 'bg-yellow-100 text-yellow-800',
-  viewer: 'bg-gray-100 text-gray-800',
+  marketing: 'bg-yellow-100 text-yellow-800',
+  ops: 'bg-green-100 text-green-800',
+  engineer: 'bg-cyan-100 text-cyan-800',
+  hr: 'bg-orange-100 text-orange-800',
+  hse: 'bg-teal-100 text-teal-800',
 }
 
 function formatCurrency(amount: number): string {

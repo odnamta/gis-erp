@@ -35,7 +35,9 @@ export function AuditTypeForm({ auditType, onSuccess, onCancel }: AuditTypeFormP
   const [description, setDescription] = useState(auditType?.description || '');
   const [category, setCategory] = useState(auditType?.category || 'safety_audit');
   const [frequencyDays, setFrequencyDays] = useState(
-    auditType?.frequency_days?.toString() || ''
+    auditType?.frequency_days !== null && auditType?.frequency_days !== undefined 
+      ? auditType.frequency_days.toString() 
+      : ''
   );
 
   const isEdit = !!auditType;
@@ -60,7 +62,7 @@ export function AuditTypeForm({ auditType, onSuccess, onCancel }: AuditTypeFormP
           type_name: typeName,
           description: description || undefined,
           category: category as UpdateAuditTypeInput['category'],
-          frequency_days: frequencyDays ? parseInt(frequencyDays) : null,
+          frequency_days: frequencyDays ? parseInt(frequencyDays) : undefined,
         };
         const { error: updateError } = await updateAuditType(auditType.id, input);
         if (updateError) {
@@ -147,7 +149,7 @@ export function AuditTypeForm({ auditType, onSuccess, onCancel }: AuditTypeFormP
           <div className="grid gap-4 md:grid-cols-2">
             <div className="space-y-2">
               <Label htmlFor="category">Category *</Label>
-              <Select value={category} onValueChange={(value: string) => setCategory(value)}>
+              <Select value={category} onValueChange={(value) => setCategory(value as typeof category)}>
                 <SelectTrigger id="category">
                   <SelectValue placeholder="Select category" />
                 </SelectTrigger>

@@ -1,8 +1,8 @@
 'use server'
 
 import { createClient } from '@/lib/supabase/server'
-import { UserProfile, UserPermissions, UserRole, DepartmentScope } from '@/types/permissions'
-import { DEFAULT_PERMISSIONS, OWNER_EMAIL, isOwnerEmail, getAssignableRoles, getInheritedRoles, canAccessFeature, FeatureKey } from '@/lib/permissions'
+import { UserProfile, UserPermissions, UserRole, DepartmentScope, FeatureKey } from '@/types/permissions'
+import { DEFAULT_PERMISSIONS, OWNER_EMAIL, isOwnerEmail, getAssignableRoles, getInheritedRoles, canAccessFeature } from '@/lib/permissions'
 
 /**
  * Get the current user's profile from the database
@@ -112,10 +112,25 @@ export async function createUserProfile(
     role = 'owner'
     permissions = DEFAULT_PERMISSIONS.owner
   }
-  // Manager for other gama-group.co emails
+  // Marketing manager for hutamiarini
+  else if (email === 'hutamiarini@gama-group.co') {
+    role = 'marketing_manager'
+    permissions = DEFAULT_PERMISSIONS.marketing_manager
+  }
+  // Finance manager for ferisupriono
+  else if (email === 'ferisupriono@gama-group.co') {
+    role = 'finance_manager'
+    permissions = DEFAULT_PERMISSIONS.finance_manager
+  }
+  // Operations manager for rezapramana
+  else if (email === 'rezapramana@gama-group.co') {
+    role = 'operations_manager'
+    permissions = DEFAULT_PERMISSIONS.operations_manager
+  }
+  // Default to marketing for other gama-group.co emails
   else if (email.endsWith('@gama-group.co')) {
-    role = 'manager'
-    permissions = DEFAULT_PERMISSIONS.manager
+    role = 'marketing'
+    permissions = DEFAULT_PERMISSIONS.marketing
   }
 
   const { data, error } = await supabase
@@ -231,10 +246,25 @@ export async function ensureUserProfile(): Promise<UserProfile | null> {
     role = 'owner'
     permissions = DEFAULT_PERMISSIONS.owner
   }
-  // Manager for other gama-group.co emails
+  // Marketing manager for hutamiarini
+  else if (email === 'hutamiarini@gama-group.co') {
+    role = 'marketing_manager'
+    permissions = DEFAULT_PERMISSIONS.marketing_manager
+  }
+  // Finance manager for ferisupriono
+  else if (email === 'ferisupriono@gama-group.co') {
+    role = 'finance_manager'
+    permissions = DEFAULT_PERMISSIONS.finance_manager
+  }
+  // Operations manager for rezapramana
+  else if (email === 'rezapramana@gama-group.co') {
+    role = 'operations_manager'
+    permissions = DEFAULT_PERMISSIONS.operations_manager
+  }
+  // Default to marketing for other gama-group.co emails
   else if (email.endsWith('@gama-group.co')) {
-    role = 'manager'
-    permissions = DEFAULT_PERMISSIONS.manager
+    role = 'marketing'
+    permissions = DEFAULT_PERMISSIONS.marketing
   }
 
   const fullName = user.user_metadata?.full_name || user.user_metadata?.name
@@ -249,7 +279,7 @@ export async function ensureUserProfile(): Promise<UserProfile | null> {
       avatar_url: avatarUrl || null,
       role,
       department_scope: [],
-      custom_dashboard: role === 'owner' ? 'executive' : (role === 'manager' ? 'manager' : 'default'),
+      custom_dashboard: role === 'owner' ? 'executive' : (['marketing_manager', 'finance_manager', 'operations_manager'].includes(role) ? 'manager' : 'default'),
       last_login_at: new Date().toISOString(),
       ...permissions,
     })
@@ -305,7 +335,7 @@ export async function updateUserRole(
   const permissions = { ...defaultPerms, ...customPermissions }
 
   // Prevent removing last admin (excluding owner from count)
-  if (newRole !== 'admin' || !permissions.can_manage_users) {
+  if (newRole !== 'sysadmin' || !permissions.can_manage_users) {
     const { count } = await supabase
       .from('user_profiles')
       .select('*', { count: 'exact', head: true })

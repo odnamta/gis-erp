@@ -20,7 +20,7 @@ import {
   ActivityEntry,
   OpsQueueItem,
   ManagerMetrics,
-} from '@/types/database'
+} from '@/types'
 
 interface DashboardClientProps {
   initialKPIs: DashboardKPIs

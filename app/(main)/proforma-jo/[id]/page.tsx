@@ -5,6 +5,7 @@ import { Button } from '@/components/ui/button'
 import { PJODetailView } from '@/components/pjo/pjo-detail-view'
 import { ArrowLeft } from 'lucide-react'
 import { getUserRole, getUserId } from '@/lib/permissions'
+import { UserProfile } from '@/types'
 
 interface PJODetailPageProps {
   params: Promise<{ id: string }>
@@ -46,9 +47,20 @@ export default async function PJODetailPage({ params }: PJODetailPageProps) {
     quotation = quotationData
   }
 
-  // Get user role and ID for permission checks
-  const userRole = await getUserRole()
-  const userId = await getUserId()
+  // Get user profile for permission checks
+  const { data: { user } } = await supabase.auth.getUser()
+  let profile: UserProfile | null = null
+  if (user) {
+    const { data: profileData } = await supabase
+      .from('user_profiles')
+      .select('*')
+      .eq('user_id', user.id)
+      .single()
+    profile = profileData as unknown as UserProfile | null
+  }
+
+  const userRole = getUserRole(profile)
+  const userId = getUserId(profile)
 
   // Merge quotation data into PJO
   const pjoWithQuotation = {

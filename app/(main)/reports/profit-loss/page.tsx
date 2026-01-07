@@ -68,13 +68,13 @@ export default function ProfitLossReportPage() {
 
       if (costError) throw costError
 
-      const revenueItems = (revenueData || []).map(item => ({
+      const revenueItems = ((revenueData || []) as any[]).map(item => ({
         description: item.description,
-        subtotal: item.subtotal,
+        subtotal: item.subtotal ?? 0,
         unit: item.unit,
       }))
 
-      const costItems = (costData || []).map(item => ({
+      const costItems = ((costData || []) as any[]).map(item => ({
         category: item.category,
         actual_amount: item.actual_amount,
         estimated_amount: item.estimated_amount,

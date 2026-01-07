@@ -72,7 +72,7 @@ export async function retryJobAction(failureId: string) {
     return { success: false, error: 'Job failure not found' };
   }
 
-  if (failure.retry_count >= failure.max_retries) {
+  if ((failure.retry_count ?? 0) >= (failure.max_retries ?? 0)) {
     // Mark as abandoned
     const { error: updateError } = await supabase
       .from('job_failures')
@@ -88,13 +88,13 @@ export async function retryJobAction(failureId: string) {
   }
 
   // Calculate next retry time
-  const delayMs = BASE_RETRY_DELAY_MS * Math.pow(2, failure.retry_count);
+  const delayMs = BASE_RETRY_DELAY_MS * Math.pow(2, failure.retry_count ?? 0);
   const nextRetryAt = new Date(Date.now() + delayMs).toISOString();
 
   const { error: updateError } = await supabase
     .from('job_failures')
     .update({
-      retry_count: failure.retry_count + 1,
+      retry_count: (failure.retry_count ?? 0) + 1,
       status: 'retrying',
       next_retry_at: nextRetryAt,
     })

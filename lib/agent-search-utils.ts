@@ -84,13 +84,13 @@ export function filterRatesByRoute(
   
   return rates.filter(rate => {
     const matchesOrigin = 
-      rate.originCode?.toLowerCase() === originLower ||
-      rate.originPort?.toLowerCase().includes(originLower) ||
+      (rate as any).originCode?.toLowerCase() === originLower ||
+      (rate.originPort as any)?.toLowerCase().includes(originLower) ||
       rate.originPortId === originPort;
     
     const matchesDest = 
-      rate.destinationCode?.toLowerCase() === destLower ||
-      rate.destinationPort?.toLowerCase().includes(destLower) ||
+      (rate as any).destinationCode?.toLowerCase() === destLower ||
+      (rate.destinationPort as any)?.toLowerCase().includes(destLower) ||
       rate.destinationPortId === destinationPort;
     
     return matchesOrigin && matchesDest;

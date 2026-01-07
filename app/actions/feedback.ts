@@ -14,6 +14,7 @@ import type {
   PaginatedFeedback,
   FeedbackComment,
   FeedbackStatus,
+  Severity,
 } from '@/types/feedback';
 import { validateFeedbackForm } from '@/lib/feedback-utils';
 import {
@@ -47,7 +48,7 @@ export async function submitFeedback(
     // Get user profile for name/role
     const { data: profile } = await supabase
       .from('user_profiles')
-      .select('full_name, email, role, department')
+      .select('full_name, email, role, department_scope')
       .eq('id', user.id)
       .single();
 
@@ -68,14 +69,14 @@ export async function submitFeedback(
 
     // Insert feedback submission
     const { data, error } = await supabase
-      .from('feedback_submissions')
+      .from('feedback_submissions' as any)
       .insert({
         feedback_type: formData.feedbackType,
         submitted_by: user.id,
         submitted_by_name: profile?.full_name || user.email,
         submitted_by_email: user.email,
         submitted_by_role: profile?.role || null,
-        submitted_by_department: profile?.department || null,
+        submitted_by_department: profile?.department_scope?.[0] || null,
         severity: formData.severity || null,
         title: formData.title.trim(),
         description: formData.description.trim(),
@@ -103,9 +104,12 @@ export async function submitFeedback(
       return { success: false, error: 'Failed to submit feedback' };
     }
 
+    // Cast data to access properties
+    const result = data as any;
+
     // Send notification to admins
     await notifyNewFeedback(
-      data.ticket_number,
+      result.ticket_number,
       formData.feedbackType,
       formData.title,
       formData.severity || null,
@@ -117,7 +121,7 @@ export async function submitFeedback(
 
     return {
       success: true,
-      data: { ticketNumber: data.ticket_number, id: data.id },
+      data: { ticketNumber: result.ticket_number, id: result.id },
     };
   } catch (err) {
     console.error('Unexpected error submitting feedback:', err);
@@ -194,7 +198,7 @@ export async function getMySubmissions(): Promise<FeedbackActionResult<FeedbackL
     }
 
     const { data, error } = await supabase
-      .from('feedback_with_comments')
+      .from('feedback_with_comments' as any)
       .select('*')
       .eq('submitted_by', user.id)
       .order('created_at', { ascending: false });
@@ -204,7 +208,7 @@ export async function getMySubmissions(): Promise<FeedbackActionResult<FeedbackL
       return { success: false, error: 'Failed to fetch submissions' };
     }
 
-    return { success: true, data: data as FeedbackListItem[] };
+    return { success: true, data: data as unknown as FeedbackListItem[] };
   } catch (err) {
     console.error('Unexpected error:', err);
     return { success: false, error: 'An unexpected error occurred' };
@@ -271,7 +275,7 @@ export async function getAllFeedback(
 
     // Build query
     let query = supabase
-      .from('feedback_with_comments')
+      .from('feedback_with_comments' as any)
       .select('*', { count: 'exact' });
 
     // Apply filters
@@ -319,7 +323,7 @@ export async function getAllFeedback(
     return {
       success: true,
       data: {
-        items: data as FeedbackListItem[],
+        items: data as unknown as FeedbackListItem[],
         total,
         page,
         pageSize,
@@ -527,7 +531,7 @@ export async function assignFeedback(
         feedback.ticket_number,
         feedback.title,
         assigneeId,
-        feedback.severity
+        feedback.severity as Severity | null
       );
     }
 
@@ -737,7 +741,7 @@ export async function getFeedbackById(
       return { success: false, error: 'Unauthorized' };
     }
 
-    return { success: true, data: data as FeedbackSubmission };
+    return { success: true, data: data as unknown as FeedbackSubmission };
   } catch (err) {
     console.error('Unexpected error:', err);
     return { success: false, error: 'An unexpected error occurred' };
@@ -771,7 +775,14 @@ export async function getFeedbackHistory(
       return { success: false, error: 'Failed to fetch history' };
     }
 
-    return { success: true, data };
+    return { success: true, data: data as unknown as Array<{
+      id: string;
+      old_status: FeedbackStatus | null;
+      new_status: FeedbackStatus;
+      changed_by_name: string | null;
+      changed_at: string;
+      notes: string | null;
+    }> };
   } catch (err) {
     console.error('Unexpected error:', err);
     return { success: false, error: 'An unexpected error occurred' };

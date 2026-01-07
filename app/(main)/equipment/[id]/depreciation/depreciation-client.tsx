@@ -62,7 +62,7 @@ export function DepreciationClient({ assetId }: DepreciationClientProps) {
         purchasePrice: assetData.purchase_price || 0,
         bookValue: assetData.book_value || assetData.purchase_price || 0,
         salvageValue: assetData.salvage_value || 0,
-        depreciationMethod: assetData.depreciation_method || 'straight_line',
+        depreciationMethod: (assetData.depreciation_method || 'straight_line') as DepreciationMethod,
         usefulLifeYears: assetData.useful_life_years || 5,
         accumulatedDepreciation: assetData.accumulated_depreciation || 0,
       };

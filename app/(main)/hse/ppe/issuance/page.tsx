@@ -2,8 +2,9 @@ import { getPPEIssuances, getPPETypes } from '@/lib/ppe-actions';
 import { createClient } from '@/lib/supabase/server';
 import { IssuanceTable } from '@/components/ppe/issuance-table';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import { PPEEmployee } from '@/types/ppe';
 
-async function getActiveEmployees() {
+async function getActiveEmployees(): Promise<PPEEmployee[]> {
   const supabase = await createClient();
   const { data, error } = await supabase
     .from('employees')
@@ -12,7 +13,12 @@ async function getActiveEmployees() {
     .order('full_name');
   
   if (error) throw new Error(`Failed to fetch employees: ${error.message}`);
-  return data || [];
+  return (data || []).map(e => ({
+    id: e.id,
+    employee_code: e.employee_code,
+    full_name: e.full_name,
+    status: e.status || 'active',
+  }));
 }
 
 export default async function PPEIssuancePage() {

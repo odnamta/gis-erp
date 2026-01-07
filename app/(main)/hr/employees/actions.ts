@@ -51,7 +51,7 @@ export async function getEmployees(
     return { data: null, error: error.message };
   }
 
-  return { data: data as EmployeeWithRelations[], error: null };
+  return { data: (data || []) as unknown as EmployeeWithRelations[], error: null };
 }
 
 /**
@@ -78,7 +78,7 @@ export async function getEmployee(
     return { data: null, error: error.message };
   }
 
-  return { data: data as EmployeeWithRelations, error: null };
+  return { data: data as unknown as EmployeeWithRelations, error: null };
 }
 
 
@@ -172,7 +172,7 @@ export async function createEmployee(
 
   const { data, error } = await supabase
     .from('employees')
-    .insert(insertData)
+    .insert(insertData as any)
     .select()
     .single();
 
@@ -185,7 +185,7 @@ export async function createEmployee(
   invalidateEmployeeCache();
 
   revalidatePath('/hr/employees');
-  return { success: true, employee: data as Employee };
+  return { success: true, employee: data as unknown as Employee };
 }
 
 /**
@@ -479,5 +479,5 @@ export async function getUnlinkedUsers(): Promise<{
     return { data: null, error: error.message };
   }
 
-  return { data: data || [], error: null };
+  return { data: (data || []) as unknown as { id: string; email: string; full_name: string }[], error: null };
 }

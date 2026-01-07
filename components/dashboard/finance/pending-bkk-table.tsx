@@ -13,7 +13,7 @@ import { formatIDR, formatDate } from '@/lib/pjo-utils'
 import { approveBKK, rejectBKK } from '@/app/(main)/job-orders/bkk-actions'
 import { useToast } from '@/hooks/use-toast'
 import { useRouter } from 'next/navigation'
-import type { BKKWithRelations } from '@/types/database'
+import type { BKKWithRelations } from '@/types'
 import { Check, X, Banknote, Loader2 } from 'lucide-react'
 
 interface PendingBKKTableProps {
@@ -108,12 +108,12 @@ export function PendingBKKTable({ bkks }: PendingBKKTableProps) {
                     </Link>
                   </TableCell>
                   <TableCell>
-                    {bkk.job_order ? (
+                    {bkk.job_orders ? (
                       <Link 
                         href={`/job-orders/${bkk.jo_id}`}
                         className="hover:underline"
                       >
-                        {bkk.job_order.jo_number}
+                        {bkk.job_orders.jo_number}
                       </Link>
                     ) : '-'}
                   </TableCell>

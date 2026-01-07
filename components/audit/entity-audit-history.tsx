@@ -196,6 +196,9 @@ function TimelineEntry({
   const hasDetails =
     entry.old_values || entry.new_values || entry.changed_fields?.length;
 
+  const action = entry.action || 'view';
+  const timestamp = entry.timestamp || '';
+
   return (
     <div className="relative flex gap-4">
       {/* Timeline line */}
@@ -204,10 +207,10 @@ function TimelineEntry({
         <div
           className={cn(
             'w-8 h-8 rounded-full flex items-center justify-center text-white z-10',
-            getActionColor(entry.action)
+            getActionColor(action)
           )}
         >
-          {getActionIcon(entry.action)}
+          {getActionIcon(action)}
         </div>
         {/* Connecting line */}
         {!isLast && (
@@ -224,8 +227,8 @@ function TimelineEntry({
               <div className="flex items-start justify-between gap-2">
                 <div className="flex-1 min-w-0">
                   <div className="flex items-center gap-2 flex-wrap">
-                    <Badge variant={getActionBadgeVariant(entry.action)}>
-                      {formatAction(entry.action)}
+                    <Badge variant={getActionBadgeVariant(action)}>
+                      {formatAction(action)}
                     </Badge>
                     {entry.changed_fields && entry.changed_fields.length > 0 && (
                       <span className="text-xs text-muted-foreground">
@@ -265,8 +268,8 @@ function TimelineEntry({
               <div className="flex items-center gap-4 mt-2 text-xs text-muted-foreground">
                 <div className="flex items-center gap-1">
                   <Clock className="h-3 w-3" />
-                  <span title={formatTimestamp(entry.timestamp)}>
-                    {formatRelativeTime(entry.timestamp)}
+                  <span title={timestamp ? formatTimestamp(timestamp) : ''}>
+                    {timestamp ? formatRelativeTime(timestamp) : '-'}
                   </span>
                 </div>
                 <div className="flex items-center gap-1">
@@ -358,7 +361,7 @@ export function EntityAuditHistory({
 
   // Sort entries by timestamp descending (most recent first)
   const sortedEntries = [...entries].sort(
-    (a, b) => new Date(b.timestamp).getTime() - new Date(a.timestamp).getTime()
+    (a, b) => new Date(b.timestamp || '').getTime() - new Date(a.timestamp || '').getTime()
   );
 
   return (
@@ -419,45 +422,49 @@ export function EntityAuditHistoryCompact({
 
   // Sort and limit entries
   const sortedEntries = [...entries]
-    .sort((a, b) => new Date(b.timestamp).getTime() - new Date(a.timestamp).getTime())
+    .sort((a, b) => new Date(b.timestamp || '').getTime() - new Date(a.timestamp || '').getTime())
     .slice(0, maxItems);
 
   const hasMore = entries.length > maxItems;
 
   return (
     <div className="space-y-2">
-      {sortedEntries.map((entry) => (
-        <div
-          key={entry.id}
-          className={cn(
-            'flex items-center gap-3 p-2 rounded-lg bg-gray-50 hover:bg-gray-100 transition-colors',
-            onEntryClick && 'cursor-pointer'
-          )}
-          onClick={() => onEntryClick?.(entry)}
-        >
+      {sortedEntries.map((entry) => {
+        const action = entry.action || 'view';
+        const timestamp = entry.timestamp || '';
+        return (
           <div
+            key={entry.id}
             className={cn(
-              'w-6 h-6 rounded-full flex items-center justify-center text-white flex-shrink-0',
-              getActionColor(entry.action)
+              'flex items-center gap-3 p-2 rounded-lg bg-gray-50 hover:bg-gray-100 transition-colors',
+              onEntryClick && 'cursor-pointer'
             )}
+            onClick={() => onEntryClick?.(entry)}
           >
-            {getActionIcon(entry.action)}
-          </div>
-          <div className="flex-1 min-w-0">
-            <div className="flex items-center gap-2">
-              <Badge variant={getActionBadgeVariant(entry.action)} className="text-xs">
-                {formatAction(entry.action)}
-              </Badge>
-              <span className="text-xs text-muted-foreground truncate">
-                by {entry.user_email || 'System'}
-              </span>
+            <div
+              className={cn(
+                'w-6 h-6 rounded-full flex items-center justify-center text-white flex-shrink-0',
+                getActionColor(action)
+              )}
+            >
+              {getActionIcon(action)}
             </div>
-            <div className="text-xs text-muted-foreground">
-              {formatRelativeTime(entry.timestamp)}
+            <div className="flex-1 min-w-0">
+              <div className="flex items-center gap-2">
+                <Badge variant={getActionBadgeVariant(action)} className="text-xs">
+                  {formatAction(action)}
+                </Badge>
+                <span className="text-xs text-muted-foreground truncate">
+                  by {entry.user_email || 'System'}
+                </span>
+              </div>
+              <div className="text-xs text-muted-foreground">
+                {timestamp ? formatRelativeTime(timestamp) : '-'}
+              </div>
             </div>
           </div>
-        </div>
-      ))}
+        );
+      })}
       {hasMore && (
         <div className="text-xs text-muted-foreground text-center py-1">
           +{entries.length - maxItems} more events

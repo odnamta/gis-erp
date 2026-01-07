@@ -5,7 +5,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Progress } from '@/components/ui/progress'
 import { Skeleton } from '@/components/ui/skeleton'
 import { ClipboardList, ArrowRight } from 'lucide-react'
-import { OpsQueueItem } from '@/types/database'
+import { OpsQueueItem } from '@/types'
 
 interface OperationsQueueProps {
   items: OpsQueueItem[]

@@ -168,14 +168,14 @@ export async function getOperationsJobList(): Promise<OperationsJobItem[]> {
     const overBudgetPercent = budget > 0 ? (overBudgetAmount / budget) * 100 : 0
 
     return {
-      id: job.id,
-      joNumber: job.jo_number,
-      customerName: job.customer_name,
+      id: job.id || '',
+      joNumber: job.jo_number || '',
+      customerName: job.customer_name || '',
       pjoNumber: job.pjo_number || '',
       commodity: job.commodity,
       origin: job.origin_location,
       destination: job.destination_location,
-      status: job.status,
+      status: job.status || '',
       budget,
       actualSpent,
       totalDeliveries: job.total_deliveries || 0,
@@ -204,19 +204,19 @@ export async function getDeliverySchedule(): Promise<DeliveryItem[]> {
   }
 
   return (deliveries || []).map((d) => ({
-    id: d.id,
-    sjNumber: d.sj_number,
-    joNumber: d.jo_number,
-    customerName: d.customer_name,
+    id: d.id || '',
+    sjNumber: d.sj_number || '',
+    joNumber: d.jo_number || '',
+    customerName: d.customer_name || '',
     commodity: d.commodity,
     origin: d.origin_location,
     destination: d.destination_location,
     vehicleNumber: d.vehicle_number,
     driverName: d.driver_name,
     status: d.status || 'pending',
-    departureDate: d.departure_date,
+    departureDate: d.departure_date || '',
     actualArrival: d.actual_arrival,
-    createdAt: d.created_at,
+    createdAt: d.created_at || '',
   }))
 }
 

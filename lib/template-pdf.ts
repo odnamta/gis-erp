@@ -100,13 +100,13 @@ export async function generateDocumentPdf(
       return { success: false, error: 'Document not found' };
     }
     
-    const template = document.template as CustomsDocumentTemplate;
+    const template = document.template as unknown as CustomsDocumentTemplate;
     if (!template) {
       return { success: false, error: 'Template not found' };
     }
     
     // Generate the full HTML
-    const html = await generatePdfHtml(template, document.document_data);
+    const html = await generatePdfHtml(template, document.document_data as Record<string, unknown>);
     
     // For now, return the HTML for client-side PDF generation
     // In production, you would:

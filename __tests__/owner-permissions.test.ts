@@ -24,12 +24,12 @@ describe('Owner Role Properties', () => {
   it('Property 2: Owner role exclusion from assignable roles', () => {
     const assignableRoles = getAssignableRoles()
     expect(assignableRoles).not.toContain('owner')
-    expect(assignableRoles).toContain('admin')
-    expect(assignableRoles).toContain('manager')
+    expect(assignableRoles).toContain('director')
+    expect(assignableRoles).toContain('marketing_manager')
     expect(assignableRoles).toContain('ops')
     expect(assignableRoles).toContain('finance')
-    expect(assignableRoles).toContain('sales')
-    expect(assignableRoles).toContain('viewer')
+    expect(assignableRoles).toContain('marketing')
+    expect(assignableRoles).toContain('administration')
   })
 
   /**
@@ -62,7 +62,7 @@ describe('Owner Role Properties', () => {
    * **Validates: Requirements 1.4**
    */
   it('Property 3: Owner role immutability - cannot modify owner', () => {
-    const allRoles: UserRole[] = ['owner', 'admin', 'manager', 'ops', 'finance', 'sales', 'viewer']
+    const allRoles: UserRole[] = ['owner', 'director', 'marketing_manager', 'ops', 'finance', 'marketing', 'administration']
     
     fc.assert(
       fc.property(fc.constantFrom(...allRoles), (actorRole) => {
@@ -73,28 +73,28 @@ describe('Owner Role Properties', () => {
     )
   })
 
-  it('Owner and admin can modify non-owner users', () => {
-    const nonOwnerRoles: UserRole[] = ['admin', 'manager', 'ops', 'finance', 'sales', 'viewer']
+  it('Owner and director can modify non-owner users', () => {
+    const nonOwnerRoles: UserRole[] = ['director', 'marketing_manager', 'ops', 'finance', 'marketing', 'administration']
     
     fc.assert(
       fc.property(fc.constantFrom(...nonOwnerRoles), (targetRole) => {
         // Owner can modify any non-owner
         expect(canModifyUser('owner', targetRole)).toBe(true)
-        // Admin can modify any non-owner
-        expect(canModifyUser('admin', targetRole)).toBe(true)
+        // Director can modify any non-owner
+        expect(canModifyUser('director', targetRole)).toBe(true)
         return true
       }),
       { numRuns: 100 }
     )
   })
 
-  it('Non-admin roles cannot modify users', () => {
-    const nonAdminRoles: UserRole[] = ['manager', 'ops', 'finance', 'sales', 'viewer']
-    const targetRoles: UserRole[] = ['admin', 'manager', 'ops', 'finance', 'sales', 'viewer']
+  it('Non-director roles cannot modify users', () => {
+    const nonDirectorRoles: UserRole[] = ['marketing_manager', 'ops', 'finance', 'marketing', 'administration']
+    const targetRoles: UserRole[] = ['director', 'marketing_manager', 'ops', 'finance', 'marketing', 'administration']
     
     fc.assert(
       fc.property(
-        fc.constantFrom(...nonAdminRoles),
+        fc.constantFrom(...nonDirectorRoles),
         fc.constantFrom(...targetRoles),
         (actorRole, targetRole) => {
           return canModifyUser(actorRole, targetRole) === false
@@ -138,7 +138,8 @@ describe('Pending User Detection', () => {
       email: 'test@example.com',
       full_name: 'Test User',
       avatar_url: null,
-      role: 'viewer',
+      role: 'administration',
+      department_scope: [],
       custom_dashboard: 'default',
       is_active: true,
       created_at: new Date().toISOString(),
@@ -146,11 +147,18 @@ describe('Pending User Detection', () => {
       last_login_at: null,
       can_see_revenue: false,
       can_see_profit: false,
+      can_see_actual_costs: false,
       can_approve_pjo: false,
+      can_approve_jo: false,
+      can_approve_bkk: false,
+      can_check_pjo: false,
+      can_check_jo: false,
+      can_check_bkk: false,
       can_manage_invoices: false,
       can_manage_users: false,
       can_create_pjo: false,
       can_fill_costs: false,
+      can_estimate_costs: false,
     }
 
     // User with null user_id is pending
@@ -165,7 +173,7 @@ describe('Pending User Detection', () => {
 
 describe('DEFAULT_PERMISSIONS structure', () => {
   it('should have permissions for all roles', () => {
-    const allRoles: UserRole[] = ['owner', 'admin', 'manager', 'ops', 'finance', 'sales', 'viewer']
+    const allRoles: UserRole[] = ['owner', 'director', 'marketing_manager', 'ops', 'finance', 'marketing', 'administration']
     
     allRoles.forEach(role => {
       expect(DEFAULT_PERMISSIONS[role]).toBeDefined()

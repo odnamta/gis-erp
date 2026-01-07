@@ -14,8 +14,7 @@ import {
   calculateManagerMetrics,
   limitResults,
 } from '@/lib/dashboard-utils'
-import { ProformaJobOrder, PJOCostItem, Invoice, JobOrder } from '@/types'
-import { ActivityEntry } from '@/types/database'
+import { ProformaJobOrder, PJOCostItem, Invoice, JobOrder, ActivityEntry } from '@/types'
 
 /**
  * **Feature: v0.8-dashboard-budget-monitoring, Property 1: KPI Count Calculations**
@@ -158,14 +157,14 @@ describe('Cost Progress Calculation', () => {
             fc.record({
               actual_amount: fc.oneof(
                 fc.constant(null),
-                fc.constant(undefined),
+                fc.constant(null),
                 fc.double({ min: 0, max: 1e9, noNaN: true })
               ),
             }),
             { minLength: 0, maxLength: 20 }
           ),
           (costItems) => {
-            const result = calculateCostProgress(costItems)
+            const result = calculateCostProgress(costItems as any)
             const expectedConfirmed = costItems.filter(
               item => item.actual_amount !== null && item.actual_amount !== undefined
             ).length

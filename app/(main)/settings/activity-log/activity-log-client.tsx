@@ -70,8 +70,8 @@ export function ActivityLogClient({
     dateRange: 'last7',
   })
 
-  const canFilterByUser = userProfile.role === 'owner' || userProfile.role === 'admin'
-  const canExport = userProfile.role === 'owner' || userProfile.role === 'admin'
+  const canFilterByUser = userProfile.role === 'owner' || userProfile.role === 'sysadmin'
+  const canExport = userProfile.role === 'owner' || userProfile.role === 'sysadmin'
 
   const totalPages = Math.ceil(total / PAGE_SIZE)
 

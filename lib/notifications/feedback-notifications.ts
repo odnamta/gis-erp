@@ -31,16 +31,18 @@ export async function notifyNewFeedback(
     const priority: NotificationPriority = severity === 'critical' ? 'urgent' : 
                                            severity === 'high' ? 'high' : 'normal';
 
-    await createBulkNotifications({
-      userIds: adminUsers.map(u => u.id),
-      title: `New ${typeLabel}: ${ticketNumber}`,
-      message: `${submitterName} submitted: "${title}"${severity ? ` (${severity} severity)` : ''}`,
-      type: 'info',
-      priority,
-      actionUrl: `/admin/feedback`,
-      entityType: 'feedback',
-      entityId: ticketNumber,
-    });
+    await createBulkNotifications(
+      {
+        title: `New ${typeLabel}: ${ticketNumber}`,
+        message: `${submitterName} submitted: "${title}"${severity ? ` (${severity} severity)` : ''}`,
+        type: 'info',
+        priority,
+        actionUrl: `/admin/feedback`,
+        entityType: 'feedback',
+        entityId: ticketNumber,
+      },
+      { userIds: adminUsers.map(u => u.id) }
+    );
   } catch (error) {
     console.error('Failed to send new feedback notification:', error);
   }

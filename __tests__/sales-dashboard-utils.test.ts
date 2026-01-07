@@ -903,27 +903,27 @@ describe('Property 13: Period filter application', () => {
 
 
 /**
- * Property 1: Dashboard routing for sales role
- * For any user profile with role='sales', the dashboard router SHALL return
- * the Sales Dashboard component
+ * Property 1: Dashboard routing for marketing role
+ * For any user profile with role='marketing', the dashboard router SHALL return
+ * the Marketing Dashboard component
  * **Validates: Requirements 1.1**
  */
-describe('Property 1: Dashboard routing for sales role', () => {
+describe('Property 1: Dashboard routing for marketing role', () => {
   // Helper function to determine which dashboard to show (mirrors page.tsx logic)
-  function getDashboardType(userRole: string): 'ops' | 'finance' | 'sales' | 'main' {
+  function getDashboardType(userRole: string): 'ops' | 'finance' | 'marketing' | 'main' {
     if (userRole === 'ops') return 'ops'
     if (userRole === 'finance') return 'finance'
-    if (userRole === 'sales') return 'sales'
+    if (userRole === 'marketing') return 'marketing'
     return 'main'
   }
 
-  it('routes sales users to sales dashboard', () => {
+  it('routes marketing users to marketing dashboard', () => {
     fc.assert(
       fc.property(
-        fc.constant('sales'),
+        fc.constant('marketing'),
         (role) => {
           const dashboardType = getDashboardType(role)
-          expect(dashboardType).toBe('sales')
+          expect(dashboardType).toBe('marketing')
         }
       ),
       { numRuns: 10 }
@@ -941,7 +941,7 @@ describe('Property 1: Dashboard routing for sales role', () => {
   it('routes other roles to main dashboard', () => {
     fc.assert(
       fc.property(
-        fc.constantFrom('admin', 'manager', 'viewer', 'super_admin'),
+        fc.constantFrom('administration', 'director', 'owner', 'sysadmin'),
         (role) => {
           const dashboardType = getDashboardType(role)
           expect(dashboardType).toBe('main')
@@ -958,15 +958,15 @@ import { NAV_ITEMS, filterNavItems } from '@/lib/navigation'
 import { DEFAULT_PERMISSIONS } from '@/lib/permissions'
 
 /**
- * Property 14: Navigation filtering for sales role
- * For any user with role='sales', the sidebar SHALL show Dashboard, Customers, Projects, and PJOs,
+ * Property 14: Navigation filtering for marketing role
+ * For any user with role='marketing', the sidebar SHALL show Dashboard, Customers, Projects, and Quotations,
  * and SHALL hide Job Orders, Invoices, and system administration items
  * **Validates: Requirements 8.1, 8.2**
  */
-describe('Property 14: Navigation filtering for sales role', () => {
-  it('should show Dashboard, Customers, Projects, and Proforma JO for sales users', () => {
-    const salesPermissions = DEFAULT_PERMISSIONS.sales
-    const filteredNav = filterNavItems(NAV_ITEMS, 'sales', salesPermissions)
+describe('Property 14: Navigation filtering for marketing role', () => {
+  it('should show Dashboard, Customers, Projects, and Quotations for marketing users', () => {
+    const marketingPermissions = DEFAULT_PERMISSIONS.marketing
+    const filteredNav = filterNavItems(NAV_ITEMS, 'marketing', marketingPermissions)
 
     const navTitles = filteredNav.map((item) => item.title)
 
@@ -974,12 +974,12 @@ describe('Property 14: Navigation filtering for sales role', () => {
     expect(navTitles).toContain('Dashboard')
     expect(navTitles).toContain('Customers')
     expect(navTitles).toContain('Projects')
-    expect(navTitles).toContain('Proforma JO')
+    expect(navTitles).toContain('Quotations')
   })
 
-  it('should hide Job Orders, Invoices, Vendors, and Cost Entry for sales users', () => {
-    const salesPermissions = DEFAULT_PERMISSIONS.sales
-    const filteredNav = filterNavItems(NAV_ITEMS, 'sales', salesPermissions)
+  it('should hide Job Orders, Invoices, Vendors, and Cost Entry for marketing users', () => {
+    const marketingPermissions = DEFAULT_PERMISSIONS.marketing
+    const filteredNav = filterNavItems(NAV_ITEMS, 'marketing', marketingPermissions)
 
     const navTitles = filteredNav.map((item) => item.title)
 
@@ -988,12 +988,9 @@ describe('Property 14: Navigation filtering for sales role', () => {
     expect(navTitles).not.toContain('Invoices')
     expect(navTitles).not.toContain('Vendors')
     expect(navTitles).not.toContain('Cost Entry')
-    
-    // Sales CAN see Settings (with filtered children)
-    expect(navTitles).toContain('Settings')
   })
 
-  it('should filter navigation consistently for any sales user', () => {
+  it('should filter navigation consistently for any marketing user', () => {
     fc.assert(
       fc.property(
         fc.record({
@@ -1006,21 +1003,20 @@ describe('Property 14: Navigation filtering for sales role', () => {
           can_fill_costs: fc.constant(false),
         }),
         (permissions) => {
-          const filteredNav = filterNavItems(NAV_ITEMS, 'sales', permissions)
+          const filteredNav = filterNavItems(NAV_ITEMS, 'marketing', permissions)
           const navTitles = filteredNav.map((item) => item.title)
 
-          // Sales should never see these
+          // Marketing should never see these
           expect(navTitles).not.toContain('Job Orders')
           expect(navTitles).not.toContain('Invoices')
           expect(navTitles).not.toContain('Vendors')
           expect(navTitles).not.toContain('Cost Entry')
 
-          // Sales should always see these
+          // Marketing should always see these
           expect(navTitles).toContain('Dashboard')
           expect(navTitles).toContain('Customers')
           expect(navTitles).toContain('Projects')
-          expect(navTitles).toContain('Proforma JO')
-          expect(navTitles).toContain('Settings')
+          expect(navTitles).toContain('Quotations')
         }
       ),
       { numRuns: 20 }

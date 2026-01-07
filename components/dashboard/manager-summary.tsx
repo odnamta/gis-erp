@@ -4,7 +4,7 @@ import Link from 'next/link'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { Skeleton } from '@/components/ui/skeleton'
 import { TrendingUp, TrendingDown, DollarSign, Percent } from 'lucide-react'
-import { ManagerMetrics } from '@/types/database'
+import { ManagerMetrics } from '@/types'
 import { formatIDR } from '@/lib/pjo-utils'
 import { cn } from '@/lib/utils'
 

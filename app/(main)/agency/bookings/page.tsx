@@ -7,11 +7,14 @@ import { Loader2 } from 'lucide-react';
 export const dynamic = 'force-dynamic';
 
 export default async function BookingsPage() {
-  const [bookings, stats, shippingLines] = await Promise.all([
+  const [bookings, stats, shippingLinesResult] = await Promise.all([
     getBookings({}),
     getBookingStats(),
     getShippingLines(),
   ]);
+
+  // Extract data from ActionResult
+  const shippingLines = shippingLinesResult.success ? shippingLinesResult.data || [] : [];
 
   return (
     <Suspense

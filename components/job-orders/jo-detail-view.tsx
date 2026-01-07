@@ -23,7 +23,7 @@ import { ProfitabilitySection } from './profitability-section'
 import { JobCustomsSection } from '@/components/customs-fees/job-customs-section'
 import { PDFButtons } from '@/components/pdf/pdf-buttons'
 import { getBKKsByJobOrder } from '@/app/(main)/job-orders/bkk-actions'
-import type { BKKWithRelations } from '@/types/database'
+import type { BKKWithRelations } from '@/types'
 import type { JobOverheadAllocationWithCategory } from '@/types/overhead'
 
 interface JODetailViewProps {
@@ -234,13 +234,13 @@ export function JODetailView({ jobOrder, userId }: JODetailViewProps) {
             <div>
               <Label className="text-muted-foreground">ETD</Label>
               <p className="font-medium">
-                {pjo.etd ? formatDate(pjo.etd) : '-'}
+                {pjo.etd ? formatDate(pjo.etd as string) : '-'}
               </p>
             </div>
             <div>
               <Label className="text-muted-foreground">ETA</Label>
               <p className="font-medium">
-                {pjo.eta ? formatDate(pjo.eta) : '-'}
+                {pjo.eta ? formatDate(pjo.eta as string) : '-'}
               </p>
             </div>
             <div>
@@ -336,7 +336,7 @@ export function JODetailView({ jobOrder, userId }: JODetailViewProps) {
                     <TableCell>{item.description}</TableCell>
                     <TableCell className="text-right">{item.quantity}</TableCell>
                     <TableCell>{item.unit}</TableCell>
-                    <TableCell className="text-right">{formatIDR(item.unit_price)}</TableCell>
+                    <TableCell className="text-right">{formatIDR(item.unit_price ?? 0)}</TableCell>
                     <TableCell className="text-right font-medium">{formatIDR(item.subtotal ?? 0)}</TableCell>
                   </TableRow>
                 ))}
@@ -381,17 +381,17 @@ export function JODetailView({ jobOrder, userId }: JODetailViewProps) {
                   // Calculate BKK disbursements for this cost item
                   const itemBKKs = bkks.filter(b => b.pjo_cost_item_id === item.id)
                   const disbursed = itemBKKs
-                    .filter(b => ['released', 'settled'].includes(b.status))
+                    .filter(b => b.status && ['released', 'settled'].includes(b.status))
                     .reduce((sum, b) => sum + (b.amount_requested || 0), 0)
                   return (
                     <TableRow key={item.id}>
                       <TableCell>{COST_CATEGORY_LABELS[item.category] || item.category}</TableCell>
                       <TableCell>{item.description}</TableCell>
-                      <TableCell className="text-right">{formatIDR(item.estimated_amount)}</TableCell>
+                      <TableCell className="text-right">{formatIDR(item.estimated_amount ?? 0)}</TableCell>
                       <TableCell className="text-right text-blue-600">
                         {disbursed > 0 ? formatIDR(disbursed) : '-'}
                       </TableCell>
-                      <TableCell className="text-right">{item.actual_amount != null ? formatIDR(item.actual_amount) : '-'}</TableCell>
+                      <TableCell className="text-right">{item.actual_amount != null ? formatIDR(item.actual_amount ?? 0) : '-'}</TableCell>
                       <TableCell className={`text-right ${variance > 0 ? 'text-red-600' : variance < 0 ? 'text-green-600' : ''}`}>
                         {item.actual_amount != null ? formatIDR(variance) : '-'}
                       </TableCell>
@@ -401,7 +401,7 @@ export function JODetailView({ jobOrder, userId }: JODetailViewProps) {
                 <TableRow className="bg-muted/50 font-semibold">
                   <TableCell colSpan={3}>Total Cost</TableCell>
                   <TableCell className="text-right text-blue-600">
-                    {formatIDR(bkks.filter(b => ['released', 'settled'].includes(b.status)).reduce((sum, b) => sum + (b.amount_requested || 0), 0))}
+                    {formatIDR(bkks.filter(b => b.status && ['released', 'settled'].includes(b.status)).reduce((sum, b) => sum + (b.amount_requested || 0), 0))}
                   </TableCell>
                   <TableCell className="text-right">{formatIDR(jobOrder.final_cost ?? 0)}</TableCell>
                   <TableCell></TableCell>

@@ -36,7 +36,7 @@ export async function getLeaveTypes(): Promise<LeaveType[]> {
     throw new Error('Failed to fetch leave types');
   }
   
-  return data || [];
+  return (data || []) as unknown as LeaveType[];
 }
 
 /**
@@ -56,7 +56,7 @@ export async function getLeaveType(id: string): Promise<LeaveType | null> {
     return null;
   }
   
-  return data;
+  return data as unknown as LeaveType;
 }
 
 // =====================================================
@@ -87,7 +87,7 @@ export async function getLeaveBalances(
     throw new Error('Failed to fetch leave balances');
   }
   
-  return data || [];
+  return (data || []) as unknown as LeaveBalance[];
 }
 
 /**
@@ -117,7 +117,7 @@ export async function getLeaveBalance(
     return null;
   }
   
-  return data;
+  return data as unknown as LeaveBalance | null;
 }
 
 /**
@@ -159,7 +159,18 @@ export async function initializeYearlyBalances(
       
       // Calculate carry-over if applicable
       if (prevBalance && leaveType.allow_carry_over) {
-        carriedOver = calculateCarryOver(prevBalance, leaveType);
+        // Convert Supabase result to LeaveBalance type with defaults for null values
+        const balanceForCalc: LeaveBalance = {
+          ...prevBalance,
+          used_days: prevBalance.used_days ?? 0,
+          pending_days: prevBalance.pending_days ?? 0,
+          carried_over_days: prevBalance.carried_over_days ?? 0,
+          available_days: prevBalance.available_days ?? 0,
+          created_at: prevBalance.created_at ?? new Date().toISOString(),
+          updated_at: prevBalance.updated_at ?? new Date().toISOString(),
+          leave_type: prevBalance.leave_type as unknown as LeaveType,
+        };
+        carriedOver = calculateCarryOver(balanceForCalc, leaveType as unknown as LeaveType);
       }
       
       // Upsert the balance
@@ -173,7 +184,7 @@ export async function initializeYearlyBalances(
           carried_over_days: carriedOver,
           used_days: 0,
           pending_days: 0,
-        }, {
+        } as any, {
           onConflict: 'employee_id,leave_type_id,year',
         });
       
@@ -202,11 +213,11 @@ async function getHolidays(year: number): Promise<string[]> {
   
   const { data } = await supabase
     .from('holidays')
-    .select('date')
-    .gte('date', `${year}-01-01`)
-    .lte('date', `${year}-12-31`);
+    .select('holiday_date')
+    .gte('holiday_date', `${year}-01-01`)
+    .lte('holiday_date', `${year}-12-31`);
   
-  return data?.map(h => h.date) || [];
+  return data?.map(h => h.holiday_date) || [];
 }
 
 /**
@@ -274,7 +285,7 @@ export async function submitLeaveRequest(
       const { error: updateError } = await supabase
         .from('leave_balances')
         .update({
-          pending_days: balance.pending_days + totalDays,
+          pending_days: (balance.pending_days || 0) + totalDays,
         })
         .eq('id', balance.id);
       
@@ -311,7 +322,7 @@ export async function submitLeaveRequest(
     revalidatePath('/hr/leave');
     revalidatePath('/hr/my-leave');
     
-    return { success: true, data: request };
+    return { success: true, data: request as unknown as LeaveRequest };
   } catch (error) {
     console.error('Error submitting leave request:', error);
     return { success: false, error: 'Failed to submit leave request' };
@@ -372,8 +383,8 @@ export async function approveLeaveRequest(
       const { error: balanceError } = await supabase
         .from('leave_balances')
         .update({
-          pending_days: balance.pending_days - request.total_days,
-          used_days: balance.used_days + request.total_days,
+          pending_days: (balance.pending_days || 0) - request.total_days,
+          used_days: (balance.used_days || 0) + request.total_days,
         })
         .eq('id', balance.id);
       
@@ -476,7 +487,7 @@ export async function rejectLeaveRequest(
       const { error: balanceError } = await supabase
         .from('leave_balances')
         .update({
-          pending_days: balance.pending_days - request.total_days,
+          pending_days: (balance.pending_days || 0) - request.total_days,
         })
         .eq('id', balance.id);
       
@@ -557,7 +568,7 @@ export async function cancelLeaveRequest(
       const { error: balanceError } = await supabase
         .from('leave_balances')
         .update({
-          pending_days: balance.pending_days - request.total_days,
+          pending_days: (balance.pending_days || 0) - request.total_days,
         })
         .eq('id', balance.id);
       
@@ -608,11 +619,11 @@ async function markAttendanceAsLeave(
         .from('attendance_records')
         .upsert({
           employee_id: employeeId,
-          date: dateStr,
+          attendance_date: dateStr,
           status: 'leave',
           notes: leaveType?.type_name || 'Leave',
-        }, {
-          onConflict: 'employee_id,date',
+        } as any, {
+          onConflict: 'employee_id,attendance_date',
         });
     }
     current.setDate(current.getDate() + 1);
@@ -668,7 +679,7 @@ export async function getLeaveRequests(
     throw new Error('Failed to fetch leave requests');
   }
   
-  return data || [];
+  return (data || []) as unknown as LeaveRequest[];
 }
 
 /**
@@ -721,7 +732,7 @@ export async function getLeaveRequest(id: string): Promise<LeaveRequest | null> 
     return null;
   }
   
-  return data;
+  return data as unknown as LeaveRequest;
 }
 
 /**
@@ -732,7 +743,7 @@ export async function getEmployeesForSelect(): Promise<{ id: string; full_name: 
   
   const { data, error } = await supabase
     .from('employees')
-    .select('id, full_name, department')
+    .select('id, full_name, department_id')
     .eq('is_active', true)
     .order('full_name');
   
@@ -741,7 +752,11 @@ export async function getEmployeesForSelect(): Promise<{ id: string; full_name: 
     return [];
   }
   
-  return data || [];
+  return (data || []).map(e => ({
+    id: e.id,
+    full_name: e.full_name,
+    department: e.department_id || '',
+  }));
 }
 
 /**

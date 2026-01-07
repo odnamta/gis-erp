@@ -49,7 +49,7 @@ export default function CostAnalysisReportPage() {
 
       if (costError) throw costError
 
-      const costItems = (costData || []).map(item => ({
+      const costItems = ((costData || []) as any[]).map(item => ({
         category: item.category,
         amount: item.actual_amount ?? item.estimated_amount,
         joId: item.proforma_job_orders?.job_orders?.[0]?.id || item.proforma_job_orders?.id || '',

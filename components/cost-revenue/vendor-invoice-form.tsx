@@ -73,7 +73,7 @@ export function VendorInvoiceForm({
     watch,
     formState: { errors },
   } = useForm<VendorInvoiceFormValues>({
-    resolver: zodResolver(vendorInvoiceFormSchema),
+    resolver: zodResolver(vendorInvoiceFormSchema) as any,
     defaultValues: {
       invoiceNumber: invoice?.invoiceNumber || '',
       vendorId: invoice?.vendorId || '',
@@ -152,7 +152,7 @@ export function VendorInvoiceForm({
   };
 
   return (
-    <form onSubmit={handleSubmit(handleFormSubmit)} className="space-y-6">
+    <form onSubmit={handleSubmit(handleFormSubmit as any)} className="space-y-6">
       {/* Basic Information */}
       <div className="grid gap-4 md:grid-cols-2">
         <div className="space-y-2">

@@ -124,10 +124,10 @@ export async function createAutomationTemplate(
         template_name: input.templateName,
         description: input.description || null,
         category: input.category,
-        workflow_json: input.workflowJson || null,
+        workflow_json: input.workflowJson as unknown as never || null,
         required_credentials: input.requiredCredentials || [],
-        config_schema: input.configSchema || null,
-      })
+        config_schema: input.configSchema as unknown as never || null,
+      } as never)
       .select()
       .single();
 

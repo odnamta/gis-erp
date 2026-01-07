@@ -60,13 +60,13 @@ export async function GET(
     }
 
     // Generate PDF
-    const buffer = await renderToBuffer(<SuratJalanPDF {...pdfProps} />)
+    const buffer = await renderToBuffer(<SuratJalanPDF {...pdfProps as any} />)
 
     // Set headers
     const filename = `${suratJalan.sj_number}.pdf`
     const disposition = download ? `attachment; filename="${filename}"` : `inline; filename="${filename}"`
 
-    return new Response(buffer, {
+    return new Response(buffer as unknown as BodyInit, {
       headers: {
         'Content-Type': 'application/pdf',
         'Content-Disposition': disposition,

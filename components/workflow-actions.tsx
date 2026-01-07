@@ -13,7 +13,7 @@ import {
 } from '@/components/ui/dialog'
 import { Textarea } from '@/components/ui/textarea'
 import { Label } from '@/components/ui/label'
-import { usePermissions } from '@/contexts/permission-context'
+import { usePermissions } from '@/components/providers/permission-provider'
 import { WorkflowStatus, WorkflowAction, WorkflowDocumentType, getAvailableActions } from '@/types/workflow'
 import { CheckCircle, XCircle, Send, Clock, AlertCircle, Loader2 } from 'lucide-react'
 import { cn } from '@/lib/utils'

@@ -33,7 +33,7 @@ export async function getJobOrders(): Promise<JobOrderWithRelations[]> {
     return []
   }
 
-  return data as JobOrderWithRelations[]
+  return (data || []) as unknown as JobOrderWithRelations[]
 }
 
 export async function getJobOrder(id: string): Promise<JobOrderWithRelations | null> {
@@ -58,7 +58,6 @@ export async function getJobOrder(id: string): Promise<JobOrderWithRelations | n
       has_surat_jalan,
       has_berita_acara,
       requires_berita_acara,
-      notes,
       converted_from_pjo_at,
       completed_at,
       submitted_to_finance_at,
@@ -95,7 +94,7 @@ export async function getJobOrder(id: string): Promise<JobOrderWithRelations | n
     return null
   }
 
-  return data as JobOrderWithRelations
+  return data as unknown as JobOrderWithRelations
 }
 
 export async function markCompleted(joId: string): Promise<{ error?: string }> {

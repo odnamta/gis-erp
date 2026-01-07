@@ -33,7 +33,8 @@ export default async function JobFailuresPage() {
     getJobFailureStatsAction(),
   ])
   
-  const failures = failuresResult.success && failuresResult.data ? failuresResult.data : []
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const failures = failuresResult.success && failuresResult.data ? failuresResult.data as any[] : []
   const stats = statsResult.success && statsResult.data ? statsResult.data : null
 
   return (

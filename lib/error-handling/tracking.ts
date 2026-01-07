@@ -37,7 +37,7 @@ export async function trackError(params: TrackErrorParams): Promise<string> {
   const { data: existing } = await supabase
     .from('error_tracking')
     .select('id, occurrence_count')
-    .eq('error_hash', params.errorHash)
+    .eq('error_hash', params.errorHash || '')
     .single();
 
   if (existing) {
@@ -45,7 +45,7 @@ export async function trackError(params: TrackErrorParams): Promise<string> {
     await supabase
       .from('error_tracking')
       .update({
-        occurrence_count: existing.occurrence_count + 1,
+        occurrence_count: (existing.occurrence_count || 0) + 1,
         last_seen_at: now,
       })
       .eq('id', existing.id);
@@ -59,7 +59,7 @@ export async function trackError(params: TrackErrorParams): Promise<string> {
     .from('error_tracking')
     .insert({
       error_code: errorCode,
-      error_hash: params.errorHash,
+      error_hash: params.errorHash || '',
       timestamp: now,
       error_type: params.errorType,
       error_message: params.errorMessage,
@@ -78,7 +78,7 @@ export async function trackError(params: TrackErrorParams): Promise<string> {
       occurrence_count: 1,
       first_seen_at: now,
       last_seen_at: now,
-    })
+    } as any)
     .select('id')
     .single();
 
@@ -153,20 +153,20 @@ export async function getErrors(filters?: ErrorFilters): Promise<ErrorTracking[]
     }
   }
 
-  if (filters?.errorType) {
-    if (Array.isArray(filters.errorType)) {
-      query = query.in('error_type', filters.errorType);
+  if (filters?.error_type) {
+    if (Array.isArray(filters.error_type)) {
+      query = query.in('error_type', filters.error_type);
     } else {
-      query = query.eq('error_type', filters.errorType);
+      query = query.eq('error_type', filters.error_type);
     }
   }
 
-  if (filters?.dateFrom) {
-    query = query.gte('timestamp', filters.dateFrom);
+  if (filters?.from_date) {
+    query = query.gte('timestamp', filters.from_date);
   }
 
-  if (filters?.dateTo) {
-    query = query.lte('timestamp', filters.dateTo);
+  if (filters?.to_date) {
+    query = query.lte('timestamp', filters.to_date);
   }
 
   if (filters?.search) {
@@ -181,7 +181,7 @@ export async function getErrors(filters?: ErrorFilters): Promise<ErrorTracking[]
     throw new Error(`Failed to get errors: ${error.message}`);
   }
 
-  return data || [];
+  return (data || []) as unknown as ErrorTracking[];
 }
 
 /**
@@ -203,7 +203,16 @@ export async function getErrorById(errorId: string): Promise<ErrorTracking | nul
     throw new Error(`Failed to get error: ${error.message}`);
   }
 
-  return data;
+  return data as unknown as ErrorTracking;
+}
+
+/**
+ * Top recurring error type for internal use
+ */
+interface TopRecurringError {
+  error_hash: string;
+  error_message: string;
+  occurrence_count: number;
 }
 
 /**
@@ -213,6 +222,10 @@ export async function getErrorById(errorId: string): Promise<ErrorTracking | nul
  */
 export async function getErrorSummary(): Promise<ErrorSummary> {
   const supabase = createClient();
+  const now = new Date();
+  const todayStart = new Date(now.getFullYear(), now.getMonth(), now.getDate()).toISOString();
+  const weekStart = new Date(now.getTime() - 7 * 24 * 60 * 60 * 1000).toISOString();
+  const monthStart = new Date(now.getTime() - 30 * 24 * 60 * 60 * 1000).toISOString();
 
   // Get counts by status
   const { data: statusCounts, error: statusError } = await supabase
@@ -241,7 +254,7 @@ export async function getErrorSummary(): Promise<ErrorSummary> {
   // Get top recurring errors
   const { data: topErrors, error: topError } = await supabase
     .from('error_tracking')
-    .select('error_hash, error_message, occurrence_count')
+    .select('error_hash, error_type, error_message, module, occurrence_count, first_seen_at, last_seen_at, status')
     .order('occurrence_count', { ascending: false })
     .limit(10);
 
@@ -249,12 +262,36 @@ export async function getErrorSummary(): Promise<ErrorSummary> {
     throw new Error(`Failed to get top errors: ${topError.message}`);
   }
 
+  // Get errors today
+  const { count: errorsToday } = await supabase
+    .from('error_tracking')
+    .select('*', { count: 'exact', head: true })
+    .gte('timestamp', todayStart);
+
+  // Get errors this week
+  const { count: errorsThisWeek } = await supabase
+    .from('error_tracking')
+    .select('*', { count: 'exact', head: true })
+    .gte('timestamp', weekStart);
+
+  // Get errors this month
+  const { count: errorsThisMonth } = await supabase
+    .from('error_tracking')
+    .select('*', { count: 'exact', head: true })
+    .gte('timestamp', monthStart);
+
   const total = Object.values(statusCounts).reduce((sum, count) => sum + count, 0);
+  const resolvedCount = statusCounts.resolved || 0;
+  const resolutionRate = total > 0 ? (resolvedCount / total) * 100 : 0;
 
   return {
     total,
-    byStatus: statusCounts,
-    topErrors: topErrors || [],
+    by_status: statusCounts,
+    top_errors: (topErrors || []) as unknown as ErrorSummary['top_errors'],
+    errors_today: errorsToday || 0,
+    errors_this_week: errorsThisWeek || 0,
+    errors_this_month: errorsThisMonth || 0,
+    resolution_rate: Math.round(resolutionRate * 100) / 100,
   };
 }
 
@@ -277,7 +314,7 @@ export async function getErrorByHash(errorHash: string): Promise<ErrorTracking |
     throw new Error(`Failed to get error by hash: ${error.message}`);
   }
 
-  return data;
+  return data as unknown as ErrorTracking;
 }
 
 /**

@@ -62,7 +62,7 @@ export async function createPJO(formData: PJOFormData) {
     }
 
     // Check permissions
-    await requireFeatureAccess('pjo')
+    await requireFeatureAccess('pjo.create')
     
     // Generate PJO number if not provided
     const pjoNumber = formData.pjo_number || await generatePJONumber()
@@ -120,7 +120,7 @@ export async function updatePJO(id: string, formData: Partial<PJOFormData>) {
     }
 
     // Check permissions
-    await requireFeatureAccess('pjo')
+    await requireFeatureAccess('pjo.create')
     
     // Get current data for audit log
     const { data: currentData } = await supabase
@@ -190,7 +190,7 @@ export async function submitPJOForApproval(id: string) {
     }
 
     // Check permissions
-    await requireFeatureAccess('pjo')
+    await requireFeatureAccess('pjo.create')
     
     // Get current PJO data
     const { data: currentPJO } = await supabase

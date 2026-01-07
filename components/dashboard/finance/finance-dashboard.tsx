@@ -15,7 +15,7 @@ import type {
   RecentPayment,
   PaymentDashboardStats 
 } from '@/lib/finance-dashboard-utils'
-import type { BKKWithRelations } from '@/types/database'
+import type { BKKWithRelations } from '@/types'
 
 export interface FinanceDashboardData {
   kpis: FinanceKPIs

@@ -5,6 +5,7 @@ import { QuotationList } from '@/components/quotations/quotation-list'
 import { Button } from '@/components/ui/button'
 import { Plus } from 'lucide-react'
 import Link from 'next/link'
+import { QuotationWithRelations } from '@/types/quotation'
 
 export const metadata = {
   title: 'Quotations | Gama ERP',
@@ -56,7 +57,7 @@ async function QuotationsContent() {
   
   return (
     <QuotationList 
-      quotations={quotations || []} 
+      quotations={(quotations || []) as unknown as QuotationWithRelations[]} 
       customers={customers || []}
       userRole={profile?.role}
     />

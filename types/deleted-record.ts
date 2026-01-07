@@ -3,6 +3,8 @@
  * Types for the soft-delete recovery system
  */
 
+import type { Json } from '@/types/supabase';
+
 /**
  * Deleted record from database
  */
@@ -12,10 +14,10 @@ export interface DeletedRecord {
   deleted_by: string | null;
   source_table: string;
   source_id: string;
-  record_data: Record<string, unknown>;
+  record_data: Record<string, unknown> | Json;
   recovered_at: string | null;
   recovered_by: string | null;
-  purge_after: string;
+  purge_after: string | null;
 }
 
 /**

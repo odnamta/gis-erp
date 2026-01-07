@@ -181,16 +181,16 @@ export default function NotificationTemplatesPage() {
   const getChannelIcons = (template: NotificationTemplate) => {
     const icons = []
     if (template.email_body_html || template.email_body_text) {
-      icons.push(<Mail key="email" className="h-4 w-4" title="Email" />)
+      icons.push(<span key="email" title="Email"><Mail className="h-4 w-4" /></span>)
     }
     if (template.whatsapp_body) {
-      icons.push(<MessageSquare key="whatsapp" className="h-4 w-4" title="WhatsApp" />)
+      icons.push(<span key="whatsapp" title="WhatsApp"><MessageSquare className="h-4 w-4" /></span>)
     }
     if (template.in_app_body) {
-      icons.push(<Bell key="in_app" className="h-4 w-4" title="In-App" />)
+      icons.push(<span key="in_app" title="In-App"><Bell className="h-4 w-4" /></span>)
     }
     if (template.push_body) {
-      icons.push(<Smartphone key="push" className="h-4 w-4" title="Push" />)
+      icons.push(<span key="push" title="Push"><Smartphone className="h-4 w-4" /></span>)
     }
     return icons
   }

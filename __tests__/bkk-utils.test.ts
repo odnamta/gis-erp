@@ -23,7 +23,7 @@ import {
   VALID_TRANSITIONS,
   BKK_STATUS_COLORS
 } from '@/lib/bkk-utils'
-import type { BKK, BKKStatus } from '@/types/database'
+import type { BKK, BKKStatus } from '@/types'
 
 // Helper to create a mock BKK
 function createMockBKK(overrides: Partial<BKK> = {}): BKK {

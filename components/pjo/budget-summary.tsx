@@ -12,13 +12,25 @@ interface BudgetSummaryProps {
 }
 
 export function BudgetSummary({ budget, totalRevenue }: BudgetSummaryProps) {
-  const actualProfit = totalRevenue - budget.total_actual
+  // Use snake_case properties with fallback to camelCase or defaults
+  const totalActual = budget.total_actual ?? budget.totalActual ?? 0
+  const totalEstimated = budget.total_estimated ?? budget.totalEstimated ?? 0
+  const totalVariance = budget.total_variance ?? budget.variance ?? 0
+  const itemsConfirmed = budget.items_confirmed ?? budget.confirmedCount ?? 0
+  const itemsPending = budget.items_pending ?? budget.pendingCount ?? 0
+  const itemsOverBudget = budget.items_over_budget ?? budget.exceededCount ?? 0
+  const itemsUnderBudget = budget.items_under_budget ?? budget.underBudgetCount ?? 0
+  const allConfirmed = budget.all_confirmed ?? budget.allConfirmed ?? false
+  const hasOverruns = budget.has_overruns ?? (itemsOverBudget > 0)
+  
+  const actualProfit = totalRevenue - totalActual
   const actualMargin = totalRevenue > 0 ? (actualProfit / totalRevenue) * 100 : 0
-  const estimatedProfit = totalRevenue - budget.total_estimated
+  const estimatedProfit = totalRevenue - totalEstimated
   const estimatedMargin = totalRevenue > 0 ? (estimatedProfit / totalRevenue) * 100 : 0
   
-  const confirmationProgress = budget.items_confirmed + budget.items_pending > 0
-    ? (budget.items_confirmed / (budget.items_confirmed + budget.items_pending)) * 100
+  const totalItems = itemsConfirmed + itemsPending
+  const confirmationProgress = totalItems > 0
+    ? (itemsConfirmed / totalItems) * 100
     : 0
 
   return (
@@ -26,20 +38,20 @@ export function BudgetSummary({ budget, totalRevenue }: BudgetSummaryProps) {
       <CardHeader>
         <CardTitle className="flex items-center justify-between">
           Budget Summary
-          {budget.all_confirmed ? (
+          {allConfirmed ? (
             <span className="flex items-center gap-1 text-green-600 text-sm font-normal">
               <CheckCircle className="h-4 w-4" />
               All costs confirmed
             </span>
-          ) : budget.has_overruns ? (
+          ) : hasOverruns ? (
             <span className="flex items-center gap-1 text-amber-600 text-sm font-normal">
               <AlertTriangle className="h-4 w-4" />
-              {budget.items_over_budget} item(s) over budget
+              {itemsOverBudget} item(s) over budget
             </span>
           ) : (
             <span className="flex items-center gap-1 text-muted-foreground text-sm font-normal">
               <Clock className="h-4 w-4" />
-              {budget.items_pending} item(s) pending
+              {itemsPending} item(s) pending
             </span>
           )}
         </CardTitle>
@@ -49,7 +61,7 @@ export function BudgetSummary({ budget, totalRevenue }: BudgetSummaryProps) {
         <div>
           <div className="flex justify-between text-sm mb-2">
             <span>Cost Confirmation Progress</span>
-            <span>{budget.items_confirmed} / {budget.items_confirmed + budget.items_pending} items</span>
+            <span>{itemsConfirmed} / {totalItems} items</span>
           </div>
           <Progress value={confirmationProgress} className="h-2" />
         </div>
@@ -63,24 +75,24 @@ export function BudgetSummary({ budget, totalRevenue }: BudgetSummaryProps) {
           
           <div className="space-y-1">
             <p className="text-sm text-muted-foreground">Budget (Estimated)</p>
-            <p className="text-lg font-semibold">{formatIDR(budget.total_estimated)}</p>
+            <p className="text-lg font-semibold">{formatIDR(totalEstimated)}</p>
           </div>
           
           <div className="space-y-1">
             <p className="text-sm text-muted-foreground">Actual Cost</p>
             <p className="text-lg font-semibold">
-              {budget.items_confirmed > 0 ? formatIDR(budget.total_actual) : '-'}
+              {itemsConfirmed > 0 ? formatIDR(totalActual) : '-'}
             </p>
           </div>
           
           <div className="space-y-1">
             <p className="text-sm text-muted-foreground">Variance</p>
             <p className={`text-lg font-semibold ${
-              budget.total_variance > 0 ? 'text-amber-600' : 
-              budget.total_variance < 0 ? 'text-green-600' : ''
+              totalVariance > 0 ? 'text-amber-600' : 
+              totalVariance < 0 ? 'text-green-600' : ''
             }`}>
-              {budget.items_confirmed > 0 
-                ? `${budget.total_variance >= 0 ? '+' : ''}${formatIDR(budget.total_variance)}`
+              {itemsConfirmed > 0 
+                ? `${totalVariance >= 0 ? '+' : ''}${formatIDR(totalVariance)}`
                 : '-'
               }
             </p>
@@ -99,7 +111,7 @@ export function BudgetSummary({ budget, totalRevenue }: BudgetSummaryProps) {
             </p>
           </div>
           
-          {budget.all_confirmed && (
+          {allConfirmed && (
             <div className="space-y-1">
               <p className="text-sm text-muted-foreground">Actual Profit</p>
               <p className={`text-xl font-bold ${actualProfit >= 0 ? 'text-green-600' : 'text-red-600'}`}>
@@ -116,15 +128,15 @@ export function BudgetSummary({ budget, totalRevenue }: BudgetSummaryProps) {
         <div className="flex gap-4 pt-4 border-t text-sm">
           <div className="flex items-center gap-1">
             <CheckCircle className="h-4 w-4 text-green-600" />
-            <span>{budget.items_under_budget + (budget.items_confirmed - budget.items_over_budget - budget.items_under_budget)} within budget</span>
+            <span>{itemsUnderBudget + (itemsConfirmed - itemsOverBudget - itemsUnderBudget)} within budget</span>
           </div>
           <div className="flex items-center gap-1">
             <AlertTriangle className="h-4 w-4 text-amber-600" />
-            <span>{budget.items_over_budget} over budget</span>
+            <span>{itemsOverBudget} over budget</span>
           </div>
           <div className="flex items-center gap-1">
             <Clock className="h-4 w-4 text-muted-foreground" />
-            <span>{budget.items_pending} pending</span>
+            <span>{itemsPending} pending</span>
           </div>
         </div>
       </CardContent>

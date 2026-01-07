@@ -169,7 +169,7 @@ export function hasCircularReporting(
   
   const employeeMap = new Map(employees.map((e) => [e.id, e]));
   const visited = new Set<string>();
-  let current = reportingTo;
+  let current: string | null = reportingTo;
   
   while (current) {
     if (visited.has(current)) return true;

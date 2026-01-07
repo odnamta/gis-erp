@@ -72,8 +72,8 @@ export async function getChargeTypes(
 
     if (error) throw error;
 
-    const chargeTypes: AgencyChargeType[] = (data || []).map((row: AgencyChargeTypeRow) =>
-      transformChargeTypeRow(row)
+    const chargeTypes: AgencyChargeType[] = (data || []).map((row) =>
+      transformChargeTypeRow(row as unknown as AgencyChargeTypeRow)
     );
 
     return { success: true, data: chargeTypes };
@@ -113,8 +113,8 @@ export async function getAllChargeTypes(
 
     if (error) throw error;
 
-    const chargeTypes: AgencyChargeType[] = (data || []).map((row: AgencyChargeTypeRow) =>
-      transformChargeTypeRow(row)
+    const chargeTypes: AgencyChargeType[] = (data || []).map((row) =>
+      transformChargeTypeRow(row as unknown as AgencyChargeTypeRow)
     );
 
     return { success: true, data: chargeTypes };
@@ -264,9 +264,9 @@ export async function updateChargeType(
       chargeName: formData.chargeName ?? existing.charge_name,
       chargeCategory: (formData.chargeCategory ?? existing.charge_category) as ChargeCategory,
       chargeType: (formData.chargeType ?? existing.charge_type) as ChargeTypeClass,
-      defaultCurrency: formData.defaultCurrency ?? existing.default_currency,
-      isTaxable: formData.isTaxable ?? existing.is_taxable,
-      displayOrder: formData.displayOrder ?? existing.display_order,
+      defaultCurrency: formData.defaultCurrency ?? existing.default_currency ?? undefined,
+      isTaxable: formData.isTaxable ?? existing.is_taxable ?? undefined,
+      displayOrder: formData.displayOrder ?? existing.display_order ?? undefined,
     };
 
     // Validate merged data

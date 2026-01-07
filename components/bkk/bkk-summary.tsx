@@ -2,7 +2,7 @@
 
 import { Card, CardContent } from '@/components/ui/card'
 import { formatBKKCurrency } from '@/lib/bkk-utils'
-import type { BKKSummaryTotals } from '@/types/database'
+import type { BKKSummaryTotals } from '@/types'
 
 interface BKKSummaryProps {
   summary: BKKSummaryTotals

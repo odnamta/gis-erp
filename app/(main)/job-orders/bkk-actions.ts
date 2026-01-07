@@ -10,7 +10,7 @@ import type {
   SettleBKKInput,
   BKKStatus,
   BKKSummaryTotals
-} from '@/types/database'
+} from '@/types'
 import { 
   generateBKKNumber, 
   isValidStatusTransition,

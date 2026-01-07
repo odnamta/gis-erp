@@ -29,7 +29,7 @@ export async function createAutomationLog(
         trigger_data: triggerData,
         status: 'running',
         triggered_at: new Date().toISOString(),
-      })
+      } as any)
       .select()
       .single();
 

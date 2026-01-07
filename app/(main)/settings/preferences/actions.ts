@@ -2,6 +2,7 @@
 
 import { createClient } from '@/lib/supabase/server'
 import { revalidatePath } from 'next/cache'
+import { Json } from '@/types/database'
 import {
   UserPreferences,
   DEFAULT_PREFERENCES,
@@ -83,7 +84,7 @@ export async function saveUserPreferences(
 
     const { error } = await supabase
       .from('user_profiles')
-      .update({ preferences: updatedPrefs })
+      .update({ preferences: updatedPrefs as unknown as Json })
       .eq('user_id', user.id)
 
     if (error) {
@@ -113,7 +114,7 @@ export async function resetPreferencesToDefaults(): Promise<ActionResult> {
 
     const { error } = await supabase
       .from('user_profiles')
-      .update({ preferences: DEFAULT_PREFERENCES })
+      .update({ preferences: DEFAULT_PREFERENCES as unknown as Json })
       .eq('user_id', user.id)
 
     if (error) {

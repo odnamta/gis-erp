@@ -7,7 +7,7 @@ import {
   ActivityEntry, 
   OpsQueueItem, 
   ManagerMetrics 
-} from '@/types/database'
+} from '@/types'
 
 /**
  * Fetch dashboard stats using optimized database function
@@ -345,7 +345,7 @@ import {
   type PaymentDashboardStats,
 } from '@/lib/finance-dashboard-utils'
 
-import type { BKKWithRelations } from '@/types/database'
+import type { BKKWithRelations } from '@/types'
 
 export interface FinanceDashboardData {
   kpis: FinanceKPIs
@@ -410,7 +410,7 @@ export async function fetchFinanceDashboardData(): Promise<FinanceDashboardData>
   const pjos = (pjosData || []).map(pjo => ({
     status: pjo.status,
     total_revenue_calculated: pjo.total_revenue_calculated,
-    is_active: pjo.is_active,
+    is_active: pjo.is_active ?? true,
   }))
 
   // Transform job orders data
@@ -546,7 +546,7 @@ export async function fetchSalesDashboardData(
     status: pjo.status,
     total_estimated_revenue: pjo.estimated_amount,
     total_revenue_calculated: pjo.total_revenue_calculated,
-    is_active: pjo.is_active,
+    is_active: pjo.is_active ?? true,
     created_at: pjo.created_at,
     rejection_reason: pjo.rejection_reason,
     converted_to_jo: pjo.converted_to_jo,
@@ -561,7 +561,7 @@ export async function fetchSalesDashboardData(
       status: pjo.status,
       total_estimated_revenue: pjo.estimated_amount,
       total_revenue_calculated: pjo.total_revenue_calculated,
-      is_active: pjo.is_active,
+      is_active: pjo.is_active ?? true,
       created_at: pjo.created_at,
       customer_name: project?.customers?.name,
       projects: project,

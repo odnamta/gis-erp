@@ -3,6 +3,7 @@ import { getAssetCategories, getAssetLocations } from '@/lib/asset-actions'
 import { AssetForm } from '@/components/equipment/asset-form'
 import { createClient } from '@/lib/supabase/server'
 import { canCreateAsset } from '@/lib/permissions'
+import { UserProfile } from '@/types/permissions'
 
 export default async function NewAssetPage() {
   const supabase = await createClient()
@@ -14,11 +15,13 @@ export default async function NewAssetPage() {
   }
 
   // Get user profile for permission check
-  const { data: profile } = await supabase
+  const { data: profileData } = await supabase
     .from('user_profiles')
     .select('*')
     .eq('user_id', user.id)
     .single()
+
+  const profile = profileData as unknown as UserProfile | null
 
   if (!profile || !canCreateAsset(profile)) {
     redirect('/equipment')

@@ -622,6 +622,7 @@ export function formatFindingStatus(status: FindingStatus): string {
   const labels: Record<FindingStatus, string> = {
     open: 'Open',
     in_progress: 'In Progress',
+    resolved: 'Resolved',
     closed: 'Closed',
     verified: 'Verified',
   };
@@ -687,6 +688,7 @@ export function getFindingStatusColor(status: FindingStatus): string {
   const colors: Record<FindingStatus, string> = {
     open: 'bg-red-100 text-red-800 border-red-200',
     in_progress: 'bg-yellow-100 text-yellow-800 border-yellow-200',
+    resolved: 'bg-purple-100 text-purple-800 border-purple-200',
     closed: 'bg-blue-100 text-blue-800 border-blue-200',
     verified: 'bg-green-100 text-green-800 border-green-200',
   };

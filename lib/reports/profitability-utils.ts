@@ -202,6 +202,6 @@ export function transformJobToProfitabilityData(
     overhead,
     netProfit,
     netMargin,
-    createdAt: new Date(job.created_at),
+    createdAt: new Date(job.created_at || new Date()),
   }
 }

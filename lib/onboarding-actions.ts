@@ -50,24 +50,14 @@ export async function getUserOnboardingProgress(
     console.error('Error fetching onboarding progress:', progressError);
   }
 
-  const steps: OnboardingProgressWithStep[] = (progressData || []).map((p: {
-    id: string;
-    user_id: string;
-    step_id: string;
-    status: string;
-    started_at: string | null;
-    completed_at: string | null;
-    current_count: number;
-    created_at: string;
-    step: OnboardingProgressWithStep['step'];
-  }) => ({
+  const steps: OnboardingProgressWithStep[] = ((progressData || []) as any[]).map((p) => ({
     id: p.id,
     user_id: p.user_id,
     step_id: p.step_id,
-    status: p.status,
+    status: p.status || 'not_started',
     started_at: p.started_at,
     completed_at: p.completed_at,
-    current_count: p.current_count,
+    current_count: p.current_count ?? 0,
     created_at: p.created_at,
     step: p.step,
   }));
@@ -218,7 +208,7 @@ export async function trackAction(
 
     const newCount = (progress.current_count || 0) + 1;
 
-    if (newCount >= step.completion_count) {
+    if (newCount >= (step.completion_count ?? 1)) {
       // Complete the step
       await supabase
         .from('user_onboarding_progress')

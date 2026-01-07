@@ -2,6 +2,7 @@ import { Suspense } from 'react'
 import { createClient } from '@/lib/supabase/server'
 import { redirect, notFound } from 'next/navigation'
 import { QuotationDetailView } from '@/components/quotations/quotation-detail-view'
+import { QuotationWithRelations } from '@/types/quotation'
 
 export const metadata = {
   title: 'Quotation Details | Gama ERP',
@@ -53,7 +54,7 @@ async function QuotationContent({ id }: { id: string }) {
   
   return (
     <QuotationDetailView 
-      quotation={quotation} 
+      quotation={quotation as unknown as QuotationWithRelations} 
       userRole={profile?.role}
       userId={user.id}
     />

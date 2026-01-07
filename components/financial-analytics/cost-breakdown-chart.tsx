@@ -26,7 +26,7 @@ export function CostBreakdownChart({ data }: CostBreakdownChartProps) {
   const sortedData = [...data].sort((a, b) => b.amount - a.amount);
 
   // Custom tooltip
-  const CustomTooltip = ({ active, payload }: { active?: boolean; payload?: Array<{ payload: { category: string; amount: number; percentage: number } }> }) => {
+  const CustomTooltip = ({ active, payload }: { active?: boolean; payload?: Array<{ payload: CostBreakdownData }> }) => {
     if (active && payload && payload.length) {
       const item = payload[0].payload;
       return (
@@ -63,6 +63,14 @@ export function CostBreakdownChart({ data }: CostBreakdownChartProps) {
     );
   };
 
+  // Custom label renderer
+  const renderLabel = (props: { percentage?: number }) => {
+    if (props.percentage !== undefined) {
+      return formatPercentage(props.percentage);
+    }
+    return '';
+  };
+
   if (sortedData.length === 0) {
     return (
       <Card>
@@ -94,7 +102,7 @@ export function CostBreakdownChart({ data }: CostBreakdownChartProps) {
           <ResponsiveContainer width="100%" height="100%">
             <PieChart>
               <Pie
-                data={sortedData}
+                data={sortedData as any}
                 cx="50%"
                 cy="50%"
                 labelLine={false}
@@ -102,7 +110,7 @@ export function CostBreakdownChart({ data }: CostBreakdownChartProps) {
                 fill="#8884d8"
                 dataKey="amount"
                 nameKey="category"
-                label={({ percentage }) => `${formatPercentage(percentage)}`}
+                label={renderLabel as any}
               >
                 {sortedData.map((entry, index) => (
                   <Cell
@@ -112,7 +120,7 @@ export function CostBreakdownChart({ data }: CostBreakdownChartProps) {
                 ))}
               </Pie>
               <Tooltip content={<CustomTooltip />} />
-              <Legend content={renderLegend} />
+              <Legend content={renderLegend as any} />
             </PieChart>
           </ResponsiveContainer>
         </div>

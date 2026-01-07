@@ -14,7 +14,7 @@ import {
   Calculator,
   Activity
 } from 'lucide-react'
-import { ActivityEntry } from '@/types/database'
+import { ActivityEntry } from '@/types'
 import { formatActivityMessage, formatRelativeTime } from '@/lib/dashboard-utils'
 
 interface RecentActivityProps {

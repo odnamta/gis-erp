@@ -7,10 +7,10 @@
 import type { 
   BKK, 
   BKKStatus, 
-  AvailableBudget, 
   SettlementDifference, 
-  BKKSummaryTotals 
-} from '@/types/database'
+  BKKSummaryTotals,
+  AvailableBudget
+} from '@/types'
 
 // Valid status transitions
 export const VALID_TRANSITIONS: Record<BKKStatus, BKKStatus[]> = {

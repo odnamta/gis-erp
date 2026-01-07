@@ -5,6 +5,7 @@
  * Tests universal correctness properties using fast-check
  */
 
+import { describe, it, expect } from 'vitest';
 import * as fc from 'fast-check';
 import {
   captureBrowserContext,

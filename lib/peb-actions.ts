@@ -77,7 +77,7 @@ export async function createPEBDocument(
       notes: input.notes || null,
       created_by: user?.id || null,
       status: 'draft', // Property 6: Initial status is always 'draft'
-    })
+    } as any)
     .select()
     .single();
 
@@ -85,7 +85,7 @@ export async function createPEBDocument(
     return { data: null, error: error.message };
   }
 
-  return { data: data as PEBDocument, error: null };
+  return { data: data as unknown as PEBDocument, error: null };
 }
 
 /**
@@ -147,7 +147,7 @@ export async function updatePEBDocument(
     return { data: null, error: error.message };
   }
 
-  return { data: data as PEBDocument, error: null };
+  return { data: data as unknown as PEBDocument, error: null };
 }
 
 /**
@@ -219,7 +219,7 @@ export async function getPEBDocument(
       customer: data.customers,
       job_order: data.job_orders,
       item_count: count || 0,
-    } as PEBDocumentWithRelations,
+    } as unknown as PEBDocumentWithRelations,
     error: null,
   };
 }
@@ -272,7 +272,7 @@ export async function getPEBDocuments(
       customs_office: doc.customs_offices,
       customer: doc.customers,
       job_order: doc.job_orders,
-    })) as PEBDocumentWithRelations[],
+    })) as unknown as PEBDocumentWithRelations[],
     error: null,
   };
 }
@@ -397,8 +397,8 @@ export async function updatePEBItem(
 
   // Recalculate total price if quantity or unit_price changed
   if (input.quantity !== undefined || input.unit_price !== undefined) {
-    const quantity = input.quantity ?? item.quantity;
-    const unitPrice = input.unit_price ?? item.unit_price;
+    const quantity = input.quantity ?? item.quantity ?? 0;
+    const unitPrice = input.unit_price ?? item.unit_price ?? 0;
     updateData.total_price = calculateItemTotalPrice(quantity, unitPrice);
   }
 
@@ -544,7 +544,7 @@ export async function updatePEBStatus(
   // Log status change (Property 7: Status history completeness)
   await logPEBStatusChange(id, peb.status as PEBStatus, newStatus, data?.notes);
 
-  return { data: updated as PEBDocument, error: null };
+  return { data: updated as unknown as PEBDocument, error: null };
 }
 
 /**
@@ -665,7 +665,7 @@ export async function getPEBStatistics(): Promise<{
 
   const stats: PEBStatistics = {
     active_pebs: allPebs?.filter((p) => 
-      ['draft', 'submitted', 'approved', 'loaded'].includes(p.status)
+      ['draft', 'submitted', 'approved', 'loaded'].includes(p.status || '')
     ).length || 0,
     pending_approval: allPebs?.filter((p) => 
       p.status === 'submitted'
@@ -700,7 +700,7 @@ export async function getPEBsByJobOrder(
     return { data: [], error: error.message };
   }
 
-  return { data: data as PEBDocument[], error: null };
+  return { data: data as unknown as PEBDocument[], error: null };
 }
 
 /**

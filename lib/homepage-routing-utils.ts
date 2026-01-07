@@ -37,7 +37,7 @@ export async function getRoleHomepageConfig(role: string): Promise<RoleHomepage 
       return null
     }
 
-    return data as RoleHomepage
+    return data as unknown as RoleHomepage
   } catch {
     return null
   }

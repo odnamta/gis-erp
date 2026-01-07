@@ -320,7 +320,7 @@ export function calculatePEBStatistics(documents: PEBDocument[]): PEBStatistics 
  * Property 11: Role-Based Permission Consistency
  */
 export function canViewPEB(role: UserRole): boolean {
-  const allowedRoles: UserRole[] = ['owner', 'director', 'administration', 'marketing_manager', 'finance_manager', 'operations_manager'];
+  const allowedRoles: UserRole[] = ['owner', 'admin', 'manager', 'customs', 'finance'];
   return allowedRoles.includes(role);
 }
 
@@ -329,7 +329,7 @@ export function canViewPEB(role: UserRole): boolean {
  * Property 11: Role-Based Permission Consistency
  */
 export function canEditPEB(role: UserRole): boolean {
-  const allowedRoles: UserRole[] = ['owner', 'director', 'administration', 'marketing_manager', 'finance_manager', 'operations_manager'];
+  const allowedRoles: UserRole[] = ['owner', 'admin', 'manager', 'customs'];
   return allowedRoles.includes(role);
 }
 
@@ -338,7 +338,7 @@ export function canEditPEB(role: UserRole): boolean {
  * Property 11: Role-Based Permission Consistency
  */
 export function canDeletePEB(role: UserRole): boolean {
-  const allowedRoles: UserRole[] = ['owner', 'director'];
+  const allowedRoles: UserRole[] = ['owner', 'admin'];
   return allowedRoles.includes(role);
 }
 

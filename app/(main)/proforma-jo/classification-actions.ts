@@ -2,6 +2,7 @@
 
 import { createClient } from '@/lib/supabase/server'
 import { revalidatePath } from 'next/cache'
+import { Json } from '@/types/database'
 import {
   ComplexityCriteria,
   MarketClassification,
@@ -48,7 +49,7 @@ export async function updatePJOClassification(
     .update({
       market_type: classification.market_type,
       complexity_score: classification.complexity_score,
-      complexity_factors: classification.complexity_factors as unknown as ComplexityFactor[],
+      complexity_factors: classification.complexity_factors as unknown as Json,
       pricing_approach: pricingApproach,
       pricing_notes: pricingNotes,
       updated_at: new Date().toISOString(),
@@ -96,7 +97,7 @@ export async function getPJOClassification(pjoId: string): Promise<{
     data: {
       market_type: data.market_type,
       complexity_score: data.complexity_score,
-      complexity_factors: (data.complexity_factors as ComplexityFactor[]) || [],
+      complexity_factors: (data.complexity_factors as unknown as ComplexityFactor[]) || [],
       pricing_approach: data.pricing_approach,
       pricing_notes: data.pricing_notes,
     },

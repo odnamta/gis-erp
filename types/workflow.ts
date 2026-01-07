@@ -34,18 +34,18 @@ export interface WorkflowTransition {
 /**
  * PJO Workflow Transitions
  * Maker: administration
- * Checker: manager (Feri)
+ * Checker: finance_manager (Feri)
  * Approver: director, owner
  */
 export const PJO_WORKFLOW: WorkflowTransition[] = [
   // Submit for checking (maker submits)
-  { from: 'draft', to: 'pending_check', allowedRoles: ['administration', 'manager', 'director', 'owner'], action: 'submit' },
+  { from: 'draft', to: 'pending_check', allowedRoles: ['administration', 'finance_manager', 'director', 'owner'], action: 'submit' },
   // Check (manager reviews)
-  { from: 'pending_check', to: 'checked', allowedRoles: ['manager', 'director', 'owner'], action: 'check' },
+  { from: 'pending_check', to: 'checked', allowedRoles: ['finance_manager', 'director', 'owner'], action: 'check' },
   // Approve after checking
   { from: 'checked', to: 'approved', allowedRoles: ['director', 'owner'], action: 'approve' },
   // Reject from pending_check state
-  { from: 'pending_check', to: 'rejected', allowedRoles: ['manager', 'director', 'owner'], action: 'reject' },
+  { from: 'pending_check', to: 'rejected', allowedRoles: ['finance_manager', 'director', 'owner'], action: 'reject' },
   // Reject from checked state
   { from: 'checked', to: 'rejected', allowedRoles: ['director', 'owner'], action: 'reject' },
 ]
@@ -53,28 +53,28 @@ export const PJO_WORKFLOW: WorkflowTransition[] = [
 /**
  * JO Workflow Transitions (after costs collected)
  * Maker: administration
- * Checker: manager (Feri)
+ * Checker: finance_manager (Feri)
  * Approver: director, owner
  */
 export const JO_WORKFLOW: WorkflowTransition[] = [
-  { from: 'draft', to: 'pending_check', allowedRoles: ['administration', 'manager', 'director', 'owner'], action: 'submit' },
-  { from: 'pending_check', to: 'checked', allowedRoles: ['manager', 'director', 'owner'], action: 'check' },
+  { from: 'draft', to: 'pending_check', allowedRoles: ['administration', 'finance_manager', 'director', 'owner'], action: 'submit' },
+  { from: 'pending_check', to: 'checked', allowedRoles: ['finance_manager', 'director', 'owner'], action: 'check' },
   { from: 'checked', to: 'approved', allowedRoles: ['director', 'owner'], action: 'approve' },
-  { from: 'pending_check', to: 'rejected', allowedRoles: ['manager', 'director', 'owner'], action: 'reject' },
+  { from: 'pending_check', to: 'rejected', allowedRoles: ['finance_manager', 'director', 'owner'], action: 'reject' },
   { from: 'checked', to: 'rejected', allowedRoles: ['director', 'owner'], action: 'reject' },
 ]
 
 /**
  * BKK (Disbursement) Workflow Transitions
  * Maker: administration, finance
- * Checker: manager (Feri)
+ * Checker: finance_manager (Feri)
  * Approver: director, owner
  */
 export const BKK_WORKFLOW: WorkflowTransition[] = [
-  { from: 'draft', to: 'pending_check', allowedRoles: ['administration', 'finance', 'manager', 'director', 'owner'], action: 'submit' },
-  { from: 'pending_check', to: 'checked', allowedRoles: ['manager', 'director', 'owner'], action: 'check' },
+  { from: 'draft', to: 'pending_check', allowedRoles: ['administration', 'finance', 'finance_manager', 'director', 'owner'], action: 'submit' },
+  { from: 'pending_check', to: 'checked', allowedRoles: ['finance_manager', 'director', 'owner'], action: 'check' },
   { from: 'checked', to: 'approved', allowedRoles: ['director', 'owner'], action: 'approve' },
-  { from: 'pending_check', to: 'rejected', allowedRoles: ['manager', 'director', 'owner'], action: 'reject' },
+  { from: 'pending_check', to: 'rejected', allowedRoles: ['finance_manager', 'director', 'owner'], action: 'reject' },
   { from: 'checked', to: 'rejected', allowedRoles: ['director', 'owner'], action: 'reject' },
 ]
 

@@ -87,7 +87,9 @@ export const HIDDEN_FIELDS: Record<UserRole, Record<string, string[]>> = {
   // Roles with full access
   owner: {},
   director: {},
-  manager: {},
+  marketing_manager: {},
+  finance_manager: {},
+  operations_manager: {},
   administration: {},
 }
 

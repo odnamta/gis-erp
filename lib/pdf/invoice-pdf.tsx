@@ -230,7 +230,7 @@ export function InvoicePDF({
           {lineItems.map((item, index) => (
             <View
               key={index}
-              style={[styles.tableRow, index % 2 === 1 && styles.tableRowAlt]}
+              style={index % 2 === 1 ? [styles.tableRow, styles.tableRowAlt] : styles.tableRow}
             >
               <Text style={styles.colDescription}>{item.description}</Text>
               <Text style={styles.colQty}>{item.quantity}</Text>

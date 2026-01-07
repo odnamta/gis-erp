@@ -20,6 +20,7 @@ import {
   transformCostTrackingRow,
   transformTCOSummaryRow,
 } from '@/types/depreciation';
+import { DepreciationMethod } from '@/types/assets';
 import {
   calculateDepreciation,
   validateDepreciationAmount,
@@ -67,7 +68,7 @@ export async function recordDepreciation(
     }
 
     // Check eligibility
-    if (!isEligibleForDepreciation(asset.status, asset.depreciation_start_date, new Date(periodStart))) {
+    if (!isEligibleForDepreciation(asset.status ?? '', asset.depreciation_start_date ?? '', new Date(periodStart))) {
       return { success: false, error: 'Asset is not eligible for depreciation' };
     }
 
@@ -88,7 +89,7 @@ export async function recordDepreciation(
     const beginningBookValue = asset.book_value ?? asset.purchase_price ?? 0;
     const salvageValue = asset.salvage_value ?? 0;
     const depreciationAmount = calculateDepreciation(
-      asset.depreciation_method,
+      (asset.depreciation_method || 'straight_line') as DepreciationMethod,
       asset.purchase_price,
       beginningBookValue,
       salvageValue,
@@ -118,7 +119,7 @@ export async function recordDepreciation(
         ending_book_value: endingBookValue,
         accumulated_depreciation: newAccumulatedDepreciation,
         created_by: user?.id || null,
-      })
+      } as any)
       .select()
       .single();
 
@@ -233,7 +234,7 @@ export async function runMonthlyDepreciation(
 
     for (const asset of assets || []) {
       // Check eligibility
-      if (!isEligibleForDepreciation(asset.status, asset.depreciation_start_date, processingDate)) {
+      if (!isEligibleForDepreciation(asset.status ?? '', asset.depreciation_start_date ?? '', processingDate)) {
         result.skippedCount++;
         continue;
       }

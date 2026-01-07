@@ -33,12 +33,13 @@ export async function generateRevenueForecast(
     const supabase = await createClient();
     
     // Get pipeline data from quotations
+    // Note: Using total_revenue instead of total_amount, and rfq_deadline as proxy for expected_close_date
     const { data: quotations, error: quotationsError } = await supabase
       .from('quotations')
-      .select('id, total_amount, probability, expected_close_date, status')
-      .in('status', ['submitted', 'negotiation', 'pending'])
-      .gte('expected_close_date', format(startOfMonth(targetMonth), 'yyyy-MM-dd'))
-      .lte('expected_close_date', format(endOfMonth(targetMonth), 'yyyy-MM-dd'));
+      .select('id, total_revenue, status, rfq_deadline')
+      .in('status', ['submitted'])
+      .gte('rfq_deadline', format(startOfMonth(targetMonth), 'yyyy-MM-dd'))
+      .lte('rfq_deadline', format(endOfMonth(targetMonth), 'yyyy-MM-dd'));
 
     if (quotationsError) throw quotationsError;
 
@@ -53,19 +54,24 @@ export async function generateRevenueForecast(
     if (jobsError) throw jobsError;
 
     // Transform data for calculation
-    const pipelineData = (quotations || []).map(q => ({
-      id: q.id,
-      value: q.total_amount || 0,
-      probability: q.probability || 50,
-      expected_close_date: q.expected_close_date,
-      status: 'probable' as const,
-    }));
+    // Using default probability of 50 since quotations table doesn't have probability column
+    // Filter out items without rfq_deadline
+    const pipelineData = (quotations || [])
+      .filter(q => q.rfq_deadline !== null)
+      .map(q => ({
+        id: q.id,
+        value: q.total_revenue || 0,
+        probability: 50, // Default probability
+        expected_close_date: q.rfq_deadline as string,
+        status: 'probable' as const,
+      }));
 
     // Group historical revenue by month
     const monthlyRevenue: { month: string; revenue: number }[] = [];
     const revenueByMonth: Record<string, number> = {};
     
     for (const job of historicalJobs || []) {
+      if (!job.created_at) continue; // Skip jobs without created_at
       const month = format(new Date(job.created_at), 'yyyy-MM');
       revenueByMonth[month] = (revenueByMonth[month] || 0) + (job.final_revenue || 0);
     }
@@ -105,7 +111,7 @@ export async function generateRevenueForecast(
 
     if (saveError) throw saveError;
 
-    return { success: true, data: savedForecast };
+    return { success: true, data: savedForecast as unknown as RevenueForecast };
   } catch (error) {
     console.error('Error generating revenue forecast:', error);
     return { success: false, error: 'Failed to generate revenue forecast' };
@@ -161,19 +167,21 @@ export async function getRevenueForecastSummary(): Promise<{
     }
 
     // Get pipeline breakdown from quotations
+    // Using total_revenue instead of total_amount
     const { data: quotations } = await supabase
       .from('quotations')
-      .select('total_amount, probability, status')
-      .in('status', ['submitted', 'negotiation', 'pending', 'won']);
+      .select('total_revenue, status')
+      .in('status', ['submitted', 'won']);
 
     let pipelineConfirmed = 0;
     let pipelineProbable = 0;
     
     for (const q of quotations || []) {
       if (q.status === 'won') {
-        pipelineConfirmed += q.total_amount || 0;
+        pipelineConfirmed += q.total_revenue || 0;
       } else {
-        pipelineProbable += (q.total_amount || 0) * ((q.probability || 50) / 100);
+        // Using default 50% probability since quotations table doesn't have probability column
+        pipelineProbable += (q.total_revenue || 0) * 0.5;
       }
     }
 
@@ -248,6 +256,7 @@ export async function getForecastChartData(
     // Group actual revenue by month
     const actualByMonth: Record<string, number> = {};
     for (const job of actualRevenue || []) {
+      if (!job.created_at) continue; // Skip jobs without created_at
       const month = format(new Date(job.created_at), 'yyyy-MM');
       actualByMonth[month] = (actualByMonth[month] || 0) + (job.final_revenue || 0);
     }
@@ -307,7 +316,7 @@ export async function assessCustomerChurnRisk(): Promise<{
         .single();
 
       // Calculate days since last job
-      const daysSinceLastJob = lastJob
+      const daysSinceLastJob = lastJob && lastJob.created_at
         ? Math.floor((Date.now() - new Date(lastJob.created_at).getTime()) / (1000 * 60 * 60 * 24))
         : 365; // Default to 1 year if no jobs
 
@@ -348,18 +357,19 @@ export async function assessCustomerChurnRisk(): Promise<{
       const engagementScore = Math.min(100, (jobCount || 0) * 10);
 
       // Calculate payment behavior score
+      // Using paid_at instead of paid_date
       const { data: invoices } = await supabase
         .from('invoices')
-        .select('status, due_date, paid_date')
+        .select('status, due_date, paid_at')
         .eq('customer_id', customer.id)
         .gte('created_at', format(twelveMonthsAgo, 'yyyy-MM-dd'));
 
       let onTimePayments = 0;
       let totalPayments = 0;
       for (const inv of invoices || []) {
-        if (inv.status === 'paid' && inv.paid_date && inv.due_date) {
+        if (inv.status === 'paid' && inv.paid_at && inv.due_date) {
           totalPayments++;
-          if (new Date(inv.paid_date) <= new Date(inv.due_date)) {
+          if (new Date(inv.paid_at) <= new Date(inv.due_date)) {
             onTimePayments++;
           }
         }
@@ -378,6 +388,7 @@ export async function assessCustomerChurnRisk(): Promise<{
       const recommendations = generateChurnRecommendations(riskResult.score, riskResult.factors);
 
       // Save assessment
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
       const { data: savedAssessment, error: saveError } = await supabase
         .from('customer_churn_risk')
         .upsert({
@@ -389,9 +400,9 @@ export async function assessCustomerChurnRisk(): Promise<{
           revenue_trend: revenueTrend,
           engagement_score: engagementScore,
           payment_behavior_score: paymentBehaviorScore,
-          contributing_factors: riskResult.factors,
-          recommended_actions: recommendations,
-        }, {
+          contributing_factors: riskResult.factors as unknown,
+          recommended_actions: recommendations as unknown,
+        } as any, {
           onConflict: 'customer_id,assessment_date',
         })
         .select()
@@ -409,7 +420,7 @@ export async function assessCustomerChurnRisk(): Promise<{
           name: customer.name,
           email: customer.email,
         },
-      });
+      } as unknown as CustomerChurnRisk);
     }
 
     return { success: true, assessments };
@@ -444,7 +455,7 @@ export async function getCustomersAtRisk(params?: {
 
     if (error) throw error;
 
-    return { success: true, data: assessments || [] };
+    return { success: true, data: (assessments || []) as unknown as CustomerChurnRisk[] };
   } catch (error) {
     console.error('Error getting customers at risk:', error);
     return { success: false, error: 'Failed to get customers at risk' };
@@ -561,27 +572,31 @@ export async function generatePaymentPrediction(
     if (!invoice) throw new Error('Invoice not found');
 
     // Get customer payment history
+    // Using paid_at instead of paid_date
     const { data: paymentHistory, error: historyError } = await supabase
       .from('invoices')
-      .select('id, total_amount, due_date, paid_date')
+      .select('id, total_amount, due_date, paid_at')
       .eq('customer_id', invoice.customer_id)
       .eq('status', 'paid')
-      .not('paid_date', 'is', null)
-      .order('paid_date', { ascending: false })
+      .not('paid_at', 'is', null)
+      .order('paid_at', { ascending: false })
       .limit(20);
 
     if (historyError) throw historyError;
 
     // Transform payment history
-    const history = (paymentHistory || []).map(inv => ({
-      invoice_id: inv.id,
-      invoice_amount: inv.total_amount || 0,
-      due_date: inv.due_date,
-      payment_date: inv.paid_date,
-      days_to_payment: inv.paid_date && inv.due_date
-        ? Math.floor((new Date(inv.paid_date).getTime() - new Date(inv.due_date).getTime()) / (1000 * 60 * 60 * 24)) + 30
-        : 30,
-    }));
+    // Filter out items without paid_at
+    const history = (paymentHistory || [])
+      .filter(inv => inv.paid_at !== null)
+      .map(inv => ({
+        invoice_id: inv.id,
+        invoice_amount: inv.total_amount || 0,
+        due_date: inv.due_date,
+        payment_date: inv.paid_at as string,
+        days_to_payment: inv.paid_at && inv.due_date
+          ? Math.floor((new Date(inv.paid_at).getTime() - new Date(inv.due_date).getTime()) / (1000 * 60 * 60 * 24)) + 30
+          : 30,
+      }));
 
     // Calculate prediction
     const prediction = predictPaymentDate({
@@ -598,6 +613,7 @@ export async function generatePaymentPrediction(
     });
 
     // Save prediction
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const { data: savedPrediction, error: saveError } = await supabase
       .from('payment_predictions')
       .insert({
@@ -607,14 +623,14 @@ export async function generatePaymentPrediction(
         confidence_level: prediction.confidence,
         days_to_payment_predicted: prediction.daysToPayment,
         late_payment_risk: riskResult.risk,
-        risk_factors: riskResult.factors,
-      })
+        risk_factors: riskResult.factors as unknown,
+      } as any)
       .select()
       .single();
 
     if (saveError) throw saveError;
 
-    return { success: true, data: savedPrediction };
+    return { success: true, data: savedPrediction as unknown as PaymentPrediction };
   } catch (error) {
     console.error('Error generating payment prediction:', error);
     return { success: false, error: 'Failed to generate payment prediction' };
@@ -661,7 +677,7 @@ export async function getPaymentPredictions(params?: {
       } : undefined,
     }));
 
-    return { success: true, data: transformedPredictions };
+    return { success: true, data: transformedPredictions as unknown as PaymentPrediction[] };
   } catch (error) {
     console.error('Error getting payment predictions:', error);
     return { success: false, error: 'Failed to get payment predictions' };

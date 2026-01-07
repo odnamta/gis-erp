@@ -157,7 +157,7 @@ function AuditLogRow({ entry }: { entry: AuditLogEntry }) {
         <TableCell className="whitespace-nowrap">
           <div className="flex items-center gap-2">
             <Clock className="h-4 w-4 text-muted-foreground" />
-            <span className="text-sm">{formatTimestamp(entry.timestamp)}</span>
+            <span className="text-sm">{entry.timestamp ? formatTimestamp(entry.timestamp) : '-'}</span>
           </div>
         </TableCell>
         <TableCell>
@@ -176,14 +176,14 @@ function AuditLogRow({ entry }: { entry: AuditLogEntry }) {
           </div>
         </TableCell>
         <TableCell>
-          <Badge variant={getActionBadgeVariant(entry.action)}>
-            {formatAction(entry.action)}
+          <Badge variant={getActionBadgeVariant(entry.action || 'view')}>
+            {formatAction(entry.action || 'view')}
           </Badge>
         </TableCell>
         <TableCell>
           <div className="flex flex-col">
             <span className="text-sm font-medium">
-              {entry.entity_type.replace(/_/g, ' ')}
+              {(entry.entity_type || 'unknown').replace(/_/g, ' ')}
             </span>
             {entry.entity_reference && (
               <span className="text-xs text-muted-foreground">
@@ -194,7 +194,7 @@ function AuditLogRow({ entry }: { entry: AuditLogEntry }) {
         </TableCell>
         <TableCell>
           <span className="text-sm text-muted-foreground">
-            {formatModule(entry.module)}
+            {entry.module ? formatModule(entry.module) : '-'}
           </span>
         </TableCell>
         <TableCell>
@@ -277,9 +277,9 @@ function AuditLogRow({ entry }: { entry: AuditLogEntry }) {
                   <div>
                     <h4 className="mb-2 text-sm font-medium">Value Changes</h4>
                     <JsonDiffView
-                      oldValues={entry.old_values}
-                      newValues={entry.new_values}
-                      changedFields={entry.changed_fields}
+                      oldValues={entry.old_values ?? null}
+                      newValues={entry.new_values ?? null}
+                      changedFields={entry.changed_fields ?? null}
                     />
                   </div>
                 )}
@@ -318,7 +318,11 @@ export function AuditLogTable({
   onPageChange,
   loading = false,
 }: AuditLogTableProps) {
-  const { data: entries, page, page_size, total, total_pages } = data
+  const entries = data.data ?? data.logs ?? []
+  const page = data.page ?? 1
+  const page_size = data.page_size ?? data.pageSize ?? 10
+  const total = data.total ?? 0
+  const total_pages = data.total_pages ?? data.totalPages ?? 1
 
   return (
     <div className="space-y-4">

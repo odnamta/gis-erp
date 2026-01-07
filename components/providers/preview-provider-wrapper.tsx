@@ -6,6 +6,7 @@ import { PreviewBanner } from '@/components/preview/preview-banner'
 import { usePermissions } from '@/components/providers/permission-provider'
 import { usePreviewContext } from '@/contexts/preview-context'
 import { getDefaultPermissions } from '@/lib/permissions'
+import { UserRole, UserPermissions } from '@/types/permissions'
 
 function PreviewBannerWrapper() {
   const { previewRole, setPreviewRole, isPreviewActive } = usePreviewContext()
@@ -41,10 +42,10 @@ export function PreviewProviderWrapper({ children }: PreviewProviderWrapperProps
         can_create_pjo: profile.can_create_pjo,
         can_fill_costs: profile.can_fill_costs,
       }
-    : getDefaultPermissions('viewer')
+    : getDefaultPermissions('ops' as UserRole)
 
   return (
-    <PreviewProvider actualRole={actualRole} actualPermissions={actualPermissions}>
+    <PreviewProvider actualRole={actualRole as UserRole} actualPermissions={actualPermissions as UserPermissions}>
       <PreviewBannerWrapper />
       {children}
     </PreviewProvider>

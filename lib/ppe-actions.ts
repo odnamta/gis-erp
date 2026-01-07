@@ -42,7 +42,7 @@ export async function getPPETypes(includeInactive = false): Promise<PPEType[]> {
   const { data, error } = await query;
   
   if (error) throw new Error(`Failed to fetch PPE types: ${error.message}`);
-  return data || [];
+  return (data || []) as unknown as PPEType[];
 }
 
 export async function getPPETypeById(id: string): Promise<PPEType | null> {
@@ -58,7 +58,7 @@ export async function getPPETypeById(id: string): Promise<PPEType | null> {
     if (error.code === 'PGRST116') return null;
     throw new Error(`Failed to fetch PPE type: ${error.message}`);
   }
-  return data;
+  return data as unknown as PPEType;
 }
 
 export async function createPPEType(input: CreatePPETypeInput): Promise<PPEType> {
@@ -93,7 +93,7 @@ export async function createPPEType(input: CreatePPETypeInput): Promise<PPEType>
   }
   
   revalidatePath('/hse/ppe');
-  return data;
+  return data as unknown as PPEType;
 }
 
 export async function updatePPEType(id: string, input: UpdatePPETypeInput): Promise<PPEType> {
@@ -119,7 +119,7 @@ export async function updatePPEType(id: string, input: UpdatePPETypeInput): Prom
   }
   
   revalidatePath('/hse/ppe');
-  return data;
+  return data as unknown as PPEType;
 }
 
 export async function deletePPEType(id: string): Promise<void> {
@@ -164,7 +164,7 @@ export async function getPPEInventory(): Promise<PPEInventory[]> {
     .order('updated_at', { ascending: false });
   
   if (error) throw new Error(`Failed to fetch PPE inventory: ${error.message}`);
-  return data || [];
+  return (data || []) as unknown as PPEInventory[];
 }
 
 export async function getInventoryByTypeAndSize(
@@ -190,7 +190,7 @@ export async function getInventoryByTypeAndSize(
     if (error.code === 'PGRST116') return null;
     throw new Error(`Failed to fetch inventory: ${error.message}`);
   }
-  return data;
+  return data as unknown as PPEInventory;
 }
 
 export async function updateInventory(id: string, input: UpdateInventoryInput): Promise<PPEInventory> {
@@ -209,7 +209,7 @@ export async function updateInventory(id: string, input: UpdateInventoryInput): 
   if (error) throw new Error(`Failed to update inventory: ${error.message}`);
   
   revalidatePath('/hse/ppe/inventory');
-  return data;
+  return data as unknown as PPEInventory;
 }
 
 export async function adjustStock(
@@ -239,11 +239,11 @@ export async function adjustStock(
     if (createError) throw new Error(`Failed to create inventory: ${createError.message}`);
     
     revalidatePath('/hse/ppe/inventory');
-    return newInventory;
+    return newInventory as unknown as PPEInventory;
   }
   
   // Update existing inventory
-  const newQuantity = Math.max(0, inventory.quantity_in_stock + adjustment);
+  const newQuantity = Math.max(0, (inventory.quantity_in_stock || 0) + adjustment);
   
   const { data, error } = await supabase
     .from('ppe_inventory')
@@ -258,7 +258,7 @@ export async function adjustStock(
   if (error) throw new Error(`Failed to adjust stock: ${error.message}`);
   
   revalidatePath('/hse/ppe/inventory');
-  return data;
+  return data as unknown as PPEInventory;
 }
 
 export async function recordPurchase(input: RecordPurchaseInput): Promise<PPEInventory> {
@@ -287,14 +287,14 @@ export async function recordPurchase(input: RecordPurchaseInput): Promise<PPEInv
     if (createError) throw new Error(`Failed to create inventory: ${createError.message}`);
     
     revalidatePath('/hse/ppe/inventory');
-    return newInventory;
+    return newInventory as unknown as PPEInventory;
   }
   
   // Update existing inventory
   const { data, error } = await supabase
     .from('ppe_inventory')
     .update({
-      quantity_in_stock: inventory.quantity_in_stock + input.quantity,
+      quantity_in_stock: (inventory.quantity_in_stock || 0) + input.quantity,
       storage_location: input.storage_location || inventory.storage_location,
       last_purchase_date: input.purchase_date,
       last_purchase_qty: input.quantity,
@@ -308,7 +308,7 @@ export async function recordPurchase(input: RecordPurchaseInput): Promise<PPEInv
   if (error) throw new Error(`Failed to record purchase: ${error.message}`);
   
   revalidatePath('/hse/ppe/inventory');
-  return data;
+  return data as unknown as PPEInventory;
 }
 
 export async function getLowStockItems(): Promise<PPEInventory[]> {
@@ -325,7 +325,7 @@ export async function getLowStockItems(): Promise<PPEInventory[]> {
   
   if (fetchError) throw new Error(`Failed to fetch inventory: ${fetchError.message}`);
   
-  return (allInventory || []).filter(item => item.quantity_in_stock < item.reorder_level);
+  return ((allInventory || []).filter(item => (item.quantity_in_stock || 0) < (item.reorder_level || 0))) as unknown as PPEInventory[];
 }
 
 
@@ -363,7 +363,7 @@ export async function getPPEIssuances(filters?: {
   const { data, error } = await query;
   
   if (error) throw new Error(`Failed to fetch PPE issuances: ${error.message}`);
-  return data || [];
+  return (data || []) as unknown as PPEIssuance[];
 }
 
 export async function getPPEIssuanceById(id: string): Promise<PPEIssuance | null> {
@@ -388,7 +388,7 @@ export async function getPPEIssuanceById(id: string): Promise<PPEIssuance | null
     if (error.code === 'PGRST116') return null;
     throw new Error(`Failed to fetch PPE issuance: ${error.message}`);
   }
-  return data;
+  return data as unknown as PPEIssuance;
 }
 
 export async function issuePPE(input: IssuePPEInput): Promise<PPEIssuance> {
@@ -424,8 +424,8 @@ export async function issuePPE(input: IssuePPEInput): Promise<PPEIssuance> {
   const inventory = await getInventoryByTypeAndSize(input.ppe_type_id, input.size || null);
   const quantity = input.quantity || 1;
   
-  if (inventory && inventory.quantity_in_stock < quantity) {
-    throw new Error(`Insufficient stock. Available: ${inventory.quantity_in_stock}, Requested: ${quantity}`);
+  if (inventory && (inventory.quantity_in_stock || 0) < quantity) {
+    throw new Error(`Insufficient stock. Available: ${inventory.quantity_in_stock || 0}, Requested: ${quantity}`);
   }
   
   // Calculate replacement date
@@ -465,7 +465,7 @@ export async function issuePPE(input: IssuePPEInput): Promise<PPEIssuance> {
   
   revalidatePath('/hse/ppe/issuance');
   revalidatePath('/hse/ppe/compliance');
-  return data;
+  return data as unknown as PPEIssuance;
 }
 
 export async function returnPPE(id: string, input: ReturnPPEInput): Promise<PPEIssuance> {
@@ -507,14 +507,14 @@ export async function returnPPE(id: string, input: ReturnPPEInput): Promise<PPEI
     await adjustStock(
       issuance.ppe_type_id,
       issuance.size,
-      issuance.quantity,
+      issuance.quantity || 1,
       'Returned in reusable condition'
     );
   }
   
   revalidatePath('/hse/ppe/issuance');
   revalidatePath('/hse/ppe/compliance');
-  return data;
+  return data as unknown as PPEIssuance;
 }
 
 export async function replacePPE(id: string, input: ReplacePPEInput): Promise<PPEIssuance> {
@@ -604,7 +604,7 @@ export async function markPPELost(id: string, notes: string): Promise<PPEIssuanc
   
   revalidatePath('/hse/ppe/issuance');
   revalidatePath('/hse/ppe/compliance');
-  return data;
+  return data as unknown as PPEIssuance;
 }
 
 export async function markPPEDamaged(id: string, notes: string): Promise<PPEIssuance> {
@@ -638,7 +638,7 @@ export async function markPPEDamaged(id: string, notes: string): Promise<PPEIssu
   
   revalidatePath('/hse/ppe/issuance');
   revalidatePath('/hse/ppe/compliance');
-  return data;
+  return data as unknown as PPEIssuance;
 }
 
 
@@ -659,7 +659,7 @@ export async function getInspectionsByIssuance(issuanceId: string): Promise<PPEI
     .order('inspection_date', { ascending: false });
   
   if (error) throw new Error(`Failed to fetch inspections: ${error.message}`);
-  return data || [];
+  return (data || []) as unknown as PPEInspection[];
 }
 
 export async function recordInspection(input: RecordInspectionInput): Promise<PPEInspection> {
@@ -706,7 +706,7 @@ export async function recordInspection(input: RecordInspectionInput): Promise<PP
   if (error) throw new Error(`Failed to record inspection: ${error.message}`);
   
   revalidatePath('/hse/ppe/issuance');
-  return data;
+  return data as unknown as PPEInspection;
 }
 
 export async function updateInspectionAction(
@@ -725,7 +725,7 @@ export async function updateInspectionAction(
   if (error) throw new Error(`Failed to update inspection: ${error.message}`);
   
   revalidatePath('/hse/ppe/issuance');
-  return data;
+  return data as unknown as PPEInspection;
 }
 
 // ============================================
@@ -740,7 +740,7 @@ export async function getReplacementDue(): Promise<PPEReplacementDue[]> {
     .select('*');
   
   if (error) throw new Error(`Failed to fetch replacement due: ${error.message}`);
-  return data || [];
+  return (data || []) as unknown as PPEReplacementDue[];
 }
 
 export async function getEmployeePPEStatus(employeeId?: string): Promise<EmployeePPEStatus[]> {
@@ -757,7 +757,7 @@ export async function getEmployeePPEStatus(employeeId?: string): Promise<Employe
   const { data, error } = await query;
   
   if (error) throw new Error(`Failed to fetch employee PPE status: ${error.message}`);
-  return data || [];
+  return (data || []) as unknown as EmployeePPEStatus[];
 }
 
 // ============================================

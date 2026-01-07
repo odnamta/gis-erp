@@ -66,7 +66,8 @@ export default async function DashboardPage() {
 
     return (
       <DashboardSelector
-        ownerData={ownerData}
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        ownerData={ownerData as any}
         opsData={opsData}
         enhancedOpsData={enhancedOpsData}
         financeData={financeData}
@@ -117,7 +118,7 @@ export default async function DashboardPage() {
     )
   }
 
-  if (userRole === 'sales') {
+  if (userRole === 'marketing') {
     // Check if this is Hutami (Marketing Manager who also manages Engineering)
     const isHutami = userEmail === HUTAMI_EMAIL
     
@@ -136,7 +137,7 @@ export default async function DashboardPage() {
       )
     }
     
-    // Regular sales users get the standard sales dashboard
+    // Regular marketing users get the standard sales dashboard
     const salesData = await fetchSalesDashboardData()
     return (
       <DashboardSelector
@@ -149,7 +150,7 @@ export default async function DashboardPage() {
     )
   }
 
-  if (userRole === 'manager') {
+  if (userRole === 'marketing_manager' || userRole === 'finance_manager' || userRole === 'operations_manager') {
     const managerData = await fetchManagerDashboardData()
     return (
       <DashboardSelector
@@ -162,7 +163,7 @@ export default async function DashboardPage() {
     )
   }
 
-  if (userRole === 'admin') {
+  if (userRole === 'administration') {
     const adminData = await fetchAdminDashboardData()
     return (
       <DashboardSelector

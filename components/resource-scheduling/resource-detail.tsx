@@ -132,7 +132,7 @@ export function ResourceDetail({ resource }: ResourceDetailProps) {
                 <div className="space-y-3">
                   {resource.certifications.map((cert, index) => {
                     const status = cert.expiry_date
-                      ? getCertificationStatus(cert.expiry_date)
+                      ? getCertificationStatus(cert.expiry_date as any)
                       : 'valid'
                     return (
                       <div

@@ -38,7 +38,7 @@ export async function logAudit(
       ip_address: ipAddress,
       user_agent: userAgent,
       session_id: entry.sessionId || null,
-    })
+    } as any)
     
     if (error) {
       console.error('Failed to log audit entry:', error)
@@ -236,7 +236,7 @@ export async function queryAuditLogs(
     return { logs: [], total: 0, hasMore: false }
   }
   
-  const logs: AuditLogEntry[] = (data || []).map(row => ({
+  const logs: AuditLogEntry[] = ((data || []) as any[]).map(row => ({
     id: row.id,
     userId: row.user_id,
     userName: row.user_name,

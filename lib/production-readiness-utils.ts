@@ -276,16 +276,18 @@ async function getHealthMetrics(): Promise<HealthStatus['metrics']> {
     const supabase = createClient();
     const { data } = await supabase
       .from('system_health')
-      .select('database_size, active_connections, error_count')
+      .select('*')
       .order('checked_at', { ascending: false })
       .limit(1)
       .single();
     
     if (data) {
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      const row = data as any;
       return {
-        databaseSize: data.database_size,
-        activeConnections: data.active_connections,
-        errorCount: data.error_count,
+        databaseSize: row.database_size,
+        activeConnections: row.active_connections,
+        errorCount: row.error_count,
       };
     }
     return {};
@@ -326,8 +328,8 @@ export async function getConfig(
     configValue: data.config_value,
     environment: data.environment,
     isSensitive: data.is_sensitive,
-    description: data.description,
-    updatedBy: data.updated_by,
+    description: data.description ?? undefined,
+    updatedBy: data.updated_by ?? undefined,
     updatedAt: data.updated_at,
     createdAt: data.created_at,
   };
@@ -365,13 +367,13 @@ export async function setConfig(
     .from('app_config')
     .upsert({
       config_key: key,
-      config_value: value,
+      config_value: value as unknown,
       environment,
       is_sensitive: isSensitive,
       description,
       updated_by: userId,
       updated_at: new Date().toISOString(),
-    }, {
+    } as never, {
       onConflict: 'config_key,environment',
     });
   
@@ -415,11 +417,11 @@ export async function getAllConfigs(options: {
     configValue: row.config_value,
     environment: row.environment,
     isSensitive: row.is_sensitive,
-    description: row.description,
-    updatedBy: row.updated_by,
+    description: row.description ?? undefined,
+    updatedBy: row.updated_by ?? undefined,
     updatedAt: row.updated_at,
     createdAt: row.created_at,
-  }));
+  })) as AppConfig[];
 }
 
 /**
@@ -463,15 +465,15 @@ export async function getFeatureFlag(flagKey: string): Promise<FeatureFlag | nul
     id: data.id,
     flagKey: data.flag_key,
     name: data.name,
-    description: data.description,
+    description: data.description ?? undefined,
     isEnabled: data.is_enabled,
     targetUsers: data.target_users || [],
     targetRoles: data.target_roles || [],
     rolloutPercentage: data.rollout_percentage ?? 100,
-    enableAt: data.enable_at,
-    disableAt: data.disable_at,
-    metadata: data.metadata || {},
-    updatedBy: data.updated_by,
+    enableAt: data.enable_at ?? undefined,
+    disableAt: data.disable_at ?? undefined,
+    metadata: (data.metadata || {}) as Record<string, unknown>,
+    updatedBy: data.updated_by ?? undefined,
     updatedAt: data.updated_at,
     createdAt: data.created_at,
   };
@@ -494,18 +496,18 @@ export async function getAllFeatureFlags(): Promise<FeatureFlag[]> {
     id: row.id,
     flagKey: row.flag_key,
     name: row.name,
-    description: row.description,
+    description: row.description ?? undefined,
     isEnabled: row.is_enabled,
     targetUsers: row.target_users || [],
     targetRoles: row.target_roles || [],
     rolloutPercentage: row.rollout_percentage ?? 100,
-    enableAt: row.enable_at,
-    disableAt: row.disable_at,
-    metadata: row.metadata || {},
-    updatedBy: row.updated_by,
+    enableAt: row.enable_at ?? undefined,
+    disableAt: row.disable_at ?? undefined,
+    metadata: (row.metadata || {}) as Record<string, unknown>,
+    updatedBy: row.updated_by ?? undefined,
     updatedAt: row.updated_at,
     createdAt: row.created_at,
-  }));
+  })) as FeatureFlag[];
 }
 
 /**
@@ -636,10 +638,10 @@ export async function recordDeployment(deployment: {
       changelog: deployment.changelog,
       commit_hash: deployment.commitHash,
       build_number: deployment.buildNumber,
-      metadata: deployment.metadata || {},
+      metadata: (deployment.metadata || {}) as unknown,
       status: 'success',
       is_rollback: false,
-    })
+    } as never)
     .select('id')
     .single();
   
@@ -676,7 +678,7 @@ export async function recordRollback(rollback: {
       is_rollback: true,
       rollback_reason: rollback.reason,
       rollback_target_version: rollback.targetVersion,
-    })
+    } as never)
     .select('id')
     .single();
   
@@ -719,17 +721,17 @@ export async function getDeploymentHistory(options: {
     version: row.version,
     environment: row.environment,
     deployedAt: row.deployed_at,
-    deployedBy: row.deployed_by,
-    deployedByName: row.deployed_by_name,
-    changelog: row.changelog,
-    status: row.status,
+    deployedBy: row.deployed_by ?? undefined,
+    deployedByName: row.deployed_by_name ?? undefined,
+    changelog: row.changelog ?? undefined,
+    status: row.status as 'success' | 'failed' | 'rolled_back',
     isRollback: row.is_rollback,
-    rollbackReason: row.rollback_reason,
-    rollbackTargetVersion: row.rollback_target_version,
-    commitHash: row.commit_hash,
-    buildNumber: row.build_number,
-    metadata: row.metadata || {},
-  }));
+    rollbackReason: row.rollback_reason ?? undefined,
+    rollbackTargetVersion: row.rollback_target_version ?? undefined,
+    commitHash: row.commit_hash ?? undefined,
+    buildNumber: row.build_number ?? undefined,
+    metadata: (row.metadata || {}) as Record<string, unknown>,
+  })) as DeploymentRecord[];
 }
 
 
@@ -794,7 +796,8 @@ export async function checkRequiredTables(): Promise<{ passed: boolean; error?: 
   
   for (const table of REQUIRED_TABLES) {
     try {
-      const { error } = await supabase.from(table).select('*').limit(0);
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      const { error } = await (supabase as any).from(table).select('*').limit(0);
       if (error) {
         missing.push(table);
       }

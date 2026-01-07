@@ -31,7 +31,7 @@ export function AuditList({ audits, onView, onEdit }: AuditListProps) {
 
   const filteredAudits = audits.filter((audit) => {
     const matchesSearch = 
-      audit.audit_number.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      (audit.audit_number || '').toLowerCase().includes(searchTerm.toLowerCase()) ||
       audit.location?.toLowerCase().includes(searchTerm.toLowerCase());
     
     const matchesStatus = statusFilter === 'all' || audit.status === statusFilter;

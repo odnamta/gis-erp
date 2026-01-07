@@ -10,6 +10,7 @@ import { calculateEmployeeSummaryStats } from '@/lib/employee-utils';
 import { createClient } from '@/lib/supabase/server';
 import { canCreateEmployee, canEditEmployee } from '@/lib/permissions';
 import { EmployeeStatus } from '@/types/employees';
+import { UserProfile } from '@/types/permissions';
 
 interface PageProps {
   searchParams: Promise<{
@@ -26,14 +27,14 @@ export default async function EmployeesPage({ searchParams }: PageProps) {
   const supabase = await createClient();
   const { data: { user } } = await supabase.auth.getUser();
   
-  let userProfile = null;
+  let userProfile: UserProfile | null = null;
   if (user) {
     const { data } = await supabase
       .from('user_profiles')
       .select('*')
       .eq('user_id', user.id)
       .single();
-    userProfile = data;
+    userProfile = data as unknown as UserProfile | null;
   }
 
   // Fetch data

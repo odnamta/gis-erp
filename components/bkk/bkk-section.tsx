@@ -6,7 +6,7 @@ import { Button } from '@/components/ui/button'
 import { BKKList } from './bkk-list'
 import { BKKSummary } from './bkk-summary'
 import { calculateBKKSummary } from '@/lib/bkk-utils'
-import type { BKKWithRelations } from '@/types/database'
+import type { BKKWithRelations } from '@/types'
 import { Plus, Banknote } from 'lucide-react'
 
 interface BKKSectionProps {

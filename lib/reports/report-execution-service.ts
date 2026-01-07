@@ -36,10 +36,10 @@ export async function logReportExecution(params: {
     .insert({
       report_code: reportCode,
       executed_by: userId,
-      parameters,
+      parameters: parameters as unknown,
       export_format: exportFormat,
       executed_at: new Date().toISOString(),
-    })
+    } as never)
   
   if (error) {
     console.error('Error logging report execution:', error)
@@ -106,7 +106,7 @@ export async function getRecentReports(
         report_code: execution.report_code,
         report_name: config.report_name,
         href: config.href || `/reports/${execution.report_code}`,
-        executed_at: execution.executed_at,
+        executed_at: execution.executed_at || '',
       })
       seenCodes.add(execution.report_code)
     }
@@ -136,7 +136,7 @@ export async function getReportExecutionHistory(
     return []
   }
   
-  return data || []
+  return (data || []) as unknown as ReportExecution[]
 }
 
 /**

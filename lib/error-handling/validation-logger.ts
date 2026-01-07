@@ -10,8 +10,16 @@
  */
 
 import { createClient } from '@/lib/supabase/client';
-import type { ValidationErrorFilters } from '@/types/error-handling';
 import type { ValidationErrorRecord } from '@/types/validation-error';
+
+// Local filter type since ValidationErrorFilters doesn't exist in types
+interface ValidationErrorFilters {
+  entityType?: string | string[];
+  fieldName?: string | string[];
+  dateFrom?: string;
+  dateTo?: string;
+  corrected?: boolean;
+}
 
 /**
  * Log a validation error
@@ -121,7 +129,7 @@ export async function getValidationErrors(
     throw new Error(`Failed to get validation errors: ${error.message}`);
   }
 
-  return data || [];
+  return (data || []) as unknown as ValidationErrorRecord[];
 }
 
 /**
@@ -145,7 +153,7 @@ export async function getValidationErrorById(
     throw new Error(`Failed to get validation error: ${error.message}`);
   }
 
-  return data;
+  return data as unknown as ValidationErrorRecord;
 }
 
 /**

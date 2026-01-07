@@ -78,7 +78,7 @@ export function ResourceCalendar({ initialData }: ResourceCalendarProps) {
       return cells.get(`${resourceId}_${date}`)
     }
     // Handle if cells is an object
-    return (calendarData.cells as Record<string, CalendarCellType>)[`${resourceId}_${date}`]
+    return (calendarData.cells as unknown as Record<string, CalendarCellType>)[`${resourceId}_${date}`]
   }
 
   const handleCellClick = (resource: EngineeringResource, date: string) => {

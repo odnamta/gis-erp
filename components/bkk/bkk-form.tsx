@@ -17,7 +17,7 @@ import {
 import { Alert, AlertDescription } from '@/components/ui/alert'
 import { formatBKKCurrency, calculateAvailableBudget } from '@/lib/bkk-utils'
 import { createBKK, getBKKsForCostItem } from '@/app/(main)/job-orders/bkk-actions'
-import type { CreateBKKInput } from '@/types/database'
+import type { CreateBKKInput } from '@/types'
 import { AlertTriangle, Loader2, Building2, CreditCard } from 'lucide-react'
 import { useToast } from '@/hooks/use-toast'
 import type { Vendor } from '@/types/vendors'

@@ -48,9 +48,9 @@ export async function getActivityLogs(
     query = query.eq('document_type', filters.entityType)
   }
 
-  // Apply user filter (only for owner/admin)
+  // Apply user filter (only for owner/sysadmin)
   if (filters.userId && filters.userId !== 'all') {
-    if (profile.role === 'owner' || profile.role === 'admin') {
+    if (profile.role === 'owner' || profile.role === 'sysadmin') {
       query = query.eq('user_id', filters.userId)
     }
   }
@@ -84,14 +84,14 @@ export async function getActivityLogs(
 
 /**
  * Get list of users for filter dropdown
- * Only available to owner/admin
+ * Only available to owner/sysadmin
  */
 export async function getActivityLogUsers(): Promise<ActivityLogUser[]> {
   const supabase = await createClient()
   const profile = await getUserProfile()
 
-  // Only owner/admin can see user filter
-  if (!profile || (profile.role !== 'owner' && profile.role !== 'admin')) {
+  // Only owner/sysadmin can see user filter
+  if (!profile || (profile.role !== 'owner' && profile.role !== 'sysadmin')) {
     return []
   }
 
@@ -114,7 +114,7 @@ export async function getActivityLogUsers(): Promise<ActivityLogUser[]> {
 
 /**
  * Get all activity logs for CSV export (with current filters)
- * Only available to owner/admin
+ * Only available to owner/sysadmin
  */
 export async function getActivityLogsForExport(
   filters: ActivityLogFilters
@@ -122,8 +122,8 @@ export async function getActivityLogsForExport(
   const supabase = await createClient()
   const profile = await getUserProfile()
 
-  // Only owner/admin can export
-  if (!profile || (profile.role !== 'owner' && profile.role !== 'admin')) {
+  // Only owner/sysadmin can export
+  if (!profile || (profile.role !== 'owner' && profile.role !== 'sysadmin')) {
     return []
   }
 

@@ -22,8 +22,8 @@ export async function getReportConfigurations(role: string): Promise<ReportConfi
   }
   
   // Filter by role
-  return (data || []).filter(report => 
-    report.allowed_roles.includes(role)
+  return ((data || []) as unknown as ReportConfigurationDB[]).filter(report => 
+    report.allowed_roles?.includes(role) ?? false
   )
 }
 
@@ -45,7 +45,7 @@ export async function getReportByCode(code: string): Promise<ReportConfiguration
     return null
   }
   
-  return data
+  return data as unknown as ReportConfigurationDB
 }
 
 /**

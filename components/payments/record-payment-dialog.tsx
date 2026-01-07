@@ -41,8 +41,8 @@ import { Loader2 } from 'lucide-react'
 const paymentSchema = z.object({
   amount: z.number().positive('Amount must be greater than zero'),
   payment_date: z.string().min(1, 'Payment date is required'),
-  payment_method: z.enum(['transfer', 'cash', 'check', 'giro'], {
-    required_error: 'Please select a payment method',
+  payment_method: z.enum(['transfer', 'cash', 'check', 'giro'] as const, {
+    message: 'Please select a payment method',
   }),
   reference_number: z.string().optional(),
   bank_name: z.string().optional(),

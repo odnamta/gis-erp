@@ -115,7 +115,7 @@ export function AuditForm({ audit, auditType, preselectedTypeId }: AuditFormProp
         item_index: findingContext.itemIndex,
         question: findingContext.question,
         response: existing?.response ?? null,
-        notes: existing?.notes ?? null,
+        notes: existing?.notes ?? undefined,
         finding_created: true,
       });
     }

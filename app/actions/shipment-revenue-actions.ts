@@ -67,8 +67,8 @@ export async function getShipmentRevenue(
 
     if (error) throw error;
 
-    const revenue: ShipmentRevenue[] = (data || []).map((row: ShipmentRevenueRow & { agency_charge_types?: Record<string, unknown> }) => {
-      const rev = transformRevenueRow(row);
+    const revenue: ShipmentRevenue[] = ((data || []) as any[]).map((row) => {
+      const rev = transformRevenueRow(row as ShipmentRevenueRow);
       
       // Add joined charge type if available
       if (row.agency_charge_types) {
@@ -203,7 +203,7 @@ export async function createShipmentRevenue(
 
     const { data, error } = await supabase
       .from('shipment_revenue')
-      .insert(dbData)
+      .insert(dbData as any)
       .select()
       .single();
 
@@ -307,7 +307,7 @@ export async function updateShipmentRevenue(
 
     const { data, error } = await supabase
       .from('shipment_revenue')
-      .update(updateData)
+      .update(updateData as any)
       .eq('id', id)
       .select()
       .single();
@@ -487,8 +487,8 @@ export async function getShipmentRevenueByInvoice(
 
     if (error) throw error;
 
-    const revenue: ShipmentRevenue[] = (data || []).map((row: ShipmentRevenueRow & { agency_charge_types?: Record<string, unknown> }) => {
-      const rev = transformRevenueRow(row);
+    const revenue: ShipmentRevenue[] = ((data || []) as any[]).map((row) => {
+      const rev = transformRevenueRow(row as ShipmentRevenueRow);
       
       if (row.agency_charge_types) {
         rev.chargeType = {
@@ -550,8 +550,8 @@ export async function getUnbilledRevenueByBooking(
 
     if (error) throw error;
 
-    const revenue: ShipmentRevenue[] = (data || []).map((row: ShipmentRevenueRow & { agency_charge_types?: Record<string, unknown> }) => {
-      const rev = transformRevenueRow(row);
+    const revenue: ShipmentRevenue[] = ((data || []) as any[]).map((row) => {
+      const rev = transformRevenueRow(row as ShipmentRevenueRow);
       
       if (row.agency_charge_types) {
         rev.chargeType = {

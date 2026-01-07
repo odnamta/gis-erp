@@ -115,7 +115,7 @@ export async function addEquipmentToJob(
         start_km: input.startKm || null,
         start_hours: input.startHours || null,
         daily_rate: dailyRate || null,
-        rate_type: input.rateType || 'daily',
+        rate_type: input.rateType || 'daily' as RateType,
         is_billable: input.isBillable !== false,
         notes: input.notes || null,
         created_by: user?.id || null,
@@ -222,9 +222,9 @@ export async function completeEquipmentUsage(
 
     // Calculate billing amount if billable
     let billingAmount = input.billingAmount;
-    if (billingAmount === undefined && usage.is_billable && usage.daily_rate) {
+    if (billingAmount === undefined && usage.is_billable && usage.daily_rate && usage.rate_type) {
       billingAmount = calculateBillingAmount(
-        usage.rate_type,
+        usage.rate_type as RateType,
         usage.daily_rate,
         usageDays,
         hoursUsed,

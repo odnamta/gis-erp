@@ -3,7 +3,7 @@
  * Provides calculations for pipeline, win rates, staleness, and customer analytics
  */
 
-import type { ProformaJobOrder, Customer } from '@/types/database'
+import type { ProformaJobOrder, Customer } from '@/types'
 
 // Types
 export type PeriodType = 'this_week' | 'this_month' | 'this_quarter' | 'this_year' | 'custom'

@@ -1,6 +1,6 @@
 // Manager Dashboard Utilities - Department-scoped dashboard logic
 
-import { UserProfile, DepartmentScope } from '@/types/permissions'
+import { UserProfile, DepartmentScope, UserRole } from '@/types/permissions'
 import { DEPARTMENT_STAFF_ROLES } from '@/lib/permissions'
 
 /**
@@ -151,7 +151,8 @@ export const WIDGET_CONFIG: Record<ManagerWidgetType, {
  * Get dashboard widgets for a manager based on their department scope
  */
 export function getManagerDashboardWidgets(profile: UserProfile): ManagerWidgetType[] {
-  if (profile.role !== 'manager' || !profile.department_scope?.length) {
+  const isManager = profile.role === 'marketing_manager' || profile.role === 'finance_manager' || profile.role === 'operations_manager'
+  if (!isManager || !profile.department_scope?.length) {
     return []
   }
   
@@ -175,10 +176,18 @@ export function getManagerDashboardWidgets(profile: UserProfile): ManagerWidgetT
  * Get the primary department for a manager (first in scope)
  */
 export function getPrimaryDepartment(profile: UserProfile): DepartmentScope | null {
-  if (profile.role !== 'manager' || !profile.department_scope?.length) {
+  const isManager = profile.role === 'marketing_manager' || profile.role === 'finance_manager' || profile.role === 'operations_manager'
+  if (!isManager || !profile.department_scope?.length) {
     return null
   }
   return profile.department_scope[0]
+}
+
+/**
+ * Check if a role is a manager role
+ */
+function isManagerRole(role: UserRole): boolean {
+  return ['marketing_manager', 'finance_manager', 'operations_manager'].includes(role)
 }
 
 /**
@@ -188,7 +197,7 @@ export function managerOverseesDepartment(
   profile: UserProfile,
   department: DepartmentScope
 ): boolean {
-  if (profile.role !== 'manager') return false
+  if (!isManagerRole(profile.role)) return false
   return profile.department_scope?.includes(department) ?? false
 }
 
@@ -196,7 +205,7 @@ export function managerOverseesDepartment(
  * Get staff roles that a manager can see based on their department scope
  */
 export function getManagerVisibleRoles(profile: UserProfile): string[] {
-  if (profile.role !== 'manager' || !profile.department_scope?.length) {
+  if (!isManagerRole(profile.role) || !profile.department_scope?.length) {
     return []
   }
   
@@ -242,7 +251,7 @@ export interface ManagerDashboardSection {
  * Get organized dashboard sections for a manager
  */
 export function getManagerDashboardSections(profile: UserProfile): ManagerDashboardSection[] {
-  if (profile.role !== 'manager' || !profile.department_scope?.length) {
+  if (!isManagerRole(profile.role) || !profile.department_scope?.length) {
     return []
   }
   

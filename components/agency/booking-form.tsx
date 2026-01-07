@@ -658,7 +658,7 @@ export function BookingForm({
               <ContainerManager
                 containers={containers}
                 onChange={setContainers}
-                disabled={isLoading}
+                readOnly={isLoading}
               />
             </CardContent>
           </Card>

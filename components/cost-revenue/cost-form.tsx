@@ -89,7 +89,7 @@ export function CostForm({
     watch,
     formState: { errors },
   } = useForm<CostFormValues>({
-    resolver: zodResolver(costFormSchema),
+    resolver: zodResolver(costFormSchema) as any,
     defaultValues: {
       chargeTypeId: cost?.chargeTypeId || '',
       description: cost?.description || '',
@@ -197,7 +197,7 @@ export function CostForm({
   };
 
   return (
-    <form onSubmit={handleSubmit(handleFormSubmit)} className="space-y-6">
+    <form onSubmit={handleSubmit(handleFormSubmit as any)} className="space-y-6">
       {/* Charge Type Selection */}
       <div className="space-y-2">
         <Label htmlFor="chargeTypeId">Charge Type *</Label>

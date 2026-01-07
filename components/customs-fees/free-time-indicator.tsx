@@ -42,7 +42,7 @@ export function FreeTimeIndicator({ container, showLabel = true }: FreeTimeIndic
     return null;
   }
 
-  const status = getFreeTimeStatus(container);
+  const status = getFreeTimeStatus(container.free_time_end);
   const config = statusConfig[status];
   const Icon = config.icon;
 

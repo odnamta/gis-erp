@@ -8,7 +8,7 @@ import {
   TooltipTrigger,
 } from '@/components/ui/tooltip'
 import { BKK_STATUS_COLORS } from '@/lib/bkk-utils'
-import type { BKKStatus } from '@/types/database'
+import type { BKKStatus } from '@/types'
 import { format } from 'date-fns'
 
 interface BKKStatusBadgeProps {

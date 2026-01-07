@@ -7,6 +7,7 @@ import { EmployeeActions } from '@/components/employees/employee-actions';
 import { getEmployee, getUnlinkedUsers } from '../actions';
 import { createClient } from '@/lib/supabase/server';
 import { canViewEmployees, canEditEmployee, canViewEmployeeSalary } from '@/lib/permissions';
+import { UserProfile } from '@/types/permissions';
 
 interface PageProps {
   params: Promise<{ id: string }>;
@@ -23,11 +24,13 @@ export default async function EmployeeDetailPage({ params }: PageProps) {
     redirect('/login');
   }
 
-  const { data: userProfile } = await supabase
+  const { data: userProfileData } = await supabase
     .from('user_profiles')
     .select('*')
     .eq('user_id', user.id)
     .single();
+
+  const userProfile = userProfileData as unknown as UserProfile | null;
 
   // Check permission
   if (!canViewEmployees(userProfile)) {

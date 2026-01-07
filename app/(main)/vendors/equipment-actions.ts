@@ -60,7 +60,7 @@ export async function getVendorEquipment(vendorId: string): Promise<{
     return { data: [], error: error.message };
   }
 
-  return { data: data || [] };
+  return { data: (data || []).map(e => ({ ...e, equipment_type: e.equipment_type as EquipmentType, condition: e.condition as EquipmentCondition })) as unknown as VendorEquipment[] };
 }
 
 /**
@@ -82,7 +82,7 @@ export async function getEquipmentById(id: string): Promise<{
     return { data: null, error: error.message };
   }
 
-  return { data };
+  return { data: data ? { ...data, equipment_type: data.equipment_type as EquipmentType, condition: data.condition as EquipmentCondition } as unknown as VendorEquipment : null };
 }
 
 /**
@@ -113,7 +113,7 @@ export async function getAvailableEquipmentByType(
     return { data: [], error: error.message };
   }
 
-  return { data: data || [] };
+  return { data: (data || []).map(e => ({ ...e, equipment_type: e.equipment_type as EquipmentType, condition: e.condition as EquipmentCondition })) as unknown as VendorEquipment[] };
 }
 
 /**
@@ -165,7 +165,7 @@ export async function createEquipment(
   }
 
   revalidatePath(`/vendors/${vendorId}`);
-  return { data };
+  return { data: data ? { ...data, equipment_type: data.equipment_type as EquipmentType, condition: data.condition as EquipmentCondition } as unknown as VendorEquipment : undefined };
 }
 
 /**

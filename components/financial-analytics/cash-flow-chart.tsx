@@ -39,7 +39,7 @@ export function CashFlowChart({ data, title = 'Cash Flow (30 Days)' }: CashFlowC
     if (active && payload && payload.length) {
       return (
         <div className="bg-background border rounded-lg shadow-lg p-3">
-          <p className="font-medium mb-2">{formatDate(label)}</p>
+          <p className="font-medium mb-2">{formatDate(label || '')}</p>
           {payload.map((entry, index: number) => (
             <p key={index} className="text-sm" style={{ color: entry.color }}>
               {entry.name}: {formatTooltipValue(entry.value)}

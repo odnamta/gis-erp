@@ -15,7 +15,7 @@ import {
 } from '@/components/ui/select'
 import { formatBKKCurrency } from '@/lib/bkk-utils'
 import { getBKKById, releaseBKK } from '@/app/(main)/job-orders/bkk-actions'
-import type { BKKWithRelations, ReleaseBKKInput, BKKReleaseMethod } from '@/types/database'
+import type { BKKWithRelations, ReleaseBKKInput, BKKReleaseMethod } from '@/types'
 import { ArrowLeft, Loader2 } from 'lucide-react'
 import Link from 'next/link'
 import { toast } from 'sonner'

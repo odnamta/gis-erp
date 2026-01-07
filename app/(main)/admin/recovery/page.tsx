@@ -33,7 +33,8 @@ export default async function RecoveryPage() {
     getRecoveryStatsAction(),
   ])
   
-  const records = recordsResult.success && recordsResult.data ? recordsResult.data : []
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const records = recordsResult.success && recordsResult.data ? recordsResult.data as any[] : []
   const stats = statsResult.success && statsResult.data ? statsResult.data : null
 
   return (

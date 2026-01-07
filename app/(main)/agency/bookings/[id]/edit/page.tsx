@@ -34,7 +34,7 @@ interface EditBookingPageProps {
 export default async function EditBookingPage({ params }: EditBookingPageProps) {
   const { id } = await params;
   
-  const [booking, containers, shippingLines, ports, customers, jobOrders] = await Promise.all([
+  const [booking, containers, shippingLinesResult, portsResult, customers, jobOrders] = await Promise.all([
     getBooking(id),
     getBookingContainers(id),
     getShippingLines(),
@@ -51,6 +51,9 @@ export default async function EditBookingPage({ params }: EditBookingPageProps) 
   if (booking.status !== 'draft') {
     redirect(`/agency/bookings/${id}`);
   }
+
+  const shippingLines = shippingLinesResult.success ? shippingLinesResult.data || [] : [];
+  const ports = portsResult.success ? portsResult.data || [] : [];
 
   return (
     <Suspense

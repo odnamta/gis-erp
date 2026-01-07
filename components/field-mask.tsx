@@ -1,7 +1,7 @@
 'use client'
 
 import { ReactNode } from 'react'
-import { usePermissions } from '@/contexts/permission-context'
+import { usePermissions } from '@/components/providers/permission-provider'
 import { isFieldHidden, isModuleHidden } from '@/lib/field-mask'
 import { UserRole } from '@/types/permissions'
 

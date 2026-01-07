@@ -221,10 +221,10 @@ export function getCategoryIcon(category: ReportCategory): string {
  */
 export function canAccessCategory(role: UserRole, category: ReportCategory): boolean {
   const categoryRoles: Record<ReportCategory, UserRole[]> = {
-    financial: ['owner', 'director', 'administration', 'manager', 'finance'],
-    operational: ['owner', 'director', 'administration', 'manager', 'ops'],
-    ar: ['owner', 'director', 'administration', 'manager', 'finance'],
-    sales: ['owner', 'director', 'administration', 'manager', 'marketing'],
+    financial: ['owner', 'director', 'administration', 'marketing_manager', 'finance_manager', 'finance'],
+    operational: ['owner', 'director', 'administration', 'marketing_manager', 'finance_manager', 'operations_manager', 'ops'],
+    ar: ['owner', 'director', 'administration', 'marketing_manager', 'finance_manager', 'finance'],
+    sales: ['owner', 'director', 'administration', 'marketing_manager', 'marketing'],
   }
   return categoryRoles[category].includes(role)
 }

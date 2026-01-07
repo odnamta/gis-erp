@@ -25,6 +25,8 @@ import {
   isValidDocumentStatus,
 } from '@/lib/template-utils';
 import { DOCUMENT_STATUS_TRANSITIONS } from '@/types/customs-templates';
+import type { PIBDocument } from '@/types/pib';
+import type { PEBDocument } from '@/types/peb';
 
 // =====================================================
 // Template Actions
@@ -77,12 +79,12 @@ export async function createTemplate(
         description: data.description || null,
         document_type: data.document_type,
         template_html: data.template_html,
-        placeholders: data.placeholders,
+        placeholders: data.placeholders as unknown as never,
         paper_size: data.paper_size,
         orientation: data.orientation,
         include_company_header: data.include_company_header,
         created_by: user?.id || null,
-      })
+      } as never)
       .select()
       .single();
     
@@ -92,7 +94,7 @@ export async function createTemplate(
     }
     
     revalidatePath('/customs/templates');
-    return { success: true, template };
+    return { success: true, template: template as unknown as CustomsDocumentTemplate };
   } catch (error) {
     console.error('Error in createTemplate:', error);
     return { success: false, error: 'Failed to create template' };
@@ -266,7 +268,7 @@ export async function getTemplates(
       return { templates: [], error: error.message };
     }
     
-    return { templates: data || [] };
+    return { templates: (data || []) as unknown as CustomsDocumentTemplate[] };
   } catch (error) {
     console.error('Error in getTemplates:', error);
     return { templates: [], error: 'Failed to fetch templates' };
@@ -303,7 +305,7 @@ export async function getTemplateById(
       return { template: null, error: error.message };
     }
     
-    return { template: data };
+    return { template: data as unknown as CustomsDocumentTemplate };
   } catch (error) {
     console.error('Error in getTemplateById:', error);
     return { template: null, error: 'Failed to fetch template' };
@@ -352,10 +354,10 @@ export async function generateDocument(
         pib_id: data.pib_id || null,
         peb_id: data.peb_id || null,
         job_order_id: data.job_order_id || null,
-        document_data: documentData,
+        document_data: documentData as unknown as never,
         status: 'draft',
         created_by: user?.id || null,
-      })
+      } as never)
       .select()
       .single();
     
@@ -365,7 +367,7 @@ export async function generateDocument(
     }
     
     revalidatePath('/customs/documents');
-    return { success: true, document };
+    return { success: true, document: document as unknown as GeneratedCustomsDocument };
   } catch (error) {
     console.error('Error in generateDocument:', error);
     return { success: false, error: 'Failed to generate document' };
@@ -458,7 +460,7 @@ export async function updateDocumentData(
     // Update document data
     const { error } = await supabase
       .from('generated_customs_documents')
-      .update({ document_data: documentData })
+      .update({ document_data: documentData as unknown as never })
       .eq('id', id);
     
     if (error) {
@@ -525,7 +527,7 @@ export async function getGeneratedDocuments(
       return { documents: [], error: error.message };
     }
     
-    return { documents: data || [] };
+    return { documents: (data || []) as unknown as GeneratedDocumentWithRelations[] };
   } catch (error) {
     console.error('Error in getGeneratedDocuments:', error);
     return { documents: [], error: 'Failed to fetch documents' };
@@ -561,7 +563,7 @@ export async function getGeneratedDocumentById(
       return { document: null, error: error.message };
     }
     
-    return { document: data };
+    return { document: data as unknown as GeneratedDocumentWithRelations };
   } catch (error) {
     console.error('Error in getGeneratedDocumentById:', error);
     return { document: null, error: 'Failed to fetch document' };
@@ -590,7 +592,7 @@ export async function resolveTemplateData(
       return { data: {}, error: 'Template not found' };
     }
     
-    const placeholders = template.placeholders as PlaceholderDefinition[];
+    const placeholders = template.placeholders as unknown as PlaceholderDefinition[];
     
     // Get PIB data if needed
     let pibData = null;
@@ -633,8 +635,8 @@ export async function resolveTemplateData(
     // Resolve placeholders
     const resolved = resolvePlaceholders(
       placeholders,
-      pibData,
-      pebData,
+      pibData as unknown as PIBDocument | null,
+      pebData as unknown as PEBDocument | null,
       pibItems as never[],
       pebItems as never[]
     );

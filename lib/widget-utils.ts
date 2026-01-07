@@ -347,7 +347,7 @@ export async function saveWidgetLayout(userId: string, widgets: WidgetConfig[]):
 
     const { error: insertError } = await supabase
       .from('user_widget_configs')
-      .insert(configsToInsert);
+      .insert(configsToInsert as never[]);
 
     if (insertError) {
       console.error('Error inserting widget configs:', insertError);
@@ -397,7 +397,8 @@ export async function updateWidgetConfig(
       user_id: userId,
       widget_id: widgetId,
       ...updates,
-    }, {
+      settings: updates.settings as unknown as never,
+    } as never, {
       onConflict: 'user_id,widget_id',
     });
 

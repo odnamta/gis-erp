@@ -46,7 +46,7 @@ export function ChecklistForm({
       item_index: itemIndex,
       question,
       response: value,
-      notes: notes ?? existing?.notes ?? null,
+      notes: notes ?? existing?.notes ?? undefined,
       finding_created: existing?.finding_created ?? false,
     });
   };

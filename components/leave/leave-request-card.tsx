@@ -48,7 +48,11 @@ export function LeaveRequestCard({
         <div className="flex justify-between items-start">
           <div>
             <p className="font-medium">{request.employee?.full_name || 'Unknown'}</p>
-            <p className="text-sm text-muted-foreground">{request.employee?.department || ''}</p>
+            <p className="text-sm text-muted-foreground">
+              {typeof request.employee?.department === 'string' 
+                ? request.employee.department 
+                : request.employee?.department?.department_name || ''}
+            </p>
           </div>
           <div className="text-right">
             <p className="font-medium">{request.leave_type?.type_name || 'Unknown'}</p>

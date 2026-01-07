@@ -57,7 +57,7 @@ export async function recordJobFailure(params: {
       retry_count: 0,
       max_retries: params.maxRetries ?? DEFAULT_MAX_RETRIES,
       status: 'failed',
-    })
+    } as any)
     .select('*')
     .single();
 
@@ -65,7 +65,7 @@ export async function recordJobFailure(params: {
     throw new Error(`Failed to record job failure: ${error.message}`);
   }
 
-  return data;
+  return data as unknown as JobFailureRecord;
 }
 
 /**
@@ -89,9 +89,9 @@ export async function scheduleRetry(failureId: string): Promise<void> {
     throw new Error(`Job failure not found: ${failureId}`);
   }
 
-  const newRetryCount = failure.retry_count + 1;
+  const newRetryCount = (failure.retry_count || 0) + 1;
 
-  if (newRetryCount >= failure.max_retries) {
+  if (newRetryCount >= (failure.max_retries || DEFAULT_MAX_RETRIES)) {
     // Max retries reached - abandon the job
     const { error: updateError } = await supabase
       .from('job_failures')
@@ -163,7 +163,7 @@ export async function getJobsForRetry(): Promise<JobFailureRecord[]> {
     throw new Error(`Failed to get jobs for retry: ${error.message}`);
   }
 
-  return data || [];
+  return (data || []) as unknown as JobFailureRecord[];
 }
 
 /**
@@ -187,20 +187,20 @@ export async function getJobFailures(
     }
   }
 
-  if (filters?.jobType) {
-    if (Array.isArray(filters.jobType)) {
-      query = query.in('job_type', filters.jobType);
+  if (filters?.job_type) {
+    if (Array.isArray(filters.job_type)) {
+      query = query.in('job_type', filters.job_type);
     } else {
-      query = query.eq('job_type', filters.jobType);
+      query = query.eq('job_type', filters.job_type);
     }
   }
 
-  if (filters?.dateFrom) {
-    query = query.gte('failed_at', filters.dateFrom);
+  if (filters?.from_date) {
+    query = query.gte('failed_at', filters.from_date);
   }
 
-  if (filters?.dateTo) {
-    query = query.lte('failed_at', filters.dateTo);
+  if (filters?.to_date) {
+    query = query.lte('failed_at', filters.to_date);
   }
 
   const { data, error } = await query;
@@ -209,7 +209,7 @@ export async function getJobFailures(
     throw new Error(`Failed to get job failures: ${error.message}`);
   }
 
-  return data || [];
+  return (data || []) as unknown as JobFailureRecord[];
 }
 
 /**
@@ -233,7 +233,7 @@ export async function getJobFailureById(
     throw new Error(`Failed to get job failure: ${error.message}`);
   }
 
-  return data;
+  return data as unknown as JobFailureRecord;
 }
 
 /**

@@ -60,7 +60,7 @@ export function CostsClient({ pjo, costItems: initialCostItems, canEdit }: Costs
                 variance_pct: variancePct,
                 status,
                 confirmed_at: new Date().toISOString(),
-                justification: status === 'exceeded' ? justification : undefined,
+                justification: status === 'exceeded' ? (justification || null) : null,
               }
             : item
         ))

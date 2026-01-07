@@ -75,8 +75,8 @@ export async function getVendorInvoices(
 
     if (error) throw error;
 
-    const invoices: AgencyVendorInvoice[] = (data || []).map((row: AgencyVendorInvoiceRow) => 
-      transformVendorInvoiceRow(row)
+    const invoices: AgencyVendorInvoice[] = ((data || []) as any[]).map((row) => 
+      transformVendorInvoiceRow(row as AgencyVendorInvoiceRow)
     );
 
     return { success: true, data: invoices };
@@ -122,13 +122,13 @@ export async function getVendorInvoicesByBooking(
     if (invoicesError) throw invoicesError;
 
     // Filter invoices that have any of the booking's cost IDs
-    const filteredInvoices = (invoices || []).filter((invoice: AgencyVendorInvoiceRow) => {
+    const filteredInvoices = ((invoices || []) as any[]).filter((invoice) => {
       const invoiceCostIds = invoice.cost_ids || [];
-      return invoiceCostIds.some(costId => costIds.includes(costId));
+      return invoiceCostIds.some((costId: string) => costIds.includes(costId));
     });
 
-    const result: AgencyVendorInvoice[] = filteredInvoices.map((row: AgencyVendorInvoiceRow) => 
-      transformVendorInvoiceRow(row)
+    const result: AgencyVendorInvoice[] = filteredInvoices.map((row) => 
+      transformVendorInvoiceRow(row as AgencyVendorInvoiceRow)
     );
 
     return { success: true, data: result };
@@ -231,7 +231,7 @@ export async function createVendorInvoice(
 
     const { data, error } = await supabase
       .from('agency_vendor_invoices')
-      .insert(dbData)
+      .insert(dbData as any)
       .select()
       .single();
 
@@ -335,7 +335,7 @@ export async function updateVendorInvoice(
 
     const { data, error } = await supabase
       .from('agency_vendor_invoices')
-      .update(updateData)
+      .update(updateData as any)
       .eq('id', id)
       .select()
       .single();
@@ -606,8 +606,8 @@ export async function getVendorInvoicesByVendor(
 
     if (error) throw error;
 
-    const invoices: AgencyVendorInvoice[] = (data || []).map((row: AgencyVendorInvoiceRow) => 
-      transformVendorInvoiceRow(row)
+    const invoices: AgencyVendorInvoice[] = ((data || []) as any[]).map((row) => 
+      transformVendorInvoiceRow(row as AgencyVendorInvoiceRow)
     );
 
     return { success: true, data: invoices };
@@ -637,8 +637,8 @@ export async function getOverdueVendorInvoices(): Promise<ActionResult<AgencyVen
 
     if (error) throw error;
 
-    const invoices: AgencyVendorInvoice[] = (data || []).map((row: AgencyVendorInvoiceRow) => 
-      transformVendorInvoiceRow(row)
+    const invoices: AgencyVendorInvoice[] = ((data || []) as any[]).map((row) => 
+      transformVendorInvoiceRow(row as AgencyVendorInvoiceRow)
     );
 
     return { success: true, data: invoices };

@@ -194,10 +194,12 @@ export function formatLeaveRequest(request: LeaveRequest): FormattedLeaveRequest
   return {
     ...request,
     employee_name: request.employee?.full_name || 'Unknown',
-    department: request.employee?.department || 'Unknown',
+    department: (typeof request.employee?.department === 'object' && request.employee?.department !== null 
+      ? (request.employee.department as { department_name: string }).department_name 
+      : (request.employee?.department as unknown as string)) || 'Unknown',
     leave_type_name: request.leave_type?.type_name || 'Unknown',
     date_range: dateRange,
-    handover_name: request.handover_employee?.full_name,
+    handover_name: request.handover_employee?.full_name ?? undefined,
   };
 }
 

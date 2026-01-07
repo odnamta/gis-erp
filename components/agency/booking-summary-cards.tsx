@@ -2,59 +2,52 @@
 
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Ship, FileText, CheckCircle, Truck, XCircle, Clock } from 'lucide-react';
+import { BookingStats } from '@/types/agency';
 
 interface BookingSummaryCardsProps {
-  stats: {
-    total: number;
-    draft: number;
-    requested: number;
-    confirmed: number;
-    shipped: number;
-    completed: number;
-    cancelled: number;
-  };
+  stats: BookingStats;
 }
 
 export function BookingSummaryCards({ stats }: BookingSummaryCardsProps) {
   const cards = [
     {
       title: 'Total Bookings',
-      value: stats.total,
+      value: stats.totalBookings,
       icon: Ship,
       color: 'text-blue-600',
       bgColor: 'bg-blue-50',
     },
     {
       title: 'Draft',
-      value: stats.draft,
+      value: stats.draftCount,
       icon: FileText,
       color: 'text-gray-600',
       bgColor: 'bg-gray-50',
     },
     {
       title: 'Requested',
-      value: stats.requested,
+      value: stats.requestedCount,
       icon: Clock,
       color: 'text-blue-600',
       bgColor: 'bg-blue-50',
     },
     {
       title: 'Confirmed',
-      value: stats.confirmed,
+      value: stats.confirmedCount,
       icon: CheckCircle,
       color: 'text-green-600',
       bgColor: 'bg-green-50',
     },
     {
       title: 'Shipped',
-      value: stats.shipped,
+      value: stats.shippedCount,
       icon: Truck,
       color: 'text-purple-600',
       bgColor: 'bg-purple-50',
     },
     {
       title: 'Completed',
-      value: stats.completed,
+      value: stats.completedCount,
       icon: CheckCircle,
       color: 'text-emerald-600',
       bgColor: 'bg-emerald-50',

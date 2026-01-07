@@ -108,7 +108,7 @@ export function RevenueItemsSection({ pjoId, items, isEditable, onRefresh }: Rev
                       <TableCell className="text-right">{item.quantity}</TableCell>
                       <TableCell>{item.unit}</TableCell>
                       <TableCell className="text-right">{formatIDR(item.unit_price)}</TableCell>
-                      <TableCell className="text-right">{formatIDR(item.subtotal)}</TableCell>
+                      <TableCell className="text-right">{formatIDR(item.subtotal ?? 0)}</TableCell>
                       {isEditable && (
                         <TableCell>
                           <div className="flex gap-1">

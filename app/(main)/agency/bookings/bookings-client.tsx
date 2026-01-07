@@ -219,7 +219,6 @@ export function BookingsClient({
             <BookingCard
               key={booking.id}
               booking={booking}
-              onClick={() => (window.location.href = `/agency/bookings/${booking.id}`)}
             />
           ))}
         </div>

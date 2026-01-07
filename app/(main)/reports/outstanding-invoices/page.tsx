@@ -50,7 +50,7 @@ export default function OutstandingInvoicesReportPage() {
 
       if (invoiceError) throw invoiceError
 
-      const items = (invoiceData || []).map(inv => {
+      const items = ((invoiceData || []) as any[]).map(inv => {
         const daysOutstanding = calculateDaysOutstanding(new Date(inv.due_date))
         return {
           invoiceId: inv.id,

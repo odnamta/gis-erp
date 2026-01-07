@@ -95,7 +95,7 @@ export async function createPIBDocument(
       notes: input.notes || null,
       created_by: user?.id || null,
       status: 'draft', // Property 7: Initial status is always 'draft'
-    })
+    } as never)
     .select()
     .single();
 
@@ -103,7 +103,7 @@ export async function createPIBDocument(
     return { data: null, error: error.message };
   }
 
-  return { data: data as PIBDocument, error: null };
+  return { data: data as unknown as PIBDocument, error: null };
 }
 
 /**
@@ -187,7 +187,7 @@ export async function updatePIBDocument(
     return { data: null, error: error.message };
   }
 
-  return { data: data as PIBDocument, error: null };
+  return { data: data as unknown as PIBDocument, error: null };
 }
 
 /**
@@ -260,7 +260,7 @@ export async function getPIBDocument(
       customer: data.customers,
       job_order: data.job_orders,
       item_count: count || 0,
-    } as PIBDocumentWithRelations,
+    } as unknown as PIBDocumentWithRelations,
     error: null,
   };
 }
@@ -313,7 +313,7 @@ export async function getPIBDocuments(
       customs_office: doc.customs_offices,
       customer: doc.customers,
       job_order: doc.job_orders,
-    })) as PIBDocumentWithRelations[],
+    })) as unknown as PIBDocumentWithRelations[],
     error: null,
   };
 }
@@ -469,7 +469,7 @@ export async function updatePIBItem(
   if (input.quantity !== undefined || input.unit_price !== undefined ||
       input.bm_rate !== undefined || input.ppn_rate !== undefined || input.pph_rate !== undefined) {
     const quantity = input.quantity ?? item.quantity;
-    const unitPrice = input.unit_price ?? item.unit_price;
+    const unitPrice = input.unit_price ?? item.unit_price ?? 0;
     const bmRate = input.bm_rate ?? item.bm_rate ?? 0;
     const ppnRate = input.ppn_rate ?? item.ppn_rate ?? 11;
     const pphRate = input.pph_rate ?? item.pph_rate ?? 0;
@@ -658,7 +658,7 @@ export async function updatePIBStatus(
   // Log status change (Property 8: Status history completeness)
   await logPIBStatusChange(id, pib.status as PIBStatus, newStatus, data?.notes);
 
-  return { data: updated as PIBDocument, error: null };
+  return { data: updated as unknown as PIBDocument, error: null };
 }
 
 /**
@@ -778,10 +778,10 @@ export async function getPIBStatistics(): Promise<{
 
   const stats: PIBStatistics = {
     active_pibs: allPibs?.filter((p) => 
-      !['completed', 'cancelled'].includes(p.status)
+      !['completed', 'cancelled'].includes(p.status || '')
     ).length || 0,
     pending_clearance: allPibs?.filter((p) => 
-      ['submitted', 'document_check', 'physical_check'].includes(p.status)
+      ['submitted', 'document_check', 'physical_check'].includes(p.status || '')
     ).length || 0,
     in_transit: allPibs?.filter((p) => 
       p.status === 'duties_paid'
@@ -814,7 +814,7 @@ export async function getPIBsByJobOrder(
     return { data: [], error: error.message };
   }
 
-  return { data: data as PIBDocument[], error: null };
+  return { data: data as unknown as PIBDocument[], error: null };
 }
 
 /**

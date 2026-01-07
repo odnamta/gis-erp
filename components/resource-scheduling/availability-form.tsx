@@ -72,7 +72,7 @@ export function AvailabilityForm({
       })
 
       if (result.conflicts.length > 0) {
-        setConflicts(result.conflicts)
+        setConflicts(result.conflicts as any)
         toast.error(`Unavailability set with ${result.conflicts.length} conflict(s)`)
       } else {
         toast.success(`${result.created} day(s) marked as unavailable`)
@@ -158,7 +158,7 @@ export function AvailabilityForm({
                   {conflicts.length} assignment(s) conflict with this unavailability:
                 </p>
                 <ul className="text-sm space-y-1">
-                  {conflicts.map((c, i) => (
+                  {conflicts.map((c: any, i) => (
                     <li key={i}>
                       • {c.task_description || 'Assignment'} ({c.start_date} - {c.end_date})
                     </li>

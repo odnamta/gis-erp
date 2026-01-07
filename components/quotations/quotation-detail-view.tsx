@@ -428,11 +428,11 @@ export function QuotationDetailView({ quotation, userRole, userId }: QuotationDe
               </div>
             )}
 
-            {quotation.complexity_factors && Array.isArray(quotation.complexity_factors) && (quotation.complexity_factors as ComplexityFactor[]).length > 0 && (
+            {quotation.complexity_factors && Array.isArray(quotation.complexity_factors) && (quotation.complexity_factors as unknown as ComplexityFactor[]).length > 0 && (
               <div className="space-y-2">
                 <Label className="text-muted-foreground">Triggered Complexity Factors</Label>
                 <div className="space-y-1">
-                  {(quotation.complexity_factors as ComplexityFactor[]).map((factor, index) => (
+                  {(quotation.complexity_factors as unknown as ComplexityFactor[]).map((factor, index) => (
                     <div key={index} className="flex items-center justify-between text-sm">
                       <span>{factor.criteria_name}</span>
                       <span className="text-muted-foreground">

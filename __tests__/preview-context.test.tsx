@@ -7,8 +7,8 @@ import { PREVIEW_ROLES } from '@/lib/preview-utils'
 import { UserRole } from '@/types/permissions'
 import { ReactNode } from 'react'
 
-const ALL_ROLES: UserRole[] = ['owner', 'director', 'manager', 'sysadmin', 'administration', 'finance', 'marketing', 'ops', 'engineer', 'hr', 'hse']
-const NON_OWNER_ROLES: UserRole[] = ['director', 'manager', 'sysadmin', 'administration', 'finance', 'marketing', 'ops', 'engineer', 'hr', 'hse']
+const ALL_ROLES: UserRole[] = ['owner', 'director', 'marketing_manager', 'finance_manager', 'operations_manager', 'sysadmin', 'administration', 'finance', 'marketing', 'ops', 'engineer', 'hr', 'hse']
+const NON_OWNER_ROLES: UserRole[] = ['director', 'marketing_manager', 'finance_manager', 'operations_manager', 'sysadmin', 'administration', 'finance', 'marketing', 'ops', 'engineer', 'hr', 'hse']
 
 const roleArb = fc.constantFrom(...ALL_ROLES)
 const nonOwnerRoleArb = fc.constantFrom(...NON_OWNER_ROLES)

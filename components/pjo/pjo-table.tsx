@@ -81,13 +81,13 @@ export function PJOTable({ pjos, onDelete, canSeeRevenue = true }: PJOTableProps
                   )}
                 </TableCell>
                 {canSeeRevenue && (
-                  <TableCell className="text-right">{formatIDR(pjo.total_revenue)}</TableCell>
+                  <TableCell className="text-right">{formatIDR(pjo.total_revenue ?? 0)}</TableCell>
                 )}
                 {canSeeRevenue && (
                   <TableCell
-                    className={`text-right ${pjo.profit >= 0 ? 'text-green-600' : 'text-red-600'}`}
+                    className={`text-right ${(pjo.profit ?? 0) >= 0 ? 'text-green-600' : 'text-red-600'}`}
                   >
-                    {formatIDR(pjo.profit)}
+                    {formatIDR(pjo.profit ?? 0)}
                   </TableCell>
                 )}
                 <TableCell>

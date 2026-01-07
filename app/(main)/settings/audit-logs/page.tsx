@@ -2,6 +2,7 @@ import { redirect } from 'next/navigation'
 import { createClient } from '@/lib/supabase/server'
 import { getAuditLogs, getAuditLogFilterOptions } from '@/app/actions/audit-actions'
 import { AuditLogsClient } from './audit-logs-client'
+import { PaginatedAuditLogs } from '@/types/audit'
 
 /**
  * Audit Logs Page - Server Component
@@ -48,9 +49,9 @@ export default async function AuditLogsPage() {
   ])
   
   // Prepare initial data
-  const initialData = logsResult.success && logsResult.data
+  const initialData: PaginatedAuditLogs = logsResult.success && logsResult.data
     ? logsResult.data
-    : { data: [], total: 0, page: 1, page_size: 25, total_pages: 0 }
+    : { data: [], logs: [], total: 0, page: 1, pageSize: 25, totalPages: 0, hasMore: false }
   
   const filterOptions = filterOptionsResult.success && filterOptionsResult.data
     ? filterOptionsResult.data

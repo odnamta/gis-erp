@@ -67,8 +67,8 @@ export async function getShipmentCosts(
 
     if (error) throw error;
 
-    const costs: ShipmentCost[] = (data || []).map((row: ShipmentCostRow & { agency_charge_types?: Record<string, unknown> }) => {
-      const cost = transformCostRow(row);
+    const costs: ShipmentCost[] = ((data || []) as any[]).map((row) => {
+      const cost = transformCostRow(row as ShipmentCostRow);
       
       // Add joined charge type if available
       if (row.agency_charge_types) {
@@ -202,7 +202,7 @@ export async function createShipmentCost(
 
     const { data, error } = await supabase
       .from('shipment_costs')
-      .insert(dbData)
+      .insert(dbData as any)
       .select()
       .single();
 
@@ -311,7 +311,7 @@ export async function updateShipmentCost(
 
     const { data, error } = await supabase
       .from('shipment_costs')
-      .update(updateData)
+      .update(updateData as any)
       .eq('id', id)
       .select()
       .single();
@@ -519,8 +519,8 @@ export async function getShipmentCostsByVendor(
 
     if (error) throw error;
 
-    const costs: ShipmentCost[] = (data || []).map((row: ShipmentCostRow & { agency_charge_types?: Record<string, unknown> }) => {
-      const cost = transformCostRow(row);
+    const costs: ShipmentCost[] = ((data || []) as any[]).map((row) => {
+      const cost = transformCostRow(row as ShipmentCostRow);
       
       if (row.agency_charge_types) {
         cost.chargeType = {
@@ -582,8 +582,8 @@ export async function getUnpaidCostsByBooking(
 
     if (error) throw error;
 
-    const costs: ShipmentCost[] = (data || []).map((row: ShipmentCostRow & { agency_charge_types?: Record<string, unknown> }) => {
-      const cost = transformCostRow(row);
+    const costs: ShipmentCost[] = ((data || []) as any[]).map((row) => {
+      const cost = transformCostRow(row as ShipmentCostRow);
       
       if (row.agency_charge_types) {
         cost.chargeType = {

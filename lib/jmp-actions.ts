@@ -20,6 +20,11 @@ import {
   JmpRow,
   JmpCheckpointRow,
   JmpRiskRow,
+  JmpStatus,
+  RiskCategory,
+  Likelihood,
+  Consequence,
+  RiskLevel,
 } from '@/types/jmp';
 import {
   mapRowToJmp,
@@ -42,7 +47,8 @@ export async function createJmp(data: JmpFormData): Promise<ActionResult<Journey
   try {
     const supabase = await createClient();
     
-    const insertData = {
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const insertData: any = {
       journey_title: data.journeyTitle,
       journey_description: data.journeyDescription || null,
       cargo_description: data.cargoDescription,
@@ -86,13 +92,12 @@ export async function createJmp(data: JmpFormData): Promise<ActionResult<Journey
     if (error) throw error;
 
     revalidatePath('/engineering/jmp');
-    return { success: true, data: mapRowToJmp(result as JmpRow) };
+    return { success: true, data: mapRowToJmp(result as unknown as JmpRow) };
   } catch (error) {
     console.error('Error creating JMP:', error);
     return { success: false, error: 'Failed to create JMP' };
   }
 }
-
 
 /**
  * Update an existing JMP
@@ -151,7 +156,7 @@ export async function updateJmp(
 
     revalidatePath('/engineering/jmp');
     revalidatePath(`/engineering/jmp/${id}`);
-    return { success: true, data: mapRowToJmp(result as JmpRow) };
+    return { success: true, data: mapRowToJmp(result as unknown as JmpRow) };
   } catch (error) {
     console.error('Error updating JMP:', error);
     return { success: false, error: 'Failed to update JMP' };
@@ -209,7 +214,8 @@ export async function createJmpFromSurvey(surveyId: string): Promise<ActionResul
     if (surveyError) throw surveyError;
 
     // Create JMP with pre-populated data
-    const insertData = {
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const insertData: any = {
       route_survey_id: surveyId,
       job_order_id: survey.job_order_id || null,
       project_id: survey.project_id || null,
@@ -235,7 +241,7 @@ export async function createJmpFromSurvey(surveyId: string): Promise<ActionResul
     if (error) throw error;
 
     revalidatePath('/engineering/jmp');
-    return { success: true, data: mapRowToJmp(result as JmpRow) };
+    return { success: true, data: mapRowToJmp(result as unknown as JmpRow) };
   } catch (error) {
     console.error('Error creating JMP from survey:', error);
     return { success: false, error: 'Failed to create JMP from survey' };
@@ -279,27 +285,31 @@ export async function getJmpById(id: string): Promise<JmpWithRelations | null> {
       .select('*')
       .eq('jmp_id', id);
 
-    const jmp = mapRowToJmp(data as JmpRow);
+    const jmp = mapRowToJmp(data as unknown as JmpRow);
     return {
       ...jmp,
-      customer: data.customer,
-      project: data.project,
-      jobOrder: data.jobOrder,
-      routeSurvey: data.routeSurvey,
-      convoyCommander: data.convoyCommander,
-      checkpoints: checkpoints?.map((cp: JmpCheckpointRow) => mapRowToCheckpoint(cp)) || [],
-      risks: risks?.map((r: JmpRiskRow) => ({
+      customer: data.customer || undefined,
+      project: data.project || undefined,
+      jobOrder: data.jobOrder || undefined,
+      routeSurvey: data.routeSurvey || undefined,
+      convoyCommander: data.convoyCommander ? {
+        id: data.convoyCommander.id,
+        full_name: data.convoyCommander.full_name,
+        phone: data.convoyCommander.phone || undefined,
+      } : undefined,
+      checkpoints: checkpoints?.map((cp) => mapRowToCheckpoint(cp as unknown as JmpCheckpointRow)) || [],
+      risks: risks?.map((r) => ({
         id: r.id,
         jmpId: r.jmp_id,
-        riskCategory: r.risk_category,
+        riskCategory: r.risk_category as RiskCategory,
         riskDescription: r.risk_description,
-        likelihood: r.likelihood,
-        consequence: r.consequence,
-        riskLevel: r.risk_level,
+        likelihood: r.likelihood as Likelihood,
+        consequence: r.consequence as Consequence,
+        riskLevel: r.risk_level as RiskLevel,
         controlMeasures: r.control_measures,
-        residualRiskLevel: r.residual_risk_level || undefined,
+        residualRiskLevel: (r.residual_risk_level as RiskLevel) || undefined,
         responsible: r.responsible || undefined,
-        createdAt: r.created_at,
+        createdAt: r.created_at || '',
       })) || [],
     };
   } catch (error) {
@@ -350,12 +360,12 @@ export async function getJmpList(filters: JmpFilters): Promise<JmpWithRelations[
 
     if (error) throw error;
 
-    return (data || []).map((row: JmpRow & { customer?: { id: string; name: string }; project?: { id: string; name: string }; jobOrder?: { id: string; jo_number: string }; convoyCommander?: { id: string; full_name: string } }) => ({
-      ...mapRowToJmp(row),
-      customer: row.customer,
-      project: row.project,
-      jobOrder: row.jobOrder,
-      convoyCommander: row.convoyCommander,
+    return (data || []).map((row) => ({
+      ...mapRowToJmp(row as unknown as JmpRow),
+      customer: row.customer || undefined,
+      project: row.project || undefined,
+      jobOrder: row.jobOrder || undefined,
+      convoyCommander: row.convoyCommander || undefined,
     }));
   } catch (error) {
     console.error('Error fetching JMP list:', error);
@@ -384,7 +394,7 @@ export async function getActiveJourneys(): Promise<JmpWithRelations[]> {
 
     // Fetch checkpoints for each JMP
     const jmps = await Promise.all(
-      (data || []).map(async (row: JmpRow & { customer?: { id: string; name: string }; convoyCommander?: { id: string; full_name: string; phone?: string } }) => {
+      (data || []).map(async (row) => {
         const { data: checkpoints } = await supabase
           .from('jmp_checkpoints')
           .select('*')
@@ -392,10 +402,14 @@ export async function getActiveJourneys(): Promise<JmpWithRelations[]> {
           .order('checkpoint_order');
 
         return {
-          ...mapRowToJmp(row),
-          customer: row.customer,
-          convoyCommander: row.convoyCommander,
-          checkpoints: checkpoints?.map((cp: JmpCheckpointRow) => mapRowToCheckpoint(cp)) || [],
+          ...mapRowToJmp(row as unknown as JmpRow),
+          customer: row.customer || undefined,
+          convoyCommander: row.convoyCommander ? {
+            id: row.convoyCommander.id,
+            full_name: row.convoyCommander.full_name,
+            phone: row.convoyCommander.phone || undefined,
+          } : undefined,
+          checkpoints: checkpoints?.map((cp) => mapRowToCheckpoint(cp as unknown as JmpCheckpointRow)) || [],
         };
       })
     );
@@ -428,8 +442,8 @@ export async function getJmpStatusCounts(): Promise<JmpStatusCounts> {
       completed: 0,
     };
 
-    (data || []).forEach((row: { status: string }) => {
-      if (row.status in counts) {
+    (data || []).forEach((row) => {
+      if (row.status && row.status in counts) {
         counts[row.status as keyof JmpStatusCounts]++;
       }
     });
@@ -461,7 +475,7 @@ export async function submitJmpForReview(
 
     if (fetchError) throw fetchError;
     
-    if (!isValidStatusTransition(jmp.status, 'pending_review')) {
+    if (!isValidStatusTransition(jmp.status as JmpStatus, 'pending_review')) {
       return { success: false, error: `Cannot submit JMP from ${jmp.status} status` };
     }
 
@@ -481,7 +495,7 @@ export async function submitJmpForReview(
 
     revalidatePath('/engineering/jmp');
     revalidatePath(`/engineering/jmp/${id}`);
-    return { success: true, data: mapRowToJmp(result as JmpRow) };
+    return { success: true, data: mapRowToJmp(result as unknown as JmpRow) };
   } catch (error) {
     console.error('Error submitting JMP for review:', error);
     return { success: false, error: 'Failed to submit JMP for review' };
@@ -507,7 +521,7 @@ export async function approveJmp(
 
     if (fetchError) throw fetchError;
     
-    if (!isValidStatusTransition(jmp.status, 'approved')) {
+    if (!isValidStatusTransition(jmp.status as JmpStatus, 'approved')) {
       return { success: false, error: `Cannot approve JMP from ${jmp.status} status` };
     }
 
@@ -531,7 +545,7 @@ export async function approveJmp(
 
     revalidatePath('/engineering/jmp');
     revalidatePath(`/engineering/jmp/${id}`);
-    return { success: true, data: mapRowToJmp(result as JmpRow) };
+    return { success: true, data: mapRowToJmp(result as unknown as JmpRow) };
   } catch (error) {
     console.error('Error approving JMP:', error);
     return { success: false, error: 'Failed to approve JMP' };
@@ -557,7 +571,7 @@ export async function rejectJmp(
 
     if (fetchError) throw fetchError;
     
-    if (!isValidStatusTransition(jmp.status, 'draft')) {
+    if (!isValidStatusTransition(jmp.status as JmpStatus, 'draft')) {
       return { success: false, error: `Cannot reject JMP from ${jmp.status} status` };
     }
 
@@ -576,7 +590,7 @@ export async function rejectJmp(
 
     revalidatePath('/engineering/jmp');
     revalidatePath(`/engineering/jmp/${id}`);
-    return { success: true, data: mapRowToJmp(result as JmpRow) };
+    return { success: true, data: mapRowToJmp(result as unknown as JmpRow) };
   } catch (error) {
     console.error('Error rejecting JMP:', error);
     return { success: false, error: 'Failed to reject JMP' };
@@ -599,7 +613,7 @@ export async function startJourney(id: string): Promise<ActionResult<JourneyMana
 
     if (fetchError) throw fetchError;
     
-    if (!isValidStatusTransition(jmp.status, 'active')) {
+    if (!isValidStatusTransition(jmp.status as JmpStatus, 'active')) {
       return { success: false, error: `Cannot start journey from ${jmp.status} status` };
     }
 
@@ -619,7 +633,7 @@ export async function startJourney(id: string): Promise<ActionResult<JourneyMana
     revalidatePath('/engineering/jmp');
     revalidatePath('/engineering/jmp/active');
     revalidatePath(`/engineering/jmp/${id}`);
-    return { success: true, data: mapRowToJmp(result as JmpRow) };
+    return { success: true, data: mapRowToJmp(result as unknown as JmpRow) };
   } catch (error) {
     console.error('Error starting journey:', error);
     return { success: false, error: 'Failed to start journey' };
@@ -645,7 +659,7 @@ export async function completeJourney(
 
     if (fetchError) throw fetchError;
     
-    if (!isValidStatusTransition(jmp.status, 'completed')) {
+    if (!isValidStatusTransition(jmp.status as JmpStatus, 'completed')) {
       return { success: false, error: `Cannot complete journey from ${jmp.status} status` };
     }
 
@@ -674,7 +688,7 @@ export async function completeJourney(
     revalidatePath('/engineering/jmp');
     revalidatePath('/engineering/jmp/active');
     revalidatePath(`/engineering/jmp/${id}`);
-    return { success: true, data: mapRowToJmp(result as JmpRow) };
+    return { success: true, data: mapRowToJmp(result as unknown as JmpRow) };
   } catch (error) {
     console.error('Error completing journey:', error);
     return { success: false, error: 'Failed to complete journey' };
@@ -700,7 +714,7 @@ export async function cancelJourney(
 
     if (fetchError) throw fetchError;
     
-    if (!isValidStatusTransition(jmp.status, 'cancelled')) {
+    if (!isValidStatusTransition(jmp.status as JmpStatus, 'cancelled')) {
       return { success: false, error: `Cannot cancel journey from ${jmp.status} status` };
     }
 
@@ -720,7 +734,7 @@ export async function cancelJourney(
     revalidatePath('/engineering/jmp');
     revalidatePath('/engineering/jmp/active');
     revalidatePath(`/engineering/jmp/${id}`);
-    return { success: true, data: mapRowToJmp(result as JmpRow) };
+    return { success: true, data: mapRowToJmp(result as unknown as JmpRow) };
   } catch (error) {
     console.error('Error cancelling journey:', error);
     return { success: false, error: 'Failed to cancel journey' };
@@ -777,7 +791,7 @@ export async function addCheckpoint(
     if (error) throw error;
 
     revalidatePath(`/engineering/jmp/${jmpId}`);
-    return { success: true, data: mapRowToCheckpoint(result as JmpCheckpointRow) };
+    return { success: true, data: mapRowToCheckpoint(result as unknown as JmpCheckpointRow) };
   } catch (error) {
     console.error('Error adding checkpoint:', error);
     return { success: false, error: 'Failed to add checkpoint' };
@@ -817,7 +831,7 @@ export async function updateCheckpoint(
     if (error) throw error;
 
     revalidatePath(`/engineering/jmp`);
-    return { success: true, data: mapRowToCheckpoint(result as JmpCheckpointRow) };
+    return { success: true, data: mapRowToCheckpoint(result as unknown as JmpCheckpointRow) };
   } catch (error) {
     console.error('Error updating checkpoint:', error);
     return { success: false, error: 'Failed to update checkpoint' };
@@ -870,7 +884,7 @@ export async function markCheckpointArrival(
 
     revalidatePath('/engineering/jmp');
     revalidatePath('/engineering/jmp/active');
-    return { success: true, data: mapRowToCheckpoint(result as JmpCheckpointRow) };
+    return { success: true, data: mapRowToCheckpoint(result as unknown as JmpCheckpointRow) };
   } catch (error) {
     console.error('Error marking checkpoint arrival:', error);
     return { success: false, error: 'Failed to mark checkpoint arrival' };
@@ -901,7 +915,7 @@ export async function markCheckpointDeparture(
 
     revalidatePath('/engineering/jmp');
     revalidatePath('/engineering/jmp/active');
-    return { success: true, data: mapRowToCheckpoint(result as JmpCheckpointRow) };
+    return { success: true, data: mapRowToCheckpoint(result as unknown as JmpCheckpointRow) };
   } catch (error) {
     console.error('Error marking checkpoint departure:', error);
     return { success: false, error: 'Failed to mark checkpoint departure' };
@@ -952,15 +966,15 @@ export async function addRisk(
       data: {
         id: result.id,
         jmpId: result.jmp_id,
-        riskCategory: result.risk_category,
+        riskCategory: result.risk_category as RiskCategory,
         riskDescription: result.risk_description,
-        likelihood: result.likelihood,
-        consequence: result.consequence,
-        riskLevel: result.risk_level,
+        likelihood: result.likelihood as Likelihood,
+        consequence: result.consequence as Consequence,
+        riskLevel: result.risk_level as RiskLevel,
         controlMeasures: result.control_measures,
-        residualRiskLevel: result.residual_risk_level || undefined,
+        residualRiskLevel: (result.residual_risk_level as RiskLevel) || undefined,
         responsible: result.responsible || undefined,
-        createdAt: result.created_at,
+        createdAt: result.created_at || '',
       },
     };
   } catch (error) {
@@ -998,8 +1012,8 @@ export async function updateRisk(
         .single();
 
       if (existing) {
-        const likelihood = data.likelihood || existing.likelihood;
-        const consequence = data.consequence || existing.consequence;
+        const likelihood = data.likelihood || (existing.likelihood as Likelihood);
+        const consequence = data.consequence || (existing.consequence as Consequence);
         updateData.risk_level = calculateRiskLevel(likelihood, consequence);
       }
     }
@@ -1019,15 +1033,15 @@ export async function updateRisk(
       data: {
         id: result.id,
         jmpId: result.jmp_id,
-        riskCategory: result.risk_category,
+        riskCategory: result.risk_category as RiskCategory,
         riskDescription: result.risk_description,
-        likelihood: result.likelihood,
-        consequence: result.consequence,
-        riskLevel: result.risk_level,
+        likelihood: result.likelihood as Likelihood,
+        consequence: result.consequence as Consequence,
+        riskLevel: result.risk_level as RiskLevel,
         controlMeasures: result.control_measures,
-        residualRiskLevel: result.residual_risk_level || undefined,
+        residualRiskLevel: (result.residual_risk_level as RiskLevel) || undefined,
         responsible: result.responsible || undefined,
-        createdAt: result.created_at,
+        createdAt: result.created_at || '',
       },
     };
   } catch (error) {
@@ -1093,7 +1107,11 @@ export async function getEmployeesForSelection(): Promise<{ id: string; full_nam
       .order('full_name');
 
     if (error) throw error;
-    return data || [];
+    return (data || []).map(emp => ({
+      id: emp.id,
+      full_name: emp.full_name,
+      phone: emp.phone || undefined,
+    }));
   } catch (error) {
     console.error('Error fetching employees:', error);
     return [];

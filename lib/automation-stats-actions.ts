@@ -254,10 +254,10 @@ export async function getRecentFailures(
       return { data: null, error: error.message };
     }
 
-    const result = (logs || []).map(log => ({
+    const result = ((logs || []) as any[]).map(log => ({
       id: log.id,
-      endpointId: log.endpoint_id,
-      executionId: log.execution_id,
+      endpointId: log.endpoint_id || '',
+      executionId: log.execution_id || '',
       errorMessage: log.error_message || 'Unknown error',
       triggeredAt: log.triggered_at,
     }));

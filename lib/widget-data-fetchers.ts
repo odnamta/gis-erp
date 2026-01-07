@@ -204,6 +204,7 @@ export async function getRevenueTrend(): Promise<ChartData> {
   }
   
   invoices?.forEach(inv => {
+    if (!inv.created_at) return;
     const date = new Date(inv.created_at);
     const key = `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, '0')}`;
     if (key in monthlyRevenue) {
@@ -382,7 +383,7 @@ export async function getPendingAssessments(): Promise<ListData> {
       subtitle: `${(q.customer as { name: string })?.name || 'Unknown'} - Complexity: ${q.complexity_score || 0}`,
       status: 'engineering_review',
       href: `/quotations/${q.id}`,
-      timestamp: q.created_at,
+      timestamp: q.created_at || undefined,
     })),
     totalCount: quotations?.length || 0,
   };
@@ -573,8 +574,8 @@ export async function getPendingLeave(): Promise<ListData> {
     .from('leave_requests')
     .select(`
       id,
-      employee:employees(full_name),
-      leave_type:leave_types(type_name),
+      employee_id,
+      leave_type_id,
       start_date,
       end_date,
       status
@@ -583,14 +584,20 @@ export async function getPendingLeave(): Promise<ListData> {
     .order('created_at', { ascending: false })
     .limit(10);
   
+  // Fetch employee names separately to avoid ambiguous relation
+  const employeeIds = leaves?.map(l => l.employee_id).filter(Boolean) || [];
+  const { data: employees } = employeeIds.length > 0 
+    ? await supabase.from('employees').select('id, full_name').in('id', employeeIds)
+    : { data: [] };
+  
+  const employeeMap = new Map((employees || []).map(e => [e.id, e.full_name]));
+  
   return {
     items: (leaves || []).map(leave => {
-      const employee = leave.employee as { full_name: string } | null;
-      const leaveType = leave.leave_type as { type_name: string } | null;
       return {
         id: leave.id,
-        title: employee?.full_name || 'Employee',
-        subtitle: `${leaveType?.type_name || 'Leave'} - ${leave.start_date} to ${leave.end_date}`,
+        title: employeeMap.get(leave.employee_id) || 'Employee',
+        subtitle: `Leave - ${leave.start_date} to ${leave.end_date}`,
         status: leave.status || 'pending',
         href: `/hr/leave/${leave.id}`,
       };

@@ -12,6 +12,7 @@ import {
 import { createClient } from '@/lib/supabase/server';
 import { canCreateEmployee, canEditEmployeeSalary } from '@/lib/permissions';
 import { generateEmployeeCode } from '@/lib/employee-utils';
+import { UserProfile } from '@/types/permissions';
 
 export default async function NewEmployeePage() {
   // Get current user profile for permissions
@@ -22,11 +23,13 @@ export default async function NewEmployeePage() {
     redirect('/login');
   }
 
-  const { data: userProfile } = await supabase
+  const { data: userProfileData } = await supabase
     .from('user_profiles')
     .select('*')
     .eq('user_id', user.id)
     .single();
+
+  const userProfile = userProfileData as unknown as UserProfile | null;
 
   // Check permission
   if (!canCreateEmployee(userProfile)) {

@@ -291,7 +291,9 @@ export async function getFrequentHSCodesAction(
     // Count frequency
     const frequency: Record<string, number> = {};
     for (const { selected_hs_code } of history) {
-      frequency[selected_hs_code] = (frequency[selected_hs_code] || 0) + 1;
+      if (selected_hs_code) {
+        frequency[selected_hs_code] = (frequency[selected_hs_code] || 0) + 1;
+      }
     }
     
     // Get top codes
@@ -324,7 +326,7 @@ export async function getFrequentHSCodesAction(
     }
     
     // Sort by frequency
-    const codeMap = new Map(hsCodes.map((row: HSCodeRow) => [row.hs_code, transformHSCode(row)]));
+    const codeMap = new Map((hsCodes as any[]).map((row: HSCodeRow) => [row.hs_code, transformHSCode(row)]));
     const sortedCodes = topCodes
       .map(code => codeMap.get(code))
       .filter((code): code is HSCode => code !== undefined);

@@ -120,7 +120,7 @@ export function ConversionStatus({ pjoId, pjoStatus, isConverted, jobOrderId }: 
       </CardHeader>
       <CardContent className="space-y-4">
         {/* Blockers */}
-        {!readiness.ready && readiness.blockers.length > 0 && (
+        {!readiness.ready && readiness.blockers && readiness.blockers.length > 0 && (
           <Alert variant="destructive">
             <AlertDescription>
               <ul className="list-disc list-inside space-y-1">
@@ -133,39 +133,30 @@ export function ConversionStatus({ pjoId, pjoStatus, isConverted, jobOrderId }: 
         )}
 
         {/* Summary */}
-        {readiness.ready && (
+        {readiness.ready && readiness.summary && (
           <>
             <div className="grid grid-cols-2 md:grid-cols-4 gap-4 text-sm">
               <div>
                 <p className="text-muted-foreground">Final Revenue</p>
-                <p className="font-semibold">{formatIDR(readiness.summary.total_revenue)}</p>
+                <p className="font-semibold">{formatIDR(readiness.summary.totalRevenue)}</p>
               </div>
               <div>
                 <p className="text-muted-foreground">Final Cost</p>
-                <p className="font-semibold">{formatIDR(readiness.summary.total_cost)}</p>
+                <p className="font-semibold">{formatIDR(readiness.summary.totalCost)}</p>
               </div>
               <div>
                 <p className="text-muted-foreground">Final Profit</p>
-                <p className={`font-semibold ${readiness.summary.profit >= 0 ? 'text-green-600' : 'text-red-600'}`}>
-                  {formatIDR(readiness.summary.profit)}
+                <p className={`font-semibold ${readiness.summary.estimatedProfit >= 0 ? 'text-green-600' : 'text-red-600'}`}>
+                  {formatIDR(readiness.summary.estimatedProfit)}
                 </p>
               </div>
               <div>
                 <p className="text-muted-foreground">Final Margin</p>
-                <p className={`font-semibold ${readiness.summary.margin >= 0 ? 'text-green-600' : 'text-red-600'}`}>
-                  {readiness.summary.margin.toFixed(1)}%
+                <p className={`font-semibold ${readiness.summary.profitMargin >= 0 ? 'text-green-600' : 'text-red-600'}`}>
+                  {readiness.summary.profitMargin.toFixed(1)}%
                 </p>
               </div>
             </div>
-
-            {readiness.summary.has_overruns && (
-              <Alert>
-                <AlertTriangle className="h-4 w-4" />
-                <AlertDescription>
-                  Some cost items exceeded their budget. Review justifications before converting.
-                </AlertDescription>
-              </Alert>
-            )}
 
             <Button onClick={handleConvert} disabled={isConverting} className="w-full">
               {isConverting ? (

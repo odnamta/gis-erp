@@ -72,10 +72,10 @@ async function createExecutionLog(
         endpoint_id: endpointId,
         execution_id: executionId,
         trigger_type: triggerType,
-        trigger_data: triggerData,
+        trigger_data: triggerData as unknown as never,
         status: 'running',
         triggered_at: new Date().toISOString(),
-      })
+      } as never)
       .select()
       .single();
 
@@ -112,7 +112,7 @@ async function updateExecutionLog(
       .from('automation_logs')
       .update({
         status,
-        result_data: resultData || null,
+        result_data: (resultData || null) as unknown as never,
         error_message: errorMessage || null,
         completed_at: completedAt,
         execution_time_ms: executionTimeMs,

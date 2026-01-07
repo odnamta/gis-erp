@@ -48,7 +48,7 @@ export async function softDeleteWithRecovery(
 
   // Fetch the record to be deleted
   const { data: record, error: fetchError } = await supabase
-    .from(table)
+    .from(table as any)
     .select('*')
     .eq('id', id)
     .single();
@@ -65,7 +65,7 @@ export async function softDeleteWithRecovery(
     source_id: id,
     record_data: record,
     purge_after: calculatePurgeDate(now),
-  });
+  } as any);
 
   if (insertError) {
     throw new Error(`Failed to store deleted record: ${insertError.message}`);
@@ -73,7 +73,7 @@ export async function softDeleteWithRecovery(
 
   // Set is_active=false on the original record
   const { error: updateError } = await supabase
-    .from(table)
+    .from(table as any)
     .update({ is_active: false })
     .eq('id', id);
 
@@ -112,7 +112,7 @@ export async function recoverDeletedRecord(
   // Restore the record with is_active=true
   const recordData = deletedRecord.record_data as Record<string, unknown>;
   const { error: restoreError } = await supabase
-    .from(table)
+    .from(table as any)
     .update({ ...recordData, is_active: true })
     .eq('id', sourceId);
 
@@ -126,7 +126,7 @@ export async function recoverDeletedRecord(
     .update({
       recovered_at: now,
       recovered_by: userId,
-    })
+    } as any)
     .eq('id', deletedRecord.id);
 
   if (updateError) {
@@ -301,7 +301,7 @@ export async function getRecoveryStatistics(): Promise<{
   const total_deleted = records.length;
   const total_recovered = records.filter((r) => r.recovered_at !== null).length;
   const pending_purge = records.filter(
-    (r) => r.recovered_at === null && r.purge_after < today
+    (r) => r.recovered_at === null && r.purge_after && r.purge_after < today
   ).length;
 
   return {

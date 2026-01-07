@@ -1,6 +1,7 @@
 import { redirect } from 'next/navigation'
 import { createClient } from '@/lib/supabase/server'
 import { canViewEmployees } from '@/lib/permissions'
+import { UserProfile } from '@/types/permissions'
 
 export default async function HRLayout({
   children,
@@ -27,7 +28,7 @@ export default async function HRLayout({
   }
 
   // Check if user can access HR module
-  if (!canViewEmployees(profile)) {
+  if (!canViewEmployees(profile as unknown as UserProfile)) {
     redirect('/dashboard')
   }
 

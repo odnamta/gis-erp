@@ -4,7 +4,7 @@ import Link from 'next/link'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { Skeleton } from '@/components/ui/skeleton'
 import { AlertTriangle, CheckCircle, ArrowRight } from 'lucide-react'
-import { BudgetAlert } from '@/types/database'
+import { BudgetAlert } from '@/types'
 import { formatIDR } from '@/lib/pjo-utils'
 import { COST_CATEGORY_LABELS } from '@/lib/pjo-utils'
 

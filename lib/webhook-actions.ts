@@ -63,13 +63,13 @@ export async function registerWebhookEndpoint(
         trigger_type: input.triggerType,
         trigger_table: input.triggerTable || null,
         trigger_event: input.triggerEvent || null,
-        trigger_conditions: input.triggerConditions || null,
+        trigger_conditions: input.triggerConditions as unknown as never || null,
         cron_expression: input.cronExpression || null,
         n8n_workflow_id: input.n8nWorkflowId || null,
         n8n_workflow_name: input.n8nWorkflowName || null,
         requires_auth: input.requiresAuth ?? true,
         allowed_ips: input.allowedIps || [],
-      })
+      } as never)
       .select()
       .single();
 

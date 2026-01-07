@@ -119,16 +119,16 @@ export function MaintenanceDetailClient({ recordId }: MaintenanceDetailClientPro
           <CardContent className="space-y-3">
             <div className="flex justify-between">
               <span className="text-muted-foreground">Asset Code</span>
-              <span className="font-medium">{record.asset?.assetCode}</span>
+              <span className="font-medium">{record.asset?.asset_code}</span>
             </div>
             <div className="flex justify-between">
               <span className="text-muted-foreground">Asset Name</span>
-              <span className="font-medium">{record.asset?.assetName}</span>
+              <span className="font-medium">{record.asset?.asset_name}</span>
             </div>
-            {record.asset?.registrationNumber && (
+            {record.asset?.registration_number && (
               <div className="flex justify-between">
                 <span className="text-muted-foreground">Registration</span>
-                <span className="font-medium">{record.asset.registrationNumber}</span>
+                <span className="font-medium">{record.asset.registration_number}</span>
               </div>
             )}
           </CardContent>

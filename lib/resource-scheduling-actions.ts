@@ -27,6 +27,10 @@ import {
   ConflictResult,
   DateRange,
   RESOURCE_TYPE_PREFIXES,
+  ResourceType,
+  AssignmentStatus,
+  Certification,
+  UnavailabilityType,
 } from '@/types/resource-scheduling';
 import {
   validateResourceInput,
@@ -44,6 +48,58 @@ import {
 // =====================================================
 // RESOURCE ACTIONS
 // =====================================================
+
+// Helper to map database row to EngineeringResource
+function mapRowToResource(row: Record<string, unknown>): EngineeringResource {
+  return {
+    id: row.id as string,
+    resource_type: row.resource_type as ResourceType,
+    resource_code: row.resource_code as string,
+    resource_name: row.resource_name as string,
+    description: (row.description as string) || undefined,
+    employee_id: (row.employee_id as string) || undefined,
+    asset_id: (row.asset_id as string) || undefined,
+    skills: (row.skills as string[]) || [],
+    certifications: (row.certifications as Certification[]) || [],
+    capacity_unit: (row.capacity_unit as 'hours' | 'days') || undefined,
+    daily_capacity: (row.daily_capacity as number) || 0,
+    hourly_rate: (row.hourly_rate as number) || undefined,
+    daily_rate: (row.daily_rate as number) || undefined,
+    is_available: row.is_available as boolean,
+    unavailable_reason: (row.unavailable_reason as string) || undefined,
+    unavailable_until: (row.unavailable_until as string) || undefined,
+    base_location: (row.base_location as string) || undefined,
+    is_active: row.is_active as boolean,
+    created_at: row.created_at as string,
+    updated_at: row.updated_at as string,
+  };
+}
+
+// Helper to map database row to ResourceAssignment
+function mapRowToAssignment(row: Record<string, unknown>): ResourceAssignment {
+  return {
+    id: row.id as string,
+    resource_id: row.resource_id as string,
+    project_id: (row.project_id as string) || undefined,
+    job_order_id: (row.job_order_id as string) || undefined,
+    assessment_id: (row.assessment_id as string) || undefined,
+    route_survey_id: (row.route_survey_id as string) || undefined,
+    jmp_id: (row.jmp_id as string) || undefined,
+    task_description: (row.task_description as string) || undefined,
+    start_date: row.start_date as string,
+    end_date: row.end_date as string,
+    start_time: (row.start_time as string) || undefined,
+    end_time: (row.end_time as string) || undefined,
+    planned_hours: (row.planned_hours as number) || undefined,
+    actual_hours: (row.actual_hours as number) || undefined,
+    work_location: (row.work_location as string) || undefined,
+    status: row.status as AssignmentStatus,
+    notes: (row.notes as string) || undefined,
+    assigned_by: (row.assigned_by as string) || undefined,
+    created_at: row.created_at as string,
+    updated_at: row.updated_at as string,
+  };
+}
 
 export async function getResources(filters?: ResourceFilters): Promise<EngineeringResource[]> {
   const supabase = await createClient();
@@ -73,7 +129,7 @@ export async function getResources(filters?: ResourceFilters): Promise<Engineeri
     throw new Error('Failed to fetch resources');
   }
 
-  let resources = data || [];
+  let resources = (data || []).map(row => mapRowToResource(row as Record<string, unknown>));
 
   // Filter by skills (client-side since JSONB contains)
   if (filters?.skills && filters.skills.length > 0) {
@@ -93,7 +149,7 @@ export async function getResourceById(id: string): Promise<ResourceWithDetails |
     .from('engineering_resources')
     .select(`
       *,
-      employees:employee_id (id, full_name, position),
+      employees:employee_id (id, full_name),
       assets:asset_id (id, asset_code, asset_name)
     `)
     .eq('id', id)
@@ -114,11 +170,22 @@ export async function getResourceById(id: string): Promise<ResourceWithDetails |
     .gte('end_date', formatDateString(new Date()))
     .order('start_date');
 
+  const resource = mapRowToResource(data as Record<string, unknown>);
+  
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const employeeData = (data as any).employees;
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const assetData = (data as any).assets;
+  
   return {
-    ...data,
-    employee: data.employees,
-    asset: data.assets,
-    current_assignments: assignments || []
+    ...resource,
+    employee: employeeData ? {
+      id: employeeData.id,
+      full_name: employeeData.full_name,
+      position: employeeData.position || undefined,
+    } : undefined,
+    asset: assetData || undefined,
+    current_assignments: (assignments || []).map(a => mapRowToAssignment(a as Record<string, unknown>))
   };
 }
 
@@ -161,7 +228,7 @@ export async function createResource(input: ResourceInput): Promise<EngineeringR
       employee_id: input.employee_id,
       asset_id: input.asset_id,
       skills: input.skills || [],
-      certifications: input.certifications || [],
+      certifications: input.certifications as unknown as never || [],
       capacity_unit: input.capacity_unit || 'hours',
       daily_capacity: input.daily_capacity || 8,
       hourly_rate: input.hourly_rate,
@@ -170,7 +237,7 @@ export async function createResource(input: ResourceInput): Promise<EngineeringR
       is_available: input.is_available ?? true,
       unavailable_reason: input.unavailable_reason,
       unavailable_until: input.unavailable_until
-    })
+    } as never)
     .select()
     .single();
 
@@ -180,7 +247,7 @@ export async function createResource(input: ResourceInput): Promise<EngineeringR
   }
 
   revalidatePath('/engineering/resources');
-  return data;
+  return mapRowToResource(data as Record<string, unknown>);
 }
 
 export async function updateResource(id: string, input: ResourceInput): Promise<EngineeringResource> {
@@ -200,7 +267,7 @@ export async function updateResource(id: string, input: ResourceInput): Promise<
       employee_id: input.employee_id,
       asset_id: input.asset_id,
       skills: input.skills || [],
-      certifications: input.certifications || [],
+      certifications: input.certifications as unknown as never,
       capacity_unit: input.capacity_unit,
       daily_capacity: input.daily_capacity,
       hourly_rate: input.hourly_rate,
@@ -222,7 +289,7 @@ export async function updateResource(id: string, input: ResourceInput): Promise<
 
   revalidatePath('/engineering/resources');
   revalidatePath(`/engineering/resources/${id}`);
-  return data;
+  return mapRowToResource(data as Record<string, unknown>);
 }
 
 export async function deleteResource(id: string): Promise<void> {
@@ -289,15 +356,22 @@ export async function getAssignments(filters?: AssignmentFilters): Promise<Assig
     throw new Error('Failed to fetch assignments');
   }
 
-  return (data || []).map(a => ({
-    ...a,
-    resource: a.engineering_resources,
-    project: a.projects,
-    job_order: a.job_orders,
-    assessment: a.technical_assessments,
-    route_survey: a.route_surveys,
-    jmp: a.journey_management_plans
-  }));
+  return (data || []).map(a => {
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const row = a as any;
+    const assignment = mapRowToAssignment(row as Record<string, unknown>);
+    return {
+      ...assignment,
+      resource: row.engineering_resources ? {
+        ...mapRowToResource(row.engineering_resources as Record<string, unknown>),
+      } : undefined,
+      project: row.projects || undefined,
+      job_order: row.job_orders || undefined,
+      assessment: row.technical_assessments || undefined,
+      route_survey: row.route_surveys || undefined,
+      jmp: row.journey_management_plans || undefined,
+    } as AssignmentWithDetails;
+  });
 }
 
 export async function getAssignmentById(id: string): Promise<AssignmentWithDetails | null> {
@@ -324,15 +398,22 @@ export async function getAssignmentById(id: string): Promise<AssignmentWithDetai
     throw new Error('Failed to fetch assignment');
   }
 
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const row = data as any;
+  const assignment = mapRowToAssignment(row as Record<string, unknown>);
+  
   return {
-    ...data,
-    resource: data.engineering_resources,
-    project: data.projects,
-    job_order: data.job_orders,
-    assessment: data.technical_assessments,
-    route_survey: data.route_surveys,
-    jmp: data.journey_management_plans,
-    assigned_by_user: data.user_profiles
+    ...assignment,
+    resource: row.engineering_resources ? mapRowToResource(row.engineering_resources as Record<string, unknown>) : undefined,
+    project: row.projects || undefined,
+    job_order: row.job_orders || undefined,
+    assessment: row.technical_assessments || undefined,
+    route_survey: row.route_surveys || undefined,
+    jmp: row.journey_management_plans || undefined,
+    assigned_by_user: row.user_profiles ? {
+      id: row.user_profiles.id,
+      full_name: row.user_profiles.full_name || '',
+    } : undefined,
   };
 }
 
@@ -377,17 +458,17 @@ export async function createAssignment(
     input.resource_id,
     input.start_date,
     input.end_date,
-    existingAssignments || [],
-    unavailability || []
+    (existingAssignments || []) as unknown as ResourceAssignment[],
+    (unavailability || []) as unknown as ResourceAvailability[]
   );
 
   if (conflicts.has_conflict && !forceCreate) {
-    return { assignment: null, conflicts };
+    return { assignment: null as unknown as ResourceAssignment, conflicts };
   }
 
   // Calculate planned hours if not provided
   const plannedHours = input.planned_hours ?? 
-    calculatePlannedHours(input.start_date, input.end_date, resource.daily_capacity);
+    calculatePlannedHours(input.start_date, input.end_date, resource.daily_capacity ?? 8);
 
   // Map target type to column
   const targetColumn = input.target_type === 'job_order' ? 'job_order_id' :
@@ -420,7 +501,7 @@ export async function createAssignment(
   }
 
   revalidatePath('/engineering/resources');
-  return { assignment: data, conflicts: conflicts.has_conflict ? conflicts : undefined };
+  return { assignment: mapRowToAssignment(data as Record<string, unknown>), conflicts: conflicts.has_conflict ? conflicts : undefined };
 }
 
 export async function updateAssignment(id: string, input: AssignmentInput): Promise<ResourceAssignment> {
@@ -469,7 +550,7 @@ export async function updateAssignment(id: string, input: AssignmentInput): Prom
   }
 
   revalidatePath('/engineering/resources');
-  return data;
+  return mapRowToAssignment(data as Record<string, unknown>);
 }
 
 export async function deleteAssignment(id: string): Promise<void> {
@@ -507,7 +588,7 @@ export async function updateAssignmentStatus(
   }
 
   revalidatePath('/engineering/resources');
-  return data;
+  return mapRowToAssignment(data as Record<string, unknown>);
 }
 
 export async function recordActualHours(id: string, actualHours: number): Promise<ResourceAssignment> {
@@ -526,7 +607,7 @@ export async function recordActualHours(id: string, actualHours: number): Promis
   }
 
   revalidatePath('/engineering/resources');
-  return data;
+  return mapRowToAssignment(data as Record<string, unknown>);
 }
 
 
@@ -553,7 +634,7 @@ export async function getAvailability(
     throw new Error('Failed to fetch availability');
   }
 
-  return data || [];
+  return (data || []) as unknown as ResourceAvailability[];
 }
 
 export async function setUnavailability(input: UnavailabilityInput): Promise<{ 
@@ -581,7 +662,7 @@ export async function setUnavailability(input: UnavailabilityInput): Promise<{
       const end = new Date(a.end_date);
       return d >= start && d <= end;
     });
-  });
+  }) as unknown as ResourceAssignment[];
 
   // Upsert unavailability records
   const records = input.dates.map(date => ({
@@ -642,7 +723,7 @@ export async function getSkills(): Promise<ResourceSkill[]> {
     throw new Error('Failed to fetch skills');
   }
 
-  return data || [];
+  return (data || []) as unknown as ResourceSkill[];
 }
 
 export async function createSkill(input: { 
@@ -667,7 +748,7 @@ export async function createSkill(input: {
     throw new Error('Failed to create skill');
   }
 
-  return data;
+  return data as unknown as ResourceSkill;
 }
 
 // =====================================================
@@ -708,7 +789,7 @@ export async function getCalendarData(
   // Filter by skills (client-side)
   if (filters?.skills && filters.skills.length > 0) {
     filteredResources = filteredResources.filter(r => {
-      const resourceSkills = r.skills || [];
+      const resourceSkills = (r.skills as string[]) || [];
       return filters.skills!.every(skill => resourceSkills.includes(skill));
     });
   }
@@ -766,7 +847,7 @@ export async function getCalendarData(
         }
       }
 
-      const availableHours = unavail ? 0 : resource.daily_capacity;
+      const availableHours = unavail ? 0 : (resource.daily_capacity ?? 8);
       const remainingHours = Math.max(0, availableHours - assignedHours);
 
       cells.set(key, {
@@ -776,14 +857,14 @@ export async function getCalendarData(
         available_hours: availableHours,
         assigned_hours: Math.round(assignedHours * 100) / 100,
         remaining_hours: Math.round(remainingHours * 100) / 100,
-        assignments: dayAssignments,
-        unavailability_type: unavail?.unavailability_type
+        assignments: dayAssignments as unknown as ResourceAssignment[],
+        unavailability_type: (unavail?.unavailability_type as UnavailabilityType) ?? undefined
       });
     }
   }
 
   return {
-    resources: filteredResources,
+    resources: filteredResources as unknown as ResourceWithDetails[],
     dates,
     cells
   };
@@ -857,7 +938,7 @@ export async function getUtilizationReport(
 
       const isUnavailable = resourceUnavailability.some(u => u.date === date);
       if (!isUnavailable) {
-        totalAvailableHours += resource.daily_capacity;
+        totalAvailableHours += resource.daily_capacity ?? 8;
       }
     }
 
@@ -915,7 +996,7 @@ export async function getUtilizationReport(
 
         const isUnavailable = resourceUnavailability.some(u => u.date === date);
         if (!isUnavailable) {
-          weekAvailable += resource.daily_capacity;
+          weekAvailable += resource.daily_capacity ?? 8;
         }
       }
 
@@ -959,7 +1040,7 @@ export async function getUtilizationReport(
       resource_id: resource.id,
       resource_code: resource.resource_code,
       resource_name: resource.resource_name,
-      resource_type: resource.resource_type,
+      resource_type: resource.resource_type as ResourceType,
       total_planned_hours: Math.round(totalPlannedHours * 100) / 100,
       total_actual_hours: Math.round(totalActualHours * 100) / 100,
       total_available_hours: totalAvailableHours,

@@ -7,7 +7,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
 import { Download, RefreshCw, BarChart3, List } from 'lucide-react'
 import { AuditLogFiltersComponent } from '@/components/audit/audit-log-filters'
 import { AuditLogTable } from '@/components/audit/audit-log-table'
-import { AuditLogFilters, PaginatedAuditLogs } from '@/types/audit'
+import { AuditLogFilters, PaginatedAuditLogs, AuditLogStats } from '@/types/audit'
 import { getAuditLogs, exportAuditLogs, getAuditLogStats } from '@/app/actions/audit-actions'
 import { useToast } from '@/hooks/use-toast'
 
@@ -39,14 +39,8 @@ interface AuditLogsClientProps {
   }
 }
 
-interface AuditStats {
-  total_entries: number
-  entries_by_action: Record<string, number>
-  entries_by_module: Array<{ module: string; count: number }>
-  entries_by_entity_type: Array<{ entity_type: string; count: number }>
-  top_users: Array<{ user_id: string; user_email: string | null; count: number }>
-  failure_rate: number
-}
+// Use AuditLogStats from types
+type AuditStats = AuditLogStats;
 
 export function AuditLogsClient({
   initialData,
@@ -292,6 +286,11 @@ function StatsView({ stats, loading, onRefresh }: StatsViewProps) {
     )
   }
 
+  // Use the correct property names from AuditLogStats
+  const entriesByAction = stats.entries_by_action || stats.by_action || {}
+  const entriesByModule = stats.entries_by_module || stats.by_module || {}
+  const entriesByUser = stats.entries_by_user || stats.by_user || []
+
   return (
     <div className="space-y-6">
       {/* Summary Cards */}
@@ -310,35 +309,33 @@ function StatsView({ stats, loading, onRefresh }: StatsViewProps) {
         <Card>
           <CardHeader className="pb-2">
             <CardTitle className="text-sm font-medium text-muted-foreground">
-              Failure Rate
+              Entries Today
             </CardTitle>
           </CardHeader>
           <CardContent>
-            <div className={`text-2xl font-bold ${stats.failure_rate > 5 ? 'text-red-600' : 'text-green-600'}`}>
-              {stats.failure_rate.toFixed(2)}%
-            </div>
+            <div className="text-2xl font-bold">{stats.entries_today.toLocaleString()}</div>
           </CardContent>
         </Card>
 
         <Card>
           <CardHeader className="pb-2">
             <CardTitle className="text-sm font-medium text-muted-foreground">
-              Modules Tracked
+              This Week
             </CardTitle>
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">{stats.entries_by_module.length}</div>
+            <div className="text-2xl font-bold">{stats.entries_this_week.toLocaleString()}</div>
           </CardContent>
         </Card>
 
         <Card>
           <CardHeader className="pb-2">
             <CardTitle className="text-sm font-medium text-muted-foreground">
-              Entity Types
+              This Month
             </CardTitle>
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">{stats.entries_by_entity_type.length}</div>
+            <div className="text-2xl font-bold">{stats.entries_this_month.toLocaleString()}</div>
           </CardContent>
         </Card>
       </div>
@@ -352,7 +349,7 @@ function StatsView({ stats, loading, onRefresh }: StatsViewProps) {
           </CardHeader>
           <CardContent>
             <div className="space-y-3">
-              {Object.entries(stats.entries_by_action).map(([action, count]) => (
+              {Object.entries(entriesByAction).map(([action, count]) => (
                 <div key={action} className="flex items-center justify-between">
                   <span className="text-sm capitalize">{action.toLowerCase()}</span>
                   <div className="flex items-center gap-2">
@@ -381,9 +378,9 @@ function StatsView({ stats, loading, onRefresh }: StatsViewProps) {
           </CardHeader>
           <CardContent>
             <div className="space-y-3">
-              {stats.entries_by_module.slice(0, 8).map(({ module, count }) => (
-                <div key={module} className="flex items-center justify-between">
-                  <span className="text-sm">{module.replace(/_/g, ' ')}</span>
+              {Object.entries(entriesByModule).slice(0, 8).map(([moduleName, count]) => (
+                <div key={moduleName} className="flex items-center justify-between">
+                  <span className="text-sm">{moduleName.replace(/_/g, ' ')}</span>
                   <div className="flex items-center gap-2">
                     <div className="h-2 w-24 rounded-full bg-muted overflow-hidden">
                       <div
@@ -403,43 +400,14 @@ function StatsView({ stats, loading, onRefresh }: StatsViewProps) {
           </CardContent>
         </Card>
 
-        {/* Top Entity Types */}
-        <Card>
-          <CardHeader>
-            <CardTitle className="text-lg">Top Entity Types</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="space-y-3">
-              {stats.entries_by_entity_type.slice(0, 8).map(({ entity_type, count }) => (
-                <div key={entity_type} className="flex items-center justify-between">
-                  <span className="text-sm">{entity_type.replace(/_/g, ' ')}</span>
-                  <div className="flex items-center gap-2">
-                    <div className="h-2 w-24 rounded-full bg-muted overflow-hidden">
-                      <div
-                        className="h-full bg-green-500 rounded-full"
-                        style={{
-                          width: `${Math.min((count / stats.total_entries) * 100, 100)}%`,
-                        }}
-                      />
-                    </div>
-                    <span className="text-sm font-medium w-16 text-right">
-                      {count.toLocaleString()}
-                    </span>
-                  </div>
-                </div>
-              ))}
-            </div>
-          </CardContent>
-        </Card>
-
         {/* Top Users */}
-        <Card>
+        <Card className="md:col-span-2">
           <CardHeader>
             <CardTitle className="text-lg">Most Active Users</CardTitle>
           </CardHeader>
           <CardContent>
-            <div className="space-y-3">
-              {stats.top_users.slice(0, 8).map(({ user_id, user_email, count }) => (
+            <div className="grid gap-3 md:grid-cols-2">
+              {entriesByUser.slice(0, 8).map(({ user_id, user_email, count }) => (
                 <div key={user_id} className="flex items-center justify-between">
                   <span className="text-sm truncate max-w-[150px]">
                     {user_email || 'Unknown User'}

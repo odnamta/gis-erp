@@ -34,7 +34,7 @@ export async function logQuery(input: QueryHistoryInput): Promise<{ success: boo
     const supabase = await createClient();
     
     const { error } = await supabase
-      .from('ai_query_history')
+      .from('ai_query_history' as any)
       .insert({
         user_id: input.user_id,
         natural_query: input.natural_query,
@@ -77,7 +77,7 @@ export async function getQueryHistory(userId: string): Promise<AIQueryHistory[]>
       return [];
     }
 
-    return data || [];
+    return (data || []) as unknown as AIQueryHistory[];
   } catch (error) {
     console.error('Error in getQueryHistory:', error);
     return [];
@@ -138,7 +138,7 @@ export async function getQueryTemplates(): Promise<AIQueryTemplate[]> {
       return [];
     }
 
-    return data || [];
+    return (data || []) as unknown as AIQueryTemplate[];
   } catch (error) {
     console.error('Error in getQueryTemplates:', error);
     return [];
@@ -260,7 +260,7 @@ async function executeQuery(sql: string): Promise<{ data: unknown[] | null; erro
     // Use RPC to execute the query safely
     // For now, we'll use a direct query approach
     // In production, you'd want a dedicated RPC function
-    const { data, error } = await supabase.rpc('execute_ai_query', {
+    const { data, error } = await supabase.rpc('execute_ai_query' as any, {
       query_text: sql,
     });
 
@@ -271,7 +271,7 @@ async function executeQuery(sql: string): Promise<{ data: unknown[] | null; erro
       return { data: null, error: error.message };
     }
 
-    return { data: data || [], error: null };
+    return { data: (data || []) as unknown[] | null, error: null };
   } catch (error) {
     console.error('Error executing query:', error);
     return { data: null, error: 'Query execution failed' };

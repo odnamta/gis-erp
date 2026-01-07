@@ -115,7 +115,7 @@ export function FindingForm({ auditId, finding, onSuccess, onCancel }: FindingFo
           <div className="grid gap-4 md:grid-cols-2">
             <div className="space-y-2">
               <Label htmlFor="severity">Severity *</Label>
-              <Select value={severity} onValueChange={setSeverity}>
+              <Select value={severity} onValueChange={(value) => setSeverity(value as typeof severity)}>
                 <SelectTrigger id="severity">
                   <SelectValue placeholder="Select severity" />
                 </SelectTrigger>

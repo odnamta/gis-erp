@@ -9,6 +9,9 @@ import {
   VendorType,
   VendorFilterState,
   VendorSummaryStats,
+  VendorEquipment,
+  EquipmentType,
+  EquipmentCondition,
 } from '@/types/vendors';
 import { generateVendorCode } from '@/lib/vendor-utils';
 
@@ -100,11 +103,13 @@ export async function getVendors(filters?: Partial<VendorFilterState>): Promise<
   }
 
   // Transform the data to include counts
-  const vendors: VendorWithStats[] = (data || []).map((v) => ({
+  // Cast vendor_type from string to VendorType since database returns string
+  const vendors = (data || []).map((v) => ({
     ...v,
+    vendor_type: v.vendor_type as VendorType,
     equipment_count: v.vendor_equipment?.[0]?.count || 0,
     ratings_count: v.vendor_ratings?.[0]?.count || 0,
-  }));
+  })) as unknown as VendorWithStats[];
 
   return { data: vendors };
 }
@@ -132,12 +137,17 @@ export async function getVendorById(id: string): Promise<{
     return { data: null, error: error.message };
   }
 
-  const vendor: VendorWithStats = {
+  const vendor = {
     ...data,
-    equipment: data.vendor_equipment || [],
+    vendor_type: data.vendor_type as VendorType,
+    equipment: (data.vendor_equipment || []).map((e: Record<string, unknown>) => ({
+      ...e,
+      equipment_type: e.equipment_type as EquipmentType,
+      condition: e.condition as EquipmentCondition,
+    })) as VendorEquipment[],
     equipment_count: data.vendor_equipment?.length || 0,
     ratings_count: data.vendor_ratings?.[0]?.count || 0,
-  };
+  } as unknown as VendorWithStats;
 
   return { data: vendor };
 }
@@ -164,7 +174,7 @@ export async function getVendorsByType(type: VendorType): Promise<{
     return { data: [], error: error.message };
   }
 
-  return { data: data || [] };
+  return { data: (data || []).map(v => ({ ...v, vendor_type: v.vendor_type as VendorType })) as unknown as Vendor[] };
 }
 
 /**
@@ -187,7 +197,7 @@ export async function getActiveVendors(): Promise<{
     return { data: [], error: error.message };
   }
 
-  return { data: data || [] };
+  return { data: (data || []).map(v => ({ ...v, vendor_type: v.vendor_type as VendorType })) as unknown as Vendor[] };
 }
 
 /**
@@ -279,7 +289,7 @@ export async function createVendor(input: VendorFormInput): Promise<{
   }
 
   revalidatePath('/vendors');
-  return { data };
+  return { data: data as unknown as Vendor };
 }
 
 /**

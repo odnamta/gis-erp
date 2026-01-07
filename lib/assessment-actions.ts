@@ -19,6 +19,7 @@ import {
   AssessmentFilters,
   ActionResult,
   ConclusionType,
+  AssessmentStatus,
 } from '@/types/assessment';
 import {
   validateAssessmentData,
@@ -54,7 +55,7 @@ export async function getAssessmentTypes(): Promise<TechnicalAssessmentType[]> {
     return [];
   }
 
-  return data || [];
+  return (data || []) as unknown as TechnicalAssessmentType[];
 }
 
 export async function getAssessmentType(id: string): Promise<TechnicalAssessmentType | null> {
@@ -71,7 +72,7 @@ export async function getAssessmentType(id: string): Promise<TechnicalAssessment
     return null;
   }
 
-  return data;
+  return data as unknown as TechnicalAssessmentType;
 }
 
 
@@ -92,6 +93,7 @@ export async function createAssessment(
 
   const supabase = await createClient();
 
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const { data, error } = await supabase
     .from('technical_assessments')
     .insert({
@@ -105,10 +107,10 @@ export async function createAssessment(
       customer_id: input.customer_id || null,
       cargo_description: input.cargo_description || null,
       cargo_weight_tons: input.cargo_weight_tons || null,
-      cargo_dimensions: input.cargo_dimensions || null,
+      cargo_dimensions: input.cargo_dimensions as unknown || null,
       status: 'draft',
       revision_number: 1,
-    })
+    } as any)
     .select(`
       *,
       assessment_type:technical_assessment_types(*),
@@ -125,7 +127,7 @@ export async function createAssessment(
   }
 
   revalidatePath('/engineering/assessments');
-  return { success: true, data };
+  return { success: true, data: data as unknown as TechnicalAssessment };
 }
 
 export async function updateAssessment(
@@ -145,7 +147,7 @@ export async function updateAssessment(
     return { success: false, error: 'Assessment not found' };
   }
 
-  if (!['draft', 'in_progress', 'rejected'].includes(existing.status)) {
+  if (!['draft', 'in_progress', 'rejected'].includes(existing.status || '')) {
     return { success: false, error: 'Cannot edit assessment in current status' };
   }
 
@@ -192,7 +194,7 @@ export async function updateAssessment(
 
   revalidatePath('/engineering/assessments');
   revalidatePath(`/engineering/assessments/${id}`);
-  return { success: true, data };
+  return { success: true, data: data as unknown as TechnicalAssessment };
 }
 
 export async function deleteAssessment(id: string): Promise<ActionResult<void>> {
@@ -239,7 +241,7 @@ export async function getAssessment(id: string): Promise<TechnicalAssessment | n
     return null;
   }
 
-  return data;
+  return data as unknown as TechnicalAssessment;
 }
 
 export async function getAssessments(
@@ -291,7 +293,7 @@ export async function getAssessments(
     return [];
   }
 
-  return data || [];
+  return (data || []) as unknown as TechnicalAssessment[];
 }
 
 
@@ -316,7 +318,7 @@ export async function submitForReview(
     return { success: false, error: 'Assessment not found' };
   }
 
-  if (!canTransitionTo(existing.status, 'pending_review')) {
+  if (!canTransitionTo((existing.status || '') as AssessmentStatus, 'pending_review')) {
     return { success: false, error: `Cannot submit for review from status: ${existing.status}` };
   }
 
@@ -342,7 +344,7 @@ export async function submitForReview(
 
   revalidatePath('/engineering/assessments');
   revalidatePath(`/engineering/assessments/${id}`);
-  return { success: true, data };
+  return { success: true, data: data as unknown as TechnicalAssessment };
 }
 
 export async function reviewAssessment(
@@ -372,7 +374,7 @@ export async function reviewAssessment(
 
   revalidatePath('/engineering/assessments');
   revalidatePath(`/engineering/assessments/${id}`);
-  return { success: true, data };
+  return { success: true, data: data as unknown as TechnicalAssessment };
 }
 
 export async function approveAssessment(
@@ -399,7 +401,7 @@ export async function approveAssessment(
     return { success: false, error: 'Assessment not found' };
   }
 
-  if (!canTransitionTo(existing.status, 'approved')) {
+  if (!canTransitionTo((existing.status || '') as AssessmentStatus, 'approved')) {
     return { success: false, error: `Cannot approve from status: ${existing.status}` };
   }
 
@@ -427,7 +429,7 @@ export async function approveAssessment(
 
   revalidatePath('/engineering/assessments');
   revalidatePath(`/engineering/assessments/${id}`);
-  return { success: true, data };
+  return { success: true, data: data as unknown as TechnicalAssessment };
 }
 
 export async function rejectAssessment(
@@ -447,7 +449,7 @@ export async function rejectAssessment(
     return { success: false, error: 'Assessment not found' };
   }
 
-  if (!canTransitionTo(existing.status, 'rejected')) {
+  if (!canTransitionTo((existing.status || '') as AssessmentStatus, 'rejected')) {
     return { success: false, error: `Cannot reject from status: ${existing.status}` };
   }
 
@@ -472,7 +474,7 @@ export async function rejectAssessment(
 
   revalidatePath('/engineering/assessments');
   revalidatePath(`/engineering/assessments/${id}`);
-  return { success: true, data };
+  return { success: true, data: data as unknown as TechnicalAssessment };
 }
 
 export async function createRevision(
@@ -507,6 +509,7 @@ export async function createRevision(
     .eq('id', id);
 
   // Create new revision
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const { data: newRevision, error } = await supabase
     .from('technical_assessments')
     .insert({
@@ -528,10 +531,10 @@ export async function createRevision(
       limitations: original.limitations,
       assumptions: original.assumptions,
       status: 'draft',
-      revision_number: original.revision_number + 1,
+      revision_number: (original.revision_number || 0) + 1,
       previous_revision_id: id,
       revision_notes: revisionNotes,
-    })
+    } as any)
     .select(`
       *,
       assessment_type:technical_assessment_types(*)
@@ -545,7 +548,7 @@ export async function createRevision(
 
   revalidatePath('/engineering/assessments');
   revalidatePath(`/engineering/assessments/${id}`);
-  return { success: true, data: newRevision };
+  return { success: true, data: newRevision as unknown as TechnicalAssessment };
 }
 
 
@@ -575,7 +578,7 @@ export async function createLiftingPlan(
     .limit(1);
 
   const nextLiftNumber = input.lift_number || 
-    (existingPlans && existingPlans.length > 0 ? existingPlans[0].lift_number + 1 : 1);
+    (existingPlans && existingPlans.length > 0 && existingPlans[0].lift_number ? existingPlans[0].lift_number + 1 : 1);
 
   // Calculate derived values
   const riggingWeight = input.rigging_weight_tons || 0;
@@ -631,7 +634,7 @@ export async function createLiftingPlan(
   }
 
   revalidatePath(`/engineering/assessments/${input.assessment_id}`);
-  return { success: true, data };
+  return { success: true, data: data as unknown as LiftingPlan };
 }
 
 export async function updateLiftingPlan(
@@ -651,7 +654,7 @@ export async function updateLiftingPlan(
     return { success: false, error: 'Lifting plan not found' };
   }
 
-  const loadWeight = input.load_weight_tons ?? existing.load_weight_tons;
+  const loadWeight = input.load_weight_tons ?? existing.load_weight_tons ?? 0;
   const riggingWeight = input.rigging_weight_tons ?? existing.rigging_weight_tons ?? 0;
   const totalLiftedWeight = calculateTotalLiftedWeight(loadWeight, riggingWeight);
   
@@ -707,7 +710,7 @@ export async function updateLiftingPlan(
   }
 
   revalidatePath(`/engineering/assessments/${existing.assessment_id}`);
-  return { success: true, data };
+  return { success: true, data: data as unknown as LiftingPlan };
 }
 
 export async function deleteLiftingPlan(id: string): Promise<ActionResult<void>> {
@@ -750,7 +753,7 @@ export async function getLiftingPlans(assessmentId: string): Promise<LiftingPlan
     return [];
   }
 
-  return data || [];
+  return (data || []) as unknown as LiftingPlan[];
 }
 
 
@@ -801,6 +804,7 @@ export async function createAxleCalculation(
     permitRequired = determinePermitRequired(axleLoads);
   }
 
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const { data, error } = await supabase
     .from('axle_load_calculations')
     .insert({
@@ -815,14 +819,14 @@ export async function createAxleCalculation(
       prime_mover_weight_tons: input.prime_mover_weight_tons || null,
       cargo_weight_tons: input.cargo_weight_tons,
       cargo_cog_from_front_m: input.cargo_cog_from_front_m || null,
-      axle_loads: axleLoads,
+      axle_loads: axleLoads as unknown,
       total_weight_tons: totalWeight,
       max_single_axle_load_tons: maxSingleAxle,
       max_tandem_axle_load_tons: maxTandemAxle,
       within_legal_limits: withinLimits,
       permit_required: permitRequired,
       notes: input.notes || null,
-    })
+    } as any)
     .select()
     .single();
 
@@ -832,7 +836,7 @@ export async function createAxleCalculation(
   }
 
   revalidatePath(`/engineering/assessments/${input.assessment_id}`);
-  return { success: true, data };
+  return { success: true, data: data as unknown as AxleLoadCalculation };
 }
 
 export async function updateAxleCalculation(
@@ -919,7 +923,7 @@ export async function updateAxleCalculation(
   }
 
   revalidatePath(`/engineering/assessments/${existing.assessment_id}`);
-  return { success: true, data };
+  return { success: true, data: data as unknown as AxleLoadCalculation };
 }
 
 export async function deleteAxleCalculation(id: string): Promise<ActionResult<void>> {
@@ -962,7 +966,7 @@ export async function getAxleCalculations(assessmentId: string): Promise<AxleLoa
     return [];
   }
 
-  return data || [];
+  return (data || []) as unknown as AxleLoadCalculation[];
 }
 
 // ============================================
@@ -992,7 +996,7 @@ export async function getAssessmentStatusCounts(): Promise<Record<string, number
   };
 
   data?.forEach(item => {
-    if (item.status in counts) {
+    if (item.status && item.status in counts) {
       counts[item.status]++;
     }
   });

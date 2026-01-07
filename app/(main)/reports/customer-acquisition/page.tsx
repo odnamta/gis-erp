@@ -51,17 +51,17 @@ export default function CustomerAcquisitionReportPage() {
 
       if (customerError) throw customerError
 
-      const customers = (customerData || []).map(customer => {
+      const customers = ((customerData || []) as any[]).map(customer => {
         const projects = customer.projects || []
-        const firstProject = projects.sort((a, b) => 
+        const firstProject = projects.sort((a: any, b: any) => 
           new Date(a.created_at || 0).getTime() - new Date(b.created_at || 0).getTime()
         )[0]
         
-        const totalRevenue = projects.reduce((sum, project) => {
+        const totalRevenue = projects.reduce((sum: number, project: any) => {
           const pjos = project.proforma_job_orders || []
-          return sum + pjos.reduce((pjoSum, pjo) => {
+          return sum + pjos.reduce((pjoSum: number, pjo: any) => {
             const jos = pjo.job_orders || []
-            return pjoSum + jos.reduce((joSum, jo) => joSum + (jo.final_revenue || 0), 0)
+            return pjoSum + jos.reduce((joSum: number, jo: any) => joSum + (jo.final_revenue || 0), 0)
           }, 0)
         }, 0)
 

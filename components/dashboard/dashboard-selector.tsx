@@ -98,8 +98,8 @@ export function DashboardSelector({
     return <DashboardWrapper><FinanceDashboard data={financeData} /></DashboardWrapper>
   }
 
-  // Sales role: Show SalesEngineeringDashboard for Hutami or if salesEngineeringData is provided
-  if (roleToRender === 'sales') {
+  // Marketing role: Show SalesEngineeringDashboard for Hutami or if salesEngineeringData is provided
+  if (roleToRender === 'marketing') {
     // Check if this is Hutami (Marketing Manager who also manages Engineering)
     const isHutami = userEmail === 'hutamiarini@gama-group.co'
     
@@ -112,11 +112,11 @@ export function DashboardSelector({
     }
   }
 
-  if (roleToRender === 'manager' && managerData) {
+  if ((roleToRender === 'marketing_manager' || roleToRender === 'finance_manager' || roleToRender === 'operations_manager') && managerData) {
     return <DashboardWrapper><ManagerDashboard initialData={managerData} userName={userName} /></DashboardWrapper>
   }
 
-  if (roleToRender === 'admin' && adminData) {
+  if (roleToRender === 'administration' && adminData) {
     return <DashboardWrapper><AdminDashboard initialData={adminData} userName={userName} /></DashboardWrapper>
   }
 

@@ -6,7 +6,7 @@ import { PreviewBanner } from '@/components/preview/preview-banner'
 import { PREVIEW_ROLES, getRoleDisplayName } from '@/lib/preview-utils'
 import { UserRole } from '@/types/permissions'
 
-const ALL_ROLES: UserRole[] = ['owner', 'director', 'manager', 'sysadmin', 'administration', 'finance', 'marketing', 'ops', 'engineer', 'hr', 'hse']
+const ALL_ROLES: UserRole[] = ['owner', 'director', 'marketing_manager', 'finance_manager', 'operations_manager', 'sysadmin', 'administration', 'finance', 'marketing', 'ops', 'engineer', 'hr', 'hse']
 
 describe('Preview Components', () => {
   afterEach(() => {
@@ -38,7 +38,7 @@ describe('Preview Components', () => {
     })
 
     it('should include Exit Preview button', () => {
-      render(<PreviewBanner previewRole="admin" onExit={vi.fn()} onRoleChange={vi.fn()} />)
+      render(<PreviewBanner previewRole="administration" onExit={vi.fn()} onRoleChange={vi.fn()} />)
       expect(screen.getByText(/Exit Preview/i)).toBeDefined()
     })
 
@@ -86,7 +86,7 @@ describe('Preview Components', () => {
     it('should not render when canUsePreview is false', () => {
       const { container } = render(
         <PreviewDropdown
-          currentRole="admin"
+          currentRole="administration"
           onRoleSelect={vi.fn()}
           canUsePreview={false}
         />

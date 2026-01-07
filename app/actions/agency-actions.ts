@@ -14,6 +14,7 @@ import {
   Port,
   AgentFeedback,
 } from '@/types/agency';
+import { Json } from '@/types/database';
 import {
   generateShippingLineCode,
   generateAgentCode,
@@ -722,7 +723,7 @@ export async function createShippingRate(formData: ShippingRateFormData): Promis
       formData.caf || 0,
       formData.pss || 0,
       formData.ens || 0,
-      (formData.otherSurcharges || []).map(s => s.amount)
+      formData.otherSurcharges || []
     );
 
     const dbData = mapShippingRateToDb(formData, totalRate);
@@ -763,7 +764,7 @@ export async function updateShippingRate(id: string, formData: ShippingRateFormD
       formData.caf || 0,
       formData.pss || 0,
       formData.ens || 0,
-      (formData.otherSurcharges || []).map(s => s.amount)
+      formData.otherSurcharges || []
     );
 
     const dbData = mapShippingRateToDb(formData, totalRate);
@@ -912,24 +913,24 @@ function mapShippingLineToDb(data: ShippingLineFormData, lineCode: string) {
   return {
     line_code: lineCode,
     line_name: data.lineName,
-    head_office_address: data.headOfficeAddress,
-    head_office_country: data.headOfficeCountry,
-    website: data.website,
-    booking_portal_url: data.bookingPortalUrl,
-    tracking_url: data.trackingUrl,
-    local_agent_name: data.localAgentName,
-    local_agent_address: data.localAgentAddress,
-    local_agent_phone: data.localAgentPhone,
-    local_agent_email: data.localAgentEmail,
-    contacts: data.contacts,
-    services_offered: data.servicesOffered,
-    routes_served: data.routesServed,
-    payment_terms: data.paymentTerms,
-    credit_limit: data.creditLimit,
-    credit_days: data.creditDays,
-    service_rating: data.serviceRating,
+    head_office_address: data.headOfficeAddress || null,
+    head_office_country: data.headOfficeCountry || null,
+    website: data.website || null,
+    booking_portal_url: data.bookingPortalUrl || null,
+    tracking_url: data.trackingUrl || null,
+    local_agent_name: data.localAgentName || null,
+    local_agent_address: data.localAgentAddress || null,
+    local_agent_phone: data.localAgentPhone || null,
+    local_agent_email: data.localAgentEmail || null,
+    contacts: data.contacts as unknown as Json,
+    services_offered: data.servicesOffered as unknown as Json,
+    routes_served: data.routesServed as unknown as Json,
+    payment_terms: data.paymentTerms || null,
+    credit_limit: data.creditLimit || null,
+    credit_days: data.creditDays || null,
+    service_rating: data.serviceRating || null,
     is_preferred: data.isPreferred,
-    notes: data.notes,
+    notes: data.notes || null,
   };
 }
 
@@ -971,26 +972,26 @@ function mapPortAgentToDb(data: PortAgentFormData, agentCode: string) {
   return {
     agent_code: agentCode,
     agent_name: data.agentName,
-    port_id: data.portId,
+    port_id: data.portId || null,
     port_name: data.portName,
     port_country: data.portCountry,
-    address: data.address,
-    phone: data.phone,
-    email: data.email,
-    website: data.website,
-    contacts: data.contacts,
-    services: data.services,
-    customs_license: data.customsLicense,
-    ppjk_license: data.ppjkLicense,
-    other_licenses: data.otherLicenses,
-    payment_terms: data.paymentTerms,
+    address: data.address || null,
+    phone: data.phone || null,
+    email: data.email || null,
+    website: data.website || null,
+    contacts: data.contacts as unknown as Json,
+    services: data.services as unknown as Json,
+    customs_license: data.customsLicense || null,
+    ppjk_license: data.ppjkLicense || null,
+    other_licenses: data.otherLicenses as unknown as Json,
+    payment_terms: data.paymentTerms || null,
     currency: data.currency,
-    bank_name: data.bankName,
-    bank_account: data.bankAccount,
-    bank_swift: data.bankSwift,
-    service_rating: data.serviceRating,
+    bank_name: data.bankName || null,
+    bank_account: data.bankAccount || null,
+    bank_swift: data.bankSwift || null,
+    service_rating: data.serviceRating || null,
     is_preferred: data.isPreferred,
-    notes: data.notes,
+    notes: data.notes || null,
   };
 }
 
@@ -1028,22 +1029,22 @@ function mapServiceProviderToDb(data: ServiceProviderFormData, providerCode: str
     provider_code: providerCode,
     provider_name: data.providerName,
     provider_type: data.providerType,
-    city: data.city,
-    province: data.province,
+    city: data.city || null,
+    province: data.province || null,
     country: data.country,
-    address: data.address,
-    phone: data.phone,
-    email: data.email,
-    contacts: data.contacts,
-    services_detail: data.servicesDetail,
-    coverage_areas: data.coverageAreas,
-    payment_terms: data.paymentTerms,
-    npwp: data.npwp,
-    siup: data.siup,
-    documents: data.documents,
-    service_rating: data.serviceRating,
+    address: data.address || null,
+    phone: data.phone || null,
+    email: data.email || null,
+    contacts: data.contacts as unknown as Json,
+    services_detail: data.servicesDetail as unknown as Json,
+    coverage_areas: data.coverageAreas as unknown as Json,
+    payment_terms: data.paymentTerms || null,
+    npwp: data.npwp || null,
+    siup: data.siup || null,
+    documents: data.documents as unknown as Json,
+    service_rating: data.serviceRating || null,
     is_preferred: data.isPreferred,
-    notes: data.notes,
+    notes: data.notes || null,
   };
 }
 
@@ -1094,14 +1095,14 @@ function mapShippingRateToDb(data: ShippingRateFormData, totalRate: number) {
     caf: data.caf || 0,
     pss: data.pss || 0,
     ens: data.ens || 0,
-    other_surcharges: data.otherSurcharges || [],
+    other_surcharges: (data.otherSurcharges || []) as unknown as Json,
     total_rate: totalRate,
-    transit_days: data.transitDays,
-    frequency: data.frequency,
+    transit_days: data.transitDays || null,
+    frequency: data.frequency || null,
     valid_from: data.validFrom,
     valid_to: data.validTo,
     terms: data.terms,
-    notes: data.notes,
+    notes: data.notes || null,
   };
 }
 

@@ -78,7 +78,7 @@ export async function getActiveTemplates(): Promise<{
     return { data: [], error: error.message };
   }
 
-  return { data: (data as NotificationTemplate[]) || [], error: null };
+  return { data: (data as unknown as NotificationTemplate[]) || [], error: null };
 }
 
 /**
@@ -99,7 +99,7 @@ export async function getAllTemplates(): Promise<{
     return { data: [], error: error.message };
   }
 
-  return { data: (data as NotificationTemplate[]) || [], error: null };
+  return { data: (data as unknown as NotificationTemplate[]) || [], error: null };
 }
 
 /**
@@ -121,7 +121,7 @@ export async function getTemplatesByEventType(
     return { data: [], error: error.message };
   }
 
-  return { data: (data as NotificationTemplate[]) || [], error: null };
+  return { data: (data as unknown as NotificationTemplate[]) || [], error: null };
 }
 
 /**
@@ -139,7 +139,7 @@ export async function createTemplate(
   
   const { data, error } = await supabase
     .from('notification_templates')
-    .insert(template)
+    .insert(template as any)
     .select()
     .single();
 
@@ -147,7 +147,7 @@ export async function createTemplate(
     return { data: null, error: error.message };
   }
 
-  return { data: data as NotificationTemplate, error: null };
+  return { data: data as unknown as NotificationTemplate, error: null };
 }
 
 /**
@@ -161,7 +161,7 @@ export async function updateTemplate(
   
   const { data, error } = await supabase
     .from('notification_templates')
-    .update(updates)
+    .update(updates as any)
     .eq('id', id)
     .select()
     .single();
@@ -170,7 +170,7 @@ export async function updateTemplate(
     return { data: null, error: error.message };
   }
 
-  return { data: data as NotificationTemplate, error: null };
+  return { data: data as unknown as NotificationTemplate, error: null };
 }
 
 /**

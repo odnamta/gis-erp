@@ -51,7 +51,7 @@ export default function VendorPerformanceReportPage() {
 
       if (costError) throw costError
 
-      const costItems = (costData || []).map(item => ({
+      const costItems = ((costData || []) as any[]).map(item => ({
         vendorName: item.category || 'Unknown', // Using category as vendor proxy
         amount: item.actual_amount ?? item.estimated_amount ?? 0,
         joId: item.proforma_job_orders?.job_orders?.[0]?.id || item.proforma_job_orders?.id || '',

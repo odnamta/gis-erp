@@ -286,7 +286,7 @@ export async function getMonthlyAttendanceSummary(
   };
 
   for (const record of records || []) {
-    if (['present', 'late'].includes(record.status)) {
+    if (['present', 'late'].includes(record.status || '')) {
       summary.daysWorked++;
       summary.totalHours += Number(record.work_hours) || 0;
       summary.overtimeHours += Number(record.overtime_hours) || 0;

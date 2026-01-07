@@ -54,7 +54,7 @@ export async function createAuditType(
   const supabase = await createClient();
 
   const { data, error } = await supabase
-    .from('audit_types')
+    .from('audit_types' as any)
     .insert({
       type_code: input.type_code.toUpperCase(),
       type_name: input.type_name,
@@ -73,7 +73,7 @@ export async function createAuditType(
     return { data: null, error: error.message };
   }
 
-  return { data: data as AuditType, error: null };
+  return { data: data as unknown as AuditType, error: null };
 }
 
 /**
@@ -104,7 +104,7 @@ export async function updateAuditType(
     return { data: null, error: error.message };
   }
 
-  return { data: data as AuditType, error: null };
+  return { data: data as unknown as AuditType, error: null };
 }
 
 /**
@@ -145,7 +145,7 @@ export async function getAuditTypes(): Promise<{
     return { data: [], error: error.message };
   }
 
-  return { data: data as AuditType[], error: null };
+  return { data: data as unknown as AuditType[], error: null };
 }
 
 /**
@@ -167,7 +167,7 @@ export async function getActiveAuditTypes(): Promise<{
     return { data: [], error: error.message };
   }
 
-  return { data: data as AuditType[], error: null };
+  return { data: data as unknown as AuditType[], error: null };
 }
 
 /**
@@ -188,7 +188,7 @@ export async function getAuditType(
     return { data: null, error: error.message };
   }
 
-  return { data: data as AuditType, error: null };
+  return { data: data as unknown as AuditType, error: null };
 }
 
 
@@ -213,7 +213,7 @@ export async function createAudit(
   const { data: { user } } = await supabase.auth.getUser();
 
   const { data, error } = await supabase
-    .from('audits')
+    .from('audits' as any)
     .insert({
       audit_type_id: input.audit_type_id,
       scheduled_date: input.scheduled_date || null,
@@ -233,7 +233,7 @@ export async function createAudit(
     return { data: null, error: error.message };
   }
 
-  return { data: data as Audit, error: null };
+  return { data: data as unknown as Audit, error: null };
 }
 
 /**
@@ -285,7 +285,7 @@ export async function updateAudit(
     return { data: null, error: error.message };
   }
 
-  return { data: data as Audit, error: null };
+  return { data: data as unknown as Audit, error: null };
 }
 
 /**
@@ -311,7 +311,7 @@ export async function startAudit(
     return { data: null, error: error.message };
   }
 
-  return { data: data as Audit, error: null };
+  return { data: data as unknown as Audit, error: null };
 }
 
 /**
@@ -343,14 +343,14 @@ export async function completeAudit(
   }
 
   // Calculate score based on checklist template and responses
-  const template = audit.audit_types?.checklist_template as ChecklistTemplate || { sections: [] };
+  const template = audit.audit_types?.checklist_template as unknown as ChecklistTemplate || { sections: [] };
   const score = calculateAuditScore(template, input.checklist_responses);
   const rating = determineAuditRating(score);
 
   const { data, error } = await supabase
     .from('audits')
     .update({
-      checklist_responses: input.checklist_responses,
+      checklist_responses: input.checklist_responses as any,
       summary: input.summary || null,
       photos: input.photos || [],
       documents: input.documents || [],
@@ -368,7 +368,7 @@ export async function completeAudit(
     return { data: null, error: error.message };
   }
 
-  return { data: data as Audit, error: null };
+  return { data: data as unknown as Audit, error: null };
 }
 
 /**
@@ -410,7 +410,7 @@ export async function getAudit(
     return { data: null, error: error.message };
   }
 
-  return { data: data as Audit, error: null };
+  return { data: data as unknown as Audit, error: null };
 }
 
 /**
@@ -448,7 +448,7 @@ export async function getAudits(filters?: {
     return { data: [], error: error.message };
   }
 
-  return { data: data as Audit[], error: null };
+  return { data: data as unknown as Audit[], error: null };
 }
 
 /**
@@ -469,7 +469,7 @@ export async function getAuditsByType(
     return { data: [], error: error.message };
   }
 
-  return { data: data as Audit[], error: null };
+  return { data: data as unknown as Audit[], error: null };
 }
 
 
@@ -530,28 +530,26 @@ export async function createFinding(
   // Update the parent audit's finding counts
   const countField = input.severity === 'observation' ? 'observations' : `${input.severity}_findings`;
   
-  await supabase.rpc('increment_audit_finding_count', {
-    audit_id: input.audit_id,
-    count_field: countField,
-  }).catch(() => {
-    // If RPC doesn't exist, do manual update
-    supabase
+  // Try to update finding count manually (RPC may not exist)
+  try {
+    const { data: auditData } = await supabase
       .from('audits')
       .select(countField)
       .eq('id', input.audit_id)
-      .single()
-      .then(({ data: auditData }) => {
-        if (auditData) {
-          const currentCount = (auditData as Record<string, number>)[countField] || 0;
-          supabase
-            .from('audits')
-            .update({ [countField]: currentCount + 1 })
-            .eq('id', input.audit_id);
-        }
-      });
-  });
+      .single();
+    
+    if (auditData) {
+      const currentCount = ((auditData as unknown as Record<string, number>)[countField] || 0);
+      await supabase
+        .from('audits')
+        .update({ [countField]: currentCount + 1 } as any)
+        .eq('id', input.audit_id);
+    }
+  } catch {
+    // Ignore errors in count update
+  }
 
-  return { data: data as AuditFinding, error: null };
+  return { data: data as unknown as AuditFinding, error: null };
 }
 
 /**
@@ -738,7 +736,7 @@ export async function getFindings(filters?: {
     return { data: [], error: error.message };
   }
 
-  return { data: data as AuditFinding[], error: null };
+  return { data: data as unknown as AuditFinding[], error: null };
 }
 
 
@@ -772,7 +770,7 @@ export async function getAuditSchedule(): Promise<{
     is_overdue: item.next_due ? new Date(item.next_due) < today : false,
   }));
 
-  return { data: scheduleWithOverdue as AuditScheduleItem[], error: null };
+  return { data: scheduleWithOverdue as unknown as AuditScheduleItem[], error: null };
 }
 
 /**
@@ -792,7 +790,7 @@ export async function getOpenFindings(): Promise<{
     return { data: [], error: error.message };
   }
 
-  return { data: data as OpenFindingView[], error: null };
+  return { data: data as unknown as OpenFindingView[], error: null };
 }
 
 /**
@@ -853,13 +851,13 @@ export async function getAuditDashboardData(): Promise<{
 
   const criticalMajorFindings = (openFindings || []).filter(
     (f) => f.severity === 'critical' || f.severity === 'major'
-  ) as OpenFindingView[];
+  ) as unknown as OpenFindingView[];
 
   const criticalCount = (openFindings || []).filter(
     (f) => f.severity === 'critical'
   ).length;
 
-  const avgScore = calculateAverageScore(monthAudits as Audit[] || []);
+  const avgScore = calculateAverageScore(monthAudits as unknown as Audit[] || []);
 
   const metrics: AuditDashboardMetrics = {
     dueSoonCount: dueSoonAudits.length,
@@ -900,5 +898,5 @@ export async function getRecentAuditsByType(
     return { data: [], error: error.message };
   }
 
-  return { data: data as Audit[], error: null };
+  return { data: data as unknown as Audit[], error: null };
 }

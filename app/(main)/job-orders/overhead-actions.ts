@@ -26,7 +26,7 @@ export async function allocateJobOverhead(
     // Get job order with revenue and cost
     const { data: job, error: jobError } = await supabase
       .from('job_orders')
-      .select('id, total_revenue, total_cost')
+      .select('id, final_revenue, final_cost')
       .eq('id', joId)
       .single();
 
@@ -35,8 +35,8 @@ export async function allocateJobOverhead(
       return { totalOverhead: 0, error: 'Job order not found' };
     }
 
-    const revenue = Number(job.total_revenue) || 0;
-    const totalCost = Number(job.total_cost) || 0;
+    const revenue = Number(job.final_revenue) || 0;
+    const totalCost = Number(job.final_cost) || 0;
 
     // If no revenue, return 0 overhead
     if (revenue <= 0) {
@@ -83,14 +83,14 @@ export async function allocateJobOverhead(
 
     // Calculate allocations for each active category
     for (const cat of categories || []) {
-      if (cat.allocation_method === 'revenue_percentage' && cat.default_rate > 0) {
-        const allocatedAmount = calculateRevenuePercentageAllocation(revenue, cat.default_rate);
+      if (cat.allocation_method === 'revenue_percentage' && (cat.default_rate ?? 0) > 0) {
+        const allocatedAmount = calculateRevenuePercentageAllocation(revenue, cat.default_rate ?? 0);
         
         allocations.push({
           jo_id: joId,
           category_id: cat.id,
           allocation_method: 'revenue_percentage',
-          allocation_rate: cat.default_rate,
+          allocation_rate: cat.default_rate ?? 0,
           base_amount: revenue,
           allocated_amount: allocatedAmount,
         });
@@ -262,7 +262,7 @@ export async function getJobProfitability(joId: string): Promise<{
 
     const { data: job, error } = await supabase
       .from('job_orders')
-      .select('total_revenue, total_cost, total_overhead, net_profit, net_margin')
+      .select('final_revenue, final_cost, total_overhead, net_profit, net_margin')
       .eq('id', joId)
       .single();
 
@@ -271,8 +271,8 @@ export async function getJobProfitability(joId: string): Promise<{
       return { data: null, error: 'Job order not found' };
     }
 
-    const revenue = Number(job.total_revenue) || 0;
-    const directCosts = Number(job.total_cost) || 0;
+    const revenue = Number(job.final_revenue) || 0;
+    const directCosts = Number(job.final_cost) || 0;
     const grossProfit = revenue - directCosts;
     const grossMargin = revenue > 0 ? (grossProfit / revenue) * 100 : 0;
 

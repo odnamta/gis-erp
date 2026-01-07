@@ -17,6 +17,9 @@ export type EventType =
   | 'maintenance.due'
   | 'approval.required';
 
+// Alias for backward compatibility
+export type NotificationEventType = EventType;
+
 export type DigestFrequency = 'immediate' | 'hourly' | 'daily';
 
 export type NotificationStatus = 'pending' | 'sent' | 'delivered' | 'failed' | 'bounced';

@@ -157,7 +157,9 @@ export async function startAssessment(
   }
 
   // Update PJO engineering status
-  await updatePJOEngineeringStatus(assessment.pjo_id)
+  if (assessment.pjo_id) {
+    await updatePJOEngineeringStatus(assessment.pjo_id)
+  }
 
   revalidatePath(`/proforma-jo/${assessment.pjo_id}`)
 
@@ -233,7 +235,9 @@ export async function completeAssessment(
   }
 
   // Update PJO engineering status
-  await updatePJOEngineeringStatus(assessment.pjo_id)
+  if (assessment.pjo_id) {
+    await updatePJOEngineeringStatus(assessment.pjo_id)
+  }
 
   revalidatePath(`/proforma-jo/${assessment.pjo_id}`)
 
@@ -579,9 +583,10 @@ export async function cancelAssessment(
   }
 
   // Update PJO engineering status
-  await updatePJOEngineeringStatus(assessment.pjo_id)
-
-  revalidatePath(`/proforma-jo/${assessment.pjo_id}`)
+  if (assessment.pjo_id) {
+    await updatePJOEngineeringStatus(assessment.pjo_id)
+    revalidatePath(`/proforma-jo/${assessment.pjo_id}`)
+  }
 
   return { success: true }
 }

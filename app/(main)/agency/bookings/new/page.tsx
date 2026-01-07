@@ -26,12 +26,15 @@ async function getJobOrders() {
 }
 
 export default async function NewBookingPage() {
-  const [shippingLines, ports, customers, jobOrders] = await Promise.all([
+  const [shippingLinesResult, portsResult, customers, jobOrders] = await Promise.all([
     getShippingLines(),
     getPorts(),
     getCustomers(),
     getJobOrders(),
   ]);
+
+  const shippingLines = shippingLinesResult.success ? shippingLinesResult.data || [] : [];
+  const ports = portsResult.success ? portsResult.data || [] : [];
 
   return (
     <Suspense

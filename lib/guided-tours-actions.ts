@@ -79,7 +79,7 @@ export async function getAvailableTours(): Promise<{
     }
 
     // Transform and filter tours
-    const tours = (tourRows as GuidedTourRow[]).map(mapDbRowToTour);
+    const tours = (tourRows as unknown as GuidedTourRow[]).map(mapDbRowToTour);
     const filteredTours = filterToursByRole(tours, profile.role);
     const sortedTours = sortToursByDisplayOrder(filteredTours);
 
@@ -117,7 +117,7 @@ export async function getTourByCode(tourCode: string): Promise<{
       return { data: null, error: error.message };
     }
 
-    const tour = mapDbRowToTour(tourRow as GuidedTourRow);
+    const tour = mapDbRowToTour(tourRow as unknown as GuidedTourRow);
     return { data: tour, error: null };
   } catch (error) {
     console.error('Error fetching tour:', error);
@@ -145,7 +145,7 @@ export async function getTourById(tourId: string): Promise<{
       return { data: null, error: error.message };
     }
 
-    const tour = mapDbRowToTour(tourRow as GuidedTourRow);
+    const tour = mapDbRowToTour(tourRow as unknown as GuidedTourRow);
     return { data: tour, error: null };
   } catch (error) {
     console.error('Error fetching tour:', error);
@@ -196,7 +196,7 @@ export async function startTour(tourId: string): Promise<{
     
     // If resuming an in_progress tour, use saved step
     if (existingProgress?.status === 'in_progress') {
-      currentStep = existingProgress.current_step;
+      currentStep = existingProgress.current_step ?? 0;
     }
 
     // Upsert progress record
@@ -219,7 +219,7 @@ export async function startTour(tourId: string): Promise<{
 
     return { 
       data: { 
-        steps: tourRow.steps as TourStep[], 
+        steps: tourRow.steps as unknown as TourStep[], 
         currentStep 
       }, 
       error: null 
@@ -269,8 +269,8 @@ export async function advanceTourStep(tourId: string): Promise<{
       return { data: null, error: 'Tour not found' };
     }
 
-    const steps = tourRow.steps as TourStep[];
-    const nextStepIndex = calculateNextStepIndex(progress.current_step, steps.length);
+    const steps = tourRow.steps as unknown as TourStep[];
+    const nextStepIndex = calculateNextStepIndex(progress.current_step ?? 0, steps.length);
 
     if (nextStepIndex === null) {
       // Tour complete
@@ -288,7 +288,7 @@ export async function advanceTourStep(tourId: string): Promise<{
       }
 
       return { 
-        data: { step: null, isComplete: true, stepIndex: progress.current_step }, 
+        data: { step: null, isComplete: true, stepIndex: progress.current_step ?? 0 }, 
         error: null 
       };
     }
@@ -346,7 +346,7 @@ export async function goBackTourStep(tourId: string): Promise<{
       return { data: null, error: 'Tour progress not found' };
     }
 
-    const prevStepIndex = calculatePrevStepIndex(progress.current_step);
+    const prevStepIndex = calculatePrevStepIndex(progress.current_step ?? 0);
 
     if (prevStepIndex === null) {
       return { data: null, error: 'Already at first step' };
@@ -363,7 +363,7 @@ export async function goBackTourStep(tourId: string): Promise<{
       return { data: null, error: 'Tour not found' };
     }
 
-    const steps = tourRow.steps as TourStep[];
+    const steps = tourRow.steps as unknown as TourStep[];
 
     // Update to previous step
     const { error: updateError } = await supabase

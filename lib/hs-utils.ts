@@ -141,11 +141,11 @@ export async function searchHSCodes(
     
     if (error) throw error;
     
-    return (data || []).map((row: HSCodeRow) => ({
-      ...transformHSCode(row),
+    return (data || []).map((row) => ({
+      ...transformHSCode(row as unknown as HSCodeRow),
       relevanceScore: 1,
-      chapterName: row.heading?.chapter?.chapter_name,
-      headingName: row.heading?.heading_name,
+      chapterName: (row as any).heading?.chapter?.chapter_name,
+      headingName: (row as any).heading?.heading_name,
     }));
   }
   
@@ -166,18 +166,18 @@ export async function searchHSCodes(
   
   if (error) throw error;
   
-  const results = (data || []).map((row: HSCodeRow) => {
-    const hsCode = transformHSCode(row);
-    const relevanceEn = calculateRelevance(trimmedQuery, row.description);
-    const relevanceId = row.description_id 
-      ? calculateRelevance(trimmedQuery, row.description_id) 
+  const results = (data || []).map((row) => {
+    const hsCode = transformHSCode(row as unknown as HSCodeRow);
+    const relevanceEn = calculateRelevance(trimmedQuery, (row as any).description);
+    const relevanceId = (row as any).description_id 
+      ? calculateRelevance(trimmedQuery, (row as any).description_id) 
       : 0;
     
     return {
       ...hsCode,
       relevanceScore: Math.max(relevanceEn, relevanceId),
-      chapterName: row.heading?.chapter?.chapter_name,
-      headingName: row.heading?.heading_name,
+      chapterName: (row as any).heading?.chapter?.chapter_name,
+      headingName: (row as any).heading?.heading_name,
     };
   });
   
@@ -293,7 +293,7 @@ export async function getPreferentialRates(hsCode: string): Promise<HSPreferenti
   
   if (error || !data) return [];
   
-  return data.map(transformPreferentialRate);
+  return data.map((row) => transformPreferentialRate(row as unknown as HSPreferentialRateRow));
 }
 
 // Calculate duties from rates (pure function for testing)
@@ -389,7 +389,7 @@ export async function getHSChapters(): Promise<HSChapter[]> {
   
   if (error) throw error;
   
-  return (data || []).map(transformChapter);
+  return (data || []).map((row) => transformChapter(row as unknown as HSChapterRow));
 }
 
 // Get headings for a chapter
@@ -407,7 +407,7 @@ export async function getHSHeadings(chapterId: string): Promise<HSHeading[]> {
   
   if (error) throw error;
   
-  return (data || []).map((row: HSHeadingRow) => transformHeading(row));
+  return (data || []).map((row) => transformHeading(row as unknown as HSHeadingRow));
 }
 
 // Get headings by chapter code
@@ -444,7 +444,7 @@ export async function getHSCodesForHeading(headingId: string): Promise<HSCode[]>
   
   if (error) throw error;
   
-  return (data || []).map((row: HSCodeRow) => transformHSCode(row));
+  return (data || []).map((row) => transformHSCode(row as unknown as HSCodeRow));
 }
 
 // Get HS codes by heading code
@@ -482,7 +482,9 @@ export async function getFrequentHSCodes(
   // Count frequency
   const frequency: Record<string, number> = {};
   for (const { selected_hs_code } of history) {
-    frequency[selected_hs_code] = (frequency[selected_hs_code] || 0) + 1;
+    if (selected_hs_code) {
+      frequency[selected_hs_code] = (frequency[selected_hs_code] || 0) + 1;
+    }
   }
   
   // Get top codes
@@ -509,7 +511,7 @@ export async function getFrequentHSCodes(
   if (hsError || !hsCodes) return [];
   
   // Sort by frequency
-  const codeMap = new Map(hsCodes.map((row: HSCodeRow) => [row.hs_code, transformHSCode(row)]));
+  const codeMap = new Map((hsCodes as any[]).map((row: HSCodeRow) => [row.hs_code, transformHSCode(row)]));
   return topCodes
     .map(code => codeMap.get(code))
     .filter((code): code is HSCode => code !== undefined);

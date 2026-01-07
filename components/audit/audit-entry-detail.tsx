@@ -290,15 +290,19 @@ export function AuditEntryDetail({
   const hasRequestContext =
     entry.ip_address || entry.user_agent || entry.request_method || entry.session_id;
 
+  // Safely get action and entity_type with defaults
+  const action = entry.action || 'view';
+  const entityType = entry.entity_type || 'unknown';
+
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="max-w-4xl max-h-[90vh] p-0">
         <DialogHeader className="px-6 pt-6 pb-4">
           <DialogTitle className="flex items-center gap-3">
-            <Badge variant={getActionBadgeVariant(entry.action)} className="text-sm">
-              {formatAction(entry.action)}
+            <Badge variant={getActionBadgeVariant(action)} className="text-sm">
+              {formatAction(action)}
             </Badge>
-            <span className="text-lg">{entry.entity_type.replace(/_/g, ' ')}</span>
+            <span className="text-lg">{entityType.replace(/_/g, ' ')}</span>
             {entry.entity_reference && (
               <span className="text-muted-foreground font-normal">
                 ({entry.entity_reference})
@@ -306,7 +310,7 @@ export function AuditEntryDetail({
             )}
           </DialogTitle>
           <DialogDescription className="flex items-center gap-2">
-            {getStatusIcon(entry.status)}
+            {getStatusIcon(entry.status ?? null)}
             <span>{description.summary}</span>
           </DialogDescription>
         </DialogHeader>
@@ -325,7 +329,7 @@ export function AuditEntryDetail({
                 <InfoRow
                   icon={Clock}
                   label="Timestamp"
-                  value={formatTimestamp(entry.timestamp)}
+                  value={entry.timestamp ? formatTimestamp(entry.timestamp) : null}
                 />
                 <InfoRow
                   icon={User}
@@ -335,7 +339,7 @@ export function AuditEntryDetail({
                 <InfoRow
                   icon={FileText}
                   label="Module"
-                  value={formatModule(entry.module)}
+                  value={entry.module ? formatModule(entry.module) : null}
                 />
                 <InfoRow
                   icon={Hash}
@@ -390,7 +394,7 @@ export function AuditEntryDetail({
                   </CardTitle>
                 </CardHeader>
                 <CardContent>
-                  <ChangedFieldsList fields={entry.changed_fields} />
+                  <ChangedFieldsList fields={entry.changed_fields ?? null} />
                 </CardContent>
               </Card>
             )}
@@ -406,9 +410,9 @@ export function AuditEntryDetail({
                 </CardHeader>
                 <CardContent>
                   <JsonDiffView
-                    oldValues={entry.old_values}
-                    newValues={entry.new_values}
-                    changedFields={entry.changed_fields}
+                    oldValues={entry.old_values ?? null}
+                    newValues={entry.new_values ?? null}
+                    changedFields={entry.changed_fields ?? null}
                   />
                 </CardContent>
               </Card>

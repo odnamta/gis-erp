@@ -15,6 +15,7 @@ import {
   AssetFilterState,
   AssetCategorySummary,
   ExpiringDocument,
+  AssetStatus,
 } from '@/types/assets'
 
 // ============================================
@@ -38,7 +39,7 @@ export async function getAssetCategories(): Promise<AssetCategory[]> {
     return []
   }
   
-  return data || []
+  return (data || []) as unknown as AssetCategory[]
 }
 
 /**
@@ -58,7 +59,7 @@ export async function getAssetLocations(): Promise<AssetLocation[]> {
     return []
   }
   
-  return data || []
+  return (data || []) as unknown as AssetLocation[]
 }
 
 // ============================================
@@ -125,7 +126,7 @@ export async function createAsset(
   }
   
   const { data: asset, error } = await supabase
-    .from('assets')
+    .from('assets' as any)
     .insert(assetData)
     .select()
     .single()
@@ -137,7 +138,7 @@ export async function createAsset(
   
   // Log initial status in history
   await supabase.from('asset_status_history').insert({
-    asset_id: asset.id,
+    asset_id: (asset as any).id,
     previous_status: null,
     new_status: 'active',
     reason: 'Initial asset registration',
@@ -145,7 +146,7 @@ export async function createAsset(
   })
   
   revalidatePath('/equipment')
-  return { success: true, asset }
+  return { success: true, asset: asset as unknown as Asset }
 }
 
 /**
@@ -313,9 +314,9 @@ export async function getAssets(
     `)
   
   // Exclude disposed/sold by default unless explicitly filtered
-  if (filters.status === 'all') {
+  if (filters.status === 'all' as AssetStatus | 'all') {
     // Show all including disposed/sold
-  } else if (filters.status && filters.status !== 'all') {
+  } else if (filters.status && filters.status !== ('all' as AssetStatus | 'all')) {
     query = query.eq('status', filters.status)
   } else {
     // Default: exclude disposed and sold
@@ -347,7 +348,7 @@ export async function getAssets(
     return []
   }
   
-  return (data || []) as AssetWithRelations[]
+  return (data || []) as unknown as AssetWithRelations[]
 }
 
 /**
@@ -373,7 +374,7 @@ export async function getAssetById(id: string): Promise<AssetWithRelations | nul
     return null
   }
   
-  return data as AssetWithRelations
+  return data as unknown as AssetWithRelations
 }
 
 // ============================================
@@ -397,7 +398,7 @@ export async function getAssetDocuments(assetId: string): Promise<AssetDocument[
     return []
   }
   
-  return data || []
+  return (data || []) as unknown as AssetDocument[]
 }
 
 /**
@@ -434,7 +435,7 @@ export async function createAssetDocument(
   }
   
   revalidatePath(`/equipment/${assetId}`)
-  return { success: true, document }
+  return { success: true, document: document as unknown as AssetDocument }
 }
 
 /**
@@ -518,7 +519,7 @@ export async function getAssetStatusHistory(assetId: string): Promise<AssetStatu
     return []
   }
   
-  return data || []
+  return (data || []) as unknown as AssetStatusHistory[]
 }
 
 /**

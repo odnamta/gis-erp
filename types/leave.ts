@@ -2,7 +2,17 @@
 // v0.30: HR - LEAVE MANAGEMENT - Type Definitions
 // =====================================================
 
-import { Employee } from './attendance';
+// Employee type for leave relations (simplified from employees table)
+export interface Employee {
+  id: string;
+  employee_code: string;
+  full_name: string;
+  department_id: string | null;
+  department?: {
+    id: string;
+    department_name: string;
+  };
+}
 
 export interface LeaveType {
   id: string;

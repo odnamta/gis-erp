@@ -83,7 +83,7 @@ export async function recoverRecordAction(
   // Restore the record
   const recordData = deletedRecord.record_data as Record<string, unknown>;
   const { error: restoreError } = await supabase
-    .from(sourceTable)
+    .from(sourceTable as any)
     .update({ ...recordData, is_active: true })
     .eq('id', sourceId);
 
@@ -159,7 +159,7 @@ export async function getRecoveryStatsAction() {
   const total_deleted = records.length;
   const total_recovered = records.filter((r) => r.recovered_at !== null).length;
   const pending_purge = records.filter(
-    (r) => r.recovered_at === null && r.purge_after < today
+    (r) => r.recovered_at === null && r.purge_after && r.purge_after < today
   ).length;
 
   return {

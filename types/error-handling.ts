@@ -228,6 +228,61 @@ export interface SuccessResponse<T> {
 export type ActionResult<T> = SuccessResponse<T> | ErrorResponse;
 
 // =============================================================================
+// ADDITIONAL FILTER TYPES
+// =============================================================================
+
+/**
+ * Parameters for tracking errors
+ */
+export interface TrackErrorParams {
+  // Original properties
+  error: Error | unknown;
+  context?: RequestContext;
+  userId?: string;
+  sessionId?: string;
+  // Extended properties used by tracking.ts
+  errorHash?: string;
+  errorType?: string;
+  errorMessage?: string;
+  errorStack?: string | null;
+  module?: string;
+  functionName?: string;
+  requestMethod?: string;
+  requestPath?: string;
+  requestBody?: Record<string, unknown>;
+  requestParams?: Record<string, unknown>;
+  environment?: string;
+  version?: string;
+}
+
+/**
+ * Filters for job failure queries
+ */
+export interface JobFailureFilters {
+  status?: string | string[];
+  job_type?: string | string[];
+  from_date?: string;
+  to_date?: string;
+  search?: string;
+}
+
+/**
+ * Filters for deleted record queries
+ */
+export interface DeletedRecordFilters {
+  table_name?: string | string[];
+  deleted_by?: string;
+  from_date?: string;
+  to_date?: string;
+  search?: string;
+  // Additional properties used by recovery.ts
+  sourceTable?: string | string[];
+  dateFrom?: string;
+  dateTo?: string;
+  recovered?: boolean;
+}
+
+// =============================================================================
 // RE-EXPORTS FROM RELATED TYPES
 // =============================================================================
 

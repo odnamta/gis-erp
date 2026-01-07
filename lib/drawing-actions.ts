@@ -49,7 +49,7 @@ export async function getCategories(): Promise<DrawingCategory[]> {
     return [];
   }
 
-  return data || [];
+  return (data || []) as unknown as DrawingCategory[];
 }
 
 // ============ Drawings CRUD ============
@@ -92,7 +92,7 @@ export async function getDrawings(filters?: DrawingFilters): Promise<DrawingWith
     return [];
   }
 
-  return (data || []) as DrawingWithDetails[];
+  return (data || []) as unknown as DrawingWithDetails[];
 }
 
 export async function getDrawingById(id: string): Promise<DrawingWithDetails | null> {
@@ -118,7 +118,7 @@ export async function getDrawingById(id: string): Promise<DrawingWithDetails | n
     return null;
   }
 
-  return data as DrawingWithDetails;
+  return data as unknown as DrawingWithDetails;
 }
 
 export async function createDrawing(input: DrawingFormInput): Promise<ActionResult<Drawing>> {
@@ -186,7 +186,7 @@ export async function createDrawing(input: DrawingFormInput): Promise<ActionResu
   });
 
   revalidatePath('/engineering/drawings');
-  return { success: true, data };
+  return { success: true, data: data as unknown as Drawing };
 }
 
 export async function updateDrawing(
@@ -217,7 +217,7 @@ export async function updateDrawing(
 
   revalidatePath('/engineering/drawings');
   revalidatePath(`/engineering/drawings/${id}`);
-  return { success: true, data };
+  return { success: true, data: data as unknown as Drawing };
 }
 
 export async function deleteDrawing(id: string): Promise<ActionResult<void>> {
@@ -283,7 +283,7 @@ export async function createRevision(
     return { success: false, error: 'Drawing not found' };
   }
 
-  const newRevision = getNextRevision(drawing.current_revision);
+  const newRevision = getNextRevision(drawing.current_revision || 'A');
 
   // Archive previous revision (set is_current = false)
   await supabase
@@ -315,13 +315,13 @@ export async function createRevision(
     .from('drawings')
     .update({
       current_revision: newRevision,
-      revision_count: drawing.revision_count + 1,
+      revision_count: (drawing.revision_count || 0) + 1,
       status: 'draft', // Reset to draft on new revision
     })
     .eq('id', drawingId);
 
   revalidatePath(`/engineering/drawings/${drawingId}`);
-  return { success: true, data: revision };
+  return { success: true, data: revision as unknown as DrawingRevision };
 }
 
 // ============ Workflow Actions ============
@@ -427,7 +427,7 @@ async function updateDrawingStatus(
 
   revalidatePath('/engineering/drawings');
   revalidatePath(`/engineering/drawings/${drawingId}`);
-  return { success: true, data };
+  return { success: true, data: data as unknown as Drawing };
 }
 
 // ============ Transmittals ============
@@ -455,7 +455,7 @@ export async function getTransmittals(projectId?: string): Promise<DrawingTransm
     return [];
   }
 
-  return (data || []) as DrawingTransmittalWithDetails[];
+  return (data || []) as unknown as DrawingTransmittalWithDetails[];
 }
 
 export async function getTransmittalById(id: string): Promise<DrawingTransmittalWithDetails | null> {
@@ -476,7 +476,7 @@ export async function getTransmittalById(id: string): Promise<DrawingTransmittal
     return null;
   }
 
-  return data as DrawingTransmittalWithDetails;
+  return data as unknown as DrawingTransmittalWithDetails;
 }
 
 export async function createTransmittal(
@@ -507,7 +507,7 @@ export async function createTransmittal(
       cover_letter: input.cover_letter?.trim() || null,
       notes: input.notes?.trim() || null,
       status: 'draft',
-    })
+    } as any)
     .select()
     .single();
 
@@ -517,7 +517,7 @@ export async function createTransmittal(
   }
 
   revalidatePath('/engineering/drawings/transmittals');
-  return { success: true, data };
+  return { success: true, data: data as unknown as DrawingTransmittal };
 }
 
 export async function sendTransmittal(id: string): Promise<ActionResult<DrawingTransmittal>> {
@@ -542,7 +542,7 @@ export async function sendTransmittal(id: string): Promise<ActionResult<DrawingT
 
   revalidatePath('/engineering/drawings/transmittals');
   revalidatePath(`/engineering/drawings/transmittals/${id}`);
-  return { success: true, data };
+  return { success: true, data: data as unknown as DrawingTransmittal };
 }
 
 export async function acknowledgeTransmittal(id: string): Promise<ActionResult<DrawingTransmittal>> {
@@ -565,5 +565,5 @@ export async function acknowledgeTransmittal(id: string): Promise<ActionResult<D
 
   revalidatePath('/engineering/drawings/transmittals');
   revalidatePath(`/engineering/drawings/transmittals/${id}`);
-  return { success: true, data };
+  return { success: true, data: data as unknown as DrawingTransmittal };
 }

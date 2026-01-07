@@ -137,13 +137,13 @@ describe('JO Utility Functions', () => {
             fc.record({
               actual_amount: fc.oneof(
                 fc.double({ min: 0, max: 1e9, noNaN: true }),
-                fc.constant(undefined)
+                fc.constant(null)
               ),
             }),
             { minLength: 0, maxLength: 10 }
           ),
           (costItems) => {
-            const result = calculateJOFinancials([], costItems)
+            const result = calculateJOFinancials([], costItems as any)
             const expectedCost = costItems.reduce((sum, item) => sum + (item.actual_amount ?? 0), 0)
             expect(result.finalCost).toBeCloseTo(expectedCost, 5)
           }
@@ -154,10 +154,10 @@ describe('JO Utility Functions', () => {
 
     it('should handle undefined actual_amount as 0', () => {
       const costItems = [
-        { actual_amount: undefined },
+        { actual_amount: null },
         { actual_amount: 1000000 },
       ]
-      const result = calculateJOFinancials([], costItems)
+      const result = calculateJOFinancials([], costItems as any)
       expect(result.finalCost).toBe(1000000)
     })
   })
