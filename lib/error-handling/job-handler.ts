@@ -14,6 +14,7 @@
 import { createClient } from '@/lib/supabase/client';
 import type { JobStatus, JobFailureFilters } from '@/types/error-handling';
 import type { JobFailureRecord } from '@/types/job-failure';
+import type { Json } from '@/types/database';
 
 /** Base delay for exponential backoff (1 second) */
 export const BASE_RETRY_DELAY_MS = 1000;
@@ -53,11 +54,11 @@ export async function recordJobFailure(params: {
       job_id: params.jobId,
       error_message: params.errorMessage,
       error_stack: params.errorStack,
-      job_data: params.jobData,
+      job_data: params.jobData as unknown as Json,
       retry_count: 0,
       max_retries: params.maxRetries ?? DEFAULT_MAX_RETRIES,
       status: 'failed',
-    } as any)
+    })
     .select('*')
     .single();
 

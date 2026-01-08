@@ -5,7 +5,7 @@ import { useRouter, useSearchParams } from 'next/navigation';
 import { Button } from '@/components/ui/button';
 import { Plus } from 'lucide-react';
 import { VendorFilters } from '@/components/vendors/vendor-filters';
-import { VendorTable } from '@/components/vendors/vendor-table';
+import { VendorVirtualTable } from '@/components/vendors/vendor-virtual-table';
 import { VendorSummaryCards } from '@/components/vendors/vendor-summary-cards';
 import { VendorRatingDialog } from '@/components/vendors/vendor-rating-dialog';
 import { VendorWithStats, VendorFilterState, VendorSummaryStats, VendorType } from '@/types/vendors';
@@ -122,7 +122,7 @@ export function VendorsClient() {
           Loading vendors...
         </div>
       ) : (
-        <VendorTable
+        <VendorVirtualTable
           vendors={vendors}
           canEdit={canEdit}
           canRate={canRate}

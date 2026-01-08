@@ -44,7 +44,7 @@ export default async function HRDashboardPage() {
         </div>
         <div className="rounded-lg border p-4">
           <h3 className="font-semibold">Attendance</h3>
-          <p className="text-sm text-muted-foreground">Today's attendance rate</p>
+          <p className="text-sm text-muted-foreground">Today&apos;s attendance rate</p>
         </div>
         <div className="rounded-lg border p-4">
           <h3 className="font-semibold">Leave Requests</h3>

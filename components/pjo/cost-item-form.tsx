@@ -72,7 +72,7 @@ export function CostItemForm({ pjoId, item, open, onOpenChange, onSuccess }: Cos
     reset,
     formState: { errors },
   } = useForm<CostItemFormData>({
-    resolver: zodResolver(schema) as any,
+    resolver: zodResolver(schema),
     defaultValues: {
       category: (item?.category || 'trucking') as CostItemFormData['category'],
       description: item?.description || '',
@@ -147,7 +147,7 @@ export function CostItemForm({ pjoId, item, open, onOpenChange, onSuccess }: Cos
         <DialogHeader>
           <DialogTitle>{isEdit ? 'Edit Cost Item' : 'Add Cost Item'}</DialogTitle>
         </DialogHeader>
-        <form onSubmit={handleSubmit(onSubmit as any)} className="space-y-4">
+        <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
           <div className="space-y-2">
             <Label htmlFor="category">Category *</Label>
             <Select

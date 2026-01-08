@@ -241,10 +241,19 @@ export async function createMaintenanceRecord(
   // Calculate parts cost
   const partsCost = calculatePartsCost(input.parts);
 
+  // Generate record number
+  const year = new Date().getFullYear();
+  const { count } = await supabase
+    .from('maintenance_records')
+    .select('*', { count: 'exact', head: true })
+    .gte('created_at', `${year}-01-01`);
+  const recordNumber = `MNT-${year}-${String((count || 0) + 1).padStart(4, '0')}`;
+
   // Insert maintenance record
   const { data: record, error: recordError } = await supabase
     .from('maintenance_records')
     .insert({
+      record_number: recordNumber,
       asset_id: input.assetId,
       maintenance_type_id: input.maintenanceTypeId,
       schedule_id: input.scheduleId,
@@ -268,7 +277,7 @@ export async function createMaintenanceRecord(
       notes: input.notes,
       status: 'completed',
       created_by: user?.id,
-    } as any)
+    })
     .select()
     .single();
 
@@ -413,7 +422,7 @@ export async function getMaintenanceRecordById(id: string): Promise<MaintenanceR
   return {
     ...transformMaintenanceRecordRow(data as unknown as MaintenanceRecordRow),
     maintenanceType: data.maintenance_type ? transformMaintenanceTypeRow(data.maintenance_type as unknown as MaintenanceTypeRow) : undefined,
-    parts: (data.parts || []).map((row: any) => transformMaintenancePartRow(row as unknown as MaintenancePartRow)),
+    parts: (data.parts || []).map((row: unknown) => transformMaintenancePartRow(row as MaintenancePartRow)),
   };
 }
 

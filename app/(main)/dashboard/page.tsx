@@ -12,10 +12,11 @@ import {
   fetchAdminDashboardData,
 } from './actions'
 import { getSalesEngineeringDashboardData } from './sales-engineering-actions'
-import { getUserProfile, getOwnerDashboardData } from '@/lib/permissions-server'
+import { getUserProfile } from '@/lib/permissions-server'
 import { getOpsDashboardData } from '@/lib/ops-dashboard-utils'
 import { getEnhancedOpsDashboardData } from '@/lib/ops-dashboard-enhanced-utils'
 import { getUserOnboardingProgress } from '@/lib/onboarding-actions'
+import { fetchCachedOwnerDashboardData } from '@/lib/dashboard-cache-actions'
 
 // Hutami's email - Marketing Manager who also manages Engineering
 const HUTAMI_EMAIL = 'hutamiarini@gama-group.co'
@@ -30,10 +31,14 @@ export default async function DashboardPage() {
   // Fetch onboarding data for all users
   const onboardingData = userId ? await getUserOnboardingProgress(userId) : null
 
-  // For owner users, fetch all dashboard data to support preview mode
+  // For owner users, use optimized cached data fetching
+  // Priority: Owner KPIs load first (cached), then other dashboards load progressively
   if (userRole === 'owner') {
+    // Fetch owner data with caching (fast path - should be < 500ms when cached)
+    const cachedOwnerData = await fetchCachedOwnerDashboardData()
+    
+    // Fetch other dashboard data in parallel for preview mode support
     const [
-      ownerData,
       opsData,
       enhancedOpsData,
       financeData,
@@ -48,7 +53,6 @@ export default async function DashboardPage() {
       queue,
       metrics,
     ] = await Promise.all([
-      getOwnerDashboardData(),
       getOpsDashboardData(),
       getEnhancedOpsDashboardData(),
       fetchFinanceDashboardData(),
@@ -66,8 +70,7 @@ export default async function DashboardPage() {
 
     return (
       <DashboardSelector
-        // eslint-disable-next-line @typescript-eslint/no-explicit-any
-        ownerData={ownerData as any}
+        ownerData={cachedOwnerData}
         opsData={opsData}
         enhancedOpsData={enhancedOpsData}
         financeData={financeData}

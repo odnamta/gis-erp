@@ -49,7 +49,7 @@ export function PIBFiltersComponent({
   }
 
   const handleStatusChange = (value: string) => {
-    updateFilters({ status: value === 'all' ? undefined : value as any })
+    updateFilters({ status: value === 'all' ? undefined : value as PIBFilters['status'] })
   }
 
   const handleOfficeChange = (value: string) => {

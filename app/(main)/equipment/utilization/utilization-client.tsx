@@ -2,6 +2,7 @@
 
 import { useState, useEffect, useCallback } from 'react';
 import { useRouter } from 'next/navigation';
+import dynamic from 'next/dynamic';
 import { Button } from '@/components/ui/button';
 import {
   Select,
@@ -10,10 +11,11 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Skeleton } from '@/components/ui/skeleton';
 import { Download, RefreshCw, Loader2 } from 'lucide-react';
 import { UtilizationSummaryCards } from '@/components/utilization/utilization-summary-cards';
 import { UtilizationTable } from '@/components/utilization/utilization-table';
-import { UtilizationChart } from '@/components/utilization/utilization-chart';
 import {
   getUtilizationSummary,
   getUtilizationTrend,
@@ -25,9 +27,27 @@ import {
   getLastNMonths,
   formatMonthDisplay,
 } from '@/lib/utilization-utils';
-import { downloadExcelReport, ExportColumn } from '@/lib/reports/export-utils';
+import type { ExportColumn } from '@/lib/reports/export-utils';
 import { UtilizationSummary, UtilizationDashboardStats } from '@/types/utilization';
 import { toast } from 'sonner';
+
+// Dynamic import for chart component (recharts is heavy)
+const UtilizationChart = dynamic(
+  () => import('@/components/utilization/utilization-chart').then(mod => ({ default: mod.UtilizationChart })),
+  {
+    ssr: false,
+    loading: () => (
+      <Card>
+        <CardHeader>
+          <CardTitle>Utilization Trend</CardTitle>
+        </CardHeader>
+        <CardContent>
+          <Skeleton className="h-[300px] w-full" />
+        </CardContent>
+      </Card>
+    ),
+  }
+);
 
 export function UtilizationClient() {
   const router = useRouter();
@@ -105,6 +125,9 @@ export function UtilizationClient() {
 
     setExporting(true);
     try {
+      // Dynamic import for ExcelJS (heavy library ~1MB)
+      const { downloadExcelReport } = await import('@/lib/reports/export-utils');
+      
       const columns: ExportColumn[] = [
         { key: 'assetCode', header: 'Asset Code', format: 'text' },
         { key: 'assetName', header: 'Asset Name', format: 'text' },

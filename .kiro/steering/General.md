@@ -20,7 +20,7 @@ Marketing (Quotation) → Administration (PJO) → Operations → Administration
 |-------|-----------|
 | **Marketing** | RFQ Received → Create Quotation → Engineering Review (if complex) → Submit to Client → Won/Lost |
 | **Engineering** | Assess complex quotations, Create JMP (Journey Management Plan), Equipment Lists |
-| **Admin (PJO)** | Convert Won Quotation to PJO → Set Cost Targets → Approval Workflow |
+| **Administration (PJO)** | Convert Won Quotation to PJO → Set Cost Targets → Approval Workflow |
 | **Operations** | Receive Budget → Adjust Plan → Coordinate Vendors → Execute → Submit Expenses |
 | **Admin (JO)** | Collect Expenses → Create JO → Generate Invoice → Track Payment |
 
@@ -158,7 +158,7 @@ pib_documents → pib_items (1:many)
 |------|-----------|--------|-----------------|
 | `owner` | All | Full system access, final approver | Executive Dashboard |
 | `director` | All | Executive oversight, approve PJO/JO/BKK | Executive Dashboard |
-| `manager` | Multi-dept | Department head with scope (marketing+engineering, admin+finance, ops+assets) | Manager Dashboard |
+| `manager` | Multi-dept | Department head with more than one scope (marketing+engineering, admin+finance, ops+assets) | Manager Dashboard |
 | `sysadmin` | IT | User management, system administration | System Admin Dashboard |
 | `administration` | Admin | PJO preparation, invoices, document management | Admin Dashboard |
 | `finance` | Finance | Payments, AR/AP, payroll, BKK preparation | Finance Dashboard |
@@ -331,6 +331,10 @@ JO:  JO-NNNN/CARGO/MM/YYYY (e.g., JO-0001/CARGO/XII/2025)
 INV: INV-2025-0001
 DRW: {PREFIX}-YYYY-NNNN (e.g., GA-2025-0001, LP-2025-0002)
 TR:  TR-YYYY-NNNN (e.g., TR-2025-0001)
+PEB: PEB-YYYY-NNNN (e.g., PEB-2025-0001)
+PIB: PIB-YYYY-NNNN (e.g., PIB-2025-0001)
+AST: AST-YYYY-NNNN (e.g., AST-2025-0001)
+MNT: MNT-YYYY-NNNN (e.g., MNT-2025-0001)
 ```
 
 ### Status Workflows
@@ -344,6 +348,14 @@ Invoice:   draft → sent → paid → overdue → cancelled
 Project:   active → completed → on_hold
 Drawing:   draft → for_review → for_approval → approved → issued → superseded
 Transmittal: draft → sent → acknowledged
+
+# Assets Module
+Asset:     active → maintenance → idle → disposed
+Maintenance: scheduled → in_progress → completed → cancelled
+
+# Customs Module  
+PEB:       draft → submitted → processing → cleared → archived
+PIB:       draft → submitted → processing → duties_calculated → cleared → archived
 ```
 
 ### Market Classification
@@ -377,7 +389,7 @@ estimated → confirmed (actual ≤ estimated)
 
 ---
 
-## 10. Quick Reference
+## 11. Quick Reference
 
 ### Supabase MCP Commands (for Kiro)
 ```sql

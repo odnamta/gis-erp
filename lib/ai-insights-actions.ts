@@ -5,6 +5,7 @@
 // =====================================================
 
 import { createClient } from '@/lib/supabase/server';
+import type { Json } from '@/types/database';
 import type {
   AIQueryHistory,
   AIQueryTemplate,
@@ -34,13 +35,13 @@ export async function logQuery(input: QueryHistoryInput): Promise<{ success: boo
     const supabase = await createClient();
     
     const { error } = await supabase
-      .from('ai_query_history' as any)
+      .from('ai_query_history')
       .insert({
         user_id: input.user_id,
         natural_query: input.natural_query,
         generated_sql: input.generated_sql,
         response_type: input.response_type,
-        response_data: input.response_data,
+        response_data: input.response_data as Json,
         response_text: input.response_text,
         execution_time_ms: input.execution_time_ms,
       });
@@ -260,7 +261,8 @@ async function executeQuery(sql: string): Promise<{ data: unknown[] | null; erro
     // Use RPC to execute the query safely
     // For now, we'll use a direct query approach
     // In production, you'd want a dedicated RPC function
-    const { data, error } = await supabase.rpc('execute_ai_query' as any, {
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const { data, error } = await (supabase.rpc as any)('execute_ai_query', {
       query_text: sql,
     });
 

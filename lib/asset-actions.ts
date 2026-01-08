@@ -85,8 +85,17 @@ export async function createAsset(
   // Get current user
   const { data: { user } } = await supabase.auth.getUser()
   
+  // Generate asset code
+  const { count: assetCount } = await supabase
+    .from('assets')
+    .select('*', { count: 'exact', head: true })
+  
+  const nextNumber = (assetCount || 0) + 1
+  const asset_code = `AST-${String(nextNumber).padStart(4, '0')}`
+  
   // Prepare asset data
   const assetData = {
+    asset_code,
     asset_name: data.asset_name.trim(),
     description: data.description?.trim() || null,
     category_id: data.category_id,
@@ -126,7 +135,7 @@ export async function createAsset(
   }
   
   const { data: asset, error } = await supabase
-    .from('assets' as any)
+    .from('assets')
     .insert(assetData)
     .select()
     .single()
@@ -138,7 +147,7 @@ export async function createAsset(
   
   // Log initial status in history
   await supabase.from('asset_status_history').insert({
-    asset_id: (asset as any).id,
+    asset_id: (asset as unknown as Asset).id,
     previous_status: null,
     new_status: 'active',
     reason: 'Initial asset registration',

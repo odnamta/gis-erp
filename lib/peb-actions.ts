@@ -47,9 +47,18 @@ export async function createPEBDocument(
   // Get current user
   const { data: { user } } = await supabase.auth.getUser();
 
+  // Generate internal reference number
+  const year = new Date().getFullYear();
+  const { count } = await supabase
+    .from('peb_documents')
+    .select('*', { count: 'exact', head: true })
+    .gte('created_at', `${year}-01-01`);
+  const internalRef = `PEB-${year}-${String((count || 0) + 1).padStart(4, '0')}`;
+
   const { data, error } = await supabase
     .from('peb_documents')
     .insert({
+      internal_ref: internalRef,
       job_order_id: input.job_order_id || null,
       customer_id: input.customer_id || null,
       exporter_name: input.exporter_name,
@@ -77,7 +86,7 @@ export async function createPEBDocument(
       notes: input.notes || null,
       created_by: user?.id || null,
       status: 'draft', // Property 6: Initial status is always 'draft'
-    } as any)
+    })
     .select()
     .single();
 

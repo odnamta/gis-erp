@@ -7,6 +7,7 @@
 import { createClient } from '@/lib/supabase/server';
 import { AutomationLog, AutomationLogFilters, AutomationStatus } from '@/types/automation';
 import { calculateExecutionTime, isValidAutomationStatus } from '@/lib/automation-utils';
+import { Json } from '@/types/database';
 
 /**
  * Creates a new automation log entry.
@@ -26,10 +27,10 @@ export async function createAutomationLog(
         endpoint_id: endpointId,
         execution_id: executionId,
         trigger_type: triggerType,
-        trigger_data: triggerData,
+        trigger_data: triggerData as unknown as Json,
         status: 'running',
         triggered_at: new Date().toISOString(),
-      } as any)
+      })
       .select()
       .single();
 

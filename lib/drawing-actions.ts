@@ -25,6 +25,7 @@ import {
   getNextRevision,
   isValidStatusTransition,
 } from '@/lib/drawing-utils';
+import { Json } from '@/types/database';
 
 // Action result type
 interface ActionResult<T> {
@@ -503,11 +504,11 @@ export async function createTransmittal(
       purpose: input.purpose,
       project_id: input.project_id || null,
       job_order_id: input.job_order_id || null,
-      drawings: input.drawings,
+      drawings: input.drawings as unknown as Json,
       cover_letter: input.cover_letter?.trim() || null,
       notes: input.notes?.trim() || null,
       status: 'draft',
-    } as any)
+    })
     .select()
     .single();
 

@@ -49,7 +49,7 @@ export function PEBFiltersComponent({
   }
 
   const handleStatusChange = (value: string) => {
-    updateFilters({ status: value === 'all' ? undefined : value as any })
+    updateFilters({ status: value === 'all' ? undefined : value as PEBFilters['status'] })
   }
 
   const handleOfficeChange = (value: string) => {

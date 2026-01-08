@@ -44,13 +44,14 @@ export function CostBreakdownChart({ data }: CostBreakdownChartProps) {
     return null;
   };
 
-  // Custom legend
-  const renderLegend = (props: { payload?: Array<{ color: string; value: string }> }) => {
+  // Custom legend - using any to match recharts Props
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const renderLegend = (props: any) => {
     const { payload } = props;
     if (!payload) return null;
     return (
       <div className="flex flex-wrap justify-center gap-4 mt-4">
-        {payload.map((entry, index: number) => (
+        {payload.map((entry: { color: string; value: string }, index: number) => (
           <div key={`legend-${index}`} className="flex items-center gap-2">
             <div
               className="w-3 h-3 rounded-full"
@@ -63,12 +64,10 @@ export function CostBreakdownChart({ data }: CostBreakdownChartProps) {
     );
   };
 
-  // Custom label renderer
-  const renderLabel = (props: { percentage?: number }) => {
-    if (props.percentage !== undefined) {
-      return formatPercentage(props.percentage);
-    }
-    return '';
+  // Custom label renderer - using any to match recharts PieLabelRenderProps
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const renderLabel = (entry: any) => {
+    return formatPercentage(entry.percentage ?? 0);
   };
 
   if (sortedData.length === 0) {
@@ -102,7 +101,7 @@ export function CostBreakdownChart({ data }: CostBreakdownChartProps) {
           <ResponsiveContainer width="100%" height="100%">
             <PieChart>
               <Pie
-                data={sortedData as any}
+                data={sortedData as unknown as Array<Record<string, unknown>>}
                 cx="50%"
                 cy="50%"
                 labelLine={false}
@@ -110,7 +109,7 @@ export function CostBreakdownChart({ data }: CostBreakdownChartProps) {
                 fill="#8884d8"
                 dataKey="amount"
                 nameKey="category"
-                label={renderLabel as any}
+                label={renderLabel}
               >
                 {sortedData.map((entry, index) => (
                   <Cell
@@ -120,7 +119,7 @@ export function CostBreakdownChart({ data }: CostBreakdownChartProps) {
                 ))}
               </Pie>
               <Tooltip content={<CustomTooltip />} />
-              <Legend content={renderLegend as any} />
+              <Legend content={renderLegend} />
             </PieChart>
           </ResponsiveContainer>
         </div>

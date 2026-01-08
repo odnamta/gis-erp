@@ -32,7 +32,7 @@ export default async function FinanceManagerDashboardPage() {
       <div>
         <h1 className="text-3xl font-bold tracking-tight">Finance Manager Dashboard</h1>
         <p className="text-muted-foreground">
-          Feri's focused view: Financial operations, administration workflow, and team performance
+          Feri&apos;s focused view: Financial operations, administration workflow, and team performance
         </p>
       </div>
 

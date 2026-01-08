@@ -90,6 +90,7 @@ export interface UserProfile {
   role: UserRole
   department_scope: DepartmentScope[]  // For managers
   custom_dashboard: DashboardType
+  custom_homepage: string | null  // Custom homepage route override
   is_active: boolean
   created_at: string
   updated_at: string

@@ -32,7 +32,7 @@ export default async function OperationsManagerDashboardPage() {
       <div>
         <h1 className="text-3xl font-bold tracking-tight">Operations Manager Dashboard</h1>
         <p className="text-muted-foreground">
-          Reza's focused view: Operations execution, asset management, and team performance
+          Reza&apos;s focused view: Operations execution, asset management, and team performance
         </p>
       </div>
 

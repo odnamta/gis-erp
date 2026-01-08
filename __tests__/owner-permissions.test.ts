@@ -141,6 +141,7 @@ describe('Pending User Detection', () => {
       role: 'administration',
       department_scope: [],
       custom_dashboard: 'default',
+      custom_homepage: null,
       is_active: true,
       created_at: new Date().toISOString(),
       updated_at: new Date().toISOString(),

@@ -17,6 +17,7 @@
 import { createClient } from '@/lib/supabase/client';
 import type { DeletedRecord, DeletedRecordFilters } from '@/types/error-handling';
 import { NotFoundError } from './errors';
+import type { Json } from '@/types/database';
 
 /** Retention period in days */
 const RETENTION_DAYS = 90;
@@ -47,8 +48,9 @@ export async function softDeleteWithRecovery(
   const now = new Date();
 
   // Fetch the record to be deleted
-  const { data: record, error: fetchError } = await supabase
-    .from(table as any)
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const { data: record, error: fetchError } = await (supabase as any)
+    .from(table)
     .select('*')
     .eq('id', id)
     .single();
@@ -63,17 +65,18 @@ export async function softDeleteWithRecovery(
     deleted_by: userId,
     source_table: table,
     source_id: id,
-    record_data: record,
+    record_data: record as Json,
     purge_after: calculatePurgeDate(now),
-  } as any);
+  });
 
   if (insertError) {
     throw new Error(`Failed to store deleted record: ${insertError.message}`);
   }
 
   // Set is_active=false on the original record
-  const { error: updateError } = await supabase
-    .from(table as any)
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const { error: updateError } = await (supabase as any)
+    .from(table)
     .update({ is_active: false })
     .eq('id', id);
 
@@ -111,8 +114,9 @@ export async function recoverDeletedRecord(
 
   // Restore the record with is_active=true
   const recordData = deletedRecord.record_data as Record<string, unknown>;
-  const { error: restoreError } = await supabase
-    .from(table as any)
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const { error: restoreError } = await (supabase as any)
+    .from(table)
     .update({ ...recordData, is_active: true })
     .eq('id', sourceId);
 
@@ -126,7 +130,7 @@ export async function recoverDeletedRecord(
     .update({
       recovered_at: now,
       recovered_by: userId,
-    } as any)
+    })
     .eq('id', deletedRecord.id);
 
   if (updateError) {

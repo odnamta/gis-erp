@@ -12,6 +12,7 @@ import type {
   RenderTemplateInput,
   RenderedNotification,
 } from '@/types/notification-workflows';
+import type { Json } from '@/types/database';
 
 // ============================================================================
 // Template CRUD Operations
@@ -139,7 +140,10 @@ export async function createTemplate(
   
   const { data, error } = await supabase
     .from('notification_templates')
-    .insert(template as any)
+    .insert({
+      ...template,
+      placeholders: template.placeholders as unknown as Json,
+    })
     .select()
     .single();
 
@@ -161,7 +165,10 @@ export async function updateTemplate(
   
   const { data, error } = await supabase
     .from('notification_templates')
-    .update(updates as any)
+    .update({
+      ...updates,
+      placeholders: updates.placeholders as unknown as Json,
+    })
     .eq('id', id)
     .select()
     .single();

@@ -188,7 +188,7 @@ export function TrackingSearch({
         <div className="flex items-center gap-2 text-sm text-muted-foreground">
           <span>Detected as:</span>
           <Badge variant="outline" className="capitalize">
-            {(TRACKING_TYPE_LABELS as any)[detectedType] || detectedType}
+            {detectedType === 'bl' ? 'B/L' : (TRACKING_TYPE_LABELS[detectedType as keyof typeof TRACKING_TYPE_LABELS] || detectedType)}
           </Badge>
         </div>
       )}

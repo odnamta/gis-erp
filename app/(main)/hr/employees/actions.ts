@@ -11,7 +11,7 @@ import {
   Department,
   Position,
 } from '@/types/employees';
-import { isValidEmployeeStatus, isValidEmploymentType, hasCircularReporting } from '@/lib/employee-utils';
+import { isValidEmployeeStatus, isValidEmploymentType, hasCircularReporting, generateEmployeeCode } from '@/lib/employee-utils';
 import { invalidateEmployeeCache } from '@/lib/cached-queries';
 
 /**
@@ -136,8 +136,17 @@ export async function createEmployee(
     }
   }
 
-  // Prepare insert data (employee_code will be auto-generated)
+  // Get current employee count for code generation
+  const { count: employeeCount } = await supabase
+    .from('employees')
+    .select('*', { count: 'exact', head: true });
+
+  // Generate employee code
+  const employee_code = generateEmployeeCode(employeeCount || 0);
+
+  // Prepare insert data
   const insertData = {
+    employee_code,
     full_name: formData.full_name.trim(),
     nickname: formData.nickname?.trim() || null,
     id_number: formData.id_number?.trim() || null,
@@ -172,7 +181,7 @@ export async function createEmployee(
 
   const { data, error } = await supabase
     .from('employees')
-    .insert(insertData as any)
+    .insert(insertData)
     .select()
     .single();
 

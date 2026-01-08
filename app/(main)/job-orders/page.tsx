@@ -1,5 +1,5 @@
 import { getJobOrders } from './actions'
-import { JOTable } from '@/components/job-orders/jo-table'
+import { JOVirtualTable } from '@/components/job-orders/jo-virtual-table'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 
 export default async function JobOrdersPage() {
@@ -16,7 +16,7 @@ export default async function JobOrdersPage() {
           <CardTitle>All Job Orders</CardTitle>
         </CardHeader>
         <CardContent>
-          <JOTable jobOrders={jobOrders} />
+          <JOVirtualTable jobOrders={jobOrders} />
         </CardContent>
       </Card>
     </div>

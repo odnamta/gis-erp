@@ -43,7 +43,19 @@ const vendorInvoiceFormSchema = z.object({
   notes: z.string().optional(),
 });
 
-type VendorInvoiceFormValues = z.infer<typeof vendorInvoiceFormSchema>;
+type VendorInvoiceFormValues = {
+  invoiceNumber: string;
+  vendorId: string;
+  vendorName?: string;
+  invoiceDate: string;
+  dueDate?: string;
+  currency: string;
+  subtotal: number;
+  taxAmount: number;
+  totalAmount: number;
+  documentUrl?: string;
+  notes?: string;
+};
 
 interface VendorInvoiceFormProps {
   invoice?: AgencyVendorInvoice | null;
@@ -72,6 +84,7 @@ export function VendorInvoiceForm({
     setValue,
     watch,
     formState: { errors },
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
   } = useForm<VendorInvoiceFormValues>({
     resolver: zodResolver(vendorInvoiceFormSchema) as any,
     defaultValues: {
@@ -152,7 +165,7 @@ export function VendorInvoiceForm({
   };
 
   return (
-    <form onSubmit={handleSubmit(handleFormSubmit as any)} className="space-y-6">
+    <form onSubmit={handleSubmit(handleFormSubmit)} className="space-y-6">
       {/* Basic Information */}
       <div className="grid gap-4 md:grid-cols-2">
         <div className="space-y-2">

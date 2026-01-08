@@ -1,15 +1,20 @@
+import bundleAnalyzer from '@next/bundle-analyzer';
+
+const withBundleAnalyzer = bundleAnalyzer({
+  enabled: process.env.ANALYZE === 'true',
+});
+
 /** @type {import('next').NextConfig} */
 const nextConfig = {
-  eslint: {
-    // Warning: This allows production builds to successfully complete even if
-    // your project has ESLint errors.
-    ignoreDuringBuilds: true,
-  },
-  typescript: {
-    // Warning: This allows production builds to successfully complete even if
-    // your project has type errors. Remove this once all type errors are fixed.
-    ignoreBuildErrors: true,
+  // TypeScript and ESLint checking enabled for production builds
+  // All type errors must be fixed before deployment
+  
+  // Remove console.log in production (keep error/warn for debugging)
+  compiler: {
+    removeConsole: {
+      exclude: ['error', 'warn'],
+    },
   },
 };
 
-export default nextConfig;
+export default withBundleAnalyzer(nextConfig);

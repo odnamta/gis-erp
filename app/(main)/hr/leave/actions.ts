@@ -180,11 +180,11 @@ export async function initializeYearlyBalances(
           employee_id: employeeId,
           leave_type_id: leaveType.id,
           year: year,
-          entitled_days: leaveType.default_days_per_year,
+          entitled_days: leaveType.default_days_per_year ?? 0,
           carried_over_days: carriedOver,
           used_days: 0,
           pending_days: 0,
-        } as any, {
+        }, {
           onConflict: 'employee_id,leave_type_id,year',
         });
       
@@ -622,7 +622,7 @@ async function markAttendanceAsLeave(
           attendance_date: dateStr,
           status: 'leave',
           notes: leaveType?.type_name || 'Leave',
-        } as any, {
+        }, {
           onConflict: 'employee_id,attendance_date',
         });
     }

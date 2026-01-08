@@ -40,7 +40,7 @@ export default async function HSEDashboardPage() {
       <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
         <div className="rounded-lg border p-4">
           <h3 className="font-semibold">Safety Incidents</h3>
-          <p className="text-sm text-muted-foreground">This month's incidents</p>
+          <p className="text-sm text-muted-foreground">This month&apos;s incidents</p>
         </div>
         <div className="rounded-lg border p-4">
           <h3 className="font-semibold">Training Compliance</h3>

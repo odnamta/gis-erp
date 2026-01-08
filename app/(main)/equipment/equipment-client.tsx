@@ -6,7 +6,7 @@ import { Button } from '@/components/ui/button'
 import { Plus } from 'lucide-react'
 import {
   AssetFilters,
-  AssetTable,
+  AssetVirtualTable,
   AssetSummaryCards,
 } from '@/components/equipment'
 import {
@@ -136,7 +136,7 @@ export function EquipmentClient() {
           Loading equipment...
         </div>
       ) : (
-        <AssetTable assets={assets} canEdit={canEdit} />
+        <AssetVirtualTable assets={assets} canEdit={canEdit} />
       )}
     </div>
   )

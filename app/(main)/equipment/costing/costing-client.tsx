@@ -2,15 +2,15 @@
 
 import { useState, useEffect, useCallback } from 'react';
 import { useRouter } from 'next/navigation';
+import dynamic from 'next/dynamic';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { Skeleton } from '@/components/ui/skeleton';
 import { Download, RefreshCw, Loader2 } from 'lucide-react';
 import {
   CostingSummaryCards,
   TCOAnalysisTable,
-  CostBreakdownChart,
-  BatchDepreciationDialog,
 } from '@/components/costing';
 import {
   getTCOSummary,
@@ -18,9 +18,26 @@ import {
   refreshTCOView,
 } from '@/lib/depreciation-actions';
 import { calculateCostingDashboardStats } from '@/lib/depreciation-utils';
-import { downloadExcelReport, ExportColumn } from '@/lib/reports/export-utils';
+import type { ExportColumn } from '@/lib/reports/export-utils';
 import { AssetTCOSummary, CostBreakdown, CostingDashboardStats } from '@/types/depreciation';
 import { toast } from 'sonner';
+
+// Dynamic imports for heavy components
+const CostBreakdownChart = dynamic(
+  () => import('@/components/costing/cost-breakdown-chart').then(mod => ({ default: mod.CostBreakdownChart })),
+  {
+    ssr: false,
+    loading: () => <Skeleton className="h-[300px] w-full" />,
+  }
+);
+
+const BatchDepreciationDialog = dynamic(
+  () => import('@/components/costing/batch-depreciation-dialog').then(mod => ({ default: mod.BatchDepreciationDialog })),
+  {
+    ssr: false,
+    loading: () => <Skeleton className="h-10 w-32" />,
+  }
+);
 
 export function CostingClient() {
   const router = useRouter();
@@ -95,6 +112,9 @@ export function CostingClient() {
 
     setExporting(true);
     try {
+      // Dynamic import for ExcelJS (heavy library ~1MB)
+      const { downloadExcelReport } = await import('@/lib/reports/export-utils');
+      
       const columns: ExportColumn[] = [
         { key: 'assetCode', header: 'Asset Code', format: 'text' },
         { key: 'assetName', header: 'Asset Name', format: 'text' },

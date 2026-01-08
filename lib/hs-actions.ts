@@ -326,7 +326,7 @@ export async function getFrequentHSCodesAction(
     }
     
     // Sort by frequency
-    const codeMap = new Map((hsCodes as any[]).map((row: HSCodeRow) => [row.hs_code, transformHSCode(row)]));
+    const codeMap = new Map((hsCodes as HSCodeRow[]).map((row: HSCodeRow) => [row.hs_code, transformHSCode(row)]));
     const sortedCodes = topCodes
       .map(code => codeMap.get(code))
       .filter((code): code is HSCode => code !== undefined);

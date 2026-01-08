@@ -7,6 +7,7 @@
 import { createClient } from '@/lib/supabase/server';
 import { EventQueueItem, QueueStats, QueueStatus } from '@/types/automation';
 import { calculateNextRetryTime, isValidQueueStatus } from '@/lib/automation-utils';
+import { Json } from '@/types/database';
 
 const DEFAULT_MAX_RETRIES = 3;
 
@@ -27,12 +28,12 @@ export async function queueEvent(
       .insert({
         event_type: eventType,
         event_source: eventSource,
-        payload,
+        payload: payload as unknown as Json,
         status: 'pending',
         retry_count: 0,
         max_retries: DEFAULT_MAX_RETRIES,
         scheduled_for: scheduledFor?.toISOString() || new Date().toISOString(),
-      } as any)
+      })
       .select()
       .single();
 

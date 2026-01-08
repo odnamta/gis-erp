@@ -8,6 +8,16 @@ import {
   shouldSkipSecurityChecks,
 } from '@/lib/security/middleware'
 
+/**
+ * User metadata stored in JWT app_metadata for fast access.
+ * Synced on login and profile updates to avoid database queries in middleware.
+ */
+interface UserMetadataFromJWT {
+  role: string
+  is_active: boolean
+  custom_homepage: string | null
+}
+
 // Routes that don't require authentication
 const PUBLIC_ROUTES = ['/login', '/auth/callback', '/account-deactivated']
 
@@ -57,30 +67,50 @@ export async function middleware(request: NextRequest) {
 
   // Check user profile for role restrictions, active status, and homepage routing
   if (user && !isPublicRoute) {
-    // Create a Supabase client to check user profile
-    const supabase = createServerClient(
-      process.env.NEXT_PUBLIC_SUPABASE_URL!,
-      process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
-      {
-        cookies: {
-          getAll() {
-            return request.cookies.getAll()
+    // PERFORMANCE OPTIMIZATION: Read user metadata from JWT app_metadata instead of database
+    // This eliminates 50-200ms latency on every page navigation.
+    // Metadata is synced to JWT on login (auth callback) and profile updates.
+    const appMetadata = user.app_metadata as UserMetadataFromJWT | undefined
+    
+    // Get role and active status from JWT metadata (fast path)
+    // Falls back to database query only if metadata is missing (rare case for legacy sessions)
+    let role: string | undefined = appMetadata?.role
+    let isActive: boolean = appMetadata?.is_active !== false // Default to true
+    let customHomepage: string | null = appMetadata?.custom_homepage ?? null
+    
+    // Fallback: Query database only if JWT metadata is missing
+    // This handles legacy sessions before metadata sync was implemented
+    if (!role) {
+      const supabase = createServerClient(
+        process.env.NEXT_PUBLIC_SUPABASE_URL!,
+        process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
+        {
+          cookies: {
+            getAll() {
+              return request.cookies.getAll()
+            },
+            setAll() {
+              // We don't need to set cookies here
+            },
           },
-          setAll() {
-            // We don't need to set cookies here
-          },
-        },
-      }
-    )
+        }
+      )
 
-    const { data: profile } = await supabase
-      .from('user_profiles')
-      .select('role, is_active, custom_homepage')
-      .eq('user_id', user.id)
-      .single()
+      const { data: profile } = await supabase
+        .from('user_profiles')
+        .select('role, is_active, custom_homepage')
+        .eq('user_id', user.id)
+        .single()
+      
+      if (profile) {
+        role = profile.role
+        isActive = profile.is_active
+        customHomepage = profile.custom_homepage
+      }
+    }
 
     // Redirect deactivated users to account-deactivated page
-    if (profile && !profile.is_active && pathname !== '/account-deactivated') {
+    if (!isActive && pathname !== '/account-deactivated') {
       const deactivatedUrl = new URL('/account-deactivated', request.url)
       return NextResponse.redirect(deactivatedUrl)
     }
@@ -88,14 +118,14 @@ export async function middleware(request: NextRequest) {
     // v0.35: Role-based homepage routing
     // Redirect root path '/' or '/dashboard' (without sub-path) to role-specific dashboard
     if (pathname === '/' || pathname === '/dashboard') {
-      const homepage = getHomepageForRole(profile?.role || 'viewer', profile?.custom_homepage)
+      const homepage = getHomepageForRole(role || 'viewer', customHomepage)
       const homepageUrl = new URL(homepage, request.url)
       return NextResponse.redirect(homepageUrl)
     }
 
     // Redirect authenticated users away from login page to their homepage
     if (pathname === '/login') {
-      const homepage = getHomepageForRole(profile?.role || 'viewer', profile?.custom_homepage)
+      const homepage = getHomepageForRole(role || 'viewer', customHomepage)
       const homepageUrl = new URL(homepage, request.url)
       return NextResponse.redirect(homepageUrl)
     }
@@ -105,16 +135,16 @@ export async function middleware(request: NextRequest) {
     const isSalesRestrictedRoute = SALES_RESTRICTED_ROUTES.some(route => pathname.startsWith(route))
 
     // Redirect ops users to their dashboard for ops-restricted routes
-    if (profile?.role === 'ops' && isOpsRestrictedRoute) {
-      const homepage = getHomepageForRole('ops', profile?.custom_homepage)
+    if (role === 'ops' && isOpsRestrictedRoute) {
+      const homepage = getHomepageForRole('ops', customHomepage)
       const dashboardUrl = new URL(homepage, request.url)
       dashboardUrl.searchParams.set('restricted', 'true')
       return NextResponse.redirect(dashboardUrl)
     }
 
     // Redirect sales users to their dashboard for sales-restricted routes
-    if (profile?.role === 'sales' && isSalesRestrictedRoute) {
-      const homepage = getHomepageForRole('sales', profile?.custom_homepage)
+    if (role === 'sales' && isSalesRestrictedRoute) {
+      const homepage = getHomepageForRole('sales', customHomepage)
       const dashboardUrl = new URL(homepage, request.url)
       dashboardUrl.searchParams.set('restricted', 'true')
       return NextResponse.redirect(dashboardUrl)

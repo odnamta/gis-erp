@@ -369,6 +369,15 @@ export async function updateUserRole(
     return { success: false, error: error.message }
   }
 
+  // Sync updated role to JWT metadata for middleware performance
+  try {
+    const { syncUserMetadataFromProfile } = await import('@/lib/supabase/sync-user-metadata')
+    await syncUserMetadataFromProfile(targetUserId)
+  } catch (e) {
+    console.error('Failed to sync user metadata after role change:', e)
+    // Don't fail the operation if metadata sync fails
+  }
+
   // Log the activity
   await supabase.from('activity_log').insert({
     action_type: 'user_role_changed',
@@ -378,6 +387,14 @@ export async function updateUserRole(
     user_id: callerProfile.user_id,
     user_name: callerProfile.full_name || callerProfile.email,
   })
+
+  // Invalidate owner dashboard cache (user data changed)
+  try {
+    const { invalidateOwnerDashboardCache } = await import('@/lib/dashboard-cache-actions')
+    await invalidateOwnerDashboardCache()
+  } catch (e) {
+    console.error('Failed to invalidate dashboard cache:', e)
+  }
 
   // Send notification for role change
   try {
@@ -489,6 +506,14 @@ export async function createPreregisteredUser(
     return { success: false, error: error.message }
   }
 
+  // Invalidate owner dashboard cache (new user added)
+  try {
+    const { invalidateOwnerDashboardCache } = await import('@/lib/dashboard-cache-actions')
+    await invalidateOwnerDashboardCache()
+  } catch (e) {
+    console.error('Failed to invalidate dashboard cache:', e)
+  }
+
   return { success: true, profile: data as UserProfile }
 }
 
@@ -544,6 +569,18 @@ export async function toggleUserActive(
     return { success: false, error: error.message }
   }
 
+  // Sync updated active status to JWT metadata for middleware performance
+  // Only sync if user has a linked auth account
+  if (targetProfile.user_id) {
+    try {
+      const { syncUserMetadataFromProfile } = await import('@/lib/supabase/sync-user-metadata')
+      await syncUserMetadataFromProfile(targetProfile.user_id)
+    } catch (e) {
+      console.error('Failed to sync user metadata after active status change:', e)
+      // Don't fail the operation if metadata sync fails
+    }
+  }
+
   // Log the activity
   await supabase.from('activity_log').insert({
     action_type: newActiveStatus ? 'user_activated' : 'user_deactivated',
@@ -553,6 +590,14 @@ export async function toggleUserActive(
     user_id: callerProfile.user_id,
     user_name: callerProfile.full_name || callerProfile.email,
   })
+
+  // Invalidate owner dashboard cache (user data changed)
+  try {
+    const { invalidateOwnerDashboardCache } = await import('@/lib/dashboard-cache-actions')
+    await invalidateOwnerDashboardCache()
+  } catch (e) {
+    console.error('Failed to invalidate dashboard cache:', e)
+  }
 
   // Send notification for deactivation
   if (!newActiveStatus) {

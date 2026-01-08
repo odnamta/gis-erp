@@ -3,6 +3,7 @@
 import { createClient } from '@/lib/supabase/server'
 import { UserProfile, UserRole } from '@/types/permissions'
 import { AuditLogEntry, AuditAction, AuditLogFilter, AuditLogQueryResult } from '@/types/audit'
+import { Database, Json } from '@/types/database'
 
 /**
  * Log an action to the audit trail
@@ -30,15 +31,15 @@ export async function logAudit(
       record_id: entry.recordId || null,
       record_type: entry.recordType || null,
       record_number: entry.recordNumber || null,
-      old_values: entry.oldValues || null,
-      new_values: entry.newValues || null,
+      old_values: entry.oldValues as Json || null,
+      new_values: entry.newValues as Json || null,
       changes_summary: entry.changesSummary || null,
       workflow_status_from: entry.workflowStatusFrom || null,
       workflow_status_to: entry.workflowStatusTo || null,
       ip_address: ipAddress,
       user_agent: userAgent,
       session_id: entry.sessionId || null,
-    } as any)
+    } as Database['public']['Tables']['audit_logs']['Insert'])
     
     if (error) {
       console.error('Failed to log audit entry:', error)
@@ -236,26 +237,26 @@ export async function queryAuditLogs(
     return { logs: [], total: 0, hasMore: false }
   }
   
-  const logs: AuditLogEntry[] = ((data || []) as any[]).map(row => ({
-    id: row.id,
-    userId: row.user_id,
-    userName: row.user_name,
-    userEmail: row.user_email,
+  const logs: AuditLogEntry[] = ((data || []) as Array<Record<string, unknown>>).map(row => ({
+    id: row.id as string,
+    userId: row.user_id as string,
+    userName: row.user_name as string,
+    userEmail: row.user_email as string,
     userRole: row.user_role as UserRole,
     action: row.action as AuditAction,
-    module: row.module,
-    recordId: row.record_id,
-    recordType: row.record_type,
-    recordNumber: row.record_number,
-    oldValues: row.old_values,
-    newValues: row.new_values,
-    changesSummary: row.changes_summary,
-    ipAddress: row.ip_address,
-    userAgent: row.user_agent,
-    sessionId: row.session_id,
-    workflowStatusFrom: row.workflow_status_from,
-    workflowStatusTo: row.workflow_status_to,
-    createdAt: row.created_at,
+    module: row.module as string,
+    recordId: row.record_id as string | undefined,
+    recordType: row.record_type as string | undefined,
+    recordNumber: row.record_number as string | undefined,
+    oldValues: row.old_values as Record<string, unknown> | undefined,
+    newValues: row.new_values as Record<string, unknown> | undefined,
+    changesSummary: row.changes_summary as string | undefined,
+    ipAddress: row.ip_address as string | undefined,
+    userAgent: row.user_agent as string | undefined,
+    sessionId: row.session_id as string | undefined,
+    workflowStatusFrom: row.workflow_status_from as string | undefined,
+    workflowStatusTo: row.workflow_status_to as string | undefined,
+    createdAt: row.created_at as string | undefined,
   }))
   
   return {

@@ -50,13 +50,23 @@ export async function getUserOnboardingProgress(
     console.error('Error fetching onboarding progress:', progressError);
   }
 
-  const steps: OnboardingProgressWithStep[] = ((progressData || []) as any[]).map((p) => ({
+  const steps: OnboardingProgressWithStep[] = ((progressData || []) as Array<{
+    id: string;
+    user_id: string;
+    step_id: string;
+    status?: string;
+    started_at?: string | null;
+    completed_at?: string | null;
+    current_count?: number;
+    created_at: string;
+    step: OnboardingProgressWithStep['step'];
+  }>).map((p) => ({
     id: p.id,
     user_id: p.user_id,
     step_id: p.step_id,
-    status: p.status || 'not_started',
-    started_at: p.started_at,
-    completed_at: p.completed_at,
+    status: (p.status || 'not_started') as OnboardingProgressWithStep['status'],
+    started_at: p.started_at ?? null,
+    completed_at: p.completed_at ?? null,
     current_count: p.current_count ?? 0,
     created_at: p.created_at,
     step: p.step,

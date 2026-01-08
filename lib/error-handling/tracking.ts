@@ -21,6 +21,7 @@ import type {
   ErrorSummary,
 } from '@/types/error-handling';
 import { generateErrorCode } from './handler';
+import type { Json, Database } from '@/types/database';
 
 /**
  * Track an error in the database
@@ -70,15 +71,15 @@ export async function trackError(params: TrackErrorParams): Promise<string> {
       session_id: params.sessionId,
       request_method: params.requestMethod,
       request_path: params.requestPath,
-      request_body: params.requestBody,
-      request_params: params.requestParams,
+      request_body: params.requestBody as unknown as Json,
+      request_params: params.requestParams as unknown as Json,
       environment: params.environment || 'production',
       version: params.version,
       status: 'new',
       occurrence_count: 1,
       first_seen_at: now,
       last_seen_at: now,
-    } as any)
+    } as Database['public']['Tables']['error_tracking']['Insert'])
     .select('id')
     .single();
 

@@ -21,6 +21,7 @@ function createMockProfile(overrides: Partial<UserProfile> = {}): UserProfile {
     role: 'ops',
     department_scope: [],
     custom_dashboard: 'default',
+    custom_homepage: null,
     is_active: true,
     created_at: new Date().toISOString(),
     updated_at: new Date().toISOString(),

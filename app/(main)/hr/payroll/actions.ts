@@ -2,6 +2,7 @@
 
 import { createClient } from '@/lib/supabase/server';
 import { revalidatePath } from 'next/cache';
+import type { Json } from '@/types/database';
 import {
   PayrollComponent,
   PayrollPeriod,
@@ -339,9 +340,9 @@ export async function calculateEmployeePayroll(
       absent_days: attendance.absent_days,
       leave_days: attendance.leave_days,
       overtime_hours: attendance.overtime_hours,
-      earnings: calculation.earnings,
-      deductions: calculation.deductions,
-      company_contributions: calculation.company_contributions,
+      earnings: calculation.earnings as unknown as Json,
+      deductions: calculation.deductions as unknown as Json,
+      company_contributions: calculation.company_contributions as unknown as Json,
       gross_salary: calculation.gross_salary,
       total_deductions: calculation.total_deductions,
       net_salary: calculation.net_salary,
@@ -351,7 +352,7 @@ export async function calculateEmployeePayroll(
       bank_account_name: employee.bank_account_name,
       status: 'calculated',
       updated_at: new Date().toISOString(),
-    } as any, {
+    }, {
       onConflict: 'period_id,employee_id',
     })
     .select()

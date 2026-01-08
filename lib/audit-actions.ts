@@ -5,6 +5,7 @@
 // =====================================================
 
 import { createClient } from '@/lib/supabase/server';
+import type { Json } from '@/types/database';
 import {
   AuditType,
   Audit,
@@ -54,14 +55,14 @@ export async function createAuditType(
   const supabase = await createClient();
 
   const { data, error } = await supabase
-    .from('audit_types' as any)
+    .from('audit_types')
     .insert({
       type_code: input.type_code.toUpperCase(),
       type_name: input.type_name,
       description: input.description || null,
       category: input.category,
       frequency_days: input.frequency_days || null,
-      checklist_template: input.checklist_template || { sections: [] },
+      checklist_template: (input.checklist_template || { sections: [] }) as unknown as Json,
     })
     .select()
     .single();
@@ -212,9 +213,18 @@ export async function createAudit(
   // Get current user
   const { data: { user } } = await supabase.auth.getUser();
 
+  // Generate audit number
+  const { count: auditCount } = await supabase
+    .from('audits')
+    .select('*', { count: 'exact', head: true });
+  
+  const nextNumber = (auditCount || 0) + 1;
+  const audit_number = `AUD-${new Date().getFullYear()}-${String(nextNumber).padStart(4, '0')}`;
+
   const { data, error } = await supabase
-    .from('audits' as any)
+    .from('audits')
     .insert({
+      audit_number,
       audit_type_id: input.audit_type_id,
       scheduled_date: input.scheduled_date || null,
       location: input.location || null,
@@ -350,10 +360,10 @@ export async function completeAudit(
   const { data, error } = await supabase
     .from('audits')
     .update({
-      checklist_responses: input.checklist_responses as any,
+      checklist_responses: input.checklist_responses as unknown as Json,
       summary: input.summary || null,
-      photos: input.photos || [],
-      documents: input.documents || [],
+      photos: (input.photos || []) as unknown as Json,
+      documents: (input.documents || []) as unknown as Json,
       overall_score: score,
       overall_rating: rating,
       status: 'completed',
@@ -542,7 +552,7 @@ export async function createFinding(
       const currentCount = ((auditData as unknown as Record<string, number>)[countField] || 0);
       await supabase
         .from('audits')
-        .update({ [countField]: currentCount + 1 } as any)
+        .update({ [countField]: currentCount + 1 })
         .eq('id', input.audit_id);
     }
   } catch {

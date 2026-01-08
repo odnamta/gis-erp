@@ -3,7 +3,7 @@
 import { useState } from 'react'
 import { FileSpreadsheet, Loader2 } from 'lucide-react'
 import { Button } from '@/components/ui/button'
-import { downloadExcelReport, ExportColumn, ExportMetadata } from '@/lib/reports/export-utils'
+import type { ExportColumn, ExportMetadata } from '@/lib/reports/export-utils'
 import { DateRange } from '@/types/reports'
 import { useToast } from '@/hooks/use-toast'
 
@@ -30,6 +30,9 @@ export function ExportButtons({
   const handleExcelExport = async () => {
     setExporting(true)
     try {
+      // Dynamic import - only loads ExcelJS when user clicks Export
+      const { downloadExcelReport } = await import('@/lib/reports/export-utils')
+      
       const metadata: ExportMetadata = {
         generatedAt: new Date(),
         generatedBy: userName,

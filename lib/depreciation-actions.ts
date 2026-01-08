@@ -111,7 +111,7 @@ export async function recordDepreciation(
       .insert({
         asset_id: assetId,
         depreciation_date: new Date().toISOString().split('T')[0],
-        depreciation_method: asset.depreciation_method,
+        depreciation_method: asset.depreciation_method || 'straight_line',
         period_start: periodStart,
         period_end: periodEnd,
         beginning_book_value: beginningBookValue,
@@ -119,7 +119,7 @@ export async function recordDepreciation(
         ending_book_value: endingBookValue,
         accumulated_depreciation: newAccumulatedDepreciation,
         created_by: user?.id || null,
-      } as any)
+      })
       .select()
       .single();
 

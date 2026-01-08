@@ -2,6 +2,7 @@ import { createClient } from '@/lib/supabase/server'
 import { NextResponse } from 'next/server'
 import { ensureUserProfile } from '@/lib/permissions-server'
 import { recordSuccessfulLogin, recordFailedLoginAttempt } from '@/app/actions/auth-actions'
+import { syncUserMetadataToAuth } from '@/lib/supabase/sync-user-metadata'
 
 export async function GET(request: Request) {
   const { searchParams, origin } = new URL(request.url)
@@ -46,6 +47,16 @@ export async function GET(request: Request) {
     // Check if this is a first login (profile was just created or linked)
     if (profile) {
       const { data: { user } } = await supabase.auth.getUser()
+      
+      // Sync user metadata to JWT claims for middleware performance optimization
+      // This eliminates the need for database queries on every page navigation
+      if (user) {
+        await syncUserMetadataToAuth(user.id, {
+          role: profile.role,
+          is_active: profile.is_active,
+          custom_homepage: profile.custom_homepage,
+        })
+      }
       
       // Record successful login (Requirement 3.1)
       if (user) {

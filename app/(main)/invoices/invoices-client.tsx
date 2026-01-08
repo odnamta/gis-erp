@@ -2,7 +2,7 @@
 
 import { useState, useEffect, useCallback } from 'react'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
-import { InvoiceTable } from '@/components/invoices/invoice-table'
+import { InvoiceVirtualTable } from '@/components/invoices/invoice-virtual-table'
 import { InvoiceFilters } from '@/components/invoices/invoice-filters'
 import { InvoiceWithRelations, InvoiceStatus } from '@/types'
 import { getInvoices } from './actions'
@@ -53,7 +53,7 @@ export function InvoicesClient() {
             <Loader2 className="h-6 w-6 animate-spin text-muted-foreground" />
           </div>
         ) : (
-          <InvoiceTable invoices={invoices} />
+          <InvoiceVirtualTable invoices={invoices} />
         )}
       </CardContent>
     </Card>

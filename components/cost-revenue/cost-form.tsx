@@ -50,7 +50,21 @@ const costFormSchema = z.object({
   notes: z.string().optional(),
 });
 
-type CostFormValues = z.infer<typeof costFormSchema>;
+type CostFormValues = {
+  chargeTypeId: string;
+  description?: string;
+  currency: string;
+  unitPrice: number;
+  quantity: number;
+  exchangeRate?: number;
+  isTaxable?: boolean;
+  taxRate?: number;
+  vendorId?: string;
+  vendorName?: string;
+  vendorInvoiceNumber?: string;
+  vendorInvoiceDate?: string;
+  notes?: string;
+};
 
 interface CostFormProps {
   bookingId?: string;
@@ -88,6 +102,7 @@ export function CostForm({
     setValue,
     watch,
     formState: { errors },
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
   } = useForm<CostFormValues>({
     resolver: zodResolver(costFormSchema) as any,
     defaultValues: {
@@ -197,7 +212,7 @@ export function CostForm({
   };
 
   return (
-    <form onSubmit={handleSubmit(handleFormSubmit as any)} className="space-y-6">
+    <form onSubmit={handleSubmit(handleFormSubmit)} className="space-y-6">
       {/* Charge Type Selection */}
       <div className="space-y-2">
         <Label htmlFor="chargeTypeId">Charge Type *</Label>

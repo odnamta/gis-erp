@@ -144,8 +144,8 @@ export async function searchHSCodes(
     return (data || []).map((row) => ({
       ...transformHSCode(row as unknown as HSCodeRow),
       relevanceScore: 1,
-      chapterName: (row as any).heading?.chapter?.chapter_name,
-      headingName: (row as any).heading?.heading_name,
+      chapterName: (row as { heading?: { chapter?: { chapter_name?: string } } }).heading?.chapter?.chapter_name,
+      headingName: (row as { heading?: { heading_name?: string } }).heading?.heading_name,
     }));
   }
   
@@ -168,16 +168,17 @@ export async function searchHSCodes(
   
   const results = (data || []).map((row) => {
     const hsCode = transformHSCode(row as unknown as HSCodeRow);
-    const relevanceEn = calculateRelevance(trimmedQuery, (row as any).description);
-    const relevanceId = (row as any).description_id 
-      ? calculateRelevance(trimmedQuery, (row as any).description_id) 
+    const rowWithHeading = row as { description: string; description_id?: string; heading?: { chapter?: { chapter_name?: string }; heading_name?: string } };
+    const relevanceEn = calculateRelevance(trimmedQuery, rowWithHeading.description);
+    const relevanceId = rowWithHeading.description_id 
+      ? calculateRelevance(trimmedQuery, rowWithHeading.description_id) 
       : 0;
     
     return {
       ...hsCode,
       relevanceScore: Math.max(relevanceEn, relevanceId),
-      chapterName: (row as any).heading?.chapter?.chapter_name,
-      headingName: (row as any).heading?.heading_name,
+      chapterName: rowWithHeading.heading?.chapter?.chapter_name,
+      headingName: rowWithHeading.heading?.heading_name,
     };
   });
   
@@ -511,7 +512,7 @@ export async function getFrequentHSCodes(
   if (hsError || !hsCodes) return [];
   
   // Sort by frequency
-  const codeMap = new Map((hsCodes as any[]).map((row: HSCodeRow) => [row.hs_code, transformHSCode(row)]));
+  const codeMap = new Map((hsCodes as HSCodeRow[]).map((row: HSCodeRow) => [row.hs_code, transformHSCode(row)]));
   return topCodes
     .map(code => codeMap.get(code))
     .filter((code): code is HSCode => code !== undefined);

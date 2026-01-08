@@ -17,14 +17,12 @@ export default async function MainLayout({ children }: { children: React.ReactNo
   const supabase = await createClient()
   const { data: { user } } = await supabase.auth.getUser()
 
-  // Ensure user profile exists and get it
-  let userProfile: UserProfile | null = null
-  if (user) {
-    userProfile = await ensureUserProfile()
-  }
+  // Parallelize profile and preferences fetch - both depend on user but are independent of each other
+  const [userProfile, prefsResult] = await Promise.all([
+    user ? ensureUserProfile() : Promise.resolve(null),
+    getUserPreferences(),
+  ])
 
-  // Get user preferences
-  const prefsResult = await getUserPreferences()
   const initialPreferences = prefsResult.success && prefsResult.data
     ? prefsResult.data
     : DEFAULT_PREFERENCES
