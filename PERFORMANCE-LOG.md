@@ -48,3 +48,59 @@
 - [ ] Image optimization with next/image
 - [ ] Google Maps lazy loading
 - [ ] Consider code splitting for large dashboard components
+
+---
+
+## Day 2 - Owner Dashboard Optimization - January 8, 2026
+
+### Problem:
+Owner dashboard had 5-second load time due to 13 parallel queries that ALL had to complete before rendering anything.
+
+### Root Cause:
+```typescript
+// OLD: Server waits for ALL 13 queries before sending HTML
+const [ownerData, opsData, enhancedOpsData, financeData, salesData, ...] = await Promise.all([
+  fetchCachedOwnerDashboardData(),
+  getOpsDashboardData(),
+  getEnhancedOpsDashboardData(),
+  fetchFinanceDashboardData(),
+  fetchSalesDashboardData(),
+  // ... 8 more queries
+])
+```
+
+### Solution:
+Implemented lazy-loading for preview mode data:
+
+1. **Owner dashboard loads immediately** - Only fetches owner-specific data (cached, <500ms)
+2. **Preview data loads on-demand** - When user activates preview mode, data is fetched via API
+3. **Client-side caching** - Preview data is cached to avoid re-fetching
+
+### Files Changed:
+- `app/(main)/dashboard/page.tsx` - Simplified to only fetch owner data for owner role
+- `components/dashboard/owner-dashboard-with-preview.tsx` - New component with lazy preview loading
+- `app/api/dashboard/preview/route.ts` - New API endpoint for preview data
+
+### Architecture:
+```
+BEFORE:
+Page Load → Fetch 13 queries → Wait 5s → Render
+
+AFTER:
+Page Load → Fetch owner data (cached) → Render in <1s
+Preview Click → Fetch role-specific data → Render preview
+```
+
+### Expected Performance:
+| Metric | Before | After |
+|--------|--------|-------|
+| Time to First Content | 5s | <1s |
+| Full Dashboard Load | 5s | <1s (owner view) |
+| Preview Mode Switch | 0s (pre-loaded) | 1-2s (lazy loaded) |
+
+### Trade-offs:
+- Preview mode now has 1-2s delay on first switch (vs instant before)
+- Preview data is cached client-side, so subsequent switches are instant
+- Overall UX is better: users see their dashboard immediately
+
+### Build Status: ✅ Passing
