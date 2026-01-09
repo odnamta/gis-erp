@@ -117,17 +117,26 @@ export async function middleware(request: NextRequest) {
 
     // v0.35: Role-based homepage routing
     // Redirect root path '/' or '/dashboard' (without sub-path) to role-specific dashboard
+    // IMPORTANT: Prevent redirect loop by checking if already on target homepage
     if (pathname === '/' || pathname === '/dashboard') {
       const homepage = getHomepageForRole(role || 'viewer', customHomepage)
-      const homepageUrl = new URL(homepage, request.url)
-      return NextResponse.redirect(homepageUrl)
+
+      // Prevent redirect to self (fixes ERR_TOO_MANY_REDIRECTS)
+      if (homepage !== pathname) {
+        const homepageUrl = new URL(homepage, request.url)
+        return NextResponse.redirect(homepageUrl)
+      }
     }
 
     // Redirect authenticated users away from login page to their homepage
     if (pathname === '/login') {
       const homepage = getHomepageForRole(role || 'viewer', customHomepage)
-      const homepageUrl = new URL(homepage, request.url)
-      return NextResponse.redirect(homepageUrl)
+
+      // Prevent redirect to self
+      if (homepage !== pathname) {
+        const homepageUrl = new URL(homepage, request.url)
+        return NextResponse.redirect(homepageUrl)
+      }
     }
 
     // Check role-based restrictions
