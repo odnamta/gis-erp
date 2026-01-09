@@ -8,6 +8,20 @@ export const metadata = {
   description: 'Cash disbursement management (BKK)',
 }
 
+async function fetchBKKRecords() {
+  const supabase = await createClient()
+  const query = supabase.from('bkk_records').select(`
+    *,
+    job_orders (jo_number, customer_name),
+    vendors (name, vendor_code),
+    created_by_profile:user_profiles!bkk_records_created_by_fkey (full_name),
+    approved_by_profile:user_profiles!bkk_records_approved_by_fkey (full_name)
+  `).order('created_at', { ascending: false }).limit(200)
+  
+  // @ts-expect-error - Complex join query causes deep type instantiation
+  return query
+}
+
 export default async function DisbursementsPage() {
   const profile = await getUserProfile()
 
@@ -17,20 +31,7 @@ export default async function DisbursementsPage() {
     redirect('/dashboard')
   }
 
-  // Fetch initial data
-  const supabase = await createClient()
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  const { data: bkks, error } = await (supabase
-    .from('bkk_records')
-    .select(`
-      *,
-      job_orders (jo_number, customer_name),
-      vendors (name, vendor_code),
-      created_by_profile:user_profiles!bkk_records_created_by_fkey (full_name),
-      approved_by_profile:user_profiles!bkk_records_approved_by_fkey (full_name)
-    `)
-    .order('created_at', { ascending: false })
-    .limit(200) as Promise<{ data: any[]; error: any }>)
+  const { data: bkks, error } = await fetchBKKRecords()
 
   if (error) {
     console.error('Error fetching BKKs:', error)

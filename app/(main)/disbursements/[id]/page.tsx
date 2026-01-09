@@ -12,6 +12,22 @@ interface PageProps {
   params: Promise<{ id: string }>
 }
 
+async function fetchBKKRecord(id: string) {
+  const supabase = await createClient()
+  const query = supabase.from('bkk_records').select(`
+    *,
+    job_orders (id, jo_number, customer_name, status),
+    vendors (id, name, vendor_code, bank_name, bank_account, bank_account_name),
+    created_by_profile:user_profiles!bkk_records_created_by_fkey (id, full_name, email),
+    approved_by_profile:user_profiles!bkk_records_approved_by_fkey (id, full_name, email),
+    released_by_profile:user_profiles!bkk_records_released_by_fkey (id, full_name, email),
+    settled_by_profile:user_profiles!bkk_records_settled_by_fkey (id, full_name, email)
+  `).eq('id', id).single()
+  
+  // @ts-expect-error - Complex join query causes deep type instantiation
+  return query
+}
+
 export default async function DisbursementDetailPage({ params }: PageProps) {
   const { id } = await params
   const profile = await getUserProfile()
@@ -22,21 +38,7 @@ export default async function DisbursementDetailPage({ params }: PageProps) {
     redirect('/dashboard')
   }
 
-  const supabase = await createClient()
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  const { data: bkk, error } = await (supabase
-    .from('bkk_records')
-    .select(`
-      *,
-      job_orders (id, jo_number, customer_name, status),
-      vendors (id, name, vendor_code, bank_name, bank_account, bank_account_name),
-      created_by_profile:user_profiles!bkk_records_created_by_fkey (id, full_name, email),
-      approved_by_profile:user_profiles!bkk_records_approved_by_fkey (id, full_name, email),
-      released_by_profile:user_profiles!bkk_records_released_by_fkey (id, full_name, email),
-      settled_by_profile:user_profiles!bkk_records_settled_by_fkey (id, full_name, email)
-    `)
-    .eq('id', id)
-    .single() as Promise<{ data: any; error: any }>)
+  const { data: bkk, error } = await fetchBKKRecord(id)
 
   if (error || !bkk) {
     notFound()
