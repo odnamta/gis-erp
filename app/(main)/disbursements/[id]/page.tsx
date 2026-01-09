@@ -23,7 +23,8 @@ export default async function DisbursementDetailPage({ params }: PageProps) {
   }
 
   const supabase = await createClient()
-  const { data: bkk, error } = await supabase
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const { data: bkk, error } = await (supabase
     .from('bkk_records')
     .select(`
       *,
@@ -33,9 +34,9 @@ export default async function DisbursementDetailPage({ params }: PageProps) {
       approved_by_profile:user_profiles!bkk_records_approved_by_fkey (id, full_name, email),
       released_by_profile:user_profiles!bkk_records_released_by_fkey (id, full_name, email),
       settled_by_profile:user_profiles!bkk_records_settled_by_fkey (id, full_name, email)
-    ` as '*')
+    `)
     .eq('id', id)
-    .single()
+    .single() as Promise<{ data: any; error: any }>)
 
   if (error || !bkk) {
     notFound()
