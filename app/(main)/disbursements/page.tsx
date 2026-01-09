@@ -8,18 +8,22 @@ export const metadata = {
   description: 'Cash disbursement management (BKK)',
 }
 
-async function fetchBKKRecords() {
+async function fetchBKKRecords(): Promise<{ data: unknown; error: unknown }> {
   const supabase = await createClient()
-  const query = supabase.from('bkk_records').select(`
-    *,
-    job_orders (jo_number, customer_name),
-    vendors (name, vendor_code),
-    created_by_profile:user_profiles!bkk_records_created_by_fkey (full_name),
-    approved_by_profile:user_profiles!bkk_records_approved_by_fkey (full_name)
-  `).order('created_at', { ascending: false }).limit(200)
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const result = await (supabase as any)
+    .from('bkk_records')
+    .select(`
+      *,
+      job_orders (jo_number, customer_name),
+      vendors (name, vendor_code),
+      created_by_profile:user_profiles!bkk_records_created_by_fkey (full_name),
+      approved_by_profile:user_profiles!bkk_records_approved_by_fkey (full_name)
+    `)
+    .order('created_at', { ascending: false })
+    .limit(200)
   
-  // @ts-expect-error - Complex join query causes deep type instantiation
-  return query
+  return result
 }
 
 export default async function DisbursementsPage() {
