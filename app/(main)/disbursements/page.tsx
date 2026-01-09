@@ -27,7 +27,7 @@ export default async function DisbursementsPage() {
       vendors (name, vendor_code),
       created_by_profile:user_profiles!bkk_records_created_by_fkey (full_name),
       approved_by_profile:user_profiles!bkk_records_approved_by_fkey (full_name)
-    `)
+    ` as '*')
     .order('created_at', { ascending: false })
     .limit(200)
 
