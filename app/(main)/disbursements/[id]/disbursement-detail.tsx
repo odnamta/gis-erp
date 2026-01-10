@@ -71,6 +71,8 @@ interface BKKRecord {
   settled_by_profile: { id: string; full_name: string; email: string } | null
 }
 
+export type { BKKRecord }
+
 interface DisbursementDetailProps {
   bkk: BKKRecord
   userRole: string

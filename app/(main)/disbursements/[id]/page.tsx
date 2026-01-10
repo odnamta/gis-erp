@@ -1,7 +1,7 @@
 import { redirect, notFound } from 'next/navigation'
 import { getUserProfile } from '@/lib/permissions-server'
 import { createClient } from '@/lib/supabase/server'
-import { DisbursementDetail } from './disbursement-detail'
+import { DisbursementDetail, BKKRecord } from './disbursement-detail'
 
 export const metadata = {
   title: 'Disbursement Details | Gama ERP',
@@ -12,7 +12,7 @@ interface PageProps {
   params: Promise<{ id: string }>
 }
 
-async function fetchBKKRecord(id: string): Promise<{ data: unknown; error: unknown }> {
+async function fetchBKKRecord(id: string): Promise<{ data: BKKRecord | null; error: unknown }> {
   const supabase = await createClient()
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const result = await (supabase as any)
@@ -29,7 +29,7 @@ async function fetchBKKRecord(id: string): Promise<{ data: unknown; error: unkno
     .eq('id', id)
     .single()
   
-  return result
+  return result as { data: BKKRecord | null; error: unknown }
 }
 
 export default async function DisbursementDetailPage({ params }: PageProps) {
