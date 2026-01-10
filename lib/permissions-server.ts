@@ -160,20 +160,28 @@ export async function ensureUserProfile(): Promise<UserProfile | null> {
   } = await supabase.auth.getUser()
 
   if (!user) {
+    console.log('[ensureUserProfile] No authenticated user')
     return null
   }
 
   const email = user.email!
+  console.log('[ensureUserProfile] Processing user:', email)
 
   // First, try to get existing profile by user_id
-  const { data: existingProfile } = await supabase
+  const { data: existingProfile, error: existingError } = await supabase
     .from('user_profiles')
     .select('*')
     .eq('user_id', user.id)
     .single()
 
+  if (existingError && existingError.code !== 'PGRST116') {
+    console.error('[ensureUserProfile] Error fetching existing profile:', existingError)
+  }
+
   // If profile exists with user_id, update last_login and return
   if (existingProfile) {
+    console.log('[ensureUserProfile] Found existing profile for:', email)
+
     // Check if owner email and ensure owner role
     if (isOwnerEmail(email) && existingProfile.role !== 'owner') {
       await supabase
@@ -184,27 +192,35 @@ export async function ensureUserProfile(): Promise<UserProfile | null> {
           last_login_at: new Date().toISOString(),
         })
         .eq('user_id', user.id)
-      
+
       return { ...existingProfile, role: 'owner', ...DEFAULT_PERMISSIONS.owner } as UserProfile
     }
-    
+
     await supabase
       .from('user_profiles')
       .update({ last_login_at: new Date().toISOString() })
       .eq('user_id', user.id)
-    
+
     return existingProfile as UserProfile
   }
 
+  console.log('[ensureUserProfile] No existing profile, checking for pre-registered:', email)
+
   // Check for pre-registered profile by email (user_id is null)
-  const { data: preregisteredProfile } = await supabase
+  const { data: preregisteredProfile, error: preregError } = await supabase
     .from('user_profiles')
     .select('*')
     .eq('email', email)
     .is('user_id', null)
     .single()
 
+  if (preregError && preregError.code !== 'PGRST116') {
+    console.error('[ensureUserProfile] Error fetching pre-registered profile:', preregError)
+  }
+
   if (preregisteredProfile) {
+    console.log('[ensureUserProfile] Found pre-registered profile, linking to auth:', email)
+
     // Link auth user to pre-registered profile
     const fullName = user.user_metadata?.full_name || user.user_metadata?.name || preregisteredProfile.full_name
     const avatarUrl = user.user_metadata?.avatar_url || user.user_metadata?.picture || preregisteredProfile.avatar_url
@@ -222,16 +238,19 @@ export async function ensureUserProfile(): Promise<UserProfile | null> {
       .single()
 
     if (error) {
-      console.error('Error linking pre-registered profile:', error)
+      console.error('[ensureUserProfile] Error linking pre-registered profile:', error)
       return null
     }
+
+    console.log('[ensureUserProfile] Successfully linked profile, initializing onboarding')
 
     // Initialize onboarding for newly linked pre-registered user
     try {
       const { initializeOnboardingForUser } = await import('@/lib/onboarding-actions')
-      await initializeOnboardingForUser(user.id, linkedProfile.role)
+      const onboardingResult = await initializeOnboardingForUser(user.id, linkedProfile.role)
+      console.log('[ensureUserProfile] Onboarding initialization result:', onboardingResult)
     } catch (e) {
-      console.error('Failed to initialize onboarding for linked user:', e)
+      console.error('[ensureUserProfile] Failed to initialize onboarding for linked user:', e)
       // Don't fail the profile linking if onboarding initialization fails
     }
 
@@ -239,6 +258,8 @@ export async function ensureUserProfile(): Promise<UserProfile | null> {
   }
 
   // Profile doesn't exist, create new one
+  console.log('[ensureUserProfile] No pre-registered profile, creating new profile for:', email)
+
   let role: UserRole = 'ops'  // Default to ops for new users
   let permissions = DEFAULT_PERMISSIONS.ops
 
@@ -268,6 +289,8 @@ export async function ensureUserProfile(): Promise<UserProfile | null> {
     permissions = DEFAULT_PERMISSIONS.marketing
   }
 
+  console.log('[ensureUserProfile] Assigned role:', role)
+
   const fullName = user.user_metadata?.full_name || user.user_metadata?.name
   const avatarUrl = user.user_metadata?.avatar_url || user.user_metadata?.picture
 
@@ -288,10 +311,11 @@ export async function ensureUserProfile(): Promise<UserProfile | null> {
     .single()
 
   if (error) {
-    console.error('Error creating user profile:', error)
+    console.error('[ensureUserProfile] Error creating user profile:', error)
     return null
   }
 
+  console.log('[ensureUserProfile] Successfully created new profile for:', email)
   return data as UserProfile
 }
 

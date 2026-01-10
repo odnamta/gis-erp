@@ -27,23 +27,26 @@ export async function GET(request: Request) {
 
   if (code) {
     const supabase = await createClient()
-    const { error } = await supabase.auth.exchangeCodeForSession(code)
+    const { error: exchangeError, data: sessionData } = await supabase.auth.exchangeCodeForSession(code)
 
-    if (error) {
-      // Record failed login attempt (Requirement 3.4)
+    if (exchangeError) {
+      console.error('[AUTH CALLBACK] Exchange code error:', exchangeError)
       await recordFailedLoginAttempt(
-        undefined, // email not available at this point
-        error.message,
+        undefined,
+        exchangeError.message,
         'google'
       )
-      
+
       const loginUrl = new URL('/login', origin)
-      loginUrl.searchParams.set('error', error.message)
+      loginUrl.searchParams.set('error', exchangeError.message)
       return NextResponse.redirect(loginUrl)
     }
 
+    console.log('[AUTH CALLBACK] Session exchanged for user:', sessionData.user?.email)
+
     // Ensure user profile exists and check if first login
     const profile = await ensureUserProfile()
+    console.log('[AUTH CALLBACK] Profile after ensureUserProfile:', profile ? `${profile.email} (${profile.role})` : 'NULL')
 
     // Check if this is a first login (profile was just created or linked)
     if (profile) {
@@ -54,9 +57,17 @@ export async function GET(request: Request) {
       const createdAt = new Date(profile.created_at)
       const isNewUser = (now.getTime() - createdAt.getTime() < 60000)
 
+      console.log('[AUTH CALLBACK] User age check - Created:', createdAt.toISOString(), 'IsNew:', isNewUser)
+
       // Initialize onboarding for new users
       if (user && isNewUser) {
-        await initializeOnboardingForUser(user.id, profile.role)
+        console.log('[AUTH CALLBACK] Initializing onboarding for new user:', profile.email)
+        try {
+          const onboardingResult = await initializeOnboardingForUser(user.id, profile.role)
+          console.log('[AUTH CALLBACK] Onboarding result:', onboardingResult)
+        } catch (e) {
+          console.error('[AUTH CALLBACK] Failed to initialize onboarding:', e)
+        }
       }
 
       // Sync user metadata to JWT claims for middleware performance optimization
