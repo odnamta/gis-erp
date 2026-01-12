@@ -38,7 +38,7 @@ export function OwnerDashboardOptimized({
   initialSystemKPIs,
   initialRecentLogins,
 }: OwnerDashboardOptimizedProps) {
-  const { effectiveRole, setPreviewRole, canUsePreview } = usePreview()
+  const { effectiveRole, setPreviewRole, canUsePreview, isPreviewActive } = usePreview()
 
   return (
     <div className="space-y-6">
@@ -56,8 +56,10 @@ export function OwnerDashboardOptimized({
         <div className="flex items-center gap-4">
           <PreviewDropdown
             currentRole={effectiveRole}
+            actualRole={'owner'}
             onRoleSelect={setPreviewRole}
             canUsePreview={canUsePreview}
+            isPreviewActive={isPreviewActive}
           />
           <div className="flex gap-2">
             <Button asChild variant="outline">

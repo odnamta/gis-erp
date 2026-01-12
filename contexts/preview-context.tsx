@@ -1,12 +1,15 @@
 'use client'
 
-import { createContext, useContext, useState, useMemo, ReactNode } from 'react'
+import { createContext, useContext, useState, useMemo, ReactNode, useEffect } from 'react'
 import { UserRole, UserPermissions } from '@/types/permissions'
 import {
   canUsePreviewFeature,
   getEffectiveRole,
   getEffectivePermissions,
 } from '@/lib/preview-utils'
+
+// SessionStorage key for preview role
+const PREVIEW_ROLE_KEY = 'gama-erp-preview-role'
 
 export interface PreviewContextType {
   previewRole: UserRole | null
@@ -30,7 +33,16 @@ export function PreviewProvider({
   actualRole,
   actualPermissions,
 }: PreviewProviderProps) {
-  const [previewRole, setPreviewRoleState] = useState<UserRole | null>(null)
+  // Initialize state from sessionStorage (client-side only)
+  const [previewRole, setPreviewRoleState] = useState<UserRole | null>(() => {
+    if (typeof window === 'undefined') return null
+    try {
+      const stored = sessionStorage.getItem(PREVIEW_ROLE_KEY)
+      return stored ? (stored as UserRole) : null
+    } catch {
+      return null
+    }
+  })
 
   const canUsePreview = useMemo(
     () => canUsePreviewFeature(actualRole),
@@ -41,8 +53,28 @@ export function PreviewProvider({
     // Only allow setting preview if user can use preview feature
     if (canUsePreview) {
       setPreviewRoleState(role)
+
+      // Persist to sessionStorage
+      if (typeof window !== 'undefined') {
+        try {
+          if (role === null) {
+            sessionStorage.removeItem(PREVIEW_ROLE_KEY)
+          } else {
+            sessionStorage.setItem(PREVIEW_ROLE_KEY, role)
+          }
+        } catch (error) {
+          console.error('Failed to save preview role to sessionStorage:', error)
+        }
+      }
     }
   }
+
+  // Clear preview if user loses preview permission (e.g., role changed)
+  useEffect(() => {
+    if (!canUsePreview && previewRole !== null) {
+      setPreviewRole(null)
+    }
+  }, [canUsePreview, previewRole])
 
   const effectiveRole = useMemo(
     () => getEffectiveRole(actualRole, previewRole),

@@ -49,7 +49,7 @@ export function ExecutiveDashboardClient({
   userId,
 }: ExecutiveDashboardClientProps) {
   // Preview mode for owner role
-  const { effectiveRole, setPreviewRole, canUsePreview } = usePreview();
+  const { effectiveRole, setPreviewRole, canUsePreview, isPreviewActive } = usePreview();
   
   // Period state (Requirement 11.1)
   const [period, setPeriod] = useState<PeriodType>('mtd');
@@ -206,8 +206,10 @@ export function ExecutiveDashboardClient({
           {/* Preview Dropdown for Owner */}
           <PreviewDropdown
             currentRole={effectiveRole}
+            actualRole={userRole as any}
             onRoleSelect={setPreviewRole}
             canUsePreview={canUsePreview}
+            isPreviewActive={isPreviewActive}
           />
 
           {/* Period Selector (Requirement 11.1) */}

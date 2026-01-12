@@ -359,20 +359,20 @@ export async function updateUserRole(
   const defaultPerms = DEFAULT_PERMISSIONS[newRole]
   const permissions = { ...defaultPerms, ...customPermissions }
 
-  // Prevent removing last admin (excluding owner from count)
-  if (newRole !== 'sysadmin' || !permissions.can_manage_users) {
+  // Prevent removing last admin (only if actually removing can_manage_users)
+  // Check if we're removing admin permissions from someone who currently has them
+  if (targetProfile?.can_manage_users && !permissions.can_manage_users) {
+    // Count all users with can_manage_users (including owner)
     const { count } = await supabase
       .from('user_profiles')
       .select('*', { count: 'exact', head: true })
       .eq('can_manage_users', true)
-      .neq('role', 'owner')
+      .eq('is_active', true)
 
-    if (count === 1) {
-      if (targetProfile?.can_manage_users) {
-        return {
-          success: false,
-          error: 'Cannot remove admin permissions from the last admin user',
-        }
+    if (count && count <= 1) {
+      return {
+        success: false,
+        error: 'Cannot remove admin permissions from the last admin user',
       }
     }
   }
@@ -380,11 +380,30 @@ export async function updateUserRole(
   // Get previous role for notification
   const previousRole = targetProfile?.role
 
+  // Map role to appropriate dashboard
+  const dashboardMap: Record<UserRole, string> = {
+    owner: 'executive',
+    director: 'executive',
+    marketing_manager: 'manager',
+    finance_manager: 'manager',
+    operations_manager: 'manager',
+    sysadmin: 'sysadmin',
+    administration: 'default',
+    finance: 'default',
+    marketing: 'default',
+    ops: 'default',
+    engineer: 'default',
+    hr: 'hr',
+    hse: 'hse',
+    agency: 'default',
+    customs: 'default',
+  }
+
   const { error } = await supabase
     .from('user_profiles')
     .update({
       role: newRole,
-      custom_dashboard: newRole,
+      custom_dashboard: dashboardMap[newRole] || 'default',
       ...permissions,
       updated_at: new Date().toISOString(),
     })

@@ -80,7 +80,7 @@ function formatCurrency(amount: number): string {
 
 export function OwnerDashboard({ data }: OwnerDashboardProps) {
   const { userMetrics, recentLogins, systemKPIs } = data
-  const { effectiveRole, setPreviewRole, canUsePreview } = usePreview()
+  const { effectiveRole, setPreviewRole, canUsePreview, isPreviewActive } = usePreview()
 
   return (
     <div className="space-y-6">
@@ -98,8 +98,10 @@ export function OwnerDashboard({ data }: OwnerDashboardProps) {
         <div className="flex items-center gap-4">
           <PreviewDropdown
             currentRole={effectiveRole}
+            actualRole={'owner' as UserRole}
             onRoleSelect={setPreviewRole}
             canUsePreview={canUsePreview}
+            isPreviewActive={isPreviewActive}
           />
           <div className="flex gap-2">
             <Button asChild variant="outline">

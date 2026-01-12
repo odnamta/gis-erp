@@ -23,6 +23,8 @@ export const PREVIEW_ROLES: UserRole[] = [
   'engineer',
   'hr',
   'hse',
+  'agency',
+  'customs',
 ]
 
 /**
