@@ -7,6 +7,7 @@ import {
   applySecurityHeaders,
   shouldSkipSecurityChecks,
 } from '@/lib/security/middleware'
+import { shouldExcludePath, shouldLogPageView } from '@/lib/page-view-tracker'
 
 /**
  * User metadata stored in JWT app_metadata for fast access.
@@ -161,7 +162,32 @@ export async function middleware(request: NextRequest) {
   }
 
   // Apply security headers to the response (Requirements 8.1-8.5)
-  return applySecurityHeaders(supabaseResponse)
+  const response = applySecurityHeaders(supabaseResponse)
+
+  // v0.13.1: Page view tracking (non-blocking, fire-and-forget)
+  // Only track for authenticated users on non-excluded paths
+  if (user && !isPublicRoute && !shouldExcludePath(pathname)) {
+    // Check rate limiting before logging
+    if (shouldLogPageView(user.id, pathname)) {
+      // Fire-and-forget: Don't await, don't block the response
+      const baseUrl = request.nextUrl.origin
+      fetch(`${baseUrl}/api/activity/page-view`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          userId: user.id,
+          pagePath: pathname,
+          sessionId: request.cookies.get('session_id')?.value,
+          ipAddress: request.headers.get('x-forwarded-for') || request.headers.get('x-real-ip'),
+          userAgent: request.headers.get('user-agent'),
+        }),
+      }).catch(() => {
+        // Silently ignore errors - page view logging should never block navigation
+      })
+    }
+  }
+
+  return response
 }
 
 export const config = {

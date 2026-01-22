@@ -13,6 +13,7 @@ import {
 } from '@/types/employees';
 import { isValidEmployeeStatus, isValidEmploymentType, hasCircularReporting, generateEmployeeCode } from '@/lib/employee-utils';
 import { invalidateEmployeeCache } from '@/lib/cached-queries';
+import { logActivity } from '@/lib/activity-logger';
 
 /**
  * Get all employees with optional filters
@@ -197,6 +198,11 @@ export async function createEmployee(
   // Invalidate employee cache (Requirement 6.5)
   invalidateEmployeeCache();
 
+  // Log activity (v0.13.1)
+  if (user && data) {
+    logActivity(user.id, 'create', 'employee', data.id, { name: formData.full_name })
+  }
+
   revalidatePath('/hr/employees');
   return { success: true, employee: data as unknown as Employee };
 }
@@ -274,6 +280,12 @@ export async function updateEmployee(
 
   // Invalidate employee cache (Requirement 6.5)
   invalidateEmployeeCache();
+
+  // Log activity (v0.13.1)
+  const { data: { user } } = await supabase.auth.getUser()
+  if (user) {
+    logActivity(user.id, 'update', 'employee', id, { name: formData.full_name })
+  }
 
   revalidatePath('/hr/employees');
   revalidatePath(`/hr/employees/${id}`);

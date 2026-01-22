@@ -5,6 +5,7 @@ import { revalidatePath } from 'next/cache'
 import { JobOrderWithRelations, InvoiceTerm, parseInvoiceTerms } from '@/types'
 import { validateTermsTotal } from '@/lib/invoice-terms-utils'
 import { invalidateDashboardCache } from '@/lib/cached-queries'
+import { logActivity } from '@/lib/activity-logger'
 
 export async function getJobOrders(): Promise<JobOrderWithRelations[]> {
   const supabase = await createClient()
@@ -127,6 +128,12 @@ export async function markCompleted(joId: string): Promise<{ error?: string }> {
     return { error: error.message }
   }
 
+  // Log activity (v0.13.1)
+  const { data: { user } } = await supabase.auth.getUser()
+  if (user) {
+    logActivity(user.id, 'update', 'job_order', joId, { jo_number: jo.jo_number, status: 'completed' })
+  }
+
   // Send notification for JO completed
   try {
     const { notifyJoStatusChange } = await import('@/lib/notifications/notification-triggers')
@@ -182,6 +189,11 @@ export async function submitToFinance(joId: string): Promise<{ error?: string }>
 
   if (error) {
     return { error: error.message }
+  }
+
+  // Log activity (v0.13.1)
+  if (user) {
+    logActivity(user.id, 'update', 'job_order', joId, { jo_number: jo.jo_number, status: 'submitted_to_finance' })
   }
 
   // Send notification for JO submitted to finance

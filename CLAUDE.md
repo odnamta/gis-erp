@@ -1,5 +1,8 @@
 # GAMA ERP - Project Context for Claude Code
 
+> **Sync Note**: Keep this file in sync with `.kiro/steering/Project Context.md` for Kiro.
+> When updating this file, also update the Kiro steering file to maintain consistency.
+
 ## Project Overview
 - **Company**: PT. Gama Intisamudera
 - **Purpose**: Heavy-haul logistics ERP system (10 modules)

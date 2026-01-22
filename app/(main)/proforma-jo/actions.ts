@@ -5,6 +5,7 @@ import { revalidatePath } from 'next/cache'
 import { z } from 'zod'
 import { toRomanMonth, calculateProfit } from '@/lib/pjo-utils'
 import { checkEngineeringRequired, canApprovePJO } from '@/lib/engineering-utils'
+import { logActivity } from '@/lib/activity-logger'
 
 const revenueItemSchema = z.object({
   id: z.string().optional(),
@@ -231,6 +232,9 @@ export async function createPJO(data: PJOFormData): Promise<{ error?: string; id
       .eq('id', newPJO.id)
   }
 
+  // Log activity (v0.13.1)
+  logActivity(user.id, 'create', 'pjo', newPJO.id, { pjo_number: pjoNumber })
+
   revalidatePath('/proforma-jo')
   revalidatePath(`/projects/${data.project_id}`)
   return { id: newPJO.id }
@@ -443,6 +447,12 @@ export async function updatePJO(
       .eq('id', id)
   }
 
+  // Log activity (v0.13.1)
+  const { data: { user } } = await supabase.auth.getUser()
+  if (user) {
+    logActivity(user.id, 'update', 'pjo', id, {})
+  }
+
   revalidatePath('/proforma-jo')
   revalidatePath(`/proforma-jo/${id}`)
   revalidatePath(`/projects/${existingPJO.project_id}`)
@@ -588,6 +598,9 @@ export async function approvePJO(id: string): Promise<{ error?: string; blocked?
     user_name: user.email || 'Unknown User',
   })
 
+  // Log activity (v0.13.1)
+  logActivity(user.id, 'approve', 'pjo', id, { pjo_number: existingPJO.pjo_number })
+
   // Notify PJO creator of approval
   try {
     const { notifyPjoDecision } = await import('@/lib/notifications/notification-triggers')
@@ -649,6 +662,9 @@ export async function rejectPJO(id: string, reason: string): Promise<{ error?: s
   if (error) {
     return { error: error.message }
   }
+
+  // Log activity (v0.13.1)
+  logActivity(user.id, 'reject', 'pjo', id, { pjo_number: existingPJO.pjo_number, reason })
 
   // Notify PJO creator of rejection
   try {

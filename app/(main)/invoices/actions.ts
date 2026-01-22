@@ -18,6 +18,7 @@ import {
 import { calculateTermInvoiceTotals } from '@/lib/invoice-terms-utils'
 import { DEFAULT_SETTINGS } from '@/types/company-settings'
 import { invalidateDashboardCache } from '@/lib/cached-queries'
+import { logActivity } from '@/lib/activity-logger'
 
 /**
  * Generate the next sequential invoice number for the current year
@@ -243,6 +244,12 @@ export async function createInvoice(data: InvoiceFormData): Promise<{
 
   // Invalidate dashboard cache (Requirement 6.6)
   invalidateDashboardCache()
+
+  // Log activity (v0.13.1)
+  const { data: { user } } = await supabase.auth.getUser()
+  if (user) {
+    logActivity(user.id, 'create', 'invoice', invoice.id, { invoice_number: invoice.invoice_number })
+  }
 
   revalidatePath('/invoices')
   revalidatePath('/job-orders')
@@ -472,6 +479,20 @@ export async function updateInvoiceStatus(
 
   // Invalidate dashboard cache (Requirement 6.6)
   invalidateDashboardCache()
+
+  // Log activity (v0.13.1)
+  const { data: { user: currentUser } } = await supabase.auth.getUser()
+  if (currentUser) {
+    const { data: invoiceForLog } = await supabase
+      .from('invoices')
+      .select('invoice_number')
+      .eq('id', id)
+      .single()
+    logActivity(currentUser.id, 'update', 'invoice', id, { 
+      invoice_number: invoiceForLog?.invoice_number,
+      status: targetStatus 
+    })
+  }
 
   revalidatePath('/invoices')
   revalidatePath(`/invoices/${id}`)

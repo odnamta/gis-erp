@@ -137,7 +137,7 @@ export const NAV_ITEMS: NavItem[] = [
     title: 'Agency',
     href: '/agency/shipping-lines',
     icon: Ship,
-    roles: ['owner', 'director', 'marketing_manager', 'finance_manager', 'operations_manager', 'administration', 'finance', 'marketing', 'ops', 'agency'],
+    roles: ['owner', 'director', 'sysadmin', 'agency'],
     children: [
       {
         title: 'Bookings',
@@ -194,17 +194,17 @@ export const NAV_ITEMS: NavItem[] = [
       {
         title: 'Profitability Report',
         href: '/agency/reports/profitability',
-        roles: ['owner', 'director', 'marketing_manager', 'finance_manager', 'finance'],
+        roles: ['owner', 'director', 'sysadmin', 'agency'],
       },
       {
         title: 'Unbilled Revenue',
         href: '/agency/reports/unbilled',
-        roles: ['owner', 'director', 'marketing_manager', 'finance_manager', 'finance'],
+        roles: ['owner', 'director', 'sysadmin', 'agency'],
       },
       {
         title: 'Vendor Payables',
         href: '/agency/reports/payables',
-        roles: ['owner', 'director', 'finance_manager', 'operations_manager', 'finance'],
+        roles: ['owner', 'director', 'sysadmin', 'agency'],
       },
     ],
   },
@@ -352,7 +352,7 @@ export const NAV_ITEMS: NavItem[] = [
     title: 'Customs',
     href: '/customs/import',
     icon: Package,
-    roles: ['owner', 'director', 'finance_manager', 'operations_manager', 'administration', 'finance', 'ops', 'customs'],
+    roles: ['owner', 'director', 'sysadmin', 'customs'],
     children: [
       {
         title: 'Import Documents (PIB)',

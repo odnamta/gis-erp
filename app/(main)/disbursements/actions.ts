@@ -3,6 +3,7 @@
 import { createClient } from '@/lib/supabase/server'
 import { revalidatePath } from 'next/cache'
 import { getUserProfile } from '@/lib/permissions-server'
+import { logActivity } from '@/lib/activity-logger'
 
 interface CreateDisbursementInput {
   category: 'job_cost' | 'vendor_payment' | 'overhead' | 'other'
@@ -80,6 +81,11 @@ export async function createDisbursement(input: CreateDisbursementInput) {
       .single()
 
     if (error) throw error
+
+    // Log activity (v0.13.1)
+    if (data && input.created_by) {
+      logActivity(input.created_by, 'create', 'disbursement', data.id, { bkk_number: bkkNumber })
+    }
 
     revalidatePath('/disbursements')
     return { data, error: null }
@@ -162,6 +168,11 @@ export async function approveDisbursement(id: string, userId: string) {
 
     if (error) throw error
 
+    // Log activity (v0.13.1)
+    if (data) {
+      logActivity(userId, 'approve', 'disbursement', id, { bkk_number: data.bkk_number })
+    }
+
     revalidatePath('/disbursements')
     revalidatePath(`/disbursements/${id}`)
     return { data, error: null }
@@ -216,6 +227,11 @@ export async function releaseDisbursement(id: string, userId: string) {
       .single()
 
     if (error) throw error
+
+    // Log activity (v0.13.1)
+    if (data) {
+      logActivity(userId, 'update', 'disbursement', id, { bkk_number: data.bkk_number, status: 'released' })
+    }
 
     revalidatePath('/disbursements')
     revalidatePath(`/disbursements/${id}`)

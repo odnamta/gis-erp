@@ -6,6 +6,7 @@ import { z } from 'zod'
 import { trackCustomerCreation } from '@/lib/onboarding-tracker'
 import { invalidateCustomerCache } from '@/lib/cached-queries'
 import { getUserProfile } from '@/lib/permissions-server'
+import { logActivity } from '@/lib/activity-logger'
 
 const customerSchema = z.object({
   name: z.string().min(1, 'Name is required'),
@@ -28,16 +29,21 @@ export async function createCustomer(data: CustomerFormData): Promise<{ error?: 
   const profile = await getUserProfile()
   const entityType = profile?.role === 'agency' ? 'gama_agency' : 'gama_main'
 
-  const { error } = await supabase.from('customers').insert({
+  const { data: customer, error } = await supabase.from('customers').insert({
     name: data.name,
     email: data.email || '',
     phone: data.phone || null,
     address: data.address || null,
     entity_type: entityType,
-  })
+  }).select('id').single()
 
   if (error) {
     return { error: error.message }
+  }
+
+  // Log activity (v0.13.1)
+  if (profile?.user_id && customer?.id) {
+    logActivity(profile.user_id, 'create', 'customer', customer.id, { name: data.name })
   }
 
   // Track for onboarding
@@ -60,6 +66,7 @@ export async function updateCustomer(
   }
 
   const supabase = await createClient()
+  const profile = await getUserProfile()
 
   const { error } = await supabase
     .from('customers')
@@ -75,6 +82,11 @@ export async function updateCustomer(
     return { error: error.message }
   }
 
+  // Log activity (v0.13.1)
+  if (profile?.user_id) {
+    logActivity(profile.user_id, 'update', 'customer', id, { name: data.name })
+  }
+
   // Invalidate customer cache (Requirement 6.4)
   invalidateCustomerCache()
 
@@ -85,6 +97,7 @@ export async function updateCustomer(
 
 export async function deleteCustomer(id: string): Promise<{ error?: string }> {
   const supabase = await createClient()
+  const profile = await getUserProfile()
 
   // Check if customer has active projects
   const { data: activeProjects, error: projectsError } = await supabase
@@ -110,6 +123,11 @@ export async function deleteCustomer(id: string): Promise<{ error?: string }> {
 
   if (error) {
     return { error: error.message }
+  }
+
+  // Log activity (v0.13.1)
+  if (profile?.user_id) {
+    logActivity(profile.user_id, 'delete', 'customer', id, {})
   }
 
   // Invalidate customer cache (Requirement 6.4)
