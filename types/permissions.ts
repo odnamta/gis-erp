@@ -99,6 +99,9 @@ export interface UserProfile {
   created_at: string
   updated_at: string
   last_login_at: string | null
+  // Terms & Conditions acceptance (v0.85)
+  tc_accepted_at: string | null  // ISO timestamp when T&C was accepted
+  tc_version: string | null      // Version of T&C that was accepted
   // Permissions
   can_see_revenue: boolean
   can_see_profit: boolean

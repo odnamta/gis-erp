@@ -5,13 +5,14 @@ import { createClient } from '@/lib/supabase/server'
 import { PermissionProvider } from '@/components/providers/permission-provider'
 import { PreviewProviderWrapper } from '@/components/providers/preview-provider-wrapper'
 import { ensureUserProfile } from '@/lib/permissions-server'
-import { UserProfile } from '@/types/permissions'
 import { OnboardingRouteTracker } from '@/components/onboarding'
 import { TourProvider } from '@/components/guided-tours'
 import { PreferencesProvider } from '@/contexts/preferences-context'
 import { getUserPreferences } from '@/app/(main)/settings/preferences/actions'
 import { DEFAULT_PREFERENCES } from '@/types/user-preferences'
 import { FeedbackButton } from '@/components/feedback'
+import { TermsConditionsWrapper } from '@/components/terms-conditions-wrapper'
+import { hasAcceptedCurrentTerms } from '@/lib/terms-conditions'
 
 export default async function MainLayout({ children }: { children: React.ReactNode }) {
   const supabase = await createClient()
@@ -33,21 +34,33 @@ export default async function MainLayout({ children }: { children: React.ReactNo
     avatarUrl: userProfile?.avatar_url || user.user_metadata?.avatar_url || null,
   } : null
 
+  // Check if user needs to accept Terms & Conditions
+  // Requirements 5.1, 5.2, 5.3, 5.4: Check T&C acceptance status
+  const needsTCAcceptance = user && userProfile 
+    ? !hasAcceptedCurrentTerms(userProfile.tc_accepted_at, userProfile.tc_version)
+    : false
+
   return (
     <PermissionProvider initialProfile={userProfile}>
       <PreferencesProvider initialPreferences={initialPreferences}>
         <PreviewProviderWrapper>
           <TourProvider>
-            <div className="flex h-screen">
-              <Sidebar />
-              <div className="flex flex-1 flex-col overflow-hidden">
-                <Header user={userInfo} />
-                <main className="flex-1 overflow-auto bg-muted/30 p-6">{children}</main>
+            {/* 
+              Requirements 5.5, 5.6, 6.1, 6.2, 6.3: 
+              Wrap content with T&C modal that blocks access until accepted
+            */}
+            <TermsConditionsWrapper needsAcceptance={needsTCAcceptance}>
+              <div className="flex h-screen">
+                <Sidebar />
+                <div className="flex flex-1 flex-col overflow-hidden">
+                  <Header user={userInfo} />
+                  <main className="flex-1 overflow-auto bg-muted/30 p-6">{children}</main>
+                </div>
+                <Toaster />
+                <OnboardingRouteTracker userId={userProfile?.id || null} />
+                <FeedbackButton />
               </div>
-              <Toaster />
-              <OnboardingRouteTracker userId={userProfile?.id || null} />
-              <FeedbackButton />
-            </div>
+            </TermsConditionsWrapper>
           </TourProvider>
         </PreviewProviderWrapper>
       </PreferencesProvider>

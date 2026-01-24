@@ -38,11 +38,11 @@ COMMENT ON COLUMN role_requests.reviewed_by IS 'Admin user who processed the req
 COMMENT ON COLUMN role_requests.admin_notes IS 'Notes from admin, typically rejection reason';
 
 -- Create indexes for quick lookups (Requirements 5.1)
-CREATE INDEX idx_role_requests_user_id ON role_requests(user_id);
-CREATE INDEX idx_role_requests_status ON role_requests(status);
+CREATE INDEX IF NOT EXISTS idx_role_requests_user_id ON role_requests(user_id);
+CREATE INDEX IF NOT EXISTS idx_role_requests_status ON role_requests(status);
 
 -- Create composite index for common query pattern (pending requests)
-CREATE INDEX idx_role_requests_status_created ON role_requests(status, created_at DESC);
+CREATE INDEX IF NOT EXISTS idx_role_requests_status_created ON role_requests(status, created_at DESC);
 
 -- Create trigger function for updated_at
 CREATE OR REPLACE FUNCTION update_role_requests_updated_at()
