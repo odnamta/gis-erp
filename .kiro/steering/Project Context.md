@@ -158,13 +158,13 @@ const data = result.data as { column: string }[] | null  // Explicit cast
 - [ ] User activity tracking (v0.13.1)
 
 ## Recent Changes
+- 2026-01-26: v0.9.20 - HR Dashboard Enhancement implemented (309 tests, payroll, leave balance, attendance analytics for Rania)
 - 2026-01-26: v0.9.6 - Director Dashboard implemented with real data (275 tests, business KPIs, pipeline, financial health)
 - 2026-01-25: v0.9.19 - Customs Dashboard implemented (103 tests, PIB/PEB tracking, duties, deadlines for Khuzainan)
 - 2026-01-25: v0.9.18 - HSE Dashboard implemented (387 tests, incidents, permits, training, PPE for Iqbal)
 - 2026-01-24: v0.9.17 - Engineering Dashboard implemented with real data (surveys, JMPs, assessments)
 - 2026-01-24: v0.85 - Terms & Conditions system (117 tests, legal compliance, version tracking)
 - 2026-01-25: v0.84 - Role Request System implementation complete (364 tests, self-service onboarding)
-- 2026-01-24: v0.9.16 - Assets Dashboard real data implementation complete (53 tests passing)
 
 ---
 *Last Updated: January 26, 2026*
