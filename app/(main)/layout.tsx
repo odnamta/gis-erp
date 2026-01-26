@@ -13,6 +13,8 @@ import { DEFAULT_PREFERENCES } from '@/types/user-preferences'
 import { FeedbackButton } from '@/components/feedback'
 import { TermsConditionsWrapper } from '@/components/terms-conditions-wrapper'
 import { hasAcceptedCurrentTerms } from '@/lib/terms-conditions'
+import { WelcomeWrapper } from '@/components/welcome-wrapper'
+import { shouldShowWelcome } from '@/lib/welcome-content'
 
 export default async function MainLayout({ children }: { children: React.ReactNode }) {
   const supabase = await createClient()
@@ -40,6 +42,16 @@ export default async function MainLayout({ children }: { children: React.ReactNo
     ? !hasAcceptedCurrentTerms(userProfile.tc_accepted_at, userProfile.tc_version)
     : false
 
+  // Check if user needs to see Welcome modal (v0.86)
+  // Requirements 6.1, 6.2: Welcome modal shows after T&C acceptance
+  // Requirements 3.1, 3.2: Show welcome only if tc_accepted_at is set and welcome_shown_at is null
+  const needsWelcome = user && userProfile 
+    ? shouldShowWelcome({
+        tc_accepted_at: userProfile.tc_accepted_at,
+        welcome_shown_at: userProfile.welcome_shown_at,
+      })
+    : false
+
   return (
     <PermissionProvider initialProfile={userProfile}>
       <PreferencesProvider initialPreferences={initialPreferences}>
@@ -50,16 +62,23 @@ export default async function MainLayout({ children }: { children: React.ReactNo
               Wrap content with T&C modal that blocks access until accepted
             */}
             <TermsConditionsWrapper needsAcceptance={needsTCAcceptance}>
-              <div className="flex h-screen">
-                <Sidebar />
-                <div className="flex flex-1 flex-col overflow-hidden">
-                  <Header user={userInfo} />
-                  <main className="flex-1 overflow-auto bg-muted/30 p-6">{children}</main>
+              {/* 
+                v0.86 Welcome Flow:
+                Requirements 6.1, 6.2: Welcome modal shows after T&C acceptance (not simultaneously)
+                Requirements 6.3, 6.4: Welcome modal is dismissible via button, backdrop click, or escape key
+              */}
+              <WelcomeWrapper needsWelcome={needsWelcome} role={userProfile?.role || 'ops'}>
+                <div className="flex h-screen">
+                  <Sidebar />
+                  <div className="flex flex-1 flex-col overflow-hidden">
+                    <Header user={userInfo} />
+                    <main className="flex-1 overflow-auto bg-muted/30 p-6">{children}</main>
+                  </div>
+                  <Toaster />
+                  <OnboardingRouteTracker userId={userProfile?.id || null} />
+                  <FeedbackButton />
                 </div>
-                <Toaster />
-                <OnboardingRouteTracker userId={userProfile?.id || null} />
-                <FeedbackButton />
-              </div>
+              </WelcomeWrapper>
             </TermsConditionsWrapper>
           </TourProvider>
         </PreviewProviderWrapper>

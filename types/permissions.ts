@@ -102,6 +102,8 @@ export interface UserProfile {
   // Terms & Conditions acceptance (v0.85)
   tc_accepted_at: string | null  // ISO timestamp when T&C was accepted
   tc_version: string | null      // Version of T&C that was accepted
+  // Welcome flow (v0.86)
+  welcome_shown_at: string | null  // ISO timestamp when welcome modal was dismissed
   // Permissions
   can_see_revenue: boolean
   can_see_profit: boolean
