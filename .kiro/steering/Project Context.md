@@ -158,13 +158,13 @@ const data = result.data as { column: string }[] | null  // Explicit cast
 - [ ] User activity tracking (v0.13.1)
 
 ## Recent Changes
+- 2026-01-26: v0.38.1 - Help Center Enhancement (25 tests, /help/faqs page, 36 Indonesian FAQs across 7 categories)
 - 2026-01-26: v0.86 - Welcome Flow implemented (84 tests, role-specific welcome modal, quick actions for all 15 roles)
 - 2026-01-26: v0.9.21 - System Admin Dashboard implemented (180 tests, user stats, activity monitoring, role distribution)
 - 2026-01-26: v0.9.20 - HR Dashboard Enhancement implemented (309 tests, payroll, leave balance, attendance analytics for Rania)
 - 2026-01-26: v0.9.6 - Director Dashboard implemented with real data (275 tests, business KPIs, pipeline, financial health)
 - 2026-01-25: v0.9.19 - Customs Dashboard implemented (103 tests, PIB/PEB tracking, duties, deadlines for Khuzainan)
 - 2026-01-25: v0.9.18 - HSE Dashboard implemented (387 tests, incidents, permits, training, PPE for Iqbal)
-- 2026-01-24: v0.9.17 - Engineering Dashboard implemented with real data (surveys, JMPs, assessments)
 
 ---
 *Last Updated: January 26, 2026*
