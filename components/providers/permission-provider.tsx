@@ -45,7 +45,7 @@ export function PermissionProvider({ children, initialProfile }: PermissionProvi
       .single()
 
     if (profileData) {
-      setProfile(profileData as UserProfile)
+      setProfile(profileData as unknown as UserProfile)
     }
     setIsLoading(false)
   }, [])

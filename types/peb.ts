@@ -272,6 +272,6 @@ export const PEB_STATUS_TRANSITIONS: Record<PEBStatus, PEBStatus[]> = {
 };
 
 // User roles for permission checks
-export type UserRole = 'owner' | 'admin' | 'manager' | 'customs' | 'ops' | 'finance';
+export type UserRole = 'owner' | 'director' | 'sysadmin' | 'admin' | 'manager' | 'customs' | 'ops' | 'finance' | 'finance_manager';
 
-export const USER_ROLES: UserRole[] = ['owner', 'admin', 'manager', 'customs', 'ops', 'finance'];
+export const USER_ROLES: UserRole[] = ['owner', 'director', 'sysadmin', 'admin', 'manager', 'customs', 'ops', 'finance', 'finance_manager'];

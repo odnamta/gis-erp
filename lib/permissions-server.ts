@@ -29,7 +29,7 @@ export async function getUserProfile(): Promise<UserProfile | null> {
     profile.department_scope = []
   }
 
-  return profile as UserProfile | null
+  return profile as unknown as UserProfile | null
 }
 
 /**
@@ -146,27 +146,32 @@ export async function createUserProfile(
   // v0.84: All other users get NULL role - they must request access
   // This includes @gama-group.co emails that are not in the special list above
 
-  const { data, error } = await supabase
+  const insertData = {
+    user_id: userId,
+    email,
+    full_name: fullName || null,
+    avatar_url: avatarUrl || null,
+    role: role as string | null,
+    department_scope: [],
+    custom_dashboard: role === 'owner' ? 'executive' : 'default',
+    ...permissions,
+  }
+  
+  const result = await supabase
     .from('user_profiles')
-    .insert({
-      user_id: userId,
-      email,
-      full_name: fullName || null,
-      avatar_url: avatarUrl || null,
-      role,
-      department_scope: [],
-      custom_dashboard: role === 'owner' ? 'executive' : 'default',
-      ...permissions,
-    })
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    .insert(insertData as any)
     .select()
     .single()
+  
+  const { data, error } = result
 
   if (error) {
     console.error('Error creating user profile:', error)
     return null
   }
 
-  return data as UserProfile
+  return data as unknown as UserProfile
 }
 
 /**
@@ -214,7 +219,7 @@ export async function ensureUserProfile(): Promise<UserProfile | null> {
         })
         .eq('user_id', user.id)
 
-      return { ...existingProfile, role: 'owner', ...DEFAULT_PERMISSIONS.owner } as UserProfile
+      return { ...existingProfile, role: 'owner', ...DEFAULT_PERMISSIONS.owner } as unknown as UserProfile
     }
 
     await supabase
@@ -222,7 +227,7 @@ export async function ensureUserProfile(): Promise<UserProfile | null> {
       .update({ last_login_at: new Date().toISOString() })
       .eq('user_id', user.id)
 
-    return existingProfile as UserProfile
+    return existingProfile as unknown as UserProfile
   }
 
   console.log('[ensureUserProfile] No existing profile, checking for pre-registered:', email)
@@ -275,7 +280,7 @@ export async function ensureUserProfile(): Promise<UserProfile | null> {
       // Don't fail the profile linking if onboarding initialization fails
     }
 
-    return linkedProfile as UserProfile
+    return linkedProfile as unknown as UserProfile
   }
 
   // Profile doesn't exist, create new one
@@ -322,7 +327,7 @@ export async function ensureUserProfile(): Promise<UserProfile | null> {
       email,
       full_name: fullName || null,
       avatar_url: avatarUrl || null,
-      role,
+      role: role ?? undefined,
       department_scope: [],
       custom_dashboard: role === 'owner' ? 'executive' : (role && ['marketing_manager', 'finance_manager', 'operations_manager'].includes(role) ? 'manager' : 'default'),
       last_login_at: new Date().toISOString(),
@@ -337,7 +342,7 @@ export async function ensureUserProfile(): Promise<UserProfile | null> {
   }
 
   console.log('[ensureUserProfile] Successfully created new profile for:', email)
-  return data as UserProfile
+  return data as unknown as UserProfile
 }
 
 /**
@@ -508,7 +513,7 @@ export async function getAllUsers(): Promise<UserProfile[]> {
 
   console.log(`getAllUsers: Fetched ${data?.length || 0} users`)
 
-  return data as UserProfile[]
+  return data as unknown as UserProfile[]
 }
 
 
@@ -581,7 +586,7 @@ export async function createPreregisteredUser(
     console.error('Failed to invalidate dashboard cache:', e)
   }
 
-  return { success: true, profile: data as UserProfile }
+  return { success: true, profile: data as unknown as UserProfile }
 }
 
 /**

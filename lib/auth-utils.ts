@@ -31,7 +31,7 @@ export async function getCurrentUserProfile(): Promise<UserProfile | null> {
     return null;
   }
 
-  return profile as UserProfile;
+  return profile as unknown as UserProfile;
 }
 
 /**

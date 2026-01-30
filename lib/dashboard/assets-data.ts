@@ -272,19 +272,19 @@ export async function getAssetsDashboardMetrics(): Promise<AssetsDashboardMetric
     // ========================================================================
     // Transform Maintenance Alerts
     // ========================================================================
-    const maintenanceAlerts: MaintenanceAlert[] = (alertsResult.data || []).map(alert => {
-      const dueDate = new Date(alert.next_due_date)
+    const maintenanceAlerts: MaintenanceAlert[] = (alertsResult.data || []).map((alert, index) => {
+      const dueDate = new Date(alert.next_due_date || '')
       const overdueDays = alert.status === 'overdue' 
         ? Math.floor((now.getTime() - dueDate.getTime()) / (1000 * 60 * 60 * 24))
         : undefined
       
       return {
-        id: alert.id,
-        assetId: alert.asset_id,
+        id: `${alert.asset_id || 'unknown'}-${alert.maintenance_type_id || index}`,
+        assetId: alert.asset_id || '',
         assetName: alert.asset_name || '',
         assetCode: alert.asset_code || '',
         maintenanceType: alert.maintenance_type || '',
-        dueDate: alert.next_due_date,
+        dueDate: alert.next_due_date || '',
         status: alert.status as 'overdue' | 'due_soon',
         overdueDays,
       }
