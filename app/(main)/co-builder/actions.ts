@@ -627,6 +627,74 @@ export async function getTestScenarios(): Promise<TestScenario[]> {
 }
 
 // ============================================================
+// GET SINGLE SCENARIO BY CODE
+// ============================================================
+
+export async function getScenarioByCode(code: string): Promise<TestScenario | null> {
+  const supabase = await createClient()
+  const { data: { user } } = await supabase.auth.getUser()
+
+  const { data: scenario } = await supabase
+    .from(// eslint-disable-next-line @typescript-eslint/no-explicit-any
+    'test_scenarios' as any)
+    .select('*')
+    .eq('scenario_code', code)
+    .eq('is_active', true)
+    .single()
+
+  if (!scenario) return null
+
+  let isCompleted = false
+  if (user) {
+    const s = scenario as unknown as TestScenario
+    const { count } = await supabase
+      .from(// eslint-disable-next-line @typescript-eslint/no-explicit-any
+      'scenario_completions' as any)
+      .select('id', { count: 'exact', head: true })
+      .eq('user_id', user.id)
+      .eq('scenario_id', s.id)
+    isCompleted = (count || 0) > 0
+  }
+
+  return { ...(scenario as unknown as TestScenario), is_completed: isCompleted }
+}
+
+// ============================================================
+// GET SINGLE FEEDBACK BY ID (for admin review)
+// ============================================================
+
+export async function getFeedbackById(id: string): Promise<CompetitionFeedback | null> {
+  const supabase = await createClient()
+
+  const { data } = await supabase
+    .from(// eslint-disable-next-line @typescript-eslint/no-explicit-any
+    'competition_feedback' as any)
+    .select('*')
+    .eq('id', id)
+    .single()
+
+  if (!data) return null
+
+  const feedback = data as unknown as CompetitionFeedback
+
+  // Enrich with user info
+  const { data: profile } = await supabase
+    .from('user_profiles')
+    .select('full_name, role, avatar_url')
+    .eq('user_id', feedback.user_id)
+    .single()
+
+  if (profile) {
+    const p = profile as unknown as { full_name: string; role: string; avatar_url: string }
+    feedback.user_name = p.full_name
+    feedback.user_role = p.role
+    feedback.user_avatar = p.avatar_url
+  }
+
+  return feedback
+}
+
+// ============================================================
 // COMPLETE SCENARIO
 // ============================================================
 

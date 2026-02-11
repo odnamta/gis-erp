@@ -1,16 +1,45 @@
 'use client'
 
-import { useEffect, useState } from 'react'
+import { useEffect, useState, useCallback } from 'react'
 import { useRouter } from 'next/navigation'
 import { Trophy } from 'lucide-react'
-import { getUserPointCounter } from '@/app/(main)/co-builder/actions'
+import { getUserPointCounter, getUnseenPointEvents, markPointEventsSeen } from '@/app/(main)/co-builder/actions'
+import { useToast } from '@/hooks/use-toast'
 
 export function PointCounter() {
   const router = useRouter()
+  const { toast } = useToast()
   const [points, setPoints] = useState(0)
   const [rank, setRank] = useState(0)
   const [loaded, setLoaded] = useState(false)
   const [animating, setAnimating] = useState(false)
+
+  const checkUnseenEvents = useCallback(async () => {
+    const events = await getUnseenPointEvents()
+    if (events.length > 0) {
+      // Show toast for each event (max 3)
+      events.slice(0, 3).forEach((event, i) => {
+        setTimeout(() => {
+          toast({
+            title: `+${event.points} poin!`,
+            description: event.description,
+          })
+        }, i * 500)
+      })
+
+      if (events.length > 3) {
+        setTimeout(() => {
+          toast({
+            title: `+${events.length - 3} notifikasi lainnya`,
+            description: 'Lihat detail di halaman Co-Builder',
+          })
+        }, 1500)
+      }
+
+      // Mark as seen
+      await markPointEventsSeen(events.map(e => e.id))
+    }
+  }, [toast])
 
   useEffect(() => {
     async function load() {
@@ -26,8 +55,12 @@ export function PointCounter() {
       }
     }
     load()
+    checkUnseenEvents()
     // Poll every 60 seconds
-    const interval = setInterval(load, 60000)
+    const interval = setInterval(() => {
+      load()
+      checkUnseenEvents()
+    }, 60000)
     return () => clearInterval(interval)
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [])
