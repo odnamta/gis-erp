@@ -148,8 +148,8 @@ export async function createUserProfile(
     role = 'operations_manager'
     permissions = DEFAULT_PERMISSIONS.operations_manager
   }
-  // HR for raniafitri
-  else if (email === 'raniafitri@gama-group.co') {
+  // HR for rania.rahmanda
+  else if (email === 'rania.rahmanda@gama-group.co') {
     role = 'hr'
     permissions = DEFAULT_PERMISSIONS.hr
   }
@@ -163,8 +163,8 @@ export async function createUserProfile(
     role = 'customs'
     permissions = DEFAULT_PERMISSIONS.customs
   }
-  // Agency for yozamaulana (Yu Ma)
-  else if (email === 'yozamaulana@gama-group.co') {
+  // Agency for yuma (Yu Ma)
+  else if (email === 'yuma@gama-group.co') {
     role = 'agency'
     permissions = DEFAULT_PERMISSIONS.agency
   }
@@ -193,13 +193,13 @@ export async function createUserProfile(
     role = 'marketing'
     permissions = DEFAULT_PERMISSIONS.marketing
   }
-  // Ops for rahadiannugraha
-  else if (email === 'rahadiannugraha@gama-group.co') {
+  // Ops for rahadian
+  else if (email === 'rahadian@gama-group.co') {
     role = 'ops'
     permissions = DEFAULT_PERMISSIONS.ops
   }
-  // Finance for kurniashanti
-  else if (email === 'kurniashanti@gama-group.co') {
+  // Finance for kurniashantidp
+  else if (email === 'kurniashantidp@gama-group.co') {
     role = 'finance'
     permissions = DEFAULT_PERMISSIONS.finance
   }
@@ -376,8 +376,8 @@ export async function ensureUserProfile(): Promise<UserProfile | null> {
     role = 'operations_manager'
     permissions = DEFAULT_PERMISSIONS.operations_manager
   }
-  // HR for raniafitri
-  else if (email === 'raniafitri@gama-group.co') {
+  // HR for rania.rahmanda
+  else if (email === 'rania.rahmanda@gama-group.co') {
     role = 'hr'
     permissions = DEFAULT_PERMISSIONS.hr
   }
@@ -391,8 +391,8 @@ export async function ensureUserProfile(): Promise<UserProfile | null> {
     role = 'customs'
     permissions = DEFAULT_PERMISSIONS.customs
   }
-  // Agency for yozamaulana (Yu Ma)
-  else if (email === 'yozamaulana@gama-group.co') {
+  // Agency for yuma (Yu Ma)
+  else if (email === 'yuma@gama-group.co') {
     role = 'agency'
     permissions = DEFAULT_PERMISSIONS.agency
   }
@@ -421,13 +421,13 @@ export async function ensureUserProfile(): Promise<UserProfile | null> {
     role = 'marketing'
     permissions = DEFAULT_PERMISSIONS.marketing
   }
-  // Ops for rahadiannugraha
-  else if (email === 'rahadiannugraha@gama-group.co') {
+  // Ops for rahadian
+  else if (email === 'rahadian@gama-group.co') {
     role = 'ops'
     permissions = DEFAULT_PERMISSIONS.ops
   }
-  // Finance for kurniashanti
-  else if (email === 'kurniashanti@gama-group.co') {
+  // Finance for kurniashantidp
+  else if (email === 'kurniashantidp@gama-group.co') {
     role = 'finance'
     permissions = DEFAULT_PERMISSIONS.finance
   }
