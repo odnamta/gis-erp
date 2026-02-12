@@ -51,6 +51,7 @@ app/(main)/              # Main application routes
 ├── hse/                 # Health, Safety, Environment
 ├── customs/             # PIB/PEB documentation
 ├── agency/              # Shipping agency module
+├── co-builder/          # Gamified feedback competition (Feb-Mar 2026)
 └── settings/            # System settings, user management
 
 lib/                     # Shared utilities
@@ -133,19 +134,36 @@ const result = await supabase.from('table').select('column').like('column', '%x%
 const data = result.data as { column: string }[] | null  // Explicit cast
 ```
 
-## Current State (January 2026)
+## Current State (February 2026)
 - **Performance**: 95-97/100 Lighthouse
 - **TypeScript**: 0 errors
 - **ESLint**: 0 errors (515 warnings - unused variables, low priority)
 - **Deployment**: Vercel (working)
 - **Types**: 299 tables synced, 670KB type files
+- **Mobile**: Fully responsive (sidebar drawer, hamburger menu, viewport lock)
+- **Co-Builder**: Gamified feedback competition active (Feb 12 - Mar 12)
 
-## Team Onboarding
-| Name | Role | Status |
-|------|------|--------|
-| Dio | owner | ✅ Active |
-| Feri | finance_manager | 🔄 Setting up |
-| Rania | hr | 🔄 Setting up |
+## Team Onboarding (16 users)
+| Name | Email | Role | Status |
+|------|-------|------|--------|
+| Dio | dioatmando@ | owner | ✅ Active |
+| Hutami | hutamiarini@ | marketing_manager | 🔄 Onboarding |
+| Feri | ferisupriono@ | finance_manager | 🔄 Onboarding |
+| Reza | rezapramana@ | operations_manager | 🔄 Onboarding |
+| Luthfi | luthfibadarnawa@ | operations_manager | 🔄 Onboarding |
+| Rania | rania.rahmanda@ | hr | 🔄 Onboarding |
+| Iqbal | iqbaltito@ | hse | 🔄 Onboarding |
+| Khuzainan | khuzainan@ | customs | 🔄 Onboarding |
+| Yuma | yuma@ | agency | 🔄 Onboarding |
+| Choirul | choirulanam@ | administration | 🔄 Onboarding |
+| Dedy | dedyherianto@ | ops | 🔄 Onboarding |
+| Chairul | chairulfajri@ | ops | 🔄 Onboarding |
+| Arka | arkabasunjaya@ | engineer | 🔄 Onboarding |
+| Navisa | navisakafka@ | marketing | 🔄 Onboarding |
+| Rahadian | rahadian@ | ops | 🔄 Onboarding |
+| Kurnia | kurniashantidp@ | finance | 🔄 Onboarding |
+
+*All emails @gama-group.co. Roles auto-assigned via `lib/permissions-server.ts`.*
 
 ## DO NOT
 - ❌ Disable TypeScript (no @ts-ignore unless absolutely critical)
@@ -164,6 +182,10 @@ const data = result.data as { column: string }[] | null  // Explicit cast
 
 ## Common Fixes
 ```typescript
+// CRITICAL: user_profiles has both `id` (auto PK) and `user_id` (auth UUID)
+// WRONG: .eq('id', user.id)     → returns null (id ≠ auth UUID)
+// RIGHT: .eq('user_id', user.id) → correct match
+
 // Fix "type instantiation too deep" on Supabase queries
 // BEFORE (causes error):
 const { data } = await supabase.from('table').select('*').like('col', '%x%')
@@ -171,6 +193,11 @@ const { data } = await supabase.from('table').select('*').like('col', '%x%')
 // AFTER (fixed):
 const result = await supabase.from('table').select('*').like('col', '%x%')
 const data = result.data as TableType[] | null
+
+// Tables not in generated types (use `as any` cast):
+// competition_feedback, point_events, test_scenarios,
+// scenario_completions, top5_submissions, feedback_submissions
+const { data } = await supabase.from('competition_feedback' as any).select('*')
 ```
 
 ## Quick References
@@ -179,16 +206,24 @@ const data = result.data as TableType[] | null
 - GitHub Repo: https://github.com/odnamta/Gama-ERP
 
 ## Active Sprint Tasks
-- [ ] Fix user creation (user_onboarding_status table)
-- [ ] Onboard Feri (finance_manager)
-- [ ] Onboard Rania (hr)
-- [ ] QA testing with real users
+- [x] Fix feedback submission (trigger + FK + user_profiles query bug)
+- [x] Co-Builder competition system (all 10 steps)
+- [x] Mobile responsiveness
+- [x] Auto-assign 16 users
+- [ ] QA testing with real users (Feb 12 launch)
+- [ ] Monitor Co-Builder competition (Feb 12 - Mar 12)
 
 ## Recent Changes
-- 2026-01-26: v0.38.1 - Help Center Enhancement (25 tests, /help/faqs page, 36 Indonesian FAQs across 7 categories)
-- 2026-01-26: v0.86 - Welcome Flow implemented (84 tests, role-specific welcome modal, quick actions for all 15 roles)
-- 2026-01-26: v0.9.21 - System Admin Dashboard implemented (180 tests, user stats, activity monitoring, role distribution)
-- 2026-01-26: v0.9.20 - HR Dashboard Enhancement implemented (309 tests, payroll, leave balance, attendance analytics for Rania)
-- 2026-01-26: v0.9.6 - Director Dashboard implemented with real data (275 tests, business KPIs, pipeline, financial health)
-- 2026-01-25: v0.9.19 - Customs Dashboard implemented (103 tests, PIB/PEB tracking, duties, deadlines for Khuzainan)
-- 2026-01-25: v0.9.18 - HSE Dashboard implemented (387 tests, incidents, permits, training, PPE for Iqbal)
+- 2026-02-10: v0.10.0 - CRITICAL: Fixed feedback submission, user_profiles query bug in 10 files, Co-Builder competition, mobile responsiveness
+- 2026-01-26: v0.9.21 - System Admin Dashboard (180 tests)
+- 2026-01-26: v0.9.20 - HR Dashboard Enhancement (309 tests)
+- 2026-01-26: v0.86 - Welcome Flow (84 tests)
+- 2026-01-26: v0.9.6 - Director Dashboard (275 tests)
+- 2026-01-26: v0.38.1 - Help Center Enhancement (25 tests)
+- 2026-01-25: v0.9.19 - Customs Dashboard (103 tests)
+- 2026-01-25: v0.9.18 - HSE Dashboard (387 tests)
+
+## MCP Servers
+Configured in `.claude/mcp.json`:
+- **Supabase** - Direct database management (queries, schema, logs)
+- **Context7** - Up-to-date library documentation (Next.js, Supabase, etc.)

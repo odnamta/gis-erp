@@ -5,6 +5,88 @@ All notable changes to GAMA ERP will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.10.0] - 2026-02-10 - Feedback Fix + Co-Builder Launch + Mobile
+
+### 🐛 Critical Bug Fixes
+- **Feedback submission completely broken** - Trigger function `generate_feedback_ticket_number()` failed: referenced `feedback_ticket_seq` without schema qualification + used `SECURITY INVOKER`. Fixed to `SECURITY DEFINER` with `public.feedback_ticket_seq`.
+- **user_profiles query bug in 10 files** - All queries used `.eq('id', user.id)` instead of `.eq('user_id', user.id)`. The `id` column is an auto-generated PK, not the auth user UUID. Silently returned null profiles across feedback, help center, onboarding, config, feature-flags, audit, widgets, and request-access.
+- **FK constraint mismatch on feedback_submissions** - `submitted_by`, `assigned_to`, `resolved_by` referenced `user_profiles(id)` instead of `user_profiles(user_id)`. Fixed all three.
+- Corrected 4 email addresses for user auto-assign
+
+### ✨ Features
+- **Co-Builder Competition System** (15 users, Feb 12 - Mar 12, 2026)
+  - 5 new tables + materialized view + RPC function + 13 seeded test scenarios
+  - 7 sub-pages: My Feedback, Scenarios (list + detail), Top 5, Bug Tracker, Admin Panel, Admin Review
+  - Point counter with toast notifications, competition feedback floating button
+- **Mobile Responsiveness** - Full mobile support
+  - `MobileSidebarProvider` context, drawer sidebar, hamburger menu, responsive layout
+  - Floating buttons, point counter, viewport meta (no zoom)
+- **Error Boundaries** - `error.tsx` and `not-found.tsx` with Indonesian text
+- **User Auto-Assign** - Pre-assigned roles for 16 @gama-group.co users
+- Excluded agency role from Co-Builder competition
+
+### 🔧 Developer Experience
+- MCP servers: Supabase (database management), Context7 (live docs)
+- Claude Code `allowedTools` permission config (auto-accept safe operations)
+
+---
+
+## [0.9.21] - 2026-01-26 - System Admin Dashboard
+
+### ✨ Features
+- User stats, activity monitoring, role distribution (180 tests)
+
+---
+
+## [0.9.20] - 2026-01-26 - HR Dashboard Enhancement
+
+### ✨ Features
+- Payroll, leave balance, attendance analytics for Rania (309 tests)
+
+---
+
+## [0.86] - 2026-01-26 - Welcome Flow
+
+### ✨ Features
+- Role-specific welcome modal with quick actions for all 15 roles (84 tests)
+
+---
+
+## [0.9.6] - 2026-01-26 - Director Dashboard
+
+### ✨ Features
+- Business KPIs, pipeline, financial health with real data (275 tests)
+
+---
+
+## [0.38.1] - 2026-01-26 - Help Center Enhancement
+
+### ✨ Features
+- FAQs page with 36 Indonesian FAQs across 7 categories (25 tests)
+
+---
+
+## [0.9.19] - 2026-01-25 - Customs Dashboard
+
+### ✨ Features
+- PIB/PEB tracking, duties, deadlines for Khuzainan (103 tests)
+
+---
+
+## [0.9.18] - 2026-01-25 - HSE Dashboard
+
+### ✨ Features
+- Incidents, permits, training, PPE for Iqbal (387 tests)
+
+---
+
+## [0.9.17] - 2026-01-25 - Engineering Dashboard
+
+### ✨ Features
+- Engineering Dashboard with real data
+
+---
+
 ## [0.83] - 2026-01-24 - Date & Currency Formatting Standardization
 
 ### ✨ Features
