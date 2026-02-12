@@ -116,14 +116,44 @@ export async function reportIncident(
     }
 
     // Get employee ID for the user
+    let employeeId: string | null = null;
     const { data: employee } = await supabase
       .from('employees')
       .select('id')
       .eq('user_id', user.id)
       .single();
 
-    if (!employee) {
-      return { success: false, error: 'Employee profile not found' };
+    if (employee) {
+      employeeId = employee.id;
+    } else {
+      // Fallback: auto-create minimal employee record from user_profiles
+      const { data: profile } = await supabase
+        .from('user_profiles')
+        .select('full_name')
+        .eq('user_id', user.id)
+        .single();
+
+      if (!profile) {
+        return { success: false, error: 'User profile not found. Please contact administrator.' };
+      }
+
+      const { data: newEmployee, error: empError } = await (supabase as any)
+        .from('employees')
+        .insert({
+          user_id: user.id,
+          full_name: profile.full_name || user.email || 'Unknown',
+          employee_code: `AUTO-${user.id.substring(0, 6).toUpperCase()}`,
+          status: 'active',
+          join_date: new Date().toISOString().split('T')[0],
+        })
+        .select('id')
+        .single();
+
+      if (empError || !newEmployee) {
+        return { success: false, error: 'Unable to create employee profile for incident reporting. Please contact HR or administrator.' };
+      }
+
+      employeeId = newEmployee.id;
     }
 
     // Get category to check if investigation is required
@@ -149,7 +179,7 @@ export async function reportIncident(
         immediate_actions: input.immediateActions || null,
         job_order_id: input.jobOrderId || null,
         asset_id: input.assetId || null,
-        reported_by: employee.id,
+        reported_by: employeeId,
         supervisor_id: input.supervisorId || null,
         investigation_required: category?.requires_investigation ?? true,
         status: 'reported',

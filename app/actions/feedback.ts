@@ -269,7 +269,7 @@ export async function getAllFeedback(
       .eq('user_id', user.id)
       .single();
 
-    if (!profile || !['admin', 'super_admin', 'manager'].includes(profile.role)) {
+    if (!profile || !['owner', 'director', 'sysadmin'].includes(profile.role)) {
       return { success: false, error: 'Unauthorized' };
     }
 
@@ -417,7 +417,7 @@ export async function updateFeedbackStatus(
       .eq('user_id', user.id)
       .single();
 
-    if (!profile || !['admin', 'super_admin', 'manager'].includes(profile.role)) {
+    if (!profile || !['owner', 'director', 'sysadmin'].includes(profile.role)) {
       return { success: false, error: 'Unauthorized' };
     }
 
@@ -499,7 +499,7 @@ export async function assignFeedback(
       .eq('user_id', user.id)
       .single();
 
-    if (!profile || !['admin', 'super_admin', 'manager'].includes(profile.role)) {
+    if (!profile || !['owner', 'director', 'sysadmin'].includes(profile.role)) {
       return { success: false, error: 'Unauthorized' };
     }
 
@@ -606,7 +606,7 @@ export async function addFeedbackComment(
       .single();
 
     // Only admins can post internal comments
-    if (isInternal && (!profile || !['admin', 'super_admin', 'manager'].includes(profile.role))) {
+    if (isInternal && (!profile || !['owner', 'director', 'sysadmin'].includes(profile.role))) {
       return { success: false, error: 'Only admins can post internal comments' };
     }
 
@@ -676,7 +676,7 @@ export async function getFeedbackComments(
       .eq('user_id', user.id)
       .single();
 
-    const isAdmin = profile && ['admin', 'super_admin', 'manager'].includes(profile.role);
+    const isAdmin = profile && ['owner', 'director', 'sysadmin'].includes(profile.role);
 
     let query = supabase
       .from('feedback_comments')
@@ -735,7 +735,7 @@ export async function getFeedbackById(
       .eq('user_id', user.id)
       .single();
 
-    const isAdmin = profile && ['admin', 'super_admin', 'manager'].includes(profile.role);
+    const isAdmin = profile && ['owner', 'director', 'sysadmin'].includes(profile.role);
     
     if (data.submitted_by !== user.id && !isAdmin) {
       return { success: false, error: 'Unauthorized' };

@@ -25,16 +25,13 @@ export async function createCustomer(data: CustomerFormData): Promise<{ error?: 
 
   const supabase = await createClient()
 
-  // Get user profile to determine entity_type
   const profile = await getUserProfile()
-  const entityType = profile?.role === 'agency' ? 'gama_agency' : 'gama_main'
 
   const { data: customer, error } = await supabase.from('customers').insert({
     name: data.name,
     email: data.email || '',
     phone: data.phone || null,
     address: data.address || null,
-    entity_type: entityType,
   }).select('id').single()
 
   if (error) {

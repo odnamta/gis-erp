@@ -1,7 +1,8 @@
 'use client';
 
 import { useState, useEffect, useCallback } from 'react';
-import { Bug, Lightbulb, AlertTriangle, CheckCircle, Clock, Search, Filter } from 'lucide-react';
+import { Bug, Lightbulb, AlertTriangle, CheckCircle, Clock, Search, Filter, Copy, ClipboardCheck } from 'lucide-react';
+import { useToast } from '@/hooks/use-toast';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
@@ -43,15 +44,17 @@ import type {
 import { FeedbackDetailSheet } from './feedback-detail-sheet';
 
 export function FeedbackDashboard() {
+  const { toast } = useToast();
   const [summary, setSummary] = useState<FeedbackSummary | null>(null);
   const [items, setItems] = useState<FeedbackListItem[]>([]);
   const [loading, setLoading] = useState(true);
   const [selectedFeedback, setSelectedFeedback] = useState<FeedbackListItem | null>(null);
-  
+  const [copied, setCopied] = useState(false);
+
   // Filters
   const [filters, setFilters] = useState<FeedbackFilters>({});
   const [searchTerm, setSearchTerm] = useState('');
-  
+
   // Pagination
   const [page, setPage] = useState(1);
   const [totalPages, setTotalPages] = useState(1);
@@ -105,13 +108,87 @@ export function FeedbackDashboard() {
     setPage(1);
   };
 
+  const handleCopyAll = async () => {
+    const exportData = items.map((item) => ({
+      id: item.id,
+      ticket: item.ticket_number,
+      user: item.submitted_by_name || item.submitted_by_email || 'Unknown',
+      type: item.feedback_type,
+      title: item.title,
+      description: item.description || '',
+      severity: item.severity || 'medium',
+      module: item.module || item.affected_module || '',
+      steps_to_reproduce: item.steps_to_reproduce || '',
+      expected_behavior: item.expected_behavior || '',
+      actual_behavior: item.actual_behavior || '',
+      status: item.status,
+      page_url: item.page_url || '',
+      created_at: item.created_at,
+    }));
+
+    try {
+      await navigator.clipboard.writeText(JSON.stringify(exportData, null, 2));
+      setCopied(true);
+      toast({ title: `Copied ${exportData.length} feedback items to clipboard` });
+      setTimeout(() => setCopied(false), 2000);
+    } catch {
+      toast({ title: 'Failed to copy', variant: 'destructive' });
+    }
+  };
+
+  const handleCopyNew = async () => {
+    const newItems = items.filter((item) => item.status === 'new');
+    const exportData = newItems.map((item) => ({
+      id: item.id,
+      ticket: item.ticket_number,
+      user: item.submitted_by_name || item.submitted_by_email || 'Unknown',
+      type: item.feedback_type,
+      title: item.title,
+      description: item.description || '',
+      severity: item.severity || 'medium',
+      module: item.module || item.affected_module || '',
+      steps_to_reproduce: item.steps_to_reproduce || '',
+      expected_behavior: item.expected_behavior || '',
+      actual_behavior: item.actual_behavior || '',
+      status: item.status,
+      page_url: item.page_url || '',
+      created_at: item.created_at,
+    }));
+
+    if (newItems.length === 0) {
+      toast({ title: 'No new feedback to copy' });
+      return;
+    }
+
+    try {
+      await navigator.clipboard.writeText(JSON.stringify(exportData, null, 2));
+      setCopied(true);
+      toast({ title: `Copied ${exportData.length} NEW feedback items to clipboard` });
+      setTimeout(() => setCopied(false), 2000);
+    } catch {
+      toast({ title: 'Failed to copy', variant: 'destructive' });
+    }
+  };
+
   return (
     <div className="space-y-6">
-      <div>
-        <h1 className="text-2xl font-bold">Feedback Management</h1>
-        <p className="text-muted-foreground">
-          Manage bug reports, improvement requests, and questions from users
-        </p>
+      <div className="flex items-start justify-between">
+        <div>
+          <h1 className="text-2xl font-bold">Feedback Management</h1>
+          <p className="text-muted-foreground">
+            Manage bug reports, improvement requests, and questions from users
+          </p>
+        </div>
+        <div className="flex gap-2">
+          <Button variant="outline" size="sm" onClick={handleCopyNew}>
+            {copied ? <ClipboardCheck className="h-4 w-4 mr-2" /> : <Copy className="h-4 w-4 mr-2" />}
+            Copy New
+          </Button>
+          <Button variant="outline" size="sm" onClick={handleCopyAll}>
+            {copied ? <ClipboardCheck className="h-4 w-4 mr-2" /> : <Copy className="h-4 w-4 mr-2" />}
+            Copy All
+          </Button>
+        </div>
       </div>
 
       {/* Summary Cards */}

@@ -346,11 +346,11 @@ const FEATURE_PERMISSION_MAP: Record<FeatureKey, (profile: UserProfile) => boole
   'workflow.bkk.approve': (p) => ['owner', 'director'].includes(p.role),
   
   // Customer & Marketing
-  'customers.crud': (p) => ['owner', 'director', 'marketing_manager', 'marketing'].includes(p.role),
+  'customers.crud': (p) => ['owner', 'director', 'marketing_manager', 'marketing', 'operations_manager', 'administration'].includes(p.role),
   // Customers view - agency and customs can view
   'customers.view': (p) => !['sysadmin'].includes(p.role),
-  'customers.create': (p) => ['owner', 'director', 'marketing_manager', 'marketing'].includes(p.role),
-  'customers.edit': (p) => ['owner', 'director', 'marketing_manager', 'marketing'].includes(p.role),
+  'customers.create': (p) => ['owner', 'director', 'marketing_manager', 'marketing', 'operations_manager', 'administration'].includes(p.role),
+  'customers.edit': (p) => ['owner', 'director', 'marketing_manager', 'marketing', 'operations_manager', 'administration'].includes(p.role),
   'customers.delete': (p) => ['owner', 'director', 'sysadmin'].includes(p.role),
   
   // Quotations
@@ -362,7 +362,7 @@ const FEATURE_PERMISSION_MAP: Record<FeatureKey, (profile: UserProfile) => boole
   'quotations.engineering_review': (p) => ['owner', 'director', 'marketing_manager', 'engineer'].includes(p.role),
   
   // Projects
-  'projects.crud': (p) => ['owner', 'director', 'marketing_manager', 'marketing', 'engineer'].includes(p.role),
+  'projects.crud': (p) => ['owner', 'director', 'marketing_manager', 'marketing', 'engineer', 'operations_manager', 'administration'].includes(p.role),
   'projects.view': (p) => !['sysadmin'].includes(p.role),
   
   // PJO
