@@ -575,7 +575,7 @@ export const NAV_ITEMS: NavItem[] = [
     title: 'Co-Builder',
     href: '/co-builder',
     icon: Trophy,
-    roles: ['owner', 'director', 'marketing_manager', 'finance_manager', 'operations_manager', 'sysadmin', 'administration', 'finance', 'marketing', 'ops', 'engineer', 'hr', 'hse', 'agency', 'customs'],
+    roles: ['owner', 'director', 'marketing_manager', 'finance_manager', 'operations_manager', 'sysadmin', 'administration', 'finance', 'marketing', 'ops', 'engineer', 'hr', 'hse', 'customs'],
     children: [
       {
         title: 'Leaderboard',

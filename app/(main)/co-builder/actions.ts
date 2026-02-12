@@ -311,6 +311,7 @@ async function getLeaderboardDirect(): Promise<LeaderboardEntry[]> {
     .select('user_id, full_name, role, avatar_url')
     .neq('email', 'dioatmando@gama-group.co')
     .neq('email', 'info@gama-group.co')
+    .neq('role', 'agency')
     .eq('is_active', true)
     .not('role', 'is', null)
 
