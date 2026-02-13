@@ -181,7 +181,7 @@ Choose one of these methods:
 
 **Option A: Supabase CLI (Recommended)**
 ```bash
-cd /Users/dioatmando/Vibecode/Gama-ERP
+cd /Users/dioatmando/Vibecode/gama/gis-erp
 supabase db push
 ```
 

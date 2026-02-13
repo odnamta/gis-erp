@@ -24,7 +24,7 @@
 
 ```bash
 # Navigate to project
-cd /Users/dioatmando/Vibecode/Gama-ERP
+cd /Users/dioatmando/Vibecode/gama/gis-erp
 
 # Push migration to Supabase
 supabase db push
@@ -264,7 +264,7 @@ supabase migration list
 ## ⚡ QUICK DEPLOY (TL;DR)
 
 ```bash
-cd /Users/dioatmando/Vibecode/Gama-ERP
+cd /Users/dioatmando/Vibecode/gama/gis-erp
 supabase db push
 ```
 
