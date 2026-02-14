@@ -109,7 +109,7 @@ export const NAV_ITEMS: NavItem[] = [
     title: 'Proforma JO',
     href: '/proforma-jo',
     icon: FileText,
-    roles: ['owner', 'director', 'marketing_manager', 'finance_manager', 'operations_manager', 'administration', 'finance', 'ops'],
+    roles: ['owner', 'director', 'marketing_manager', 'finance_manager', 'operations_manager', 'administration', 'finance', 'marketing', 'ops'],
   },
   {
     title: 'Cost Entry',

@@ -95,8 +95,8 @@ export default async function EngineeringDashboardPage() {
   }
 
   // Check access: engineer role or manager with engineering scope
-  const hasAccess = profile.role === 'engineer' || 
-    ['owner', 'director', 'marketing_manager'].includes(profile.role)
+  const hasAccess = profile.role === 'engineer' ||
+    ['owner', 'director', 'marketing_manager', 'marketing', 'operations_manager'].includes(profile.role)
 
   if (!hasAccess) {
     redirect('/dashboard')

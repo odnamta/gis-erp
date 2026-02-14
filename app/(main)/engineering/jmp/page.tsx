@@ -1,4 +1,6 @@
 import { Suspense } from 'react';
+import Link from 'next/link';
+import { Plus } from 'lucide-react';
 import { JmpStatusCards } from '@/components/jmp/jmp-status-cards';
 import { JmpListWrapper } from '@/components/jmp/jmp-list-wrapper';
 import { getJmpStatusCounts, getJmpList, getCustomersForSelection } from '@/lib/jmp-actions';
@@ -24,11 +26,20 @@ async function JmpContent() {
 export default function JmpPage() {
   return (
     <div className="container mx-auto py-6">
-      <div className="mb-6">
-        <h1 className="text-2xl font-bold">Journey Management Plans</h1>
-        <p className="text-muted-foreground">
-          Plan and track heavy-haul journeys with detailed checkpoints and risk assessments
-        </p>
+      <div className="mb-6 flex items-center justify-between">
+        <div>
+          <h1 className="text-2xl font-bold">Journey Management Plans</h1>
+          <p className="text-muted-foreground">
+            Plan and track heavy-haul journeys with detailed checkpoints and risk assessments
+          </p>
+        </div>
+        <Link
+          href="/engineering/jmp/new"
+          className="inline-flex items-center gap-2 px-4 py-2 text-sm font-medium rounded-md bg-primary text-primary-foreground hover:bg-primary/90"
+        >
+          <Plus className="h-4 w-4" />
+          New JMP
+        </Link>
       </div>
       <Suspense
         fallback={

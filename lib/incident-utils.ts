@@ -511,8 +511,8 @@ export function formatIncidentDate(dateString: string): string {
 /**
  * Format time for display
  */
-export function formatIncidentTime(timeString: string): string {
-  // Time comes as HH:MM:SS or HH:MM
+export function formatIncidentTime(timeString: string | null | undefined): string {
+  if (!timeString) return '-';
   const parts = timeString.split(':');
   return `${parts[0]}:${parts[1]}`;
 }

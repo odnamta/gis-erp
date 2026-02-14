@@ -198,10 +198,10 @@ export async function createUserProfile(
     role = 'ops'
     permissions = DEFAULT_PERMISSIONS.ops
   }
-  // Finance for kurniashantidp
+  // Marketing for kurniashantidp
   else if (email === 'kurniashantidp@gama-group.co') {
-    role = 'finance'
-    permissions = DEFAULT_PERMISSIONS.finance
+    role = 'marketing'
+    permissions = DEFAULT_PERMISSIONS.marketing
   }
   // v0.84: All other users get NULL role - they must request access
   // This includes @gama-group.co emails that are not in the special list above
@@ -426,10 +426,10 @@ export async function ensureUserProfile(): Promise<UserProfile | null> {
     role = 'ops'
     permissions = DEFAULT_PERMISSIONS.ops
   }
-  // Finance for kurniashantidp
+  // Marketing for kurniashantidp
   else if (email === 'kurniashantidp@gama-group.co') {
-    role = 'finance'
-    permissions = DEFAULT_PERMISSIONS.finance
+    role = 'marketing'
+    permissions = DEFAULT_PERMISSIONS.marketing
   }
   // v0.84: All other users get NULL role - they must request access via /request-access
   // This includes @gama-group.co emails that are not in the special list above
