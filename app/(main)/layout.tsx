@@ -79,7 +79,8 @@ export default async function MainLayout({ children }: { children: React.ReactNo
                     </div>
                     <Toaster />
                     <OnboardingRouteTracker userId={userProfile?.id || null} />
-                    <FeedbackButton />
+                    {/* Original FeedbackButton hidden during Co-Builder competition (Feb-Mar 2026) to avoid confusion with CompetitionFeedbackButton. Re-enable after March 12. */}
+                    {/* <FeedbackButton /> */}
                     <CompetitionFeedbackButton />
                   </div>
                 </MobileSidebarProvider>
