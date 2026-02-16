@@ -64,7 +64,7 @@ export function PendingFollowupsTable({ followups, isLoading }: PendingFollowups
             </Badge>
           )}
         </div>
-        <Link href="/pjos?status=draft,pending_approval">
+        <Link href="/proforma-jo?status=draft,pending_approval">
           <Button variant="ghost" size="sm">
             View All <ExternalLink className="ml-1 h-3 w-3" />
           </Button>

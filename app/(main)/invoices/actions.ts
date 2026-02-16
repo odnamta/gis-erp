@@ -197,7 +197,7 @@ export async function createInvoice(data: InvoiceFormData): Promise<{
       invoice_term: data.invoice_term || null,
       term_percentage: data.term_percentage || null,
       term_description: data.term_description || null,
-      // entity_type: entityType, // Column not deployed to production yet (Task 5)
+      entity_type: entityType,
     })
     .select('id, invoice_number')
     .single()
@@ -582,7 +582,7 @@ export async function generateSplitInvoice(
       invoice_term: term.term,
       term_percentage: term.percentage,
       term_description: term.description,
-      // entity_type: entityType, // Column not deployed to production yet (Task 5)
+      entity_type: entityType,
     })
     .select('id, invoice_number')
     .single()

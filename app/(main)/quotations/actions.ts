@@ -141,7 +141,7 @@ export async function createQuotation(
         status: initialStatus,
         created_by: user.id,
         notes: data.notes,
-        // entity_type: entityType, // Column not deployed to production yet (Task 5)
+        entity_type: entityType,
       })
       .select()
       .single()
@@ -1012,7 +1012,7 @@ export async function convertToPJO(
           total_cost_estimated: costTotal,
           status: 'draft',
           created_by: user.id,
-          // entity_type: user.role === 'agency' ? 'gama_agency' : 'gama_main', // Column not deployed yet
+          entity_type: user.role === 'agency' ? 'gama_agency' : 'gama_main',
         })
         .select()
         .single()

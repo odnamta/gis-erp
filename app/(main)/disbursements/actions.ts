@@ -75,7 +75,7 @@ export async function createDisbursement(input: CreateDisbursementInput) {
         notes: input.notes || null,
         status: 'draft',
         created_by: input.created_by,
-        // entity_type: entityType, // Column not deployed to production yet (Task 5)
+        entity_type: entityType,
       })
       .select()
       .single()

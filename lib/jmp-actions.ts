@@ -46,9 +46,20 @@ interface ActionResult<T> {
 export async function createJmp(data: JmpFormData): Promise<ActionResult<JourneyManagementPlan>> {
   try {
     const supabase = await createClient();
-    
+
+    // Generate JMP number: JMP-YYYYMM-XXXX
+    const now = new Date();
+    const yearMonth = `${now.getFullYear()}${String(now.getMonth() + 1).padStart(2, '0')}`;
+    const { count } = await supabase
+      .from('journey_management_plans')
+      .select('*', { count: 'exact', head: true })
+      .gte('created_at', `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}-01`);
+    const seq = String((count || 0) + 1).padStart(4, '0');
+    const jmpNumber = `JMP-${yearMonth}-${seq}`;
+
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const insertData: any = {
+      jmp_number: jmpNumber,
       journey_title: data.journeyTitle,
       journey_description: data.journeyDescription || null,
       cargo_description: data.cargoDescription,
