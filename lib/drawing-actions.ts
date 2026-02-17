@@ -147,8 +147,13 @@ export async function createDrawing(input: DrawingFormInput): Promise<ActionResu
 
   const drawingNumber = numberResult || `DRW-${Date.now()}`;
 
-  // Get current user
+  // Get current user and profile
   const { data: { user } } = await supabase.auth.getUser();
+  const { data: profile } = await supabase
+    .from('user_profiles')
+    .select('id')
+    .eq('user_id', user?.id || '')
+    .single();
 
   const { data, error } = await supabase
     .from('drawings')
@@ -167,7 +172,7 @@ export async function createDrawing(input: DrawingFormInput): Promise<ActionResu
       status: 'draft',
       current_revision: 'A',
       revision_count: 1,
-      created_by: user?.id,
+      created_by: profile?.id || null,
     })
     .select()
     .single();

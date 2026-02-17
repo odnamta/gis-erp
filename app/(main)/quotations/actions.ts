@@ -139,7 +139,7 @@ export async function createQuotation(
         requires_engineering: classification.requires_engineering,
         engineering_status: engineeringStatus,
         status: initialStatus,
-        created_by: user.id,
+        created_by: profile?.id || null,
         notes: data.notes,
         entity_type: entityType,
       })

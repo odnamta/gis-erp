@@ -48,8 +48,13 @@ export async function createPIBDocument(
 
   const supabase = await createClient();
 
-  // Get current user
+  // Get current user and profile
   const { data: { user } } = await supabase.auth.getUser();
+  const { data: profile } = await supabase
+    .from('user_profiles')
+    .select('id')
+    .eq('user_id', user?.id || '')
+    .single();
 
   // Calculate CIF value
   const cifValue = calculateCIFValue(
@@ -93,7 +98,7 @@ export async function createPIBDocument(
       exchange_rate: input.exchange_rate || null,
       cif_value_idr: cifValueIDR,
       notes: input.notes || null,
-      created_by: user?.id || null,
+      created_by: profile?.id || null,
       status: 'draft', // Property 7: Initial status is always 'draft'
     } as never)
     .select()

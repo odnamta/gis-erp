@@ -49,11 +49,18 @@ export async function createSafetyPermit(
       return { success: false, error: 'User tidak terautentikasi' };
     }
 
+    // Get profile ID (employees.user_id references user_profiles.id)
+    const { data: profile } = await supabase
+      .from('user_profiles')
+      .select('id')
+      .eq('user_id', user.id)
+      .single();
+
     // Get employee ID
     const { data: employee } = await supabase
       .from('employees')
       .select('id')
-      .eq('user_id', user.id)
+      .eq('user_id', profile?.id || '')
       .single();
 
     if (!employee) {
@@ -232,11 +239,18 @@ export async function approveBySupervisor(
       return { success: false, error: 'User tidak terautentikasi' };
     }
 
+    // Get profile ID (employees.user_id references user_profiles.id)
+    const { data: profile } = await supabase
+      .from('user_profiles')
+      .select('id')
+      .eq('user_id', user.id)
+      .single();
+
     // Get employee ID
     const { data: employee } = await supabase
       .from('employees')
       .select('id')
-      .eq('user_id', user.id)
+      .eq('user_id', profile?.id || '')
       .single();
 
     const { error } = await fromSafetyTable(supabase, 'safety_permits')
@@ -279,11 +293,18 @@ export async function approveByHSE(
       return { success: false, error: 'User tidak terautentikasi' };
     }
 
+    // Get profile ID (employees.user_id references user_profiles.id)
+    const { data: profile } = await supabase
+      .from('user_profiles')
+      .select('id')
+      .eq('user_id', user.id)
+      .single();
+
     // Get employee ID
     const { data: employee } = await supabase
       .from('employees')
       .select('id')
-      .eq('user_id', user.id)
+      .eq('user_id', profile?.id || '')
       .single();
 
     // Check if supervisor has approved
@@ -374,11 +395,18 @@ export async function closePermit(
       return { success: false, error: 'User tidak terautentikasi' };
     }
 
+    // Get profile ID (employees.user_id references user_profiles.id)
+    const { data: profile } = await supabase
+      .from('user_profiles')
+      .select('id')
+      .eq('user_id', user.id)
+      .single();
+
     // Get employee ID
     const { data: employee } = await supabase
       .from('employees')
       .select('id')
-      .eq('user_id', user.id)
+      .eq('user_id', profile?.id || '')
       .single();
 
     const { error } = await fromSafetyTable(supabase, 'safety_permits')
@@ -423,11 +451,18 @@ export async function cancelPermit(
       return { success: false, error: 'User tidak terautentikasi' };
     }
 
+    // Get profile ID (employees.user_id references user_profiles.id)
+    const { data: profile } = await supabase
+      .from('user_profiles')
+      .select('id')
+      .eq('user_id', user.id)
+      .single();
+
     // Get employee ID
     const { data: employee } = await supabase
       .from('employees')
       .select('id')
-      .eq('user_id', user.id)
+      .eq('user_id', profile?.id || '')
       .single();
 
     const { error } = await fromSafetyTable(supabase, 'safety_permits')

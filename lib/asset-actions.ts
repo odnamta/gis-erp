@@ -82,9 +82,14 @@ export async function createAsset(
     return { success: false, error: 'Category is required' }
   }
   
-  // Get current user
+  // Get current user and profile
   const { data: { user } } = await supabase.auth.getUser()
-  
+  const { data: profile } = await supabase
+    .from('user_profiles')
+    .select('id')
+    .eq('user_id', user?.id || '')
+    .single()
+
   // Generate asset code
   const { count: assetCount } = await supabase
     .from('assets')
@@ -131,27 +136,27 @@ export async function createAsset(
     notes: data.notes?.trim() || null,
     status: 'active' as const,
     book_value: data.purchase_price || null,
-    created_by: user?.id || null,
+    created_by: profile?.id || null,
   }
-  
+
   const { data: asset, error } = await supabase
     .from('assets')
     .insert(assetData)
     .select()
     .single()
-  
+
   if (error) {
     console.error('Error creating asset:', error)
     return { success: false, error: error.message }
   }
-  
+
   // Log initial status in history
   await supabase.from('asset_status_history').insert({
     asset_id: (asset as unknown as Asset).id,
     previous_status: null,
     new_status: 'active',
     reason: 'Initial asset registration',
-    changed_by: user?.id || null,
+    changed_by: profile?.id || null,
   })
   
   revalidatePath('/equipment')
@@ -258,29 +263,34 @@ export async function changeAssetStatus(
     return { success: false, error: 'Asset not found' }
   }
   
-  // Get current user
+  // Get current user and profile
   const { data: { user } } = await supabase.auth.getUser()
-  
+  const { data: profile } = await supabase
+    .from('user_profiles')
+    .select('id')
+    .eq('user_id', user?.id || '')
+    .single()
+
   // Update asset status
   const updateData: Record<string, unknown> = {
     status: data.new_status,
     updated_at: new Date().toISOString(),
   }
-  
+
   if (data.new_location_id) {
     updateData.current_location_id = data.new_location_id
   }
-  
+
   const { error: updateError } = await supabase
     .from('assets')
     .update(updateData)
     .eq('id', assetId)
-  
+
   if (updateError) {
     console.error('Error updating asset status:', updateError)
     return { success: false, error: updateError.message }
   }
-  
+
   // Log status change in history
   const { error: historyError } = await supabase
     .from('asset_status_history')
@@ -292,7 +302,7 @@ export async function changeAssetStatus(
       new_location_id: data.new_location_id || asset.current_location_id,
       reason: data.reason.trim(),
       notes: data.notes?.trim() || null,
-      changed_by: user?.id || null,
+      changed_by: profile?.id || null,
     })
   
   if (historyError) {
@@ -421,7 +431,12 @@ export async function createAssetDocument(
   const supabase = await createClient()
   
   const { data: { user } } = await supabase.auth.getUser()
-  
+  const { data: profile } = await supabase
+    .from('user_profiles')
+    .select('id')
+    .eq('user_id', user?.id || '')
+    .single()
+
   const { data: document, error } = await supabase
     .from('asset_documents')
     .insert({
@@ -433,7 +448,7 @@ export async function createAssetDocument(
       expiry_date: data.expiry_date || null,
       reminder_days: data.reminder_days || 30,
       notes: data.notes || null,
-      uploaded_by: user?.id || null,
+      uploaded_by: profile?.id || null,
     })
     .select()
     .single()

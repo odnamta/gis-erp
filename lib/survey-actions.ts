@@ -42,11 +42,16 @@ export async function createSurvey(data: SurveyFormData): Promise<{ success: boo
 
     const supabase = await createClient();
     
-    // Get current user
+    // Get current user and profile
     const { data: { user } } = await supabase.auth.getUser();
     if (!user) {
       return { success: false, error: 'Not authenticated' };
     }
+    const { data: profile } = await supabase
+      .from('user_profiles')
+      .select('id')
+      .eq('user_id', user.id)
+      .single();
 
     const { data: survey, error } = await supabase
       .from('route_surveys')
@@ -77,7 +82,7 @@ export async function createSurvey(data: SurveyFormData): Promise<{ success: boo
         survey_date: data.surveyDate || null,
         notes: data.notes || null,
         status: 'requested',
-        requested_by: user.id,
+        requested_by: profile?.id || null,
       } as never)
       .select()
       .single();
@@ -775,6 +780,7 @@ export async function getCustomers(): Promise<{ success: boolean; data?: { id: s
     const { data: customers, error } = await supabase
       .from('customers')
       .select('id, name')
+      .eq('is_active', true)
       .order('name');
 
     if (error) {

@@ -115,32 +115,33 @@ export async function reportIncident(
       return { success: false, error: 'User not authenticated' };
     }
 
+    // Get user profile (employees.user_id references user_profiles.id)
+    const { data: profile } = await supabase
+      .from('user_profiles')
+      .select('id, full_name')
+      .eq('user_id', user.id)
+      .single();
+
+    if (!profile) {
+      return { success: false, error: 'User profile not found. Please contact administrator.' };
+    }
+
     // Get employee ID for the user
     let employeeId: string | null = null;
     const { data: employee } = await supabase
       .from('employees')
       .select('id')
-      .eq('user_id', user.id)
+      .eq('user_id', profile.id)
       .single();
 
     if (employee) {
       employeeId = employee.id;
     } else {
       // Fallback: auto-create minimal employee record from user_profiles
-      const { data: profile } = await supabase
-        .from('user_profiles')
-        .select('full_name')
-        .eq('user_id', user.id)
-        .single();
-
-      if (!profile) {
-        return { success: false, error: 'User profile not found. Please contact administrator.' };
-      }
-
       const { data: newEmployee, error: empError } = await (supabase as any)
         .from('employees')
         .insert({
-          user_id: user.id,
+          user_id: profile.id,
           full_name: profile.full_name || user.email || 'Unknown',
           employee_code: `AUTO-${user.id.substring(0, 6).toUpperCase()}`,
           status: 'active',

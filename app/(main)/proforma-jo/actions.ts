@@ -745,8 +745,6 @@ export async function confirmCostItem(
     .from('pjo_cost_items')
     .update({
       actual_amount: actualAmount,
-      variance: variance,
-      variance_pct: variancePct,
       status: status,
       confirmed_by: user.id,
       confirmed_at: new Date().toISOString(),

@@ -86,8 +86,13 @@ export async function createFee(
 
   const supabase = await createClient();
   
-  // Get current user
+  // Get current user and profile
   const { data: { user } } = await supabase.auth.getUser();
+  const { data: profile } = await supabase
+    .from('user_profiles')
+    .select('id')
+    .eq('user_id', user?.id || '')
+    .single();
 
   const insertData = {
     document_type: data.document_type,
@@ -101,7 +106,7 @@ export async function createFee(
     vendor_id: data.vendor_id || null,
     vendor_invoice_number: data.vendor_invoice_number || null,
     notes: data.notes || null,
-    created_by: user?.id || null,
+    created_by: profile?.id || null,
   };
 
   const { data: fee, error } = await supabase
