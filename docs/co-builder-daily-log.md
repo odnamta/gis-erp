@@ -163,6 +163,67 @@
 
 ---
 
+## Days 4-7 — Sabtu-Selasa, 15-18 Februari 2026 (weekend + pasca Imlek)
+
+**Pelapor aktif:** Reza Pramana (6 feedback), Kurniashanti Dwi Prastyaningrum (6 feedback)
+
+### Root Cause Ditemukan: Systematic FK Mismatch
+
+**Akar masalah:** 12 action files menggunakan `user.id` (auth.users UUID) untuk kolom FK yang mereferensi `user_profiles(id)` (auto PK). Ini menyebabkan FK constraint violation pada hampir semua operasi INSERT.
+
+File yang terpengaruh: `asset-actions.ts`, `pib-actions.ts`, `peb-actions.ts`, `survey-actions.ts`, `drawing-actions.ts`, `safety-document-actions.ts`, `fee-actions.ts`, `incident-actions.ts`, `safety-permit-actions.ts`, `quotations/actions.ts`, `proforma-jo/actions.ts`
+
+### Bug yang Ditemukan & Diperbaiki
+
+| # | Bug | Pelapor | Severity | Status |
+|---|-----|---------|----------|--------|
+| 20 | Asset creation spinner hangs (FK mismatch `assets.created_by`) | Reza | Critical | Fixed |
+| 21 | Customer list mismatch (route survey shows inactive customers) | Reza | Important | Fixed |
+| 22 | HSE incident + permit to work error (FK mismatch `employees.user_id`) | Reza | Critical | Fixed |
+| 23 | PDF upload fails for 4MB file (`serverActions` under `experimental`, ignored by Next.js 15) | Reza | Important | Fixed |
+| 24 | PJO cost confirmation error (`variance` + `variance_pct` are GENERATED columns) | Reza | Critical | Fixed |
+| 25 | Customs PIB/PEB/fees FK mismatch (`created_by` references `user_profiles.id`) | Reza | Important | Fixed |
+| 26 | Project creation fails (status check constraint missing 'draft') | Kurniashanti | Critical | Fixed |
+| 27 | Quotation creation FK error (`created_by` references `user_profiles.id`) | Kurniashanti | Critical | Fixed |
+| 28 | Explorer admin 404 (expected behavior: admin pages are role-gated) | Kurniashanti | Helpful | Acknowledged |
+| 29 | Route survey fails silently (FK mismatch `requested_by`) | Kurniashanti | Important | Fixed |
+| 30 | JMP detail tabs missing edit capability (suggestion) | Kurniashanti | Helpful | Acknowledged |
+| 31 | Drawing category dropdown empty (no seed data) | Kurniashanti | Important | Fixed |
+
+### Perbaikan Sistemik
+- 12 action files diperbaiki: semua FK references ke `user_profiles(id)` kini menggunakan `profile.id` (bukan `user.id`)
+- `employees.user_id` lookup juga diperbaiki (references `user_profiles.id`, bukan `auth.users.id`)
+- Incident auto-create employee fallback diperbaiki
+- 5 fungsi safety-permit-actions diperbaiki
+
+### Perbaikan Database (Production)
+- `projects_status_check` constraint: ditambahkan 'draft' dan 'cancelled'
+- `drawing_categories`: seed 10 kategori (GA, Structural, Transport Plan, Route Map, Foundation, Rigging, Detail, As-Built, Electrical, Mechanical)
+
+### Perbaikan Konfigurasi
+- `next.config.mjs`: `serverActions.bodySizeLimit` dipindahkan dari `experimental` ke top-level (Next.js 15 requirement)
+
+### Leaderboard (per 18 Feb)
+
+| # | Nama | Poin |
+|---|------|------|
+| 1 | Reza Pramana | **374** |
+| 2 | Kurniashanti Dwi Prastyaningrum | **361** |
+| 3 | Choirul Anam | 98 |
+| 4 | Luthfi Badarnawa | 92 |
+| 5 | Chairul Fajri | 80 |
+
+### Admin Review
+- 12 feedback baru di-review dan di-score
+- 10 feedback di-mark "fixed" dengan bonus poin
+- 2 feedback di-mark "acknowledged" (expected behavior + suggestion)
+- Impact: 5 critical (x3), 5 important (x2), 2 helpful (x1)
+
+### Commits
+- `c8776bb` fix: resolve systematic FK mismatch across 12 action files
+
+---
+
 <!-- Template for new days:
 
 ## Day N — [Hari], [Tanggal] 2026
