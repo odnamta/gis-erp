@@ -221,6 +221,22 @@ File yang terpengaruh: `asset-actions.ts`, `pib-actions.ts`, `peb-actions.ts`, `
 
 ### Commits
 - `c8776bb` fix: resolve systematic FK mismatch across 12 action files
+- `fc811e9` fix: resolve remaining 15 FK mismatches across 7 action files
+
+### Audit Batch 2 — FK Mismatch Cleanup (15 instances)
+
+File yang diperbaiki:
+- `proforma-jo/engineering-actions.ts` — 4 FK (completed_by, engineering_completed_by)
+- `quotations/engineering-actions.ts` — 3 FK (completed_by, engineering_completed_by)
+- `hr/leave/actions.ts` — 2 FK (approved_by)
+- `hr/payroll/actions.ts` — 1 FK (approved_by)
+- `app/actions/feedback.ts` — 3 FK (submitted_by, resolved_by, comment_by)
+- `app/actions/error-tracking-actions.ts` — 1 FK (resolved_by)
+- `app/actions/recovery-actions.ts` — 1 FK (recovered_by)
+
+### Total FK Fixes (Batch 1 + 2)
+- **27 FK mismatches** diperbaiki di **19 action files**
+- Root cause: `user.id` (auth UUID) dipakai untuk kolom FK yang references `user_profiles(id)` (auto PK)
 
 ---
 

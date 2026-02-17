@@ -17,8 +17,10 @@ const nextConfig = {
   },
 
   // Allow file uploads up to 11MB via server actions (document attachments are max 10MB)
-  serverActions: {
-    bodySizeLimit: '11mb',
+  experimental: {
+    serverActions: {
+      bodySizeLimit: '11mb',
+    },
   },
 };
 
