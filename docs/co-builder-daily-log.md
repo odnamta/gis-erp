@@ -240,6 +240,48 @@ File yang diperbaiki:
 
 ---
 
+## Day 8 — Selasa, 18 Februari 2026 (Comprehensive Audit)
+
+**Aktivitas:** Full app audit & security hardening
+
+### Audit Scope
+4 parallel audit agents memindai seluruh codebase:
+1. Core business flow (quotations, PJO, JO, BKK, invoices, disbursements)
+2. Secondary modules (HR, HSE, safety, assets, surveys, drawings, customs)
+3. Auth middleware & RLS patterns
+4. Frontend error handling
+
+### FK Mismatch Batch 3 (6 instances)
+
+| File | Function | Kolom | Fix |
+|------|----------|-------|-----|
+| quotations/actions.ts | convertToPJO() | created_by | user.id → profile?.id |
+| incident-actions.ts | addPreventiveAction() | performedBy (history) | user?.id → profile?.id |
+| drawing-actions.ts | sendTransmittal() | sent_by | user?.id → profile?.id |
+| safety-document-actions.ts | approveDocument() | employee lookup | user.id → profile?.id |
+| pib-actions.ts | logPIBStatusChange() | changed_by | user?.id → profile?.id |
+| peb-actions.ts | logPEBStatusChange() | changed_by | user?.id → profile?.id |
+
+### Security Fixes
+
+| # | Issue | Severity | Fix |
+|---|-------|----------|-----|
+| S1 | approvePJO/rejectPJO/approveAllPJOs tanpa auth check | Critical | Added auth + can_approve_pjo permission check |
+| S2 | createProject() tanpa auth check | High | Added auth check |
+| S3 | saveCompanySettings() tanpa role check | High | Added owner/director/sysadmin check |
+| S4 | Disbursement accepts client-provided created_by | High | Changed to server-side profile |
+| S5 | Disbursement hard delete | Medium | Changed to soft delete (is_active = false) |
+| S6 | Disbursement userId parameter spoofing | High | Changed to server-side profile lookup |
+| S7 | PIB/PEB missing revalidatePath | Medium | Added revalidatePath to create/update |
+
+### Total FK Fixes (Batch 1 + 2 + 3)
+- **33 FK mismatches** diperbaiki di **25 action files**
+
+### Commits
+- `a3a8fa3` fix: resolve remaining FK mismatches, add auth checks, fix security issues
+
+---
+
 <!-- Template for new days:
 
 ## Day N — [Hari], [Tanggal] 2026
