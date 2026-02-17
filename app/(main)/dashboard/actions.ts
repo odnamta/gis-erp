@@ -1,12 +1,13 @@
 'use server'
 
 import { createClient } from '@/lib/supabase/server'
-import { 
-  DashboardKPIs, 
-  BudgetAlert, 
-  ActivityEntry, 
-  OpsQueueItem, 
-  ManagerMetrics 
+import { getUserProfile } from '@/lib/permissions-server'
+import {
+  DashboardKPIs,
+  BudgetAlert,
+  ActivityEntry,
+  OpsQueueItem,
+  ManagerMetrics
 } from '@/types'
 
 /**
@@ -831,52 +832,102 @@ export async function fetchManagerDashboardData(
 /**
  * Approve a PJO
  */
-export async function approvePJO(id: string): Promise<void> {
+export async function approvePJO(id: string): Promise<{ error?: string }> {
   const supabase = await createClient()
-  
+
+  const { data: { user } } = await supabase.auth.getUser()
+  if (!user) return { error: 'Not authenticated' }
+
+  const profile = await getUserProfile()
+  if (!profile?.can_approve_pjo) {
+    return { error: 'You do not have permission to approve PJOs' }
+  }
+
   const { error } = await supabase
     .from('proforma_job_orders')
-    .update({ status: 'approved' })
+    .update({
+      status: 'approved',
+      approved_by: user.id,
+      approved_at: new Date().toISOString(),
+      updated_at: new Date().toISOString(),
+    })
     .eq('id', id)
 
   if (error) {
     console.error('Error approving PJO:', error)
-    throw new Error('Failed to approve PJO')
+    return { error: 'Failed to approve PJO' }
   }
+
+  return {}
 }
 
 /**
  * Reject a PJO with reason
  */
-export async function rejectPJO(id: string, reason: string): Promise<void> {
+export async function rejectPJO(id: string, reason: string): Promise<{ error?: string }> {
   const supabase = await createClient()
-  
+
+  const { data: { user } } = await supabase.auth.getUser()
+  if (!user) return { error: 'Not authenticated' }
+
+  const profile = await getUserProfile()
+  if (!profile?.can_approve_pjo) {
+    return { error: 'You do not have permission to reject PJOs' }
+  }
+
+  if (!reason.trim()) {
+    return { error: 'Rejection reason is required' }
+  }
+
   const { error } = await supabase
     .from('proforma_job_orders')
-    .update({ status: 'rejected', rejection_reason: reason })
+    .update({
+      status: 'rejected',
+      rejection_reason: reason,
+      approved_by: user.id,
+      approved_at: new Date().toISOString(),
+      updated_at: new Date().toISOString(),
+    })
     .eq('id', id)
 
   if (error) {
     console.error('Error rejecting PJO:', error)
-    throw new Error('Failed to reject PJO')
+    return { error: 'Failed to reject PJO' }
   }
+
+  return {}
 }
 
 /**
  * Approve all pending PJOs
  */
-export async function approveAllPJOs(): Promise<void> {
+export async function approveAllPJOs(): Promise<{ error?: string }> {
   const supabase = await createClient()
-  
+
+  const { data: { user } } = await supabase.auth.getUser()
+  if (!user) return { error: 'Not authenticated' }
+
+  const profile = await getUserProfile()
+  if (!profile?.can_approve_pjo) {
+    return { error: 'You do not have permission to approve PJOs' }
+  }
+
   const { error } = await supabase
     .from('proforma_job_orders')
-    .update({ status: 'approved' })
+    .update({
+      status: 'approved',
+      approved_by: user.id,
+      approved_at: new Date().toISOString(),
+      updated_at: new Date().toISOString(),
+    })
     .eq('status', 'pending_approval')
 
   if (error) {
     console.error('Error approving all PJOs:', error)
-    throw new Error('Failed to approve all PJOs')
+    return { error: 'Failed to approve all PJOs' }
   }
+
+  return {}
 }
 
 

@@ -5,6 +5,7 @@
 // =====================================================
 
 import { createClient } from '@/lib/supabase/server';
+import { revalidatePath } from 'next/cache';
 import {
   PEBDocument,
   PEBDocumentWithRelations,
@@ -99,6 +100,7 @@ export async function createPEBDocument(
     return { data: null, error: error.message };
   }
 
+  revalidatePath('/customs/export');
   return { data: data as unknown as PEBDocument, error: null };
 }
 
@@ -161,6 +163,8 @@ export async function updatePEBDocument(
     return { data: null, error: error.message };
   }
 
+  revalidatePath('/customs/export');
+  revalidatePath(`/customs/export/${id}`);
   return { data: data as unknown as PEBDocument, error: null };
 }
 
@@ -575,6 +579,13 @@ async function logPEBStatusChange(
   // Get current user
   const { data: { user } } = await supabase.auth.getUser();
 
+  // Get user profile (for FK references to user_profiles)
+  const { data: profile } = await supabase
+    .from('user_profiles')
+    .select('id')
+    .eq('user_id', user?.id || '')
+    .single();
+
   await supabase
     .from('peb_status_history')
     .insert({
@@ -582,7 +593,7 @@ async function logPEBStatusChange(
       previous_status: previousStatus,
       new_status: newStatus,
       notes: notes || null,
-      changed_by: user?.id || null,
+      changed_by: profile?.id || null,
     });
 }
 

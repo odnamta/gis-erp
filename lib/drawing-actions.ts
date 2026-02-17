@@ -530,12 +530,19 @@ export async function sendTransmittal(id: string): Promise<ActionResult<DrawingT
   const supabase = await createClient();
   const { data: { user } } = await supabase.auth.getUser();
 
+  // Get user profile (for FK references to user_profiles)
+  const { data: profile } = await supabase
+    .from('user_profiles')
+    .select('id')
+    .eq('user_id', user?.id || '')
+    .single();
+
   const { data, error } = await supabase
     .from('drawing_transmittals')
     .update({
       status: 'sent',
       sent_at: new Date().toISOString(),
-      sent_by: user?.id,
+      sent_by: profile?.id || null,
     })
     .eq('id', id)
     .select()

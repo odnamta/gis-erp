@@ -53,9 +53,13 @@ export async function createDisbursement(input: CreateDisbursementInput) {
     // Generate BKK number
     const bkkNumber = await generateBKKNumber()
 
-    // Determine entity_type from user role
+    // Determine entity_type and created_by from server-side profile (not client input)
     const profile = await getUserProfile()
-    const entityType = profile?.role === 'agency' ? 'gama_agency' : 'gama_main'
+    if (!profile) {
+      return { data: null, error: 'Not authenticated' }
+    }
+    const entityType = profile.role === 'agency' ? 'gama_agency' : 'gama_main'
+    const createdBy = profile.id
 
     const { data, error } = await supabase
       .from('bkk_records')
@@ -74,7 +78,7 @@ export async function createDisbursement(input: CreateDisbursementInput) {
         reference_number: input.reference_number || null,
         notes: input.notes || null,
         status: 'draft',
-        created_by: input.created_by,
+        created_by: createdBy,
         entity_type: entityType,
       })
       .select()
@@ -83,8 +87,8 @@ export async function createDisbursement(input: CreateDisbursementInput) {
     if (error) throw error
 
     // Log activity (v0.13.1)
-    if (data && input.created_by) {
-      logActivity(input.created_by, 'create', 'disbursement', data.id, { bkk_number: bkkNumber })
+    if (data) {
+      logActivity(createdBy, 'create', 'disbursement', data.id, { bkk_number: bkkNumber })
     }
 
     revalidatePath('/disbursements')
@@ -149,15 +153,22 @@ export async function submitForApproval(id: string) {
   }
 }
 
-export async function approveDisbursement(id: string, userId: string) {
+export async function approveDisbursement(id: string, _userId?: string) {
   const supabase = await createClient()
 
   try {
+    // Use server-side profile instead of client-provided userId
+    const profile = await getUserProfile()
+    if (!profile) {
+      return { data: null, error: 'Not authenticated' }
+    }
+    const approvedBy = profile.id
+
     const { data, error } = await supabase
       .from('bkk_records')
       .update({
         status: 'approved',
-        approved_by: userId,
+        approved_by: approvedBy,
         approved_at: new Date().toISOString(),
         updated_at: new Date().toISOString(),
       })
@@ -170,7 +181,7 @@ export async function approveDisbursement(id: string, userId: string) {
 
     // Log activity (v0.13.1)
     if (data) {
-      logActivity(userId, 'approve', 'disbursement', id, { bkk_number: data.bkk_number })
+      logActivity(approvedBy, 'approve', 'disbursement', id, { bkk_number: data.bkk_number })
     }
 
     revalidatePath('/disbursements')
@@ -182,10 +193,16 @@ export async function approveDisbursement(id: string, userId: string) {
   }
 }
 
-export async function rejectDisbursement(id: string, userId: string, reason?: string) {
+export async function rejectDisbursement(id: string, _userId?: string, reason?: string) {
   const supabase = await createClient()
 
   try {
+    // Use server-side profile instead of client-provided userId
+    const profile = await getUserProfile()
+    if (!profile) {
+      return { data: null, error: 'Not authenticated' }
+    }
+
     const { data, error } = await supabase
       .from('bkk_records')
       .update({
@@ -209,15 +226,22 @@ export async function rejectDisbursement(id: string, userId: string, reason?: st
   }
 }
 
-export async function releaseDisbursement(id: string, userId: string) {
+export async function releaseDisbursement(id: string, _userId?: string) {
   const supabase = await createClient()
 
   try {
+    // Use server-side profile instead of client-provided userId
+    const profile = await getUserProfile()
+    if (!profile) {
+      return { data: null, error: 'Not authenticated' }
+    }
+    const releasedBy = profile.id
+
     const { data, error } = await supabase
       .from('bkk_records')
       .update({
         status: 'released',
-        released_by: userId,
+        released_by: releasedBy,
         released_at: new Date().toISOString(),
         updated_at: new Date().toISOString(),
       })
@@ -230,7 +254,7 @@ export async function releaseDisbursement(id: string, userId: string) {
 
     // Log activity (v0.13.1)
     if (data) {
-      logActivity(userId, 'update', 'disbursement', id, { bkk_number: data.bkk_number, status: 'released' })
+      logActivity(releasedBy, 'update', 'disbursement', id, { bkk_number: data.bkk_number, status: 'released' })
     }
 
     revalidatePath('/disbursements')
@@ -242,15 +266,22 @@ export async function releaseDisbursement(id: string, userId: string) {
   }
 }
 
-export async function settleDisbursement(id: string, userId: string) {
+export async function settleDisbursement(id: string, _userId?: string) {
   const supabase = await createClient()
 
   try {
+    // Use server-side profile instead of client-provided userId
+    const profile = await getUserProfile()
+    if (!profile) {
+      return { data: null, error: 'Not authenticated' }
+    }
+    const settledBy = profile.id
+
     const { data, error } = await supabase
       .from('bkk_records')
       .update({
         status: 'settled',
-        settled_by: userId,
+        settled_by: settledBy,
         settled_at: new Date().toISOString(),
         updated_at: new Date().toISOString(),
       })
@@ -274,9 +305,10 @@ export async function deleteDisbursement(id: string) {
   const supabase = await createClient()
 
   try {
+    // Soft delete: set is_active = false instead of hard deleting
     const { error } = await supabase
       .from('bkk_records')
-      .delete()
+      .update({ is_active: false, updated_at: new Date().toISOString() })
       .eq('id', id)
       .eq('status', 'draft')
 

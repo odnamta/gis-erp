@@ -5,6 +5,7 @@
 // =====================================================
 
 import { createClient } from '@/lib/supabase/server';
+import { revalidatePath } from 'next/cache';
 import {
   PIBDocument,
   PIBDocumentWithRelations,
@@ -108,6 +109,7 @@ export async function createPIBDocument(
     return { data: null, error: error.message };
   }
 
+  revalidatePath('/customs/import');
   return { data: data as unknown as PIBDocument, error: null };
 }
 
@@ -192,6 +194,8 @@ export async function updatePIBDocument(
     return { data: null, error: error.message };
   }
 
+  revalidatePath('/customs/import');
+  revalidatePath(`/customs/import/${id}`);
   return { data: data as unknown as PIBDocument, error: null };
 }
 
@@ -680,6 +684,13 @@ async function logPIBStatusChange(
   // Get current user
   const { data: { user } } = await supabase.auth.getUser();
 
+  // Get user profile (for FK references to user_profiles)
+  const { data: profile } = await supabase
+    .from('user_profiles')
+    .select('id')
+    .eq('user_id', user?.id || '')
+    .single();
+
   await supabase
     .from('pib_status_history')
     .insert({
@@ -687,7 +698,7 @@ async function logPIBStatusChange(
       previous_status: previousStatus,
       new_status: newStatus,
       notes: notes || null,
-      changed_by: user?.id || null,
+      changed_by: profile?.id || null,
     });
 }
 

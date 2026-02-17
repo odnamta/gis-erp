@@ -930,7 +930,14 @@ export async function convertToPJO(
     if (!user) {
       return { success: false, error: 'Not authenticated' }
     }
-    
+
+    // Get user profile (for FK references to user_profiles)
+    const { data: profile } = await supabase
+      .from('user_profiles')
+      .select('id, role')
+      .eq('user_id', user.id)
+      .single()
+
     // Get quotation with all related data
     const { data: quotation, error: quotationError } = await supabase
       .from('quotations')
@@ -1011,8 +1018,8 @@ export async function convertToPJO(
           total_revenue: revenueTotal,
           total_cost_estimated: costTotal,
           status: 'draft',
-          created_by: user.id,
-          entity_type: user.role === 'agency' ? 'gama_agency' : 'gama_main',
+          created_by: profile?.id || null,
+          entity_type: profile?.role === 'agency' ? 'gama_agency' : 'gama_main',
         })
         .select()
         .single()

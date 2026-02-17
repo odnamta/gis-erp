@@ -4,6 +4,7 @@ import { createClient } from '@/lib/supabase/server';
 import { CompanySettings, DEFAULT_SETTINGS, SettingKey, SETTING_KEYS } from '@/types/company-settings';
 import { rowsToSettings, validateRequiredFields } from '@/lib/company-settings-utils';
 import { revalidatePath } from 'next/cache';
+import { getUserProfile } from '@/lib/permissions-server';
 
 /**
  * Load all company settings from database
@@ -46,13 +47,19 @@ export async function saveCompanySettings(
       const errorMessages = Object.values(validation.errors).join(', ');
       return { success: false, error: errorMessages };
     }
-    
+
     const supabase = await createClient();
-    
+
     // Get current user
     const { data: { user } } = await supabase.auth.getUser();
     if (!user) {
       return { success: false, error: 'Not authenticated' };
+    }
+
+    // Only executive roles (owner, director, sysadmin) can change company settings
+    const profile = await getUserProfile();
+    if (!profile || !['owner', 'director', 'sysadmin'].includes(profile.role)) {
+      return { success: false, error: 'Insufficient permissions. Only executive roles can modify company settings.' };
     }
 
     // Upsert each setting

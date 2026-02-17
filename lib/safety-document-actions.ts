@@ -526,11 +526,18 @@ export async function approveDocument(
       return { success: false, error: 'User tidak terautentikasi' };
     }
 
+    // Get user profile (employees.user_id references user_profiles.id)
+    const { data: profile } = await supabase
+      .from('user_profiles')
+      .select('id')
+      .eq('user_id', user.id)
+      .single();
+
     // Get employee ID
     const { data: employee } = await supabase
       .from('employees')
       .select('id')
-      .eq('user_id', user.id)
+      .eq('user_id', profile?.id || '')
       .single();
 
     const { error } = await fromSafetyTable(supabase, 'safety_documents')
@@ -574,11 +581,18 @@ export async function rejectDocument(
       return { success: false, error: 'User tidak terautentikasi' };
     }
 
+    // Get user profile (employees.user_id references user_profiles.id)
+    const { data: profile } = await supabase
+      .from('user_profiles')
+      .select('id')
+      .eq('user_id', user.id)
+      .single();
+
     // Get employee ID
     const { data: employee } = await supabase
       .from('employees')
       .select('id')
-      .eq('user_id', user.id)
+      .eq('user_id', profile?.id || '')
       .single();
 
     const { error } = await fromSafetyTable(supabase, 'safety_documents')

@@ -23,6 +23,8 @@ export async function createProject(data: ProjectFormData): Promise<{ error?: st
   }
 
   const supabase = await createClient()
+  const { data: { user } } = await supabase.auth.getUser()
+  if (!user) return { error: 'Not authenticated' }
 
   const { error } = await supabase.from('projects').insert({
     customer_id: data.customer_id,

@@ -691,6 +691,13 @@ export async function addPreventiveAction(
 
     const { data: { user } } = await supabase.auth.getUser();
 
+    // Get user profile (for FK references to user_profiles)
+    const { data: profile } = await supabase
+      .from('user_profiles')
+      .select('id')
+      .eq('user_id', user?.id || '')
+      .single();
+
     // Get current actions and incident details
     const { data: incident } = await fromIncidentTable(supabase, 'incidents')
       .select('preventive_actions, incident_number')
@@ -739,7 +746,7 @@ export async function addPreventiveAction(
       `Tindakan preventif ditambahkan: ${action.description}`,
       null,
       null,
-      user?.id
+      profile?.id || undefined
     );
 
     // Notify responsible person
