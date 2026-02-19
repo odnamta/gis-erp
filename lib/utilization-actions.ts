@@ -271,6 +271,13 @@ export async function logDailyUtilization(
       data: { user },
     } = await supabase.auth.getUser();
 
+    // Get user profile (FK references user_profiles.id, not auth UUID)
+    const { data: utilProfile } = await supabase
+      .from('user_profiles')
+      .select('id')
+      .eq('user_id', user?.id || '')
+      .single();
+
     // Validate meter readings
     const meterValidation = validateMeterReadings(
       input.startKm,
@@ -308,7 +315,7 @@ export async function logDailyUtilization(
           operator_employee_id: input.operatorEmployeeId || null,
           operator_name: input.operatorName || null,
           notes: input.notes || null,
-          logged_by: user?.id || null,
+          logged_by: utilProfile?.id || null,
         },
         {
           onConflict: 'asset_id,log_date',
@@ -360,7 +367,7 @@ export async function logDailyUtilization(
           reference_type: 'daily_log',
           reference_id: log.id,
           notes: input.fuelLiters ? `${input.fuelLiters} liters` : null,
-          created_by: user?.id || null,
+          created_by: utilProfile?.id || null,
         });
       }
     } else if (existingLog?.fuel_cost && (!input.fuelCost || input.fuelCost === 0)) {

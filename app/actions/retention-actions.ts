@@ -428,6 +428,13 @@ export async function archiveLogs(
     
     // Get current user for audit trail
     const { data: { user } } = await supabase.auth.getUser();
+
+    // Get user profile (FK references user_profiles.id, not auth UUID)
+    const { data: retProfile } = await supabase
+      .from('user_profiles')
+      .select('id')
+      .eq('user_id', user?.id || '')
+      .single();
     
     // Count records to be archived
     const { count: recordsToArchive, error: countError } = await supabase
@@ -482,7 +489,7 @@ export async function archiveLogs(
       records_archived: archiveCount,
       records_deleted: recordsDeleted,
       archive_path: archivePath,
-      created_by: user?.id || null,
+      created_by: retProfile?.id || null,
     };
     
     // Try to insert archive record (table may not exist yet)

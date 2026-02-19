@@ -108,8 +108,8 @@ export default async function EditPEBPage({ params }: PageProps) {
       {/* Form */}
       <PEBForm
         initialData={initialData}
-        exportTypes={exportTypesResult.data}
-        customsOffices={customsOfficesResult.data}
+        exportTypes={exportTypesResult.data || []}
+        customsOffices={customsOfficesResult.data || []}
         jobOrders={jobOrders}
         customers={customers}
       />

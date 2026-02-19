@@ -192,12 +192,19 @@ export async function createShipmentCost(
     // Get current user
     const { data: { user } } = await supabase.auth.getUser();
 
+    // Get user profile (FK references user_profiles.id, not auth UUID)
+    const { data: costProfile } = await supabase
+      .from('user_profiles')
+      .select('id')
+      .eq('user_id', user?.id || '')
+      .single();
+
     // Prepare data with calculated fields
     const dbData = prepareCostForInsert(formData);
-    
+
     // Add created_by if user is available
-    if (user) {
-      dbData.created_by = user.id;
+    if (costProfile) {
+      dbData.created_by = costProfile.id;
     }
 
     const { data, error } = await supabase

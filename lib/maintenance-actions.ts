@@ -238,6 +238,13 @@ export async function createMaintenanceRecord(
   // Get current user
   const { data: { user } } = await supabase.auth.getUser();
 
+  // Get user profile (FK references user_profiles.id, not auth UUID)
+  const { data: mntProfile } = await supabase
+    .from('user_profiles')
+    .select('id')
+    .eq('user_id', user?.id || '')
+    .single();
+
   // Calculate parts cost
   const partsCost = calculatePartsCost(input.parts);
 
@@ -276,7 +283,7 @@ export async function createMaintenanceRecord(
       documents: input.documents || [],
       notes: input.notes,
       status: 'completed',
-      created_by: user?.id,
+      created_by: mntProfile?.id || null,
     })
     .select()
     .single();
@@ -333,7 +340,7 @@ export async function createMaintenanceRecord(
       reference_type: 'maintenance_record',
       reference_id: record.id,
       notes: input.description || null,
-      created_by: user?.id || null,
+      created_by: mntProfile?.id || null,
     });
   }
 

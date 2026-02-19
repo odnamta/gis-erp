@@ -193,12 +193,19 @@ export async function createShipmentRevenue(
     // Get current user
     const { data: { user } } = await supabase.auth.getUser();
 
+    // Get user profile (FK references user_profiles.id, not auth UUID)
+    const { data: revProfile } = await supabase
+      .from('user_profiles')
+      .select('id')
+      .eq('user_id', user?.id || '')
+      .single();
+
     // Prepare data with calculated fields
     const dbData = prepareRevenueForInsert(formData);
-    
+
     // Add created_by if user is available
-    if (user) {
-      dbData.created_by = user.id;
+    if (revProfile) {
+      dbData.created_by = revProfile.id;
     }
 
     const { data, error } = await supabase

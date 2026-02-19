@@ -339,7 +339,7 @@ export async function getAssets(
     query = query.eq('status', filters.status)
   } else {
     // Default: exclude disposed and sold
-    query = query.not('status', 'in', '("disposed","sold")')
+    query = query.not('status', 'in', '(disposed,sold)')
   }
   
   // Apply category filter

@@ -61,8 +61,8 @@ export default async function NewPEBPage() {
 
       {/* Form */}
       <PEBForm
-        exportTypes={exportTypesResult.data}
-        customsOffices={customsOfficesResult.data}
+        exportTypes={exportTypesResult.data || []}
+        customsOffices={customsOfficesResult.data || []}
         jobOrders={jobOrders}
         customers={customers}
       />

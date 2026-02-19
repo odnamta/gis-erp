@@ -50,6 +50,13 @@ export async function createIntegrationConnection(
     // Get current user for created_by field
     const { data: { user } } = await supabase.auth.getUser();
 
+    // Get user profile (FK references user_profiles.id, not auth UUID)
+    const { data: connProfile } = await supabase
+      .from('user_profiles')
+      .select('id')
+      .eq('user_id', user?.id || '')
+      .single();
+
     const insertData = {
       connection_code: input.connection_code,
       connection_name: input.connection_name,
@@ -61,7 +68,7 @@ export async function createIntegrationConnection(
       access_token: input.access_token || null,
       refresh_token: input.refresh_token || null,
       token_expires_at: input.token_expires_at || null,
-      created_by: user?.id || null,
+      created_by: connProfile?.id || null,
     };
 
     // eslint-disable-next-line @typescript-eslint/no-explicit-any

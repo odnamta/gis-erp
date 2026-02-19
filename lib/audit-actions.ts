@@ -213,11 +213,18 @@ export async function createAudit(
   // Get current user
   const { data: { user } } = await supabase.auth.getUser();
 
+  // Get user profile (FK references user_profiles.id, not auth UUID)
+  const { data: profile } = await supabase
+    .from('user_profiles')
+    .select('id')
+    .eq('user_id', user?.id || '')
+    .single();
+
   // Generate audit number
   const { count: auditCount } = await supabase
     .from('audits')
     .select('*', { count: 'exact', head: true });
-  
+
   const nextNumber = (auditCount || 0) + 1;
   const audit_number = `AUD-${new Date().getFullYear()}-${String(nextNumber).padStart(4, '0')}`;
 
@@ -233,7 +240,7 @@ export async function createAudit(
       job_order_id: input.job_order_id || null,
       auditor_id: input.auditor_id || null,
       auditor_name: input.auditor_name || null,
-      created_by: user?.id || null,
+      created_by: profile?.id || null,
       status: 'scheduled',
     })
     .select()
@@ -626,12 +633,19 @@ export async function closeFinding(
   // Get current user
   const { data: { user } } = await supabase.auth.getUser();
 
+  // Get user profile (FK references user_profiles.id, not auth UUID)
+  const { data: profile } = await supabase
+    .from('user_profiles')
+    .select('id')
+    .eq('user_id', user?.id || '')
+    .single();
+
   const { data, error } = await supabase
     .from('audit_findings')
     .update({
       status: 'closed',
       closure_evidence: input.closure_evidence,
-      closed_by: user?.id || null,
+      closed_by: profile?.id || null,
       closed_at: new Date().toISOString(),
     })
     .eq('id', id)
@@ -671,8 +685,15 @@ export async function verifyFinding(
   // Get current user
   const { data: { user } } = await supabase.auth.getUser();
 
+  // Get user profile (FK references user_profiles.id, not auth UUID)
+  const { data: profile } = await supabase
+    .from('user_profiles')
+    .select('id')
+    .eq('user_id', user?.id || '')
+    .single();
+
   // Check if same user is trying to verify
-  if (user?.id === existing.closed_by) {
+  if (profile?.id === existing.closed_by) {
     return { data: null, error: 'Cannot verify your own closure' };
   }
 
@@ -680,7 +701,7 @@ export async function verifyFinding(
     .from('audit_findings')
     .update({
       status: 'verified',
-      verified_by: user?.id || null,
+      verified_by: profile?.id || null,
       verified_at: new Date().toISOString(),
     })
     .eq('id', id)

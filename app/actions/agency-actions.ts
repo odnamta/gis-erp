@@ -392,6 +392,13 @@ export async function submitAgentRating(
     const { data: { user } } = await supabase.auth.getUser();
     if (!user) return { success: false, error: 'Not authenticated' };
 
+    // Get user profile (FK references user_profiles.id, not auth UUID)
+    const { data: fbProfile } = await supabase
+      .from('user_profiles')
+      .select('id')
+      .eq('user_id', user.id)
+      .single();
+
     // Insert feedback
     const { error: feedbackError } = await supabase
       .from('agent_feedback')
@@ -399,7 +406,7 @@ export async function submitAgentRating(
         agent_id: agentId,
         rating,
         feedback,
-        created_by: user.id,
+        created_by: fbProfile?.id || null,
       });
 
     if (feedbackError) throw feedbackError;

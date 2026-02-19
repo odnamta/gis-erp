@@ -345,6 +345,13 @@ export async function createTrainingRecord(input: CreateRecordInput): Promise<Tr
 
   const { data: user } = await supabase.auth.getUser();
 
+  // Get user profile (FK references user_profiles.id, not auth UUID)
+  const { data: profile } = await supabase
+    .from('user_profiles')
+    .select('id')
+    .eq('user_id', user?.user?.id || '')
+    .single();
+
   const { data, error } = await supabase
     .from('employee_training_records')
     .insert({
@@ -364,7 +371,7 @@ export async function createTrainingRecord(input: CreateRecordInput): Promise<Tr
       valid_to: validTo,
       training_cost: input.trainingCost ?? null,
       notes: input.notes || null,
-      recorded_by: user?.user?.id || null,
+      recorded_by: profile?.id || null,
     })
     .select()
     .single();
@@ -646,6 +653,13 @@ export async function createSession(input: CreateSessionInput): Promise<Training
 
   const { data: user } = await supabase.auth.getUser();
 
+  // Get user profile (FK references user_profiles.id, not auth UUID)
+  const { data: sessionProfile } = await supabase
+    .from('user_profiles')
+    .select('id')
+    .eq('user_id', user?.user?.id || '')
+    .single();
+
   const { data, error } = await supabase
     .from('training_sessions')
     .insert({
@@ -659,7 +673,7 @@ export async function createSession(input: CreateSessionInput): Promise<Training
       trainer_employee_id: input.trainerEmployeeId || null,
       max_participants: input.maxParticipants || null,
       notes: input.notes || null,
-      created_by: user?.user?.id || null,
+      created_by: sessionProfile?.id || null,
     })
     .select()
     .single();
@@ -742,6 +756,14 @@ export async function completeSession(id: string): Promise<{ session: TrainingSe
 
   const course = session.safety_training_courses;
   const { data: user } = await supabase.auth.getUser();
+
+  // Get user profile (FK references user_profiles.id, not auth UUID)
+  const { data: completionProfile } = await supabase
+    .from('user_profiles')
+    .select('id')
+    .eq('user_id', user?.user?.id || '')
+    .single();
+
   let recordsCreated = 0;
 
   // Create training records for attended participants
@@ -770,7 +792,7 @@ export async function completeSession(id: string): Promise<{ session: TrainingSe
         status: 'completed',
         valid_from: validFrom,
         valid_to: validTo,
-        recorded_by: user?.user?.id || null,
+        recorded_by: completionProfile?.id || null,
       })
       .select()
       .single();

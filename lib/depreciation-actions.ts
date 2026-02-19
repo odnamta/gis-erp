@@ -52,6 +52,13 @@ export async function recordDepreciation(
       data: { user },
     } = await supabase.auth.getUser();
 
+    // Get user profile (FK references user_profiles.id, not auth UUID)
+    const { data: depProfile } = await supabase
+      .from('user_profiles')
+      .select('id')
+      .eq('user_id', user?.id || '')
+      .single();
+
     // Get asset details
     const { data: asset, error: assetError } = await supabase
       .from('assets')
@@ -118,7 +125,7 @@ export async function recordDepreciation(
         depreciation_amount: depreciationAmount,
         ending_book_value: endingBookValue,
         accumulated_depreciation: newAccumulatedDepreciation,
-        created_by: user?.id || null,
+        created_by: depProfile?.id || null,
       })
       .select()
       .single();
@@ -146,7 +153,7 @@ export async function recordDepreciation(
         amount: depreciationAmount,
         reference_type: 'depreciation',
         reference_id: depreciation.id,
-        created_by: user?.id || null,
+        created_by: depProfile?.id || null,
       });
     }
 
@@ -295,6 +302,13 @@ export async function recordCost(
       data: { user },
     } = await supabase.auth.getUser();
 
+    // Get user profile (FK references user_profiles.id, not auth UUID)
+    const { data: costProfile } = await supabase
+      .from('user_profiles')
+      .select('id')
+      .eq('user_id', user?.id || '')
+      .single();
+
     // Validate cost type
     if (!isValidCostType(input.costType)) {
       return { success: false, error: 'Invalid cost type' };
@@ -328,7 +342,7 @@ export async function recordCost(
         reference_type: input.referenceType || null,
         reference_id: input.referenceId || null,
         notes: input.notes || null,
-        created_by: user?.id || null,
+        created_by: costProfile?.id || null,
       })
       .select()
       .single();

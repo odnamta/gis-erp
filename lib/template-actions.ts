@@ -58,7 +58,14 @@ export async function createTemplate(
     
     // Get current user
     const { data: { user } } = await supabase.auth.getUser();
-    
+
+    // Get user profile (FK references user_profiles.id, not auth UUID)
+    const { data: tplProfile } = await supabase
+      .from('user_profiles')
+      .select('id')
+      .eq('user_id', user?.id || '')
+      .single();
+
     // Check for duplicate template_code
     const { data: existing } = await supabase
       .from('customs_document_templates')
@@ -83,11 +90,11 @@ export async function createTemplate(
         paper_size: data.paper_size,
         orientation: data.orientation,
         include_company_header: data.include_company_header,
-        created_by: user?.id || null,
+        created_by: tplProfile?.id || null,
       } as never)
       .select()
       .single();
-    
+
     if (error) {
       console.error('Error creating template:', error);
       return { success: false, error: error.message };
@@ -342,7 +349,14 @@ export async function generateDocument(
     
     // Get current user
     const { data: { user } } = await supabase.auth.getUser();
-    
+
+    // Get user profile (FK references user_profiles.id, not auth UUID)
+    const { data: genProfile } = await supabase
+      .from('user_profiles')
+      .select('id')
+      .eq('user_id', user?.id || '')
+      .single();
+
     // Merge auto-resolved data with manual overrides
     const documentData = { ...data.document_data };
     
@@ -356,7 +370,7 @@ export async function generateDocument(
         job_order_id: data.job_order_id || null,
         document_data: documentData as unknown as never,
         status: 'draft',
-        created_by: user?.id || null,
+        created_by: genProfile?.id || null,
       } as never)
       .select()
       .single();

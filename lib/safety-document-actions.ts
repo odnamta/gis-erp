@@ -642,11 +642,22 @@ export async function acknowledgeDocument(
       return { success: false, error: 'User tidak terautentikasi' };
     }
 
+    // Get user profile (FK references user_profiles.id, not auth UUID)
+    const { data: profile } = await supabase
+      .from('user_profiles')
+      .select('id')
+      .eq('user_id', user.id)
+      .single();
+
+    if (!profile) {
+      return { success: false, error: 'Profil pengguna tidak ditemukan' };
+    }
+
     // Get employee ID
     const { data: employee } = await supabase
       .from('employees')
       .select('id')
-      .eq('user_id', user.id)
+      .eq('user_id', profile.id)
       .single();
 
     if (!employee) {

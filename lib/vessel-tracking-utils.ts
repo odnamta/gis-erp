@@ -4,6 +4,7 @@
 
 import {
   Vessel,
+  Port,
   VesselSchedule,
   VesselPositionRecord,
   ShipmentTracking,
@@ -349,8 +350,8 @@ export function scheduleToRow(schedule: Partial<VesselSchedule>): Partial<Vessel
  * @param row - VesselScheduleRow from database
  * @returns VesselSchedule model object
  */
-export function rowToSchedule(row: VesselScheduleRow): VesselSchedule {
-  return {
+export function rowToSchedule(row: VesselScheduleRow & { vessels?: Record<string, unknown>; ports?: Record<string, unknown> }): VesselSchedule {
+  const schedule: VesselSchedule = {
     id: row.id,
     vesselId: row.vessel_id,
     voyageNumber: row.voyage_number,
@@ -375,6 +376,29 @@ export function rowToSchedule(row: VesselScheduleRow): VesselSchedule {
     createdAt: row.created_at,
     updatedAt: row.updated_at,
   };
+
+  // Map joined vessel relation
+  if (row.vessels) {
+    const v = row.vessels as Record<string, string>;
+    schedule.vessel = {
+      id: v.id,
+      vesselName: v.vessel_name,
+      imoNumber: v.imo_number,
+      vesselType: v.vessel_type as VesselType,
+    } as Vessel;
+  }
+
+  // Map joined port relation
+  if (row.ports) {
+    const p = row.ports as Record<string, string>;
+    schedule.port = {
+      id: p.id,
+      portCode: p.port_code,
+      portName: p.port_name,
+    } as Port;
+  }
+
+  return schedule;
 }
 
 /**

@@ -213,14 +213,14 @@ export async function reportIncident(
       await fromIncidentTable(supabase, 'incident_persons').insert(personRecords);
     }
 
-    // Log history
+    // Log history (use profile.id, not auth UUID — FK references user_profiles.id)
     await logIncidentHistory(
       incident.id,
       'created',
       'Insiden dilaporkan',
       null,
       'reported',
-      user.id
+      profile?.id
     );
 
     // Notify supervisor if assigned
@@ -440,6 +440,13 @@ export async function startInvestigation(
 
     const { data: { user } } = await supabase.auth.getUser();
 
+    // Get user profile (FK references user_profiles.id, not auth UUID)
+    const { data: profile } = await supabase
+      .from('user_profiles')
+      .select('id')
+      .eq('user_id', user?.id || '')
+      .single();
+
     // Get incident details for notification
     const { data: incidentData } = await fromIncidentTable(supabase, 'incidents')
       .select('incident_number, title')
@@ -469,7 +476,7 @@ export async function startInvestigation(
       'Investigasi dimulai',
       'reported',
       'under_investigation',
-      user?.id
+      profile?.id
     );
 
     // Notify investigator
@@ -505,6 +512,13 @@ export async function updateRootCause(
 
     const { data: { user } } = await supabase.auth.getUser();
 
+    // Get user profile (FK references user_profiles.id, not auth UUID)
+    const { data: profile } = await supabase
+      .from('user_profiles')
+      .select('id')
+      .eq('user_id', user?.id || '')
+      .single();
+
     const { error } = await fromIncidentTable(supabase, 'incidents')
       .update({
         root_cause: input.rootCause,
@@ -525,7 +539,7 @@ export async function updateRootCause(
       'Root cause analysis diperbarui',
       null,
       input.rootCause,
-      user?.id
+      profile?.id
     );
 
     revalidatePath(`/hse/incidents/${incidentId}`);
@@ -547,6 +561,13 @@ export async function completeInvestigation(
     const supabase = await createClient();
 
     const { data: { user } } = await supabase.auth.getUser();
+
+    // Get user profile (FK references user_profiles.id, not auth UUID)
+    const { data: profile } = await supabase
+      .from('user_profiles')
+      .select('id')
+      .eq('user_id', user?.id || '')
+      .single();
 
     // Get incident to check root cause
     const { data: incident } = await fromIncidentTable(supabase, 'incidents')
@@ -579,7 +600,7 @@ export async function completeInvestigation(
       'Investigasi selesai',
       'under_investigation',
       'pending_actions',
-      user?.id
+      profile?.id
     );
 
     revalidatePath('/hse');
@@ -608,6 +629,13 @@ export async function addCorrectiveAction(
     const supabase = await createClient();
 
     const { data: { user } } = await supabase.auth.getUser();
+
+    // Get user profile (FK references user_profiles.id, not auth UUID)
+    const { data: profile } = await supabase
+      .from('user_profiles')
+      .select('id')
+      .eq('user_id', user?.id || '')
+      .single();
 
     // Get current actions and incident details
     const { data: incident } = await fromIncidentTable(supabase, 'incidents')
@@ -657,7 +685,7 @@ export async function addCorrectiveAction(
       `Tindakan korektif ditambahkan: ${action.description}`,
       null,
       null,
-      user?.id
+      profile?.id
     );
 
     // Notify responsible person
@@ -781,6 +809,13 @@ export async function completeAction(
 
     const { data: { user } } = await supabase.auth.getUser();
 
+    // Get user profile (FK references user_profiles.id, not auth UUID)
+    const { data: profile } = await supabase
+      .from('user_profiles')
+      .select('id')
+      .eq('user_id', user?.id || '')
+      .single();
+
     const field = actionType === 'corrective' ? 'corrective_actions' : 'preventive_actions';
 
     // Get current actions
@@ -826,7 +861,7 @@ export async function completeAction(
       `Tindakan ${actionType === 'corrective' ? 'korektif' : 'preventif'} diselesaikan: ${actions[actionIndex].description}`,
       'pending',
       'completed',
-      user?.id
+      profile?.id
     );
 
     revalidatePath(`/hse/incidents/${incidentId}`);
@@ -854,6 +889,13 @@ export async function closeIncident(
 
     const { data: { user } } = await supabase.auth.getUser();
 
+    // Get user profile (FK references user_profiles.id, not auth UUID)
+    const { data: profile } = await supabase
+      .from('user_profiles')
+      .select('id')
+      .eq('user_id', user?.id || '')
+      .single();
+
     // Get incident to validate closure
     const { data: incident } = await fromIncidentTable(supabase, 'incidents')
       .select('*')
@@ -866,7 +908,7 @@ export async function closeIncident(
 
     // Check if can close
     const incidentData = transformIncidentRow(incident as IncidentRow);
-    
+
     // Get persons for validation
     const { data: persons } = await fromIncidentTable(supabase, 'incident_persons')
       .select('*')
@@ -887,7 +929,7 @@ export async function closeIncident(
       .update({
         status: 'closed',
         closed_at: new Date().toISOString(),
-        closed_by: user?.id,
+        closed_by: profile?.id,
         closure_notes: input.closureNotes,
         updated_at: new Date().toISOString(),
       })
@@ -905,7 +947,7 @@ export async function closeIncident(
       `Insiden ditutup: ${input.closureNotes}`,
       incident.status,
       'closed',
-      user?.id
+      profile?.id
     );
 
     // Notify reporter that incident is closed
@@ -939,6 +981,13 @@ export async function rejectIncident(
 
     const { data: { user } } = await supabase.auth.getUser();
 
+    // Get user profile (FK references user_profiles.id, not auth UUID)
+    const { data: profile } = await supabase
+      .from('user_profiles')
+      .select('id')
+      .eq('user_id', user?.id || '')
+      .single();
+
     const { data: incident } = await fromIncidentTable(supabase, 'incidents')
       .select('status')
       .eq('id', incidentId)
@@ -957,7 +1006,7 @@ export async function rejectIncident(
         status: 'rejected',
         closure_notes: reason,
         closed_at: new Date().toISOString(),
-        closed_by: user?.id,
+        closed_by: profile?.id,
         updated_at: new Date().toISOString(),
       })
       .eq('id', incidentId);
@@ -974,7 +1023,7 @@ export async function rejectIncident(
       `Insiden ditolak: ${reason}`,
       'reported',
       'rejected',
-      user?.id
+      profile?.id
     );
 
     revalidatePath('/hse');

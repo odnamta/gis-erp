@@ -25,8 +25,8 @@ async function getFormData() {
   ])
 
   return {
-    customsOffices: officesResult.data,
-    importTypes: typesResult.data,
+    customsOffices: officesResult.data || [],
+    importTypes: typesResult.data || [],
     jobOrders: jobOrdersResult.data || [],
     customers: customersResult.data || [],
   }

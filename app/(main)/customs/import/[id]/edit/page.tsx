@@ -33,8 +33,8 @@ async function getFormData(id: string) {
   return {
     pib: pibResult.data,
     error: pibResult.error,
-    customsOffices: officesResult.data,
-    importTypes: typesResult.data,
+    customsOffices: officesResult.data || [],
+    importTypes: typesResult.data || [],
     jobOrders: jobOrdersResult.data || [],
     customers: customersResult.data || [],
   }

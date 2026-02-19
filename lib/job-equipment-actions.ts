@@ -53,6 +53,13 @@ export async function addEquipmentToJob(
       data: { user },
     } = await supabase.auth.getUser();
 
+    // Get user profile (FK references user_profiles.id, not auth UUID)
+    const { data: equipProfile } = await supabase
+      .from('user_profiles')
+      .select('id')
+      .eq('user_id', user?.id || '')
+      .single();
+
     // Check if asset exists and is available
     const { data: asset, error: assetError } = await supabase
       .from('assets')
@@ -118,7 +125,7 @@ export async function addEquipmentToJob(
         rate_type: input.rateType || 'daily' as RateType,
         is_billable: input.isBillable !== false,
         notes: input.notes || null,
-        created_by: user?.id || null,
+        created_by: equipProfile?.id || null,
       })
       .select()
       .single();
@@ -136,7 +143,7 @@ export async function addEquipmentToJob(
       assigned_from: input.usageStart,
       start_km: input.startKm || null,
       start_hours: input.startHours || null,
-      assigned_by: user?.id || null,
+      assigned_by: equipProfile?.id || null,
     });
 
     // Update asset assigned_to_job_id
