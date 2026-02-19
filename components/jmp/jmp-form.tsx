@@ -217,8 +217,8 @@ export function JmpForm({ jmp, surveys, customers, employees }: JmpFormProps) {
                 id="totalLengthM"
                 type="number"
                 step="0.01"
-                value={formData.totalLengthM || ''}
-                onChange={(e) => setFormData({ ...formData, totalLengthM: parseFloat(e.target.value) || undefined })}
+                value={formData.totalLengthM ?? ''}
+                onChange={(e) => setFormData({ ...formData, totalLengthM: e.target.value === '' ? undefined : parseFloat(e.target.value) })}
               />
             </div>
             <div>
@@ -227,8 +227,8 @@ export function JmpForm({ jmp, surveys, customers, employees }: JmpFormProps) {
                 id="totalWidthM"
                 type="number"
                 step="0.01"
-                value={formData.totalWidthM || ''}
-                onChange={(e) => setFormData({ ...formData, totalWidthM: parseFloat(e.target.value) || undefined })}
+                value={formData.totalWidthM ?? ''}
+                onChange={(e) => setFormData({ ...formData, totalWidthM: e.target.value === '' ? undefined : parseFloat(e.target.value) })}
               />
             </div>
             <div>
@@ -237,8 +237,8 @@ export function JmpForm({ jmp, surveys, customers, employees }: JmpFormProps) {
                 id="totalHeightM"
                 type="number"
                 step="0.01"
-                value={formData.totalHeightM || ''}
-                onChange={(e) => setFormData({ ...formData, totalHeightM: parseFloat(e.target.value) || undefined })}
+                value={formData.totalHeightM ?? ''}
+                onChange={(e) => setFormData({ ...formData, totalHeightM: e.target.value === '' ? undefined : parseFloat(e.target.value) })}
               />
             </div>
             <div>
@@ -247,8 +247,8 @@ export function JmpForm({ jmp, surveys, customers, employees }: JmpFormProps) {
                 id="totalWeightTons"
                 type="number"
                 step="0.01"
-                value={formData.totalWeightTons || ''}
-                onChange={(e) => setFormData({ ...formData, totalWeightTons: parseFloat(e.target.value) || undefined })}
+                value={formData.totalWeightTons ?? ''}
+                onChange={(e) => setFormData({ ...formData, totalWeightTons: e.target.value === '' ? undefined : parseFloat(e.target.value) })}
               />
             </div>
           </div>
