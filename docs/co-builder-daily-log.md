@@ -284,8 +284,8 @@ File yang diperbaiki:
 
 ## Day 9 — Rabu, 19 Februari 2026
 
-**Pelapor aktif:** Navisa Kafka (4), Iqbal Tito (3), Luthfi Badarnawa (5), Reza Pramana (1), Kurniashanti (1)
-**Feedback baru:** 14 item hari ini (4 sudah di-score pagi, 10 baru sore)
+**Pelapor aktif:** Navisa Kafka (6), Iqbal Tito (3), Luthfi Badarnawa (5), Reza Pramana (1), Kurniashanti (1)
+**Feedback baru:** 16 item hari ini (4 pagi, 10 sore, 2 malam)
 
 ### Bug yang Ditemukan & Diperbaiki (Batch Pagi — dari session sebelumnya)
 
@@ -333,8 +333,8 @@ File yang diperbaiki:
 | shipment-cost-actions.ts | createShipmentCost() | created_by | user.id → costProfile.id |
 | shipment-revenue-actions.ts | createShipmentRevenue() | created_by | user.id → revProfile.id |
 
-### Total FK Fixes (Batch 1 + 2 + 3 + 4)
-- **47 FK mismatches** diperbaiki di **39 action files**
+### Total FK Fixes (Batch 1 + 2 + 3 + 4 + Malam)
+- **51 FK mismatches** diperbaiki di **41 action files**
 
 ### Fitur Baru
 - **Quotation PDF template** — `lib/pdf/quotation-pdf.tsx` + API route `/api/pdf/quotation/[id]`
@@ -357,6 +357,40 @@ Pages yang sekarang bisa diakses dalam explorer mode dengan banner read-only:
 - `/quotations`
 - `/cost-entry`
 
+### Full App Audit — Additional FK Fixes (Batch Malam)
+
+| File | Function | Kolom | Fix |
+|------|----------|-------|-----|
+| feedback.ts | getMySubmissions() | submitted_by | user.id → profile.id (My Feedback was returning empty!) |
+| feedback.ts | addComment() notification | submitted_by comparison | user.id → profile.id (always sent notification) |
+| config/route.ts | POST handler | userId | user.id → profile.id |
+| feature-flags/route.ts | POST handler | updatedBy | user.id → profile.id |
+
+### Null Safety Fixes (Batch Malam)
+
+| File | Issue | Fix |
+|------|-------|-----|
+| admin/errors/page.tsx | profile possibly null after redirect | Combined null + role check for proper TS narrowing |
+| admin/jobs/page.tsx | Same pattern | Same fix |
+| admin/recovery/page.tsx | Same pattern | Same fix |
+
+Note: 5 number-generation functions (invoices, disbursements, pjo, bkk, executive-dashboard) were audited but already had proper `data.length` guards.
+
+### Navisa's Late Feedback (2 items)
+
+| # | Feedback | Pelapor | Impact | Status |
+|---|----------|---------|--------|--------|
+| 52 | Container Tracking error page | Navisa | Helpful | Acknowledged (transient deploy error, code handles errors correctly) |
+| 53 | No button to add employee data | Navisa | Helpful | Acknowledged (by design — HR adds employees, explorer mode is read-only) |
+
+### Scoring Fairness Audit
+- Reviewed all 64 items for scoring consistency
+- Found 3 items with unfairly low `base_points=3` (equivalent items had 8):
+  - Iqbal #5: "tidak bisa simpan dokumen" 3→8
+  - Iqbal #7: "tanggal melakukan audit" 3→8
+  - Kurniashanti #23: "View all PJO tidak bisa di akses" 3→8
+- All corrected in DB + corresponding point_events updated
+
 ### Perbaikan Scoring System
 - Ditemukan: `point_events` tabel tidak sinkron dengan `competition_feedback` scoring
 - 41 `feedback_reviewed` events hilang (747 poin), 25 `bug_fixed` events hilang (125 poin)
@@ -367,29 +401,34 @@ Pages yang sekarang bisa diakses dalam explorer mode dengan banner read-only:
 
 ### Admin Review
 - 24 feedback dari batch pagi di-review (session sebelumnya)
-- 10 feedback baru hari ini di-review dan di-score
+- 10 feedback sore di-review dan di-score
+- 2 feedback malam dari Navisa di-review dan di-score
+- Scoring fairness audit: 3 base_points anomalies corrected (3→8)
 - Saran yang masuk: JMP PDF export, manual project name di drawing, maintenance record edit button, schedule maintenance UX
-- Semua 64 feedback items (0 unscored)
+- Semua 66 feedback items (0 unscored)
 
-### Leaderboard (per 19 Feb, setelah semua fix)
+### Leaderboard (per 19 Feb malam, final)
 
 | # | Nama | Total | Feedback | Skenario | Bonus |
 |---|------|-------|----------|----------|-------|
 | 1 | Reza Pramana | **539** | 338 | 120 | 81 |
-| 2 | Iqbal Tito | **481** | 342 | 100 | 39 |
-| 3 | Kurniashanti Dwi P. | **405** | 236 | 100 | 69 |
+| 2 | Iqbal Tito | **491** | 352 | 100 | 39 |
+| 3 | Kurniashanti Dwi P. | **410** | 241 | 100 | 69 |
 | 4 | Luthfi Badarnawa | **384** | 218 | 120 | 46 |
-| 5 | Navisa Kafka | **184** | 92 | 80 | 12 |
+| 5 | Navisa Kafka | **223** | 108 | 80 | 35 |
 | 6 | Choirul Anam | **114** | 32 | 80 | 2 |
 | 7 | Chairul Fajri | **88** | 8 | 80 | 0 |
 
-**Perubahan ranking:** Iqbal naik dari #3 ke #2 (melewati Kurniashanti). Luthfi naik signifikan.
+**Perubahan ranking:** Iqbal naik dari #3 ke #2 (melewati Kurniashanti). Navisa naik signifikan (+39 dari scoring fairness + 2 new items).
 
 ### Commits
 - `e6d44fc` fix: resolve 25 FK mismatches, add quotation PDF, fix asset filter & agency schedules
 - `6703dde` fix: allow HR access in explorer mode for co-builder competition
 - `ea93008` feat: add explorer mode read-only banner and bypass for restricted pages
 - `099b47e` fix: resolve 6 bugs from Day 9 co-builder feedback
+- `1a22cf2` docs: update Day 9 log and CHANGELOG with scoring corrections
+- `f1a10f8` fix: resolve 4 additional FK mismatches from full app audit
+- `bade528` fix: null safety on admin pages profile access
 
 ---
 

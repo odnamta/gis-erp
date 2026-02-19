@@ -21,7 +21,13 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - **JMP submit for review** — auth UUID used for `employees` FK, now resolves via profile → employee chain
 - **HSE incidents blank page** — null safety on `incident_categories` join
 - **Leave request broken** — `getCurrentEmployeeId()` used auth UUID instead of `user_profiles.id` for employee lookup
+- **My Feedback empty** — `getMySubmissions()` queried `submitted_by` with auth UUID instead of `profile.id`; users couldn't see their own feedback
+- **Comment notification mismatch** — `feedback.ts` compared `submitted_by` against auth UUID (always true), fixed to use `profile.id`
+- **Config API user ID** — `setConfig()` passed auth UUID as `userId` instead of `profile.id`
+- **Feature flags API user ID** — `updateFeatureFlag()` passed auth UUID as `updatedBy` instead of `profile.id`
+- **Admin pages null safety** — profile accessed without TypeScript null narrowing in error tracking, job failures, and data recovery pages
 - **Competition scoring gap** — `point_events` table out of sync with `competition_feedback`; rebuilt 66 events (+316 pts)
+- **Scoring fairness** — 3 feedback items had `base_points=3` while equivalent items had 8; corrected to 8
 
 ### Features
 - **Explorer mode read-only banner** — "Mode Explorer — Hanya Lihat" notification on restricted pages
@@ -30,8 +36,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - 9 restricted pages now accessible in explorer mode with read-only banner
 
 ### Admin
-- 34 total co-builder feedback items reviewed and scored (24 batch pagi + 10 baru sore)
+- 36 total co-builder feedback items reviewed and scored (24 batch pagi + 10 sore + 2 malam)
 - Scoring system fixed: rebuilt `point_events` from source of truth
+- Scoring fairness audit: 3 base_points anomalies corrected
 - RLS migration applied: `pib_documents`, `pib_items`, `customs_offices`, `import_types`, `shipping_lines`, `vessel_schedules`
 
 ---
