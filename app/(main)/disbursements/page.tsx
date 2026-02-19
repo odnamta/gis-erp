@@ -1,7 +1,9 @@
 import { redirect } from 'next/navigation'
 import { getUserProfile } from '@/lib/permissions-server'
+import { guardPage } from '@/lib/auth-utils'
 import { createClient } from '@/lib/supabase/server'
 import { DisbursementsClient } from './disbursements-client'
+import { ExplorerReadOnlyBanner } from '@/components/layout/explorer-read-only-banner'
 
 export const metadata = {
   title: 'Disbursements | Gama ERP',
@@ -30,9 +32,7 @@ export default async function DisbursementsPage() {
 
   // Check permissions
   const allowedRoles = ['owner', 'director', 'finance_manager', 'operations_manager', 'finance', 'administration']
-  if (!allowedRoles.includes(profile?.role || '')) {
-    redirect('/dashboard')
-  }
+  const { explorerReadOnly } = await guardPage(allowedRoles.includes(profile?.role || ''))
 
   const { data: bkks, error } = await fetchBKKRecords()
 
@@ -40,6 +40,11 @@ export default async function DisbursementsPage() {
     console.error('Error fetching BKKs:', error)
   }
 
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  return <DisbursementsClient initialData={(bkks as any) || []} userRole={profile?.role || 'viewer'} />
+  return (
+    <>
+      {explorerReadOnly && <ExplorerReadOnlyBanner />}
+      {/* eslint-disable-next-line @typescript-eslint/no-explicit-any */}
+      <DisbursementsClient initialData={(bkks as any) || []} userRole={profile?.role || 'viewer'} />
+    </>
+  )
 }

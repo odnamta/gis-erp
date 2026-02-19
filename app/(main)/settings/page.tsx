@@ -1,5 +1,7 @@
 import { redirect } from 'next/navigation'
 import { createClient } from '@/lib/supabase/server'
+import { isExplorerMode } from '@/lib/auth-utils'
+import { ExplorerReadOnlyBanner } from '@/components/layout/explorer-read-only-banner'
 import { Card, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { 
   Building2, 
@@ -39,12 +41,15 @@ export default async function SettingsPage() {
   const isManager = MANAGER_ROLES.includes(userRole)
 
   // Regular users shouldn't access Settings page - redirect to dashboard
-  if (!isAdmin && !isManager) {
+  const isExplorer = await isExplorerMode()
+  const explorerReadOnly = !isAdmin && !isManager && isExplorer
+  if (!isAdmin && !isManager && !isExplorer) {
     redirect('/dashboard')
   }
 
   return (
     <div className="space-y-8">
+      {explorerReadOnly && <ExplorerReadOnlyBanner />}
       <div>
         <h2 className="text-3xl font-bold tracking-tight">Settings</h2>
         <p className="text-muted-foreground">

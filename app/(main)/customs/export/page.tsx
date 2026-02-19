@@ -7,8 +7,9 @@ import { getPEBDocuments, getPEBStatistics, getCustomsOffices } from '@/lib/peb-
 import { PEBFilters } from '@/types/peb'
 import { Plus, FileText } from 'lucide-react'
 import { Skeleton } from '@/components/ui/skeleton'
-import { getCurrentUserProfile } from '@/lib/auth-utils'
+import { getCurrentUserProfile, guardPage } from '@/lib/auth-utils'
 import { canViewPEB, canCreatePEB } from '@/lib/permissions'
+import { ExplorerReadOnlyBanner } from '@/components/layout/explorer-read-only-banner'
 
 interface PageProps {
   searchParams: Promise<{
@@ -62,9 +63,7 @@ async function PEBContent({ filters }: { filters: PEBFilters }) {
 export default async function CustomsExportPage({ searchParams }: PageProps) {
   // Permission check
   const profile = await getCurrentUserProfile()
-  if (!canViewPEB(profile)) {
-    redirect('/dashboard')
-  }
+  const { explorerReadOnly } = await guardPage(canViewPEB(profile))
 
   const params = await searchParams
 
@@ -80,6 +79,7 @@ export default async function CustomsExportPage({ searchParams }: PageProps) {
 
   return (
     <div className="container mx-auto py-6 space-y-6">
+      {explorerReadOnly && <ExplorerReadOnlyBanner />}
       {/* Header */}
       <div className="flex items-center justify-between">
         <div className="flex items-center gap-3">

@@ -1,7 +1,9 @@
 import { redirect } from 'next/navigation'
 import { getUserProfile } from '@/lib/permissions-server'
+import { guardPage } from '@/lib/auth-utils'
 import { createClient } from '@/lib/supabase/server'
 import { CostEntryClient } from './cost-entry-client'
+import { ExplorerReadOnlyBanner } from '@/components/layout/explorer-read-only-banner'
 
 export const metadata = {
   title: 'Cost Entry | Gama ERP',
@@ -55,9 +57,7 @@ export default async function CostEntryPage() {
   const profile = await getUserProfile()
 
   const allowedRoles = ['owner', 'director', 'operations_manager', 'ops']
-  if (!allowedRoles.includes(profile?.role || '')) {
-    redirect('/dashboard')
-  }
+  const { explorerReadOnly } = await guardPage(allowedRoles.includes(profile?.role || ''))
 
   const { data: pjos, error } = await fetchPJOsForCostEntry()
 
@@ -66,10 +66,13 @@ export default async function CostEntryPage() {
   }
 
   return (
-    <CostEntryClient
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      pjos={(pjos as any) || []}
-      userRole={profile?.role || 'ops'}
-    />
+    <>
+      {explorerReadOnly && <ExplorerReadOnlyBanner />}
+      <CostEntryClient
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        pjos={(pjos as any) || []}
+        userRole={profile?.role || 'ops'}
+      />
+    </>
   )
 }

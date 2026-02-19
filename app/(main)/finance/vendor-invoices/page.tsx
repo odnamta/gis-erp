@@ -1,7 +1,9 @@
 import { Metadata } from 'next'
 import { createClient } from '@/lib/supabase/server'
 import { redirect } from 'next/navigation'
+import { guardPage } from '@/lib/auth-utils'
 import { VendorInvoiceList } from '@/components/vendor-invoices'
+import { ExplorerReadOnlyBanner } from '@/components/layout/explorer-read-only-banner'
 import { Button } from '@/components/ui/button'
 import { Plus } from 'lucide-react'
 import Link from 'next/link'
@@ -26,12 +28,11 @@ export default async function VendorInvoicesPage() {
     .eq('user_id', user.id)
     .single()
 
-  if (!profile || !canViewVendorInvoices(profile.role)) {
-    redirect('/dashboard')
-  }
+  const { explorerReadOnly } = await guardPage(!!profile && canViewVendorInvoices(profile.role))
 
   return (
     <div className="container mx-auto py-6 space-y-6">
+      {explorerReadOnly && <ExplorerReadOnlyBanner />}
       <div className="flex items-center justify-between">
         <div>
           <h1 className="text-3xl font-bold">Vendor Invoices</h1>

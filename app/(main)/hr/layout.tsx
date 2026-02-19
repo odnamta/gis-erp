@@ -1,41 +1,30 @@
 import { redirect } from 'next/navigation'
-import { cookies } from 'next/headers'
-import { createClient } from '@/lib/supabase/server'
 import { canViewEmployees } from '@/lib/permissions'
-import { UserProfile } from '@/types/permissions'
+import { getCurrentUserProfile, isExplorerMode } from '@/lib/auth-utils'
+import { ExplorerReadOnlyBanner } from '@/components/layout/explorer-read-only-banner'
 
 export default async function HRLayout({
   children,
 }: {
   children: React.ReactNode
 }) {
-  const supabase = await createClient()
-
-  const { data: { user } } = await supabase.auth.getUser()
-
-  if (!user) {
-    redirect('/login')
-  }
-
-  // Get user profile to check role
-  const { data: profile } = await supabase
-    .from('user_profiles')
-    .select('*')
-    .eq('user_id', user.id)
-    .single()
+  const profile = await getCurrentUserProfile()
 
   if (!profile) {
     redirect('/login')
   }
 
-  // Check if user can access HR module
-  // Allow access in explorer mode (co-builder competition read-only browsing)
-  const cookieStore = await cookies()
-  const isExplorer = cookieStore.get('gama-explorer-mode')?.value === 'true'
+  const hasAccess = canViewEmployees(profile)
+  const isExplorer = await isExplorerMode()
 
-  if (!canViewEmployees(profile as unknown as UserProfile) && !isExplorer) {
+  if (!hasAccess && !isExplorer) {
     redirect('/dashboard')
   }
 
-  return <>{children}</>
+  return (
+    <>
+      {!hasAccess && isExplorer && <ExplorerReadOnlyBanner />}
+      {children}
+    </>
+  )
 }

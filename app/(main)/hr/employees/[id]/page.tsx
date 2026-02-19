@@ -7,6 +7,7 @@ import { EmployeeActions } from '@/components/employees/employee-actions';
 import { getEmployee, getUnlinkedUsers } from '../actions';
 import { createClient } from '@/lib/supabase/server';
 import { canViewEmployees, canEditEmployee, canViewEmployeeSalary } from '@/lib/permissions';
+import { guardPage } from '@/lib/auth-utils';
 import { UserProfile } from '@/types/permissions';
 
 interface PageProps {
@@ -32,10 +33,8 @@ export default async function EmployeeDetailPage({ params }: PageProps) {
 
   const userProfile = userProfileData as unknown as UserProfile | null;
 
-  // Check permission
-  if (!canViewEmployees(userProfile)) {
-    redirect('/dashboard');
-  }
+  // Check permission (layout already handles explorer mode, this is a fallback)
+  await guardPage(canViewEmployees(userProfile));
 
   // Fetch employee and unlinked users in parallel
   const [employeeResult, unlinkedUsersResult] = await Promise.all([

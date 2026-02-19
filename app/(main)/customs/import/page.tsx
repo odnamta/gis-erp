@@ -7,8 +7,9 @@ import { getPIBDocuments, getPIBStatistics, getCustomsOffices } from '@/lib/pib-
 import { PIBFilters } from '@/types/pib'
 import { Plus, FileText } from 'lucide-react'
 import { Skeleton } from '@/components/ui/skeleton'
-import { getCurrentUserProfile } from '@/lib/auth-utils'
+import { getCurrentUserProfile, guardPage } from '@/lib/auth-utils'
 import { canViewPIB, canCreatePIB } from '@/lib/permissions'
+import { ExplorerReadOnlyBanner } from '@/components/layout/explorer-read-only-banner'
 
 interface PageProps {
   searchParams: Promise<{
@@ -63,9 +64,7 @@ async function PIBContent({ filters }: { filters: PIBFilters }) {
 export default async function CustomsImportPage({ searchParams }: PageProps) {
   // Permission check
   const profile = await getCurrentUserProfile()
-  if (!canViewPIB(profile)) {
-    redirect('/dashboard')
-  }
+  const { explorerReadOnly } = await guardPage(canViewPIB(profile))
 
   const params = await searchParams
   
@@ -81,6 +80,7 @@ export default async function CustomsImportPage({ searchParams }: PageProps) {
 
   return (
     <div className="container mx-auto py-6 space-y-6">
+      {explorerReadOnly && <ExplorerReadOnlyBanner />}
       {/* Header */}
       <div className="flex items-center justify-between">
         <div className="flex items-center gap-3">

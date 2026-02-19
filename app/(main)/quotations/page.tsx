@@ -1,7 +1,9 @@
 import { Suspense } from 'react'
 import { createClient } from '@/lib/supabase/server'
 import { redirect } from 'next/navigation'
+import { guardPage } from '@/lib/auth-utils'
 import { QuotationList } from '@/components/quotations/quotation-list'
+import { ExplorerReadOnlyBanner } from '@/components/layout/explorer-read-only-banner'
 import { Button } from '@/components/ui/button'
 import { Plus } from 'lucide-react'
 import Link from 'next/link'
@@ -21,16 +23,14 @@ async function QuotationsContent() {
     redirect('/login')
   }
   
-  // Check user role - ops cannot access quotations
+  // Check user role - ops cannot access quotations (revenue hiding)
   const { data: profile } = await supabase
     .from('user_profiles')
     .select('role')
     .eq('user_id', user.id)
     .single()
-  
-  if (profile?.role === 'ops') {
-    redirect('/dashboard')
-  }
+
+  const { explorerReadOnly } = await guardPage(profile?.role !== 'ops')
   
   // Fetch quotations with relations
   const { data: quotations, error } = await supabase
@@ -56,11 +56,14 @@ async function QuotationsContent() {
     .order('name')
   
   return (
-    <QuotationList 
-      quotations={(quotations || []) as unknown as QuotationWithRelations[]} 
-      customers={customers || []}
-      userRole={profile?.role}
-    />
+    <>
+      {explorerReadOnly && <ExplorerReadOnlyBanner />}
+      <QuotationList
+        quotations={(quotations || []) as unknown as QuotationWithRelations[]}
+        customers={customers || []}
+        userRole={profile?.role}
+      />
+    </>
   )
 }
 
