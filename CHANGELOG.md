@@ -8,7 +8,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [0.10.1] - 2026-02-19 - Co-Builder Bug Blitz + Explorer Mode UX
 
 ### Bug Fixes
-- **47 FK mismatches** resolved across 39 server action files (root cause: `user.id` auth UUID used for `user_profiles.id` PK columns)
+- **51 FK mismatches** resolved across 41 server action files (root cause: `user.id` auth UUID used for `user_profiles.id` PK columns)
 - **Quotation PDF** — created template + API route (was returning 404)
 - **Asset registry filter** — fixed PostgREST syntax for disposed/sold exclusion
 - **Customs PIB/PEB** — added missing RLS policies for 6 tables via Management API
