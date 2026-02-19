@@ -282,6 +282,88 @@ File yang diperbaiki:
 
 ---
 
+## Day 9 — Rabu, 19 Februari 2026
+
+**Pelapor aktif:** Navisa Kafka, Iqbal, dan 8 pelapor lainnya
+**Feedback baru:** 24 item (12 bug, 8 saran, 2 duplikat, 1 by-design, 1 investigasi)
+
+### Bug yang Ditemukan & Diperbaiki
+
+| # | Bug | Pelapor | Severity | Status |
+|---|-----|---------|----------|--------|
+| 34 | HSE incident report FK mismatch | Multiple | Critical | Fixed |
+| 35 | HSE audit type save FK mismatch | Multiple | Critical | Fixed |
+| 36 | HSE training course create FK mismatch | Multiple | Critical | Fixed |
+| 37 | HSE all findings page error (FK cluster) | Multiple | Critical | Fixed |
+| 38 | HSE safety document save FK mismatch | Multiple | Critical | Fixed |
+| 39 | Quotation PDF generate/view error (no template) | Multiple | Critical | Fixed |
+| 40 | Asset registry filter bug (PostgREST syntax) | Multiple | Important | Fixed |
+| 41 | Customs PIB page error (missing RLS policies) | Multiple | Important | Fixed |
+| 42 | Shipping line dropdown empty (missing RLS) | Multiple | Important | Fixed |
+| 43 | Customs forms null array crash | Multiple | Important | Fixed |
+| 44 | Agency vessel schedules page crash | Multiple | Important | Fixed |
+| 45 | HR page can't open for marketing role (explorer mode) | Navisa | Important | Fixed |
+
+### FK Mismatch Batch 4 (14 instances)
+
+| File | Function | Kolom | Fix |
+|------|----------|-------|-----|
+| safety-document-actions.ts | acknowledgeDocument() | employee lookup | user.id → profile.id |
+| depreciation-actions.ts | recordDepreciation() (x2) | created_by | user?.id → depProfile?.id |
+| depreciation-actions.ts | recordCost() | created_by | user?.id → costProfile?.id |
+| utilization-actions.ts | logDailyUtilization() (x2) | logged_by, created_by | user?.id → utilProfile?.id |
+| maintenance-actions.ts | createMaintenanceRecord() (x2) | created_by | user?.id → mntProfile?.id |
+| template-actions.ts | createTemplate() | created_by | user?.id → tplProfile?.id |
+| template-actions.ts | generateDocument() | created_by | user?.id → genProfile?.id |
+| job-equipment-actions.ts | assignEquipmentToJob() (x2) | created_by, assigned_by | user?.id → equipProfile?.id |
+| agency-actions.ts | submitAgentFeedback() | created_by | user?.id → fbProfile?.id |
+| integration-connection-actions.ts | createConnection() | created_by | user?.id → connProfile?.id |
+| retention-actions.ts | archiveLogs() | created_by | user?.id → retProfile?.id |
+| shipment-cost-actions.ts | createShipmentCost() | created_by | user.id → costProfile.id |
+| shipment-revenue-actions.ts | createShipmentRevenue() | created_by | user.id → revProfile.id |
+
+### Total FK Fixes (Batch 1 + 2 + 3 + 4)
+- **47 FK mismatches** diperbaiki di **39 action files**
+
+### Fitur Baru
+- **Quotation PDF template** — `lib/pdf/quotation-pdf.tsx` + API route `/api/pdf/quotation/[id]`
+- **Explorer mode read-only banner** — notifikasi "Mode Explorer — Hanya Lihat" pada halaman yang restricted
+- **`guardPage()` helper** — reusable permission + explorer mode check untuk server pages
+- **Explorer mode cookie sync** — sidebar toggle sekarang sync ke cookie agar server layout bisa baca
+
+### RLS Migration Applied
+Tabel: `pib_documents`, `pib_items`, `customs_offices`, `import_types`, `shipping_lines`, `vessel_schedules`
+Pattern: SELECT untuk semua authenticated, INSERT/UPDATE untuk role tertentu, DELETE hanya admin
+Status: Applied via Supabase Management API (`bookings` table belum ada, di-skip)
+
+### Explorer Mode Bypass (9 pages)
+Pages yang sekarang bisa diakses dalam explorer mode dengan banner read-only:
+- `/hr/*` (layout-level)
+- `/customs/import`, `/customs/export`
+- `/settings`
+- `/disbursements`
+- `/finance/vendor-invoices`
+- `/quotations`
+- `/cost-entry`
+
+### Admin Review
+- 24 feedback baru di-review dan di-score
+- 10 bug fixed (critical: FK mismatches, quotation PDF, RLS)
+- 4 bug fixed (important: asset filter, customs, shipping, explorer mode)
+- 1 duplicate (incident report)
+- 8 suggestions acknowledged
+- 1 by-design (admin page access restricted by role)
+
+### Leaderboard Update Pending
+Skor perlu direcalculate setelah batch scoring 24 item baru.
+
+### Commits
+- `e6d44fc` fix: resolve 25 FK mismatches, add quotation PDF, fix asset filter & agency schedules
+- `6703dde` fix: allow HR access in explorer mode for co-builder competition
+- `ea93008` feat: add explorer mode read-only banner and bypass for restricted pages
+
+---
+
 <!-- Template for new days:
 
 ## Day N — [Hari], [Tanggal] 2026

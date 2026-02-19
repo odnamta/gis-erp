@@ -5,6 +5,30 @@ All notable changes to GAMA ERP will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.10.1] - 2026-02-19 - Co-Builder Bug Blitz + Explorer Mode UX
+
+### Bug Fixes
+- **47 FK mismatches** resolved across 39 server action files (root cause: `user.id` auth UUID used for `user_profiles.id` PK columns)
+- **Quotation PDF** — created template + API route (was returning 404)
+- **Asset registry filter** — fixed PostgREST syntax for disposed/sold exclusion
+- **Customs PIB/PEB** — added missing RLS policies for 6 tables via Management API
+- **Shipping line dropdown** — empty due to missing RLS SELECT policy
+- **Agency vessel schedules** — crash from unmapped vessel/port relations
+- **Customs forms** — null array crash on `exportTypes.data` / `officesResult.data`
+- **HR page access** — explorer mode users silently redirected to dashboard
+
+### Features
+- **Explorer mode read-only banner** — "Mode Explorer — Hanya Lihat" notification on restricted pages
+- **`guardPage()` helper** — reusable server-side permission + explorer mode cookie check
+- **Explorer cookie sync** — sidebar toggle syncs to cookie for server-side layout awareness
+- 9 restricted pages now accessible in explorer mode with read-only banner
+
+### Admin
+- 24 new co-builder feedback items reviewed and scored
+- RLS migration applied: `pib_documents`, `pib_items`, `customs_offices`, `import_types`, `shipping_lines`, `vessel_schedules`
+
+---
+
 ## [0.10.0] - 2026-02-10 - Feedback Fix + Co-Builder Launch + Mobile
 
 ### 🐛 Critical Bug Fixes
