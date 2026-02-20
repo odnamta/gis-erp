@@ -35,7 +35,7 @@ export async function GET(): Promise<NextResponse<HealthStatus>> {
       : 503;
     
     return NextResponse.json(healthStatus, { status: httpStatus });
-  } catch (error) {
+  } catch {
     // Never throw errors - always return valid response (Requirement 2.6)
     // If getHealthStatus fails, build a minimal response
     const fallbackComponents: ComponentStatus[] = [];

@@ -95,8 +95,6 @@ export async function sendNotification(
     // Check if should delay or batch
     if (!prepared.shouldSendNow) {
       // Queue for later delivery (in real implementation, this would add to a queue)
-      // For now, we'll still send but log the timing
-      console.log(`Notification queued for ${prepared.timing} delivery`);
     }
 
     // Send to each channel and log results
@@ -183,11 +181,6 @@ async function simulateChannelDelivery(
   // Simulate network delay
   await new Promise(resolve => setTimeout(resolve, 100));
   
-  // Log for debugging
-  console.log(`[${channel}] Notification sent to ${input.recipient_user_id}:`, {
-    subject: rendered.subject,
-    bodyPreview: rendered.body.substring(0, 100),
-  });
 }
 
 // ============================================================================

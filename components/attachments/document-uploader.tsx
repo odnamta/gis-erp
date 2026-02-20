@@ -13,7 +13,7 @@ import { Label } from '@/components/ui/label';
 import { Progress } from '@/components/ui/progress';
 import { uploadAttachment } from '@/lib/attachments/actions';
 import { validateFile } from '@/lib/attachments/attachment-utils';
-import type { DocumentUploaderProps, DocumentAttachment } from '@/types/attachments';
+import type { DocumentUploaderProps } from '@/types/attachments';
 import {
   ALLOWED_MIME_TYPES,
   MAX_FILE_SIZE_MB,
@@ -45,38 +45,7 @@ export function DocumentUploader({
   const remainingSlots = maxFiles - existingCount - uploads.filter(u => u.status === 'uploading').length;
   const canUpload = remainingSlots > 0;
 
-  const handleFileSelect = useCallback(async (files: FileList | null) => {
-    if (!files || files.length === 0) return;
-
-    const filesToUpload: File[] = [];
-    const errors: string[] = [];
-
-    // Validate each file
-    for (let i = 0; i < Math.min(files.length, remainingSlots); i++) {
-      const file = files[i];
-      const validation = validateFile(file, allowedTypes, maxSizeMB);
-      
-      if (validation.valid) {
-        filesToUpload.push(file);
-      } else {
-        errors.push(`${file.name}: ${validation.error}`);
-      }
-    }
-
-    // Report validation errors
-    if (errors.length > 0) {
-      onError?.(errors.join('\n'));
-    }
-
-    // Upload valid files
-    for (const file of filesToUpload) {
-      await uploadFile(file);
-    }
-  }, [remainingSlots, allowedTypes, maxSizeMB, onError]);
-
-  const uploadFile = async (file: File) => {
-    const uploadId = `${file.name}-${Date.now()}`;
-    
+  const uploadFile = useCallback(async (file: File) => {
     // Add to uploads list
     setUploads(prev => [...prev, {
       file,
@@ -93,7 +62,7 @@ export function DocumentUploader({
       }
 
       // Simulate progress (actual progress tracking would require XHR)
-      setUploads(prev => prev.map(u => 
+      setUploads(prev => prev.map(u =>
         u.file === file ? { ...u, progress: 50 } : u
       ));
 
@@ -101,23 +70,23 @@ export function DocumentUploader({
       const result = await uploadAttachment(entityType, entityId, formData);
 
       if (result.error) {
-        setUploads(prev => prev.map(u => 
+        setUploads(prev => prev.map(u =>
           u.file === file ? { ...u, status: 'error', error: result.error || 'Upload failed' } : u
         ));
         onError?.(result.error);
       } else if (result.data) {
-        setUploads(prev => prev.map(u => 
+        setUploads(prev => prev.map(u =>
           u.file === file ? { ...u, progress: 100, status: 'success' } : u
         ));
         onUploadComplete?.(result.data);
-        
+
         // Clear successful upload after a delay
         setTimeout(() => {
           setUploads(prev => prev.filter(u => u.file !== file));
         }, 2000);
       }
-    } catch (error) {
-      setUploads(prev => prev.map(u => 
+    } catch {
+      setUploads(prev => prev.map(u =>
         u.file === file ? { ...u, status: 'error', error: 'Upload failed' } : u
       ));
       onError?.('An unexpected error occurred');
@@ -125,7 +94,36 @@ export function DocumentUploader({
 
     // Clear description after upload
     setDescription('');
-  };
+  }, [entityType, entityId, description, onUploadComplete, onError]);
+
+  const handleFileSelect = useCallback(async (files: FileList | null) => {
+    if (!files || files.length === 0) return;
+
+    const filesToUpload: File[] = [];
+    const errors: string[] = [];
+
+    // Validate each file
+    for (let i = 0; i < Math.min(files.length, remainingSlots); i++) {
+      const file = files[i];
+      const validation = validateFile(file, allowedTypes, maxSizeMB);
+
+      if (validation.valid) {
+        filesToUpload.push(file);
+      } else {
+        errors.push(`${file.name}: ${validation.error}`);
+      }
+    }
+
+    // Report validation errors
+    if (errors.length > 0) {
+      onError?.(errors.join('\n'));
+    }
+
+    // Upload valid files
+    for (const file of filesToUpload) {
+      await uploadFile(file);
+    }
+  }, [remainingSlots, allowedTypes, maxSizeMB, onError, uploadFile]);
 
   const handleDragOver = useCallback((e: React.DragEvent) => {
     e.preventDefault();

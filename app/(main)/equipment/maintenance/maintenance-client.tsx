@@ -103,7 +103,6 @@ export function MaintenanceClient() {
 
   const handleExport = () => {
     // TODO: Implement export functionality
-    console.log('Export maintenance history')
   }
 
   if (isLoading) {

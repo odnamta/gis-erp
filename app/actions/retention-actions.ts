@@ -497,9 +497,8 @@ export async function archiveLogs(
       await supabase
         .from('audit_archive_log' as AnyTable)
         .insert(archiveRecord);
-    } catch (archiveLogError) {
-      // If the archive log table doesn't exist, just log to console
-      console.log('Archive operation completed:', archiveRecord);
+    } catch {
+      // If the archive log table doesn't exist, silently continue
     }
     
     // Also create an audit log entry for the archive operation

@@ -5,8 +5,6 @@
  * Modal for previewing image attachments
  */
 
-import { X } from 'lucide-react';
-import { Button } from '@/components/ui/button';
 import {
   Dialog,
   DialogContent,

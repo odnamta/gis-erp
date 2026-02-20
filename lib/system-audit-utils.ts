@@ -17,7 +17,6 @@ import {
   AuditLogPagination,
   PaginatedAuditLogs,
   AuditAction,
-  AuditStatus,
   ChangedField,
   FormattedAuditDescription,
 } from '@/types/audit';

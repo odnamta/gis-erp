@@ -388,7 +388,6 @@ export async function createDepreciationRecord(
     .single();
   
   if (existing) {
-    console.log(`Depreciation record already exists for asset ${asset.asset_code} on ${date}`);
     return null;
   }
   

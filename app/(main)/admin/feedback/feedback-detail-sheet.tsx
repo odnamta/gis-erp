@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { Loader2, Send, ExternalLink } from 'lucide-react';
 import {
   Sheet,
@@ -32,7 +32,6 @@ import {
   getStatusVariant,
   getStatusLabel,
   getFeedbackTypeLabel,
-  getSeverityColor,
   formatFeedbackDateTime,
   getStatusOptions,
 } from '@/lib/feedback-utils';
@@ -54,14 +53,7 @@ export function FeedbackDetailSheet({ feedback, onClose, onUpdate }: FeedbackDet
   const [updatingStatus, setUpdatingStatus] = useState(false);
   const [resolutionNotes, setResolutionNotes] = useState('');
 
-  useEffect(() => {
-    if (feedback) {
-      loadComments();
-      setResolutionNotes(feedback.resolution_notes || '');
-    }
-  }, [feedback]);
-
-  const loadComments = async () => {
+  const loadComments = useCallback(async () => {
     if (!feedback) return;
     setLoadingComments(true);
     try {
@@ -74,7 +66,14 @@ export function FeedbackDetailSheet({ feedback, onClose, onUpdate }: FeedbackDet
     } finally {
       setLoadingComments(false);
     }
-  };
+  }, [feedback]);
+
+  useEffect(() => {
+    if (feedback) {
+      loadComments();
+      setResolutionNotes(feedback.resolution_notes || '');
+    }
+  }, [feedback, loadComments]);
 
   const handleStatusChange = async (newStatus: FeedbackStatus) => {
     if (!feedback) return;

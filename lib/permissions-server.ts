@@ -246,12 +246,10 @@ export async function ensureUserProfile(): Promise<UserProfile | null> {
   } = await supabase.auth.getUser()
 
   if (!user) {
-    console.log('[ensureUserProfile] No authenticated user')
     return null
   }
 
   const email = user.email!
-  console.log('[ensureUserProfile] Processing user:', email)
 
   // First, try to get existing profile by user_id
   const { data: existingProfile, error: existingError } = await supabase
@@ -266,8 +264,6 @@ export async function ensureUserProfile(): Promise<UserProfile | null> {
 
   // If profile exists with user_id, update last_login and return
   if (existingProfile) {
-    console.log('[ensureUserProfile] Found existing profile for:', email)
-
     // Check if owner email and ensure owner role
     if (isOwnerEmail(email) && existingProfile.role !== 'owner') {
       await supabase
@@ -290,8 +286,6 @@ export async function ensureUserProfile(): Promise<UserProfile | null> {
     return existingProfile as unknown as UserProfile
   }
 
-  console.log('[ensureUserProfile] No existing profile, checking for pre-registered:', email)
-
   // Check for pre-registered profile by email (user_id is null)
   const { data: preregisteredProfile, error: preregError } = await supabase
     .from('user_profiles')
@@ -305,8 +299,6 @@ export async function ensureUserProfile(): Promise<UserProfile | null> {
   }
 
   if (preregisteredProfile) {
-    console.log('[ensureUserProfile] Found pre-registered profile, linking to auth:', email)
-
     // Link auth user to pre-registered profile
     const fullName = user.user_metadata?.full_name || user.user_metadata?.name || preregisteredProfile.full_name
     const avatarUrl = user.user_metadata?.avatar_url || user.user_metadata?.picture || preregisteredProfile.avatar_url
@@ -328,13 +320,10 @@ export async function ensureUserProfile(): Promise<UserProfile | null> {
       return null
     }
 
-    console.log('[ensureUserProfile] Successfully linked profile, initializing onboarding')
-
     // Initialize onboarding for newly linked pre-registered user
     try {
       const { initializeOnboardingForUser } = await import('@/lib/onboarding-actions')
-      const onboardingResult = await initializeOnboardingForUser(user.id, linkedProfile.role)
-      console.log('[ensureUserProfile] Onboarding initialization result:', onboardingResult)
+      await initializeOnboardingForUser(user.id, linkedProfile.role)
     } catch (e) {
       console.error('[ensureUserProfile] Failed to initialize onboarding for linked user:', e)
       // Don't fail the profile linking if onboarding initialization fails
@@ -344,8 +333,6 @@ export async function ensureUserProfile(): Promise<UserProfile | null> {
   }
 
   // Profile doesn't exist, create new one
-  console.log('[ensureUserProfile] No pre-registered profile, creating new profile for:', email)
-
   // v0.84: New users get NULL role (except special emails) and must request access
   // Only special emails get auto-assigned roles
   let role: UserRole | null = null
@@ -435,8 +422,6 @@ export async function ensureUserProfile(): Promise<UserProfile | null> {
   // This includes @gama-group.co emails that are not in the special list above
   // Middleware will redirect them to /request-access page
 
-  console.log('[ensureUserProfile] Assigned role:', role ?? 'null (pending role request)')
-
   const fullName = user.user_metadata?.full_name || user.user_metadata?.name
   const avatarUrl = user.user_metadata?.avatar_url || user.user_metadata?.picture
 
@@ -464,7 +449,6 @@ export async function ensureUserProfile(): Promise<UserProfile | null> {
     return null
   }
 
-  console.log('[ensureUserProfile] Successfully created new profile for:', email)
   return data as unknown as UserProfile
 }
 
@@ -633,8 +617,6 @@ export async function getAllUsers(): Promise<UserProfile[]> {
     console.error('Error fetching users:', error)
     return []
   }
-
-  console.log(`getAllUsers: Fetched ${data?.length || 0} users`)
 
   return data as unknown as UserProfile[]
 }

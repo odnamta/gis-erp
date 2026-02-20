@@ -24,8 +24,6 @@ import {
 } from '@/lib/sync-log-utils';
 import {
   determineOperation,
-  prepareExternalIdMappingForCreate,
-  prepareExternalIdMappingForUpdate,
   createMappingLookup,
 } from '@/lib/external-id-utils';
 
@@ -745,7 +743,6 @@ export async function executeFullSync(
       );
 
       // Aggregate results
-      const successCount = results.filter(r => r.success).length;
       const failCount = results.filter(r => !r.success).length;
       const createCount = results.filter(r => r.success && r.operation === 'create').length;
       const updateCount = results.filter(r => r.success && r.operation === 'update').length;

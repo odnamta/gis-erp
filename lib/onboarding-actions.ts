@@ -321,7 +321,6 @@ export async function initializeOnboardingForUser(
   userId: string,
   userRole: string
 ): Promise<{ success: boolean; error?: string }> {
-  console.log('[initializeOnboardingForUser] Starting for user:', userId, 'role:', userRole);
   const supabase = await createClient();
 
   // Check if user already has onboarding status
@@ -336,11 +335,8 @@ export async function initializeOnboardingForUser(
   }
 
   if (existingStatus) {
-    console.log('[initializeOnboardingForUser] Already initialized for user:', userId);
     return { success: true }; // Already initialized
   }
-
-  console.log('[initializeOnboardingForUser] Creating status record for user:', userId);
 
   // Create status record
   const { error: statusError } = await supabase
@@ -351,8 +347,6 @@ export async function initializeOnboardingForUser(
     console.error('[initializeOnboardingForUser] Error creating status:', statusError);
     return { success: false, error: statusError.message };
   }
-
-  console.log('[initializeOnboardingForUser] Successfully created status record');
 
   // Get applicable steps
   const { data: steps, error: stepsError } = await supabase
@@ -366,8 +360,6 @@ export async function initializeOnboardingForUser(
     return { success: false, error: stepsError.message };
   }
 
-  console.log('[initializeOnboardingForUser] Found', steps?.length || 0, 'applicable steps');
-
   // Create progress entries
   const progressEntries = (steps || []).map((step: { id: string }) => ({
     user_id: userId,
@@ -376,7 +368,6 @@ export async function initializeOnboardingForUser(
   }));
 
   if (progressEntries.length > 0) {
-    console.log('[initializeOnboardingForUser] Creating', progressEntries.length, 'progress entries');
     const { error: progressError } = await supabase
       .from('user_onboarding_progress')
       .insert(progressEntries);
@@ -388,7 +379,6 @@ export async function initializeOnboardingForUser(
   }
 
   // Update total steps
-  console.log('[initializeOnboardingForUser] Updating total steps to:', progressEntries.length);
   const { error: updateError } = await supabase
     .from('user_onboarding_status')
     .update({ total_steps: progressEntries.length })
@@ -399,7 +389,6 @@ export async function initializeOnboardingForUser(
     return { success: false, error: updateError.message };
   }
 
-  console.log('[initializeOnboardingForUser] Successfully initialized onboarding for user:', userId);
   return { success: true };
 }
 

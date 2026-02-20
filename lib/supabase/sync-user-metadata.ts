@@ -13,8 +13,6 @@
  */
 
 import { createClient } from '@/lib/supabase/server'
-import { SupabaseClient } from '@supabase/supabase-js'
-
 export interface UserMetadataForJWT {
   role: string
   is_active: boolean

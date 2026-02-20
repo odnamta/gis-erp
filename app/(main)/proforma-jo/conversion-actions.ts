@@ -188,8 +188,6 @@ export async function convertToJobOrder(pjoId: string): Promise<{ error?: string
     const result = await updateVendorInvoiceJOReference(pjoId, newJO.id)
     if (result.error) {
       console.error('Failed to update vendor invoice JO references:', result.error)
-    } else if (result.updatedCount && result.updatedCount > 0) {
-      console.log(`Updated ${result.updatedCount} vendor invoice(s) with JO reference`)
     }
   } catch (e) {
     console.error('Failed to update vendor invoice JO references:', e)
@@ -201,8 +199,6 @@ export async function convertToJobOrder(pjoId: string): Promise<{ error?: string
     const overheadResult = await allocateJobOverhead(newJO.id)
     if (overheadResult.error) {
       console.error('Failed to allocate overhead:', overheadResult.error)
-    } else {
-      console.log(`Allocated overhead: ${overheadResult.totalOverhead}`)
     }
   } catch (e) {
     console.error('Failed to allocate overhead:', e)

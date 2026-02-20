@@ -80,7 +80,7 @@ const statusIcons: Record<ErrorStatus, React.ReactNode> = {
   ignored: <XCircle className="h-4 w-4" />,
 }
 
-export function ErrorDashboardClient({ initialErrors, initialSummary, currentUser }: Props) {
+export function ErrorDashboardClient({ initialErrors, initialSummary }: Props) {
   const [errors, setErrors] = useState(initialErrors)
   const [summary] = useState(initialSummary)
   const [statusFilter, setStatusFilter] = useState<string>('all')

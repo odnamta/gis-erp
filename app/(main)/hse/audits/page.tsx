@@ -83,9 +83,8 @@ export default function AuditsPage() {
     router.push(`/hse/audits/findings/${id}`);
   }
 
-  function handleMarkComplete(id: string) {
+  function handleMarkComplete(_id: string) {
     // TODO: Open closure dialog
-    console.log('Mark complete:', id);
   }
 
   function handleViewAudit(id: string) {

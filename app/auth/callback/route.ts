@@ -6,16 +6,10 @@ import { syncUserMetadataToAuth } from '@/lib/supabase/sync-user-metadata'
 import { initializeOnboardingForUser } from '@/lib/onboarding-actions'
 
 export async function GET(request: Request) {
-  console.log('========================================')
-  console.log('[AUTH CALLBACK] ROUTE CALLED - START')
-  console.log('========================================')
-
   const { searchParams, origin } = new URL(request.url)
   const code = searchParams.get('code')
   const error = searchParams.get('error')
   const errorDescription = searchParams.get('error_description')
-
-  console.log('[AUTH CALLBACK] Query params - code:', code ? 'EXISTS' : 'NULL', 'error:', error, 'errorDescription:', errorDescription)
 
   // Handle OAuth errors from Google
   if (error) {
@@ -48,11 +42,8 @@ export async function GET(request: Request) {
       return NextResponse.redirect(loginUrl)
     }
 
-    console.log('[AUTH CALLBACK] Session exchanged for user:', sessionData.user?.email)
-
     // Ensure user profile exists and check if first login
     const profile = await ensureUserProfile()
-    console.log('[AUTH CALLBACK] Profile after ensureUserProfile:', profile ? `${profile.email} (${profile.role})` : 'NULL')
 
     // Check if this is a first login (profile was just created or linked)
     if (profile) {
@@ -63,14 +54,10 @@ export async function GET(request: Request) {
       const createdAt = new Date(profile.created_at)
       const isNewUser = (now.getTime() - createdAt.getTime() < 60000)
 
-      console.log('[AUTH CALLBACK] User age check - Created:', createdAt.toISOString(), 'IsNew:', isNewUser)
-
       // Initialize onboarding for new users
       if (user && isNewUser) {
-        console.log('[AUTH CALLBACK] Initializing onboarding for new user:', profile.email)
         try {
-          const onboardingResult = await initializeOnboardingForUser(user.id, profile.role)
-          console.log('[AUTH CALLBACK] Onboarding result:', onboardingResult)
+          await initializeOnboardingForUser(user.id, profile.role)
         } catch (e) {
           console.error('[AUTH CALLBACK] Failed to initialize onboarding:', e)
         }
