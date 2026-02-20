@@ -21,32 +21,31 @@ import type { SecurityMiddlewareConfig, RateLimitResult } from './types';
  * Content Security Policy directives
  * Configured to allow Next.js functionality while preventing XSS
  */
-const CSP_DIRECTIVES = {
-  'default-src': ["'self'"],
-  'script-src': ["'self'", "'unsafe-inline'", "'unsafe-eval'"], // Required for Next.js
-  'style-src': ["'self'", "'unsafe-inline'"], // Required for Tailwind/styled-jsx
-  'img-src': ["'self'", 'data:', 'blob:', 'https:'],
-  'font-src': ["'self'", 'data:'],
-  'connect-src': ["'self'", 'https://*.supabase.co', 'wss://*.supabase.co'],
-  'frame-ancestors': ["'none'"],
-  'form-action': ["'self'"],
-  'base-uri': ["'self'"],
-  'object-src': ["'none'"],
-  'upgrade-insecure-requests': [],
-};
-
 /**
- * Builds the Content-Security-Policy header value
+ * Builds the Content-Security-Policy header value.
+ * When a nonce is provided, uses nonce-based CSP instead of unsafe-inline/unsafe-eval.
  */
-function buildCSPHeader(): string {
-  return Object.entries(CSP_DIRECTIVES)
-    .map(([directive, values]) => {
-      if (values.length === 0) {
-        return directive;
-      }
-      return `${directive} ${values.join(' ')}`;
-    })
-    .join('; ');
+export function buildCSPHeader(nonce?: string): string {
+  const scriptSrc = nonce
+    ? `script-src 'self' 'nonce-${nonce}' 'strict-dynamic'`
+    : "script-src 'self' 'unsafe-inline' 'unsafe-eval'";
+  const styleSrc = nonce
+    ? `style-src 'self' 'nonce-${nonce}'`
+    : "style-src 'self' 'unsafe-inline'";
+
+  return [
+    "default-src 'self'",
+    scriptSrc,
+    styleSrc,
+    "img-src 'self' data: blob: https:",
+    "font-src 'self' data:",
+    "connect-src 'self' https://*.supabase.co wss://*.supabase.co",
+    "frame-ancestors 'none'",
+    "form-action 'self'",
+    "base-uri 'self'",
+    "object-src 'none'",
+    "upgrade-insecure-requests",
+  ].join('; ');
 }
 
 // =============================================================================
@@ -59,9 +58,9 @@ function buildCSPHeader(): string {
  * @param response - The NextResponse to add headers to
  * @returns The response with security headers added
  */
-export function applySecurityHeaders(response: NextResponse): NextResponse {
+export function applySecurityHeaders(response: NextResponse, nonce?: string): NextResponse {
   // Content-Security-Policy - Prevents XSS attacks (Requirement 8.1)
-  response.headers.set('Content-Security-Policy', buildCSPHeader());
+  response.headers.set('Content-Security-Policy', buildCSPHeader(nonce));
 
   // X-Frame-Options - Prevents clickjacking (Requirement 8.2)
   response.headers.set('X-Frame-Options', 'DENY');

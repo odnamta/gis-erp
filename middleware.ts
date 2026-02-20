@@ -5,6 +5,7 @@ import { DEFAULT_ROLE_HOMEPAGES, DEFAULT_FALLBACK_ROUTE } from '@/types/homepage
 import { UserRole } from '@/types/permissions'
 import {
   applySecurityHeaders,
+  buildCSPHeader,
   shouldSkipSecurityChecks,
 } from '@/lib/security/middleware'
 import { shouldExcludePath, shouldLogPageView } from '@/lib/page-view-tracker'
@@ -80,7 +81,16 @@ export async function middleware(request: NextRequest) {
     return NextResponse.next()
   }
 
-  const { supabaseResponse, user } = await updateSession(request)
+  // Generate nonce for CSP (no unsafe-inline/unsafe-eval)
+  const nonce = Buffer.from(crypto.randomUUID()).toString('base64')
+  const cspHeader = buildCSPHeader(nonce)
+
+  // Pass nonce to Next.js via request headers
+  const requestHeaders = new Headers(request.headers)
+  requestHeaders.set('x-nonce', nonce)
+  requestHeaders.set('Content-Security-Policy', cspHeader)
+
+  const { supabaseResponse, user } = await updateSession(request, requestHeaders)
 
   const isPublicRoute = PUBLIC_ROUTES.some(route => pathname.startsWith(route))
 
@@ -206,7 +216,7 @@ export async function middleware(request: NextRequest) {
   }
 
   // Apply security headers to the response (Requirements 8.1-8.5)
-  const response = applySecurityHeaders(supabaseResponse)
+  const response = applySecurityHeaders(supabaseResponse, nonce)
 
   // v0.13.1: Page view tracking (non-blocking, fire-and-forget)
   // Only track for authenticated users on non-excluded paths
