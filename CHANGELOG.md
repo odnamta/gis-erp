@@ -5,6 +5,18 @@ All notable changes to GAMA ERP will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.10.2] - 2026-02-20 - Test Infrastructure + Lint Cleanup
+
+### Fixed
+- **400 test errors eliminated** — added global mocks for `next/headers` and `@/lib/supabase/server` in `vitest.setup.ts`; server-side imports no longer crash in jsdom environment
+- **14 unused variable lint warnings** — removed unused imports and destructured variables across 10 files (`error-dashboard-client`, `feedback-detail-sheet`, `retention-actions`, `health/route`, `document-uploader`, `preview-modal`, `document-data-form`, `sync-user-metadata`, `sync-engine`, `system-audit-utils`)
+- **2 React hooks dependency warnings** — wrapped `loadComments` and `uploadFile` in `useCallback` with proper dependency arrays
+
+### Removed
+- ~28 `console.log` statements from production code (`permissions-server`, `onboarding-actions`, `notification-workflow-actions`, `retention-actions`, `conversion-actions`, `depreciation-run-utils`, `maintenance-client`, `audits/page`, `auth/callback`)
+
+---
+
 ## [0.10.1] - 2026-02-19 - Co-Builder Bug Blitz + Explorer Mode UX
 
 ### Bug Fixes
