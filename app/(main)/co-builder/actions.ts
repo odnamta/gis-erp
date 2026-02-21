@@ -10,9 +10,26 @@ import { calculateEffortLevel } from '@/lib/co-builder-utils'
 // ============================================================
 
 const COMPETITION_END = new Date('2026-03-12T23:59:59+07:00')
+const DAILY_FEEDBACK_LIMIT = 5
 
 function isCompetitionOver(): boolean {
   return new Date() > COMPETITION_END
+}
+
+/** Get today's date string in WIB (UTC+7) */
+function getTodayWIB(): string {
+  const now = new Date()
+  const wib = new Date(now.getTime() + 7 * 60 * 60 * 1000)
+  return wib.toISOString().split('T')[0]
+}
+
+/** Get WIB day boundaries as UTC timestamps for database queries */
+function getWIBDayBounds(wibDate: string): { start: string; end: string } {
+  // WIB midnight = UTC 17:00 previous day
+  return {
+    start: `${wibDate}T00:00:00+07:00`,
+    end: `${wibDate}T23:59:59+07:00`,
+  }
 }
 
 // ============================================================
@@ -62,6 +79,8 @@ export interface LeaderboardEntry {
   active_days: number
   last_activity: string | null
   rank: number
+  has_top5: boolean
+  meets_requirements: boolean
 }
 
 export interface PointEvent {
@@ -132,6 +151,21 @@ export async function submitCompetitionFeedback(data: {
       return { success: false, error: 'Deskripsi minimal 20 karakter' }
     }
 
+    // Daily submission cap (WIB timezone)
+    const todayWIB = getTodayWIB()
+    const { start: dayStart, end: dayEnd } = getWIBDayBounds(todayWIB)
+    const { count: todayTotal } = await supabase
+      .from(// eslint-disable-next-line @typescript-eslint/no-explicit-any
+    'competition_feedback' as any)
+      .select('id', { count: 'exact', head: true })
+      .eq('user_id', user.id)
+      .gte('created_at', dayStart)
+      .lte('created_at', dayEnd)
+
+    if (todayTotal && todayTotal >= DAILY_FEEDBACK_LIMIT) {
+      return { success: false, error: `Maksimal ${DAILY_FEEDBACK_LIMIT} feedback per hari. Coba lagi besok!` }
+    }
+
     // Calculate effort level
     const { level, basePoints } = calculateEffortLevel(data)
 
@@ -175,17 +209,9 @@ export async function submitCompetitionFeedback(data: {
       reference_id: feedbackId,
     } as Record<string, unknown>)
 
-    // Check: First feedback of the day?
-    const today = new Date().toISOString().split('T')[0]
-    const { count: todayCount } = await supabase
-      .from(// eslint-disable-next-line @typescript-eslint/no-explicit-any
-    'competition_feedback' as any)
-      .select('id', { count: 'exact', head: true })
-      .eq('user_id', user.id)
-      .gte('created_at', `${today}T00:00:00Z`)
-      .lte('created_at', `${today}T23:59:59Z`)
-
-    if (todayCount && todayCount <= 1) {
+    // Check: First feedback of the day? (WIB timezone)
+    // todayTotal was checked above before insert, so if it was 0 before this insert, this is the first
+    if (!todayTotal || todayTotal === 0) {
       await supabase.from(// eslint-disable-next-line @typescript-eslint/no-explicit-any
     'point_events' as any).insert({
         user_id: user.id,
@@ -198,31 +224,42 @@ export async function submitCompetitionFeedback(data: {
       bonuses.push('first_of_day')
     }
 
-    // Check: Collaboration bonus?
+    // Check: Collaboration bonus? (must reference DIFFERENT user's feedback)
     if (data.references_feedback_id) {
-      await supabase.from(// eslint-disable-next-line @typescript-eslint/no-explicit-any
-    'point_events' as any).insert({
-        user_id: user.id,
-        event_type: 'collaboration_bonus',
-        points: 5,
-        description: 'Kolaborasi: referensi feedback lain',
-        reference_id: feedbackId,
-      } as Record<string, unknown>)
-      totalEarned += 5
-      bonuses.push('collaboration')
+      const { data: refFeedback } = await supabase
+        .from(// eslint-disable-next-line @typescript-eslint/no-explicit-any
+      'competition_feedback' as any)
+        .select('user_id')
+        .eq('id', data.references_feedback_id)
+        .single()
+
+      const refUserId = (refFeedback as unknown as { user_id: string } | null)?.user_id
+      if (refUserId && refUserId !== user.id) {
+        await supabase.from(// eslint-disable-next-line @typescript-eslint/no-explicit-any
+      'point_events' as any).insert({
+          user_id: user.id,
+          event_type: 'collaboration_bonus',
+          points: 5,
+          description: 'Kolaborasi: referensi feedback lain',
+          reference_id: feedbackId,
+        } as Record<string, unknown>)
+        totalEarned += 5
+        bonuses.push('collaboration')
+      }
     }
 
     // Check: Streak bonus (3+ consecutive working days)
     const streak = await calculateStreak(user.id)
     if (streak >= 3) {
-      // Check if streak bonus already awarded today
+      // Check if streak bonus already awarded today (WIB timezone)
       const { count: streakToday } = await supabase
         .from(// eslint-disable-next-line @typescript-eslint/no-explicit-any
     'point_events' as any)
         .select('id', { count: 'exact', head: true })
         .eq('user_id', user.id)
         .eq('event_type', 'streak_bonus')
-        .gte('created_at', `${today}T00:00:00Z`)
+        .gte('created_at', dayStart)
+        .lte('created_at', dayEnd)
 
       if (!streakToday || streakToday === 0) {
         await supabase.from(// eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -270,9 +307,14 @@ async function calculateStreak(userId: string): Promise<number> {
 
   if (!data || data.length === 0) return 0
 
+  // Convert to WIB dates for correct day boundaries
   const dates = [...new Set(
     (data as unknown as { created_at: string }[])
-      .map(d => d.created_at.split('T')[0])
+      .map(d => {
+        const utc = new Date(d.created_at)
+        const wib = new Date(utc.getTime() + 7 * 60 * 60 * 1000)
+        return wib.toISOString().split('T')[0]
+      })
   )].sort().reverse()
 
   if (dates.length === 0) return 0
@@ -313,7 +355,30 @@ export async function getLeaderboard(): Promise<LeaderboardEntry[]> {
     return await getLeaderboardDirect()
   }
 
-  return data as unknown as LeaderboardEntry[]
+  // Materialized view may not have meets_requirements — enrich with top5 check
+  const entries = data as unknown as LeaderboardEntry[]
+  const userIds = entries.map(e => e.user_id)
+
+  // Batch check top5 submissions
+  const { data: top5Data } = await supabase
+    .from(// eslint-disable-next-line @typescript-eslint/no-explicit-any
+    'top5_submissions' as any)
+    .select('user_id')
+    .in('user_id', userIds)
+
+  const top5UserIds = new Set(
+    ((top5Data || []) as unknown as { user_id: string }[]).map(t => t.user_id)
+  )
+
+  for (const entry of entries) {
+    entry.has_top5 = top5UserIds.has(entry.user_id)
+    entry.meets_requirements = (entry.active_days || 0) >= 10
+      && (entry.feedback_count || 0) >= 5
+      && (entry.scenarios_completed || 0) >= 2
+      && entry.has_top5
+  }
+
+  return entries
 }
 
 async function getLeaderboardDirect(): Promise<LeaderboardEntry[]> {
@@ -361,6 +426,23 @@ async function getLeaderboardDirect(): Promise<LeaderboardEntry[]> {
       .select('id', { count: 'exact', head: true })
       .eq('user_id', user.user_id)
 
+    // Check top5 submission
+    const { count: top5Count } = await supabase
+      .from(// eslint-disable-next-line @typescript-eslint/no-explicit-any
+    'top5_submissions' as any)
+      .select('id', { count: 'exact', head: true })
+      .eq('user_id', user.user_id)
+
+    const activeDays = [...new Set(pointData.map(p => {
+      if (!p.created_at) return ''
+      const utc = new Date(p.created_at)
+      const wib = new Date(utc.getTime() + 7 * 60 * 60 * 1000)
+      return wib.toISOString().split('T')[0]
+    }).filter(Boolean))].length
+    const fc = feedbackCount || 0
+    const sc = scenarioCount || 0
+    const hasTop5 = (top5Count || 0) > 0
+
     entries.push({
       user_id: user.user_id,
       user_name: user.full_name || 'Unknown',
@@ -370,11 +452,13 @@ async function getLeaderboardDirect(): Promise<LeaderboardEntry[]> {
       feedback_points: pointData.filter(p => ['feedback_submitted', 'feedback_reviewed'].includes(p.event_type)).reduce((s, p) => s + p.points, 0),
       scenario_points: pointData.filter(p => p.event_type === 'scenario_completed').reduce((s, p) => s + p.points, 0),
       bonus_points: pointData.filter(p => !['feedback_submitted', 'feedback_reviewed', 'scenario_completed'].includes(p.event_type)).reduce((s, p) => s + p.points, 0),
-      feedback_count: feedbackCount || 0,
-      scenarios_completed: scenarioCount || 0,
-      active_days: [...new Set(pointData.map(p => p.created_at?.split('T')[0]).filter(Boolean))].length,
+      feedback_count: fc,
+      scenarios_completed: sc,
+      active_days: activeDays,
       last_activity: null,
       rank: 0,
+      has_top5: hasTop5,
+      meets_requirements: activeDays >= 10 && fc >= 5 && sc >= 2 && hasTop5,
     })
   }
 
@@ -426,8 +510,12 @@ export async function getUserCompetitionStats(): Promise<UserCompetitionStats | 
     .select('id', { count: 'exact', head: true })
     .eq('user_id', user.id)
 
-  // Calculate active days
-  const activeDays = new Set(points.map(p => p.created_at.split('T')[0])).size
+  // Calculate active days (WIB timezone)
+  const activeDays = new Set(points.map(p => {
+    const utc = new Date(p.created_at)
+    const wib = new Date(utc.getTime() + 7 * 60 * 60 * 1000)
+    return wib.toISOString().split('T')[0]
+  })).size
 
   // Calculate streak
   const streak = await calculateStreak(user.id)
@@ -729,6 +817,21 @@ export async function completeScenario(data: {
       return { success: false, error: 'Kompetisi Co-Builder sudah berakhir (12 Maret 2026)' }
     }
 
+    // Validate rating range (1-5)
+    if (!data.overallRating || data.overallRating < 1 || data.overallRating > 5 || !Number.isInteger(data.overallRating)) {
+      return { success: false, error: 'Rating harus antara 1-5' }
+    }
+
+    // Validate checkpoints: at least 1 must be pass or fail (not all skip)
+    const results = Object.values(data.checkpointResults)
+    if (results.length === 0) {
+      return { success: false, error: 'Harus mengisi minimal 1 checkpoint' }
+    }
+    const hasRealEngagement = results.some(r => r === 'pass' || r === 'fail')
+    if (!hasRealEngagement) {
+      return { success: false, error: 'Minimal 1 checkpoint harus pass atau fail (tidak boleh semua skip)' }
+    }
+
     // Check if already completed
     const { count } = await supabase
       .from(// eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -864,22 +967,32 @@ export async function reviewFeedback(data: {
       } as Record<string, unknown>)
     }
 
-    // Handle duplicate: zero out points
+    // Handle duplicate: zero out ALL points (base + bonuses)
     if (data.adminStatus === 'duplicate' && fb.admin_status !== 'duplicate') {
-      const reversePoints = -fb.total_points
-      if (reversePoints !== 0) {
+      // Find and reverse ALL point events linked to this feedback
+      const { data: linkedEvents } = await supabase
+        .from(// eslint-disable-next-line @typescript-eslint/no-explicit-any
+      'point_events' as any)
+        .select('id, points, event_type')
+        .eq('reference_id', data.feedbackId)
+
+      const events = (linkedEvents || []) as unknown as { id: string; points: number; event_type: string }[]
+      const totalToReverse = events.reduce((sum, e) => sum + e.points, 0)
+
+      if (totalToReverse !== 0) {
         await supabase.from(// eslint-disable-next-line @typescript-eslint/no-explicit-any
-    'point_events' as any).insert({
+      'point_events' as any).insert({
           user_id: fb.user_id,
-          event_type: 'feedback_reviewed',
-          points: reversePoints,
-          description: 'Feedback ditandai duplikat',
+          event_type: 'duplicate_reversal',
+          points: -totalToReverse,
+          description: `Feedback ditandai duplikat (reversal: ${events.length} event, -${totalToReverse} poin)`,
           reference_id: data.feedbackId,
         } as Record<string, unknown>)
       }
+
       await supabase
         .from(// eslint-disable-next-line @typescript-eslint/no-explicit-any
-    'competition_feedback' as any)
+      'competition_feedback' as any)
         .update({ total_points: 0 } as Record<string, unknown>)
         .eq('id', data.feedbackId)
     }

@@ -153,7 +153,7 @@ export function LeaderboardClient({ leaderboard, stats, activity }: Props) {
                       {leaderboard.map((entry) => (
                         <TableRow
                           key={entry.user_id}
-                          className={stats && entry.user_id === '' ? 'bg-orange-50' : ''}
+                          className={!entry.meets_requirements ? 'opacity-60' : ''}
                         >
                           <TableCell>
                             {entry.rank === 1 && <span className="text-lg">🥇</span>}
@@ -168,7 +168,12 @@ export function LeaderboardClient({ leaderboard, stats, activity }: Props) {
                                 <AvatarFallback className="text-xs">{getInitials(entry.user_name)}</AvatarFallback>
                               </Avatar>
                               <div>
-                                <div className="font-medium text-sm">{entry.user_name}</div>
+                                <div className="font-medium text-sm">
+                                  {entry.user_name}
+                                  {!entry.meets_requirements && (
+                                    <span className="ml-1.5 text-xs text-muted-foreground font-normal">(belum lengkap)</span>
+                                  )}
+                                </div>
                                 <div className="text-xs text-muted-foreground">{ROLE_LABELS[entry.user_role] || entry.user_role}</div>
                               </div>
                             </div>
