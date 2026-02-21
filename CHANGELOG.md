@@ -5,6 +5,30 @@ All notable changes to GAMA ERP will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.10.6] - 2026-02-22 - Co-Builder Bug Fixes & Scoring Cleanup
+
+### Security
+- **Auth on `markPointEventsSeen`** — now requires login and filters by user_id (was completely unguarded)
+- **Auth on `getAllCompetitionFeedback`** — requires login
+
+### Fixed
+- **Duplicate reversal math** — previous `duplicate_reversal` events excluded from sum, preventing over-reversal on repeated marking
+- **Re-review point inflation** — re-reviewing feedback now accounts for existing review points instead of creating cumulative diffs
+- **Scenario points** — uses scenario's `points_value` from database instead of hardcoded 20
+- **Soft-deleted feedback** — `getMyFeedback` now filters out inactive records
+- **Error toast on submit failure** — feedback form now shows error message instead of silently swallowing
+- **Performance** — removed `refresh_leaderboard` RPC call from header (was triggering on every page load)
+
+### Changed
+- **Leaderboard ranks by points only** — removed hard gate sorting that pushed unqualified users below qualified regardless of points. Requirements determine prize eligibility at competition end, not daily ranking
+- **Removed visual punishment** — no more opacity dimming or "(belum lengkap)" labels on leaderboard
+
+### Cleanup
+- Removed dead `meets_requirements` computation from leaderboard
+- Removed unused imports (`GripVertical`, `ExternalLink`, `Gift`)
+
+---
+
 ## [0.10.5] - 2026-02-21 - Co-Builder Competition Scoring Fairness
 
 ### Security
