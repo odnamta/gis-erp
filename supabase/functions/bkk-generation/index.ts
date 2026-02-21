@@ -51,9 +51,9 @@ Deno.serve(async (req) => {
     // 2. Parse + validate request
     const body: RequestBody = await req.json()
 
-    if (!body.description || !body.amount || !body.recipient_name) {
+    if (!body.jo_id || !body.description || !body.amount || !body.recipient_name) {
       return new Response(
-        JSON.stringify({ success: false, error: 'Missing required fields: description, amount, recipient_name' }),
+        JSON.stringify({ success: false, error: 'Missing required fields: jo_id, description, amount, recipient_name' }),
         { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
       )
     }
@@ -85,16 +85,15 @@ Deno.serve(async (req) => {
     const bkkNumber = `BKK-${year}-${sequence.toString().padStart(4, '0')}`
 
     // 4. Insert into bukti_kas_keluar
+    // Schema: requested_by (not created_by), status (not workflow_status), no recipient_name column
     const insertData = {
       bkk_number: bkkNumber,
-      jo_id: body.jo_id || null,
+      jo_id: body.jo_id,
       purpose: body.description,
       amount_requested: body.amount,
-      recipient_name: body.recipient_name,
-      notes: body.notes || null,
-      created_by: profile.id,
-      workflow_status: 'draft',
-      created_at: new Date().toISOString(),
+      notes: body.notes ? `${body.recipient_name} — ${body.notes}` : body.recipient_name,
+      requested_by: profile.user_id,
+      status: 'draft',
     }
 
     const { data, error } = await supabase

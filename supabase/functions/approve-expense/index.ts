@@ -109,9 +109,10 @@ Deno.serve(async (req) => {
       currentStatus = mapToWorkflowStatus(data.status)
       documentNumber = data.jo_number || document_id
     } else if (document_type === 'bkk') {
+      // BKK uses `status` column (not workflow_status)
       const { data, error } = await supabase
         .from('bukti_kas_keluar')
-        .select('id, workflow_status, bkk_number')
+        .select('id, status, bkk_number')
         .eq('id', document_id)
         .single()
 
@@ -122,7 +123,7 @@ Deno.serve(async (req) => {
         )
       }
 
-      currentStatus = (data.workflow_status || 'draft') as WorkflowStatus
+      currentStatus = mapToWorkflowStatus(data.status || 'draft')
       documentNumber = data.bkk_number || document_id
     }
 
@@ -143,32 +144,29 @@ Deno.serve(async (req) => {
       )
     }
 
-    // 5. Build update payload
+    // 5. Build update payload per document type
+    // Column availability differs by table:
+    //   PJO: checked_by/at, approved_by/at, rejected_by/at, rejection_reason (NO submitted_by/at)
+    //   JO:  submitted_by, checked_by/at, approved_by/at, rejected_by/at, rejection_reason (NO submitted_at)
+    //   BKK: approved_by/at, rejection_reason (NO submitted_by/at, checked_by/at)
     const now = new Date().toISOString()
-    const updateData: Record<string, unknown> = { updated_at: now }
-
-    if (action === 'submit') {
-      updateData.submitted_by = profile.id
-      updateData.submitted_at = now
-    } else if (action === 'check') {
-      updateData.checked_by = profile.id
-      updateData.checked_at = now
-    } else if (action === 'approve') {
-      updateData.approved_by = profile.id
-      updateData.approved_at = now
-    } else if (action === 'reject') {
-      updateData.rejected_by = profile.id
-      updateData.rejected_at = now
-      if (comment) updateData.rejection_reason = comment
-    }
 
     // 6. Update document
     if (document_type === 'bkk') {
-      updateData.workflow_status = targetStatus
+      const bkkUpdate: Record<string, unknown> = {
+        status: mapFromWorkflowStatus(targetStatus, 'bkk'),
+        updated_at: now,
+      }
+      if (action === 'approve') {
+        bkkUpdate.approved_by = profile.user_id
+        bkkUpdate.approved_at = now
+      } else if (action === 'reject') {
+        if (comment) bkkUpdate.rejection_reason = comment
+      }
 
       const { error } = await supabase
         .from('bukti_kas_keluar')
-        .update(updateData)
+        .update(bkkUpdate)
         .eq('id', document_id)
 
       if (error) {
@@ -178,11 +176,25 @@ Deno.serve(async (req) => {
         )
       }
     } else if (document_type === 'pjo') {
-      updateData.status = mapFromWorkflowStatus(targetStatus, 'pjo')
+      const pjoUpdate: Record<string, unknown> = {
+        status: mapFromWorkflowStatus(targetStatus, 'pjo'),
+        updated_at: now,
+      }
+      if (action === 'check') {
+        pjoUpdate.checked_by = profile.user_id
+        pjoUpdate.checked_at = now
+      } else if (action === 'approve') {
+        pjoUpdate.approved_by = profile.user_id
+        pjoUpdate.approved_at = now
+      } else if (action === 'reject') {
+        pjoUpdate.rejected_by = profile.user_id
+        pjoUpdate.rejected_at = now
+        if (comment) pjoUpdate.rejection_reason = comment
+      }
 
       const { error } = await supabase
         .from('proforma_job_orders')
-        .update(updateData)
+        .update(pjoUpdate)
         .eq('id', document_id)
 
       if (error) {
@@ -192,11 +204,27 @@ Deno.serve(async (req) => {
         )
       }
     } else if (document_type === 'jo') {
-      updateData.status = mapFromWorkflowStatus(targetStatus, 'jo')
+      const joUpdate: Record<string, unknown> = {
+        status: mapFromWorkflowStatus(targetStatus, 'jo'),
+        updated_at: now,
+      }
+      if (action === 'submit') {
+        joUpdate.submitted_by = profile.user_id
+      } else if (action === 'check') {
+        joUpdate.checked_by = profile.user_id
+        joUpdate.checked_at = now
+      } else if (action === 'approve') {
+        joUpdate.approved_by = profile.user_id
+        joUpdate.approved_at = now
+      } else if (action === 'reject') {
+        joUpdate.rejected_by = profile.user_id
+        joUpdate.rejected_at = now
+        if (comment) joUpdate.rejection_reason = comment
+      }
 
       const { error } = await supabase
         .from('job_orders')
-        .update(updateData)
+        .update(joUpdate)
         .eq('id', document_id)
 
       if (error) {
