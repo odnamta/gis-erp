@@ -5,6 +5,32 @@ All notable changes to GAMA ERP will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.10.5] - 2026-02-21 - Co-Builder Competition Scoring Fairness
+
+### Security
+- **Auth on co-builder pages** — bug tracker requires authentication, admin pages require owner/director/sysadmin role
+- **Server-side deadline enforcement** — feedback, scenario, and top5 submissions rejected after Mar 12 23:59:59 WIB
+- **Remove console.log invoice ID leak** — client component was logging invoice IDs to browser console
+
+### Fixed
+- **`active_days` calculation** — leaderboard fallback always returned 1; now correctly counts unique WIB dates
+- **Timezone: UTC → WIB** — first-of-day bonus, streak bonus, and active days calculations all use WIB (UTC+7) instead of UTC
+- **Self-collaboration exploit** — collaboration bonus (+5 pts) now requires referencing a different user's feedback
+- **Duplicate penalty incomplete** — marking feedback as duplicate now reverses ALL linked point events (base + bonuses), not just base points
+- **Scenario completion fraud** — server now validates at least 1 checkpoint is pass/fail (not all skip) and rating is 1-5
+
+### Changed
+- **Daily feedback cap** — max 5 submissions per user per WIB day to prevent spam
+- **Category multipliers removed** — suggestions (1.5x) and UX issues (1.25x) no longer get bonus multipliers; all categories scored equally by impact level only
+- **Hard gate minimum requirements** — users who haven't met requirements (10 active days, 5 feedback, 2 scenarios, top5) are ranked below all qualified users
+- **Leaderboard shows qualification status** — unqualified entries dimmed with "(belum lengkap)" label
+- **Renamed "Login 10 hari" → "Aktif 10 hari"** — honest label for what the metric actually measures
+
+### Data Audit
+- Audited all 90 existing feedback from 7 participants: 0 self-collaboration violations, 0 overpayment from category multipliers. No retroactive corrections needed.
+
+---
+
 ## [0.10.4] - 2026-02-21 - Supabase Edge Functions
 
 ### Added
