@@ -27,7 +27,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - **Scenario completion fraud** — server now validates at least 1 checkpoint is pass/fail (not all skip) and rating is 1-5
 
 ### Changed
-- **Daily feedback cap** — max 5 submissions per user per WIB day to prevent spam
+- **Daily feedback cap removed** — no limit on submissions; quality scoring and admin duplicate marking handle spam instead
 - **Category multipliers removed** — suggestions (1.5x) and UX issues (1.25x) no longer get bonus multipliers; all categories scored equally by impact level only
 - **Hard gate minimum requirements** — users who haven't met requirements (10 active days, 5 feedback, 2 scenarios, top5) are ranked below all qualified users
 - **Leaderboard shows qualification status** — unqualified entries dimmed with "(belum lengkap)" label
