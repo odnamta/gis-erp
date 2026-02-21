@@ -1,0 +1,241 @@
+// approve-expense — POST
+// Perform workflow transitions (submit/check/approve/reject) on PJO, JO, or BKK documents.
+// Ported from lib/workflow-service.ts performWorkflowTransition()
+
+import { corsHeaders, handleCorsOptions } from '../_shared/cors.ts'
+import { createUserClient, createServiceClient } from '../_shared/supabase.ts'
+import { getUserProfile } from '../_shared/auth.ts'
+import { logWorkflowTransition } from '../_shared/audit.ts'
+import {
+  WorkflowStatus,
+  WorkflowAction,
+  WorkflowDocumentType,
+  getTargetStatus,
+  canTransition,
+  mapToWorkflowStatus,
+  mapFromWorkflowStatus,
+} from '../_shared/workflow.ts'
+
+interface RequestBody {
+  document_type: WorkflowDocumentType
+  document_id: string
+  action: WorkflowAction
+  comment?: string
+}
+
+Deno.serve(async (req) => {
+  if (req.method === 'OPTIONS') return handleCorsOptions()
+
+  try {
+    if (req.method !== 'POST') {
+      return new Response(
+        JSON.stringify({ success: false, error: 'Method not allowed' }),
+        { status: 405, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+      )
+    }
+
+    // 1. Auth
+    const { profile, authHeader } = await getUserProfile(req)
+    const supabase = createUserClient(authHeader)
+    const serviceClient = createServiceClient()
+
+    // 2. Parse + validate request
+    const body: RequestBody = await req.json()
+    const { document_type, document_id, action, comment } = body
+
+    if (!document_type || !document_id || !action) {
+      return new Response(
+        JSON.stringify({ success: false, error: 'Missing required fields: document_type, document_id, action' }),
+        { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+      )
+    }
+
+    if (!['pjo', 'jo', 'bkk'].includes(document_type)) {
+      return new Response(
+        JSON.stringify({ success: false, error: 'Invalid document_type. Must be pjo, jo, or bkk' }),
+        { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+      )
+    }
+
+    if (!['submit', 'check', 'approve', 'reject'].includes(action)) {
+      return new Response(
+        JSON.stringify({ success: false, error: 'Invalid action. Must be submit, check, approve, or reject' }),
+        { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+      )
+    }
+
+    // Comment required for reject
+    if (action === 'reject' && !comment) {
+      return new Response(
+        JSON.stringify({ success: false, error: 'Comment is required when rejecting' }),
+        { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+      )
+    }
+
+    // 3. Fetch current document status
+    let currentStatus: WorkflowStatus = 'draft'
+    let documentNumber = document_id
+
+    if (document_type === 'pjo') {
+      const { data, error } = await supabase
+        .from('proforma_job_orders')
+        .select('id, status, pjo_number')
+        .eq('id', document_id)
+        .single()
+
+      if (error || !data) {
+        return new Response(
+          JSON.stringify({ success: false, error: 'PJO document not found' }),
+          { status: 404, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+        )
+      }
+
+      currentStatus = mapToWorkflowStatus(data.status)
+      documentNumber = data.pjo_number || document_id
+    } else if (document_type === 'jo') {
+      const { data, error } = await supabase
+        .from('job_orders')
+        .select('id, status, jo_number')
+        .eq('id', document_id)
+        .single()
+
+      if (error || !data) {
+        return new Response(
+          JSON.stringify({ success: false, error: 'JO document not found' }),
+          { status: 404, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+        )
+      }
+
+      currentStatus = mapToWorkflowStatus(data.status)
+      documentNumber = data.jo_number || document_id
+    } else if (document_type === 'bkk') {
+      const { data, error } = await supabase
+        .from('bukti_kas_keluar')
+        .select('id, workflow_status, bkk_number')
+        .eq('id', document_id)
+        .single()
+
+      if (error || !data) {
+        return new Response(
+          JSON.stringify({ success: false, error: 'BKK document not found' }),
+          { status: 404, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+        )
+      }
+
+      currentStatus = (data.workflow_status || 'draft') as WorkflowStatus
+      documentNumber = data.bkk_number || document_id
+    }
+
+    // 4. Validate transition
+    const targetStatus = getTargetStatus(action, currentStatus)
+
+    if (!targetStatus) {
+      return new Response(
+        JSON.stringify({ success: false, error: `Cannot ${action} from status '${currentStatus}'` }),
+        { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+      )
+    }
+
+    if (!canTransition(document_type, currentStatus, targetStatus, profile.role)) {
+      return new Response(
+        JSON.stringify({ success: false, error: `Role '${profile.role}' cannot ${action} this document` }),
+        { status: 403, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+      )
+    }
+
+    // 5. Build update payload
+    const now = new Date().toISOString()
+    const updateData: Record<string, unknown> = { updated_at: now }
+
+    if (action === 'submit') {
+      updateData.submitted_by = profile.id
+      updateData.submitted_at = now
+    } else if (action === 'check') {
+      updateData.checked_by = profile.id
+      updateData.checked_at = now
+    } else if (action === 'approve') {
+      updateData.approved_by = profile.id
+      updateData.approved_at = now
+    } else if (action === 'reject') {
+      updateData.rejected_by = profile.id
+      updateData.rejected_at = now
+      if (comment) updateData.rejection_reason = comment
+    }
+
+    // 6. Update document
+    if (document_type === 'bkk') {
+      updateData.workflow_status = targetStatus
+
+      const { error } = await supabase
+        .from('bukti_kas_keluar')
+        .update(updateData)
+        .eq('id', document_id)
+
+      if (error) {
+        return new Response(
+          JSON.stringify({ success: false, error: `Update failed: ${error.message}` }),
+          { status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+        )
+      }
+    } else if (document_type === 'pjo') {
+      updateData.status = mapFromWorkflowStatus(targetStatus, 'pjo')
+
+      const { error } = await supabase
+        .from('proforma_job_orders')
+        .update(updateData)
+        .eq('id', document_id)
+
+      if (error) {
+        return new Response(
+          JSON.stringify({ success: false, error: `Update failed: ${error.message}` }),
+          { status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+        )
+      }
+    } else if (document_type === 'jo') {
+      updateData.status = mapFromWorkflowStatus(targetStatus, 'jo')
+
+      const { error } = await supabase
+        .from('job_orders')
+        .update(updateData)
+        .eq('id', document_id)
+
+      if (error) {
+        return new Response(
+          JSON.stringify({ success: false, error: `Update failed: ${error.message}` }),
+          { status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+        )
+      }
+    }
+
+    // 7. Audit log
+    await logWorkflowTransition(
+      serviceClient,
+      profile,
+      document_type,
+      document_id,
+      document_type.toUpperCase(),
+      documentNumber,
+      action,
+      currentStatus,
+      targetStatus,
+      comment
+    )
+
+    return new Response(
+      JSON.stringify({
+        success: true,
+        new_status: targetStatus,
+        document_number: documentNumber,
+      }),
+      { status: 200, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+    )
+  } catch (err) {
+    const message = err instanceof Error ? err.message : 'Internal server error'
+    const status = message.includes('Authorization') || message.includes('token') ? 401 : 500
+
+    return new Response(
+      JSON.stringify({ success: false, error: message }),
+      { status, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+    )
+  }
+})
