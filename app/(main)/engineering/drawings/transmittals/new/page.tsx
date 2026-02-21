@@ -1,11 +1,14 @@
-'use client';
+import { redirect } from 'next/navigation'
+import { isExplorerMode } from '@/lib/auth-utils'
+import { TransmittalForm } from '@/components/drawings/transmittal-form'
 
-// New Transmittal Page
-// Create a new drawing transmittal
+export default async function NewTransmittalPage() {
+  // Explorer mode users should not create transmittals
+  const explorer = await isExplorerMode()
+  if (explorer) {
+    redirect('/engineering/drawings/transmittals')
+  }
 
-import { TransmittalForm } from '@/components/drawings/transmittal-form';
-
-export default function NewTransmittalPage() {
   return (
     <div className="container mx-auto py-6">
       <div className="mb-6">
@@ -17,5 +20,5 @@ export default function NewTransmittalPage() {
 
       <TransmittalForm />
     </div>
-  );
+  )
 }

@@ -779,6 +779,9 @@ export async function reviewFeedback(data: {
     const multiplierMap = { helpful: 1, important: 2, critical: 3 }
     const multiplier = multiplierMap[data.impactLevel]
 
+    // Category bonus: reward workflow/process suggestions more than simple bug reports
+    const categoryMultiplierMap: Record<string, number> = { suggestion: 1.5, ux_issue: 1.25 }
+
     // Get current feedback
     const { data: current } = await supabase
       .from(// eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -790,7 +793,8 @@ export async function reviewFeedback(data: {
     if (!current) return { success: false, error: 'Feedback not found' }
 
     const fb = current as unknown as CompetitionFeedback
-    const newTotal = fb.base_points * multiplier
+    const categoryMultiplier = categoryMultiplierMap[fb.category] || 1
+    const newTotal = Math.round(fb.base_points * multiplier * categoryMultiplier)
     const pointsDiff = newTotal - fb.total_points
 
     // Update feedback
@@ -815,7 +819,7 @@ export async function reviewFeedback(data: {
         user_id: fb.user_id,
         event_type: 'feedback_reviewed',
         points: pointsDiff,
-        description: `Feedback dinilai ${data.impactLevel} (x${multiplier})`,
+        description: `Feedback dinilai ${data.impactLevel} (x${multiplier}${categoryMultiplier > 1 ? ` +${Math.round((categoryMultiplier - 1) * 100)}% ${fb.category}` : ''})`,
         reference_id: data.feedbackId,
       } as Record<string, unknown>)
     }

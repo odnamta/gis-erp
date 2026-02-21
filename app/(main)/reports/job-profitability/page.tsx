@@ -81,7 +81,7 @@ async function JobProfitabilityContent() {
   const profile = await getUserProfile()
 
   // Check permissions
-  if (profile && !canAccessReport(profile.role, 'profit-loss')) {
+  if (profile && !canAccessReport(profile.role, 'job-profitability')) {
     return (
       <div className="space-y-6">
         <div className="flex items-center gap-4">

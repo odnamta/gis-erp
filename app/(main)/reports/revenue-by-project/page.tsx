@@ -58,7 +58,7 @@ async function fetchReportData(): Promise<RevenueByProjectReport | null> {
 async function RevenueByProjectContent() {
   const profile = await getUserProfile()
 
-  if (profile && !canAccessReport(profile.role, 'revenue-project')) {
+  if (profile && !canAccessReport(profile.role, 'revenue-by-project')) {
     return (
       <div className="space-y-6">
         <div className="flex items-center gap-4">

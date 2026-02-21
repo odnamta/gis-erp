@@ -145,7 +145,7 @@ export function JmpDetailView({ jmp, currentUserId }: JmpDetailViewProps) {
               Start Journey
             </Button>
           )}
-          <Button variant="outline">
+          <Button variant="outline" onClick={() => window.print()}>
             <Printer className="mr-2 h-4 w-4" />
             Print
           </Button>

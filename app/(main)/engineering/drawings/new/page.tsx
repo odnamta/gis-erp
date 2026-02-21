@@ -1,11 +1,14 @@
-'use client';
+import { redirect } from 'next/navigation'
+import { isExplorerMode } from '@/lib/auth-utils'
+import { DrawingForm } from '@/components/drawings/drawing-form'
 
-// New Drawing Page
-// Create a new engineering drawing
+export default async function NewDrawingPage() {
+  // Explorer mode users should not create drawings
+  const explorer = await isExplorerMode()
+  if (explorer) {
+    redirect('/engineering/drawings')
+  }
 
-import { DrawingForm } from '@/components/drawings/drawing-form';
-
-export default function NewDrawingPage() {
   return (
     <div className="container mx-auto py-6">
       <div className="mb-6">
@@ -17,5 +20,5 @@ export default function NewDrawingPage() {
 
       <DrawingForm mode="create" />
     </div>
-  );
+  )
 }

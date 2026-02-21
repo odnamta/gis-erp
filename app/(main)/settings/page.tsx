@@ -57,8 +57,8 @@ export default async function SettingsPage() {
         </p>
       </div>
 
-      {/* Manager Settings - Available to managers */}
-      {isManager && !isAdmin && (
+      {/* Manager Settings - Available to managers only (explorers see admin sections) */}
+      {isManager && !isAdmin && !explorerReadOnly && (
         <div className="space-y-4">
           <h3 className="text-lg font-semibold text-muted-foreground">Department</h3>
           <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
@@ -93,8 +93,8 @@ export default async function SettingsPage() {
         </div>
       )}
 
-      {/* Admin Settings - Full access for owner, director, sysadmin */}
-      {isAdmin && (
+      {/* Admin Settings - Full access for owner, director, sysadmin (read-only for explorers) */}
+      {(isAdmin || explorerReadOnly) && (
         <>
           <div className="space-y-4">
             <h3 className="text-lg font-semibold text-muted-foreground">Company</h3>

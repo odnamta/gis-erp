@@ -137,6 +137,26 @@ export function DrawingForm({ drawing, mode }: DrawingFormProps) {
       if (mode === 'create') {
         const result = await createDrawing(formData);
         if (result.success && result.data) {
+          // Upload file to Supabase storage if selected
+          if (selectedFile) {
+            const supabase = createClient();
+            const fileExt = selectedFile.name.split('.').pop();
+            const filePath = `drawings/${result.data.id}/original.${fileExt}`;
+            const { error: uploadError } = await supabase.storage
+              .from('documents')
+              .upload(filePath, selectedFile, { upsert: true });
+
+            if (!uploadError) {
+              const { data: urlData } = supabase.storage
+                .from('documents')
+                .getPublicUrl(filePath);
+              // Update drawing record with file URL
+              await supabase
+                .from('drawings')
+                .update({ file_url: urlData.publicUrl })
+                .eq('id', result.data.id);
+            }
+          }
           toast.success('Drawing created successfully');
           router.push(`/engineering/drawings/${result.data.id}`);
         } else {
