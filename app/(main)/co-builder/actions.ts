@@ -10,8 +10,6 @@ import { calculateEffortLevel } from '@/lib/co-builder-utils'
 // ============================================================
 
 const COMPETITION_END = new Date('2026-03-12T23:59:59+07:00')
-const DAILY_FEEDBACK_LIMIT = 5
-
 function isCompetitionOver(): boolean {
   return new Date() > COMPETITION_END
 }
@@ -151,7 +149,7 @@ export async function submitCompetitionFeedback(data: {
       return { success: false, error: 'Deskripsi minimal 20 karakter' }
     }
 
-    // Daily submission cap (WIB timezone)
+    // Count today's submissions for first-of-day bonus check (WIB timezone)
     const todayWIB = getTodayWIB()
     const { start: dayStart, end: dayEnd } = getWIBDayBounds(todayWIB)
     const { count: todayTotal } = await supabase
@@ -161,10 +159,6 @@ export async function submitCompetitionFeedback(data: {
       .eq('user_id', user.id)
       .gte('created_at', dayStart)
       .lte('created_at', dayEnd)
-
-    if (todayTotal && todayTotal >= DAILY_FEEDBACK_LIMIT) {
-      return { success: false, error: `Maksimal ${DAILY_FEEDBACK_LIMIT} feedback per hari. Coba lagi besok!` }
-    }
 
     // Calculate effort level
     const { level, basePoints } = calculateEffortLevel(data)
