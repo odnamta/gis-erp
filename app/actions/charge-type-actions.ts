@@ -1,6 +1,7 @@
 'use server';
 
 import { createClient } from '@/lib/supabase/server';
+import { getUserProfile } from '@/lib/permissions-server';
 import { revalidatePath } from 'next/cache';
 import {
   AgencyChargeType,
@@ -13,6 +14,8 @@ import {
   transformChargeTypeRow,
   validateChargeTypeData,
 } from '@/lib/cost-revenue-utils';
+
+const CHARGE_TYPE_ADMIN_ROLES = ['owner', 'director', 'sysadmin', 'finance_manager'];
 
 // =====================================================
 // TYPES
@@ -171,6 +174,11 @@ export async function createChargeType(
   formData: ChargeTypeFormData
 ): Promise<ActionResult<AgencyChargeType>> {
   try {
+    const profile = await getUserProfile();
+    if (!profile || !CHARGE_TYPE_ADMIN_ROLES.includes(profile.role)) {
+      return { success: false, error: 'Unauthorized' };
+    }
+
     // Validate form data
     const validation = validateChargeTypeData(formData);
     if (!validation.isValid) {
@@ -245,6 +253,11 @@ export async function updateChargeType(
   formData: Partial<ChargeTypeFormData>
 ): Promise<ActionResult<AgencyChargeType>> {
   try {
+    const profile = await getUserProfile();
+    if (!profile || !CHARGE_TYPE_ADMIN_ROLES.includes(profile.role)) {
+      return { success: false, error: 'Unauthorized' };
+    }
+
     const supabase = await createClient();
 
     // Get existing charge type
@@ -330,6 +343,11 @@ export async function updateChargeType(
  */
 export async function deleteChargeType(id: string): Promise<ActionResult<void>> {
   try {
+    const profile = await getUserProfile();
+    if (!profile || !CHARGE_TYPE_ADMIN_ROLES.includes(profile.role)) {
+      return { success: false, error: 'Unauthorized' };
+    }
+
     const supabase = await createClient();
 
     // Check if charge type exists
@@ -367,6 +385,11 @@ export async function deleteChargeType(id: string): Promise<ActionResult<void>> 
  */
 export async function restoreChargeType(id: string): Promise<ActionResult<AgencyChargeType>> {
   try {
+    const profile = await getUserProfile();
+    if (!profile || !CHARGE_TYPE_ADMIN_ROLES.includes(profile.role)) {
+      return { success: false, error: 'Unauthorized' };
+    }
+
     const supabase = await createClient();
 
     const { data, error } = await supabase
@@ -398,6 +421,11 @@ export async function restoreChargeType(id: string): Promise<ActionResult<Agency
  */
 export async function reorderChargeTypes(orderedIds: string[]): Promise<ActionResult<void>> {
   try {
+    const profile = await getUserProfile();
+    if (!profile || !CHARGE_TYPE_ADMIN_ROLES.includes(profile.role)) {
+      return { success: false, error: 'Unauthorized' };
+    }
+
     const supabase = await createClient();
 
     // Update display_order for each charge type

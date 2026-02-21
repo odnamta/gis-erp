@@ -12,6 +12,7 @@
  */
 
 import { createClient } from '@/lib/supabase/server';
+import { getUserProfile } from '@/lib/permissions-server';
 import {
   SystemLogEntry,
   SystemLogFilters,
@@ -25,6 +26,16 @@ import {
   MAX_PAGE_SIZE,
   calculateLogStats,
 } from '@/lib/system-log-utils';
+
+const SYSTEM_LOG_ROLES = ['owner', 'director', 'sysadmin'];
+
+async function requireSystemLogAccess(): Promise<{ authorized: true } | { authorized: false; error: string }> {
+  const profile = await getUserProfile();
+  if (!profile || !SYSTEM_LOG_ROLES.includes(profile.role)) {
+    return { authorized: false, error: 'Unauthorized: system logs require owner/director/sysadmin role' };
+  }
+  return { authorized: true };
+}
 
 // =====================================================
 // TYPES
@@ -55,8 +66,11 @@ export async function getSystemLogs(
   pagination?: Partial<SystemLogPagination>
 ): Promise<ActionResult<PaginatedSystemLogs>> {
   try {
+    const auth = await requireSystemLogAccess();
+    if (!auth.authorized) return { success: false, error: auth.error };
+
     const supabase = await createClient();
-    
+
     // Validate and set pagination defaults
     const page = Math.max(1, pagination?.page ?? 1);
     const pageSize = Math.min(Math.max(1, pagination?.page_size ?? DEFAULT_PAGE_SIZE), MAX_PAGE_SIZE);
@@ -160,8 +174,11 @@ export async function getLogStatistics(
   filters?: SystemLogFilters
 ): Promise<ActionResult<SystemLogStats>> {
   try {
+    const auth = await requireSystemLogAccess();
+    if (!auth.authorized) return { success: false, error: auth.error };
+
     const supabase = await createClient();
-    
+
     // Build query with filters - using type assertion as system_logs table may not be in generated types yet
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     let query = (supabase as any).from('system_logs').select('*');
@@ -219,10 +236,13 @@ export async function getLogsByRequestId(
   requestId: string
 ): Promise<ActionResult<SystemLogEntry[]>> {
   try {
+    const auth = await requireSystemLogAccess();
+    if (!auth.authorized) return { success: false, error: auth.error };
+
     if (!requestId) {
       return { success: false, error: 'Request ID is required' };
     }
-    
+
     const supabase = await createClient();
     
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -249,8 +269,11 @@ export async function getRecentErrors(
   limit: number = 10
 ): Promise<ActionResult<SystemLogEntry[]>> {
   try {
+    const auth = await requireSystemLogAccess();
+    if (!auth.authorized) return { success: false, error: auth.error };
+
     const supabase = await createClient();
-    
+
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const { data, error } = await (supabase as any)
       .from('system_logs')
@@ -277,6 +300,9 @@ export async function getLogsAtOrAboveLevel(
   pagination?: Partial<SystemLogPagination>
 ): Promise<ActionResult<PaginatedSystemLogs>> {
   try {
+    const auth = await requireSystemLogAccess();
+    if (!auth.authorized) return { success: false, error: auth.error };
+
     // Map levels to severity (lower = more severe)
     const levelSeverity: Record<SystemLogLevel, number> = {
       error: 1,
@@ -309,8 +335,11 @@ export async function exportSystemLogs(
   maxRecords: number = 10000
 ): Promise<ActionResult<string>> {
   try {
+    const auth = await requireSystemLogAccess();
+    if (!auth.authorized) return { success: false, error: auth.error };
+
     const supabase = await createClient();
-    
+
     // Build query with filters - using type assertion as system_logs table may not be in generated types yet
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     let query = (supabase as any)
@@ -398,6 +427,9 @@ export async function getSystemLogFilterOptions(): Promise<ActionResult<{
   levels: SystemLogLevel[];
 }>> {
   try {
+    const auth = await requireSystemLogAccess();
+    if (!auth.authorized) return { success: false, error: auth.error };
+
     const supabase = await createClient();
     
     // Get distinct sources - using type assertion as system_logs table may not be in generated types yet
@@ -442,10 +474,13 @@ export async function getSystemLogById(
   id: string
 ): Promise<ActionResult<SystemLogEntry>> {
   try {
+    const auth = await requireSystemLogAccess();
+    if (!auth.authorized) return { success: false, error: auth.error };
+
     if (!id) {
       return { success: false, error: 'Log ID is required' };
     }
-    
+
     const supabase = await createClient();
     
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
