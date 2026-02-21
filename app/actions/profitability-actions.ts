@@ -1,6 +1,7 @@
 'use server';
 
 import { createClient } from '@/lib/supabase/server';
+import { getUserProfile } from '@/lib/permissions-server';
 import {
   ShipmentProfitability,
   ShipmentProfitabilityRow,
@@ -66,6 +67,11 @@ export async function getBookingFinancialSummary(
   bookingId: string
 ): Promise<ActionResult<BookingFinancialSummary>> {
   try {
+    const profile = await getUserProfile();
+    if (!profile) {
+      return { success: false, error: 'Unauthorized' };
+    }
+
     const supabase = await createClient();
 
     // Get all revenue for the booking
@@ -148,6 +154,11 @@ export async function getShipmentProfitability(
   filters?: ProfitabilityFilters
 ): Promise<ActionResult<ShipmentProfitability[]>> {
   try {
+    const profile = await getUserProfile();
+    if (!profile) {
+      return { success: false, error: 'Unauthorized' };
+    }
+
     const supabase = await createClient();
 
     // Query the profitability view
@@ -210,6 +221,11 @@ export async function getUnbilledRevenue(
   filters?: UnbilledRevenueFilters
 ): Promise<ActionResult<UnbilledRevenueByBooking[]>> {
   try {
+    const profile = await getUserProfile();
+    if (!profile) {
+      return { success: false, error: 'Unauthorized' };
+    }
+
     const supabase = await createClient();
 
     // Query unbilled revenue items with booking info

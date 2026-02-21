@@ -13,6 +13,7 @@
  */
 
 import { createClient } from '@/lib/supabase/server';
+import { getUserProfile } from '@/lib/permissions-server';
 import {
   AuditLogEntry,
   CreateAuditLogInput,
@@ -27,6 +28,8 @@ import {
   MAX_PAGE_SIZE,
   calculateChangedFields,
 } from '@/lib/system-audit-utils';
+
+const ADMIN_ROLES = ['owner', 'director', 'sysadmin'];
 
 // =====================================================
 // TYPES
@@ -62,8 +65,13 @@ export async function getAuditLogs(
   pagination?: Partial<AuditLogPagination>
 ): Promise<ActionResult<PaginatedAuditLogs>> {
   try {
+    const profile = await getUserProfile();
+    if (!profile || !ADMIN_ROLES.includes(profile.role)) {
+      return { success: false, error: 'Unauthorized' };
+    }
+
     const supabase = await createClient();
-    
+
     // Validate and set pagination defaults
     const page = Math.max(1, pagination?.page ?? 1);
     const pageSize = Math.min(Math.max(1, pagination?.page_size ?? DEFAULT_PAGE_SIZE), MAX_PAGE_SIZE);
@@ -178,6 +186,11 @@ export async function getEntityHistory(
   limit?: number
 ): Promise<ActionResult<AuditLogEntry[]>> {
   try {
+    const profile = await getUserProfile();
+    if (!profile || !ADMIN_ROLES.includes(profile.role)) {
+      return { success: false, error: 'Unauthorized' };
+    }
+
     if (!entityType || !entityId) {
       return { success: false, error: 'Entity type and ID are required' };
     }
@@ -216,6 +229,11 @@ export async function createManualAuditEntry(
   input: CreateAuditLogInput
 ): Promise<ActionResult<AuditLogEntry>> {
   try {
+    const profile = await getUserProfile();
+    if (!profile || !ADMIN_ROLES.includes(profile.role)) {
+      return { success: false, error: 'Unauthorized' };
+    }
+
     // Validate required fields
     if (!input.action) {
       return { success: false, error: 'Action is required' };
@@ -312,8 +330,13 @@ export async function getAuditLogStats(
   filters?: AuditLogFilters
 ): Promise<ActionResult<AuditLogStats>> {
   try {
+    const profile = await getUserProfile();
+    if (!profile || !ADMIN_ROLES.includes(profile.role)) {
+      return { success: false, error: 'Unauthorized' };
+    }
+
     const supabase = await createClient();
-    
+
     // Build base query with filters
     let baseQuery = supabase.from('audit_log' as AuditLogTable as 'activity_log').select('*');
     
@@ -416,8 +439,13 @@ export async function exportAuditLogs(
   maxRecords: number = 10000
 ): Promise<ActionResult<string>> {
   try {
+    const profile = await getUserProfile();
+    if (!profile || !ADMIN_ROLES.includes(profile.role)) {
+      return { success: false, error: 'Unauthorized' };
+    }
+
     const supabase = await createClient();
-    
+
     // Build query with filters
     let query = supabase
       .from('audit_log' as AuditLogTable as 'activity_log')
@@ -518,8 +546,13 @@ export async function getAuditLogFilterOptions(): Promise<ActionResult<{
   actions: string[];
 }>> {
   try {
+    const profile = await getUserProfile();
+    if (!profile || !ADMIN_ROLES.includes(profile.role)) {
+      return { success: false, error: 'Unauthorized' };
+    }
+
     const supabase = await createClient();
-    
+
     // Get distinct modules - using activity_log's document_type as proxy
     const { data: moduleData } = await supabase
       .from('activity_log')

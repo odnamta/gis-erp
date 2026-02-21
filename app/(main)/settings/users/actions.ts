@@ -15,8 +15,17 @@ import { revalidatePath } from 'next/cache'
  */
 export async function getPendingRoleRequests(): Promise<RoleRequestWithUser[]> {
   try {
+    // Check admin role
+    const adminProfile = await getUserProfile()
+    if (!adminProfile) {
+      return []
+    }
+    if (!adminProfile.can_manage_users) {
+      return []
+    }
+
     const supabase = await createClient()
-    
+
     // Using type cast because role_requests table is not yet in generated types
     const { data, error } = await supabase
       .from('role_requests' as 'activity_log')

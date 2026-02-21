@@ -1,6 +1,7 @@
 'use server'
 
 import { createClient } from '@/lib/supabase/server'
+import { getUserProfile } from '@/lib/permissions-server'
 import { revalidatePath } from 'next/cache'
 import { z } from 'zod'
 import { toRomanMonth, calculateProfit } from '@/lib/pjo-utils'
@@ -72,6 +73,11 @@ const pjoSchema = z.object({
 export type PJOFormData = z.infer<typeof pjoSchema>
 
 export async function generatePJONumber(): Promise<string> {
+  const profile = await getUserProfile()
+  if (!profile) {
+    throw new Error('Unauthorized')
+  }
+
   const supabase = await createClient()
   const now = new Date()
   const year = now.getFullYear()
@@ -100,6 +106,11 @@ export async function generatePJONumber(): Promise<string> {
 }
 
 export async function createPJO(data: PJOFormData): Promise<{ error?: string; id?: string }> {
+  const profile = await getUserProfile()
+  if (!profile) {
+    return { error: 'Unauthorized' }
+  }
+
   const validation = pjoSchema.safeParse(data)
   if (!validation.success) {
     return { error: validation.error.issues[0].message }
@@ -245,6 +256,11 @@ export async function updatePJO(
   id: string,
   data: PJOFormData
 ): Promise<{ error?: string }> {
+  const profile = await getUserProfile()
+  if (!profile) {
+    return { error: 'Unauthorized' }
+  }
+
   const validation = pjoSchema.safeParse(data)
   if (!validation.success) {
     return { error: validation.error.issues[0].message }
@@ -460,6 +476,11 @@ export async function updatePJO(
 }
 
 export async function deletePJO(id: string): Promise<{ error?: string }> {
+  const profile = await getUserProfile()
+  if (!profile) {
+    return { error: 'Unauthorized' }
+  }
+
   const supabase = await createClient()
 
   const { data: existingPJO, error: fetchError } = await supabase
@@ -491,6 +512,11 @@ export async function deletePJO(id: string): Promise<{ error?: string }> {
 }
 
 export async function submitForApproval(id: string): Promise<{ error?: string }> {
+  const profile = await getUserProfile()
+  if (!profile) {
+    return { error: 'Unauthorized' }
+  }
+
   const supabase = await createClient()
 
   const { data: existingPJO, error: fetchError } = await supabase
@@ -539,6 +565,11 @@ export async function submitForApproval(id: string): Promise<{ error?: string }>
 }
 
 export async function approvePJO(id: string): Promise<{ error?: string; blocked?: boolean; blockReason?: string }> {
+  const profile = await getUserProfile()
+  if (!profile) {
+    return { error: 'Unauthorized' }
+  }
+
   const supabase = await createClient()
 
   const { data: { user } } = await supabase.auth.getUser()
@@ -623,6 +654,11 @@ export async function approvePJO(id: string): Promise<{ error?: string; blocked?
 }
 
 export async function rejectPJO(id: string, reason: string): Promise<{ error?: string }> {
+  const profile = await getUserProfile()
+  if (!profile) {
+    return { error: 'Unauthorized' }
+  }
+
   const supabase = await createClient()
 
   if (!reason.trim()) {
@@ -704,6 +740,11 @@ export async function confirmCostItem(
   actualAmount: number,
   justification?: string
 ): Promise<{ success: boolean; error?: string }> {
+  const profile = await getUserProfile()
+  if (!profile) {
+    return { success: false, error: 'Unauthorized' }
+  }
+
   const supabase = await createClient()
   
   const { data: { user } } = await supabase.auth.getUser()
@@ -860,6 +901,18 @@ export async function getCostConfirmationStatus(pjoId: string): Promise<{
   totalEstimated: number
   totalActual: number
 }> {
+  const profile = await getUserProfile()
+  if (!profile) {
+    return {
+      confirmed: 0,
+      total: 0,
+      allConfirmed: false,
+      hasOverruns: false,
+      totalEstimated: 0,
+      totalActual: 0,
+    }
+  }
+
   const supabase = await createClient()
 
   const { data: costItems, error } = await supabase

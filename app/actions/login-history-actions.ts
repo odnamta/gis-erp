@@ -14,6 +14,7 @@
  */
 
 import { createClient } from '@/lib/supabase/server';
+import { getUserProfile } from '@/lib/permissions-server';
 import {
   LoginHistoryEntry,
   LoginHistoryFilters,
@@ -32,6 +33,8 @@ import {
   calculateSessionStatistics,
   exportToCsv,
 } from '@/lib/login-history-utils';
+
+const ADMIN_ROLES = ['owner', 'director', 'sysadmin'];
 
 // =====================================================
 // TYPES
@@ -64,8 +67,13 @@ export async function getLoginHistory(
   pagination?: Partial<LoginHistoryPagination>
 ): Promise<ActionResult<PaginatedLoginHistory>> {
   try {
+    const profile = await getUserProfile();
+    if (!profile || !ADMIN_ROLES.includes(profile.role)) {
+      return { success: false, error: 'Unauthorized' };
+    }
+
     const supabase = await createClient();
-    
+
     // Validate and set pagination defaults
     const page = Math.max(1, pagination?.page ?? 1);
     const pageSize = Math.min(Math.max(1, pagination?.page_size ?? DEFAULT_PAGE_SIZE), MAX_PAGE_SIZE);
@@ -153,10 +161,15 @@ export async function getUserSessionStats(
   userId: string
 ): Promise<ActionResult<SessionStatistics>> {
   try {
+    const profile = await getUserProfile();
+    if (!profile || !ADMIN_ROLES.includes(profile.role)) {
+      return { success: false, error: 'Unauthorized' };
+    }
+
     if (!userId) {
       return { success: false, error: 'User ID is required' };
     }
-    
+
     const supabase = await createClient();
     
     // Fetch all login history for the user
@@ -282,12 +295,17 @@ export async function recordFailedLogin(
   input: RecordFailedLoginInput
 ): Promise<ActionResult<LoginHistoryEntry>> {
   try {
+    const profile = await getUserProfile();
+    if (!profile || !ADMIN_ROLES.includes(profile.role)) {
+      return { success: false, error: 'Unauthorized' };
+    }
+
     if (!input.failure_reason) {
       return { success: false, error: 'Failure reason is required' };
     }
-    
+
     const supabase = await createClient();
-    
+
     // Create failed login entry using utility function
     const failedEntry = createFailedLoginInput(input);
     
@@ -320,8 +338,13 @@ export async function exportLoginHistory(
   maxRecords: number = 10000
 ): Promise<ActionResult<string>> {
   try {
+    const profile = await getUserProfile();
+    if (!profile || !ADMIN_ROLES.includes(profile.role)) {
+      return { success: false, error: 'Unauthorized' };
+    }
+
     const supabase = await createClient();
-    
+
     // Build query with filters
     let query = supabase
       .from('login_history' as AnyTable)
@@ -381,8 +404,13 @@ export async function getLoginHistoryFilterOptions(): Promise<ActionResult<{
   operatingSystems: string[];
 }>> {
   try {
+    const profile = await getUserProfile();
+    if (!profile || !ADMIN_ROLES.includes(profile.role)) {
+      return { success: false, error: 'Unauthorized' };
+    }
+
     const supabase = await createClient();
-    
+
     // Get distinct login methods
     const { data: methodData } = await supabase
       .from('login_history' as AnyTable)
@@ -435,8 +463,13 @@ export async function getLoginHistoryFilterOptions(): Promise<ActionResult<{
  */
 export async function getActiveSessions(): Promise<ActionResult<LoginHistoryEntry[]>> {
   try {
+    const profile = await getUserProfile();
+    if (!profile || !ADMIN_ROLES.includes(profile.role)) {
+      return { success: false, error: 'Unauthorized' };
+    }
+
     const supabase = await createClient();
-    
+
     const { data, error } = await supabase
       .from('login_history' as AnyTable)
       .select('*')
@@ -461,8 +494,13 @@ export async function getRecentFailedLogins(
   limit: number = 50
 ): Promise<ActionResult<LoginHistoryEntry[]>> {
   try {
+    const profile = await getUserProfile();
+    if (!profile || !ADMIN_ROLES.includes(profile.role)) {
+      return { success: false, error: 'Unauthorized' };
+    }
+
     const supabase = await createClient();
-    
+
     const cutoffTime = new Date();
     cutoffTime.setMinutes(cutoffTime.getMinutes() - withinMinutes);
     
@@ -496,8 +534,13 @@ export async function getLoginHistorySummary(
   averageSessionDuration: number;
 }>> {
   try {
+    const profile = await getUserProfile();
+    if (!profile || !ADMIN_ROLES.includes(profile.role)) {
+      return { success: false, error: 'Unauthorized' };
+    }
+
     const supabase = await createClient();
-    
+
     const startDate = new Date();
     startDate.setDate(startDate.getDate() - days);
     

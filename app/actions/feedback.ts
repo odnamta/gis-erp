@@ -17,6 +17,7 @@ import type {
   Severity,
 } from '@/types/feedback';
 import { validateFeedbackForm } from '@/lib/feedback-utils';
+import { getUserProfile } from '@/lib/permissions-server';
 import {
   notifyNewFeedback,
   notifyFeedbackStatusChange,
@@ -138,6 +139,12 @@ export async function uploadScreenshot(
 ): Promise<FeedbackActionResult<Screenshot>> {
   try {
     const supabase = await createClient();
+
+    // Check basic auth
+    const profile = await getUserProfile();
+    if (!profile) {
+      return { success: false, error: 'Unauthorized' };
+    }
 
     // Convert data URL to blob
     const base64Data = dataUrl.split(',')[1];
@@ -355,10 +362,16 @@ export async function getAllFeedback(
 export async function getFeedbackSummary(): Promise<FeedbackActionResult<FeedbackSummary>> {
   try {
     const supabase = await createClient();
-    
+
     const { data: { user } } = await supabase.auth.getUser();
     if (!user) {
       return { success: false, error: 'You must be logged in' };
+    }
+
+    // Check admin role
+    const profile = await getUserProfile();
+    if (!profile || !['owner', 'director', 'sysadmin'].includes(profile.role)) {
+      return { success: false, error: 'Unauthorized' };
     }
 
     // Get counts in parallel
@@ -564,10 +577,16 @@ export async function markAsDuplicate(
 ): Promise<FeedbackActionResult> {
   try {
     const supabase = await createClient();
-    
+
     const { data: { user } } = await supabase.auth.getUser();
     if (!user) {
       return { success: false, error: 'You must be logged in' };
+    }
+
+    // Check admin role
+    const profile = await getUserProfile();
+    if (!profile || !['owner', 'director', 'sysadmin'].includes(profile.role)) {
+      return { success: false, error: 'Unauthorized' };
     }
 
     const { error } = await supabase
@@ -774,7 +793,13 @@ export async function getFeedbackHistory(
 }>>> {
   try {
     const supabase = await createClient();
-    
+
+    // Check admin role
+    const profile = await getUserProfile();
+    if (!profile || !['owner', 'director', 'sysadmin'].includes(profile.role)) {
+      return { success: false, error: 'Unauthorized' };
+    }
+
     const { data, error } = await supabase
       .from('feedback_status_history')
       .select('id, old_status, new_status, changed_by_name, changed_at, notes')

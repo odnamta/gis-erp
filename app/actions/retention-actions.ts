@@ -13,6 +13,7 @@
  */
 
 import { createClient } from '@/lib/supabase/server';
+import { getUserProfile } from '@/lib/permissions-server';
 import {
   RetentionConfig,
   RetentionPeriods,
@@ -21,6 +22,8 @@ import {
   ArchiveResult,
 } from '@/types/audit';
 import type { LogType } from '@/lib/retention-constants';
+
+const ADMIN_ROLES = ['owner', 'director', 'sysadmin'];
 
 // Re-export LogType for convenience
 export type { LogType } from '@/lib/retention-constants';
@@ -114,8 +117,13 @@ const LOG_TYPE_TIMESTAMP_MAP: Record<LogType, string> = {
  */
 export async function getStorageStats(): Promise<ActionResult<AuditStorageStats>> {
   try {
+    const profile = await getUserProfile();
+    if (!profile || !ADMIN_ROLES.includes(profile.role)) {
+      return { success: false, error: 'Unauthorized' };
+    }
+
     const supabase = await createClient();
-    
+
     // Get stats for each table
     const [auditStats, systemStats, loginStats, dataAccessStats] = await Promise.all([
       getTableStats(supabase, 'audit_log', 'timestamp'),
@@ -223,6 +231,11 @@ export async function getLogTypeStorageStats(
   logType: LogType
 ): Promise<ActionResult<TableStats>> {
   try {
+    const profile = await getUserProfile();
+    if (!profile || !ADMIN_ROLES.includes(profile.role)) {
+      return { success: false, error: 'Unauthorized' };
+    }
+
     const supabase = await createClient();
     const tableName = LOG_TYPE_TABLE_MAP[logType];
     const timestampColumn = LOG_TYPE_TIMESTAMP_MAP[logType];
@@ -247,8 +260,13 @@ export async function getLogTypeStorageStats(
  */
 export async function getRetentionConfig(): Promise<ActionResult<RetentionConfig>> {
   try {
+    const profile = await getUserProfile();
+    if (!profile || !ADMIN_ROLES.includes(profile.role)) {
+      return { success: false, error: 'Unauthorized' };
+    }
+
     const supabase = await createClient();
-    
+
     // Try to get retention config from company_settings or a dedicated table
     const { data: settings, error } = await supabase
       .from('company_settings' as AnyTable)
@@ -323,8 +341,13 @@ export async function updateRetentionConfig(
   config: Partial<RetentionConfig>
 ): Promise<ActionResult<RetentionConfig>> {
   try {
+    const profile = await getUserProfile();
+    if (!profile || !ADMIN_ROLES.includes(profile.role)) {
+      return { success: false, error: 'Unauthorized' };
+    }
+
     const supabase = await createClient();
-    
+
     // Get current config
     const currentResult = await getRetentionConfig();
     if (!currentResult.success || !currentResult.data) {
@@ -409,8 +432,13 @@ export async function archiveLogs(
   request: ArchiveRequest
 ): Promise<ActionResult<ArchiveResult>> {
   try {
+    const profile = await getUserProfile();
+    if (!profile || !ADMIN_ROLES.includes(profile.role)) {
+      return { success: false, error: 'Unauthorized' };
+    }
+
     const supabase = await createClient();
-    
+
     // Validate request
     if (!request.log_type) {
       return { success: false, error: 'Log type is required' };
@@ -559,6 +587,11 @@ export async function archiveLogsBasedOnRetention(): Promise<ActionResult<{
   data_access_logs: ArchiveResult;
 }>> {
   try {
+    const profile = await getUserProfile();
+    if (!profile || !ADMIN_ROLES.includes(profile.role)) {
+      return { success: false, error: 'Unauthorized' };
+    }
+
     // Get retention config
     const configResult = await getRetentionConfig();
     if (!configResult.success || !configResult.data) {
@@ -651,8 +684,13 @@ export async function getArchivePreview(): Promise<ActionResult<{
   data_access_logs: { count: number; cutoff_date: string };
 }>> {
   try {
+    const profile = await getUserProfile();
+    if (!profile || !ADMIN_ROLES.includes(profile.role)) {
+      return { success: false, error: 'Unauthorized' };
+    }
+
     const supabase = await createClient();
-    
+
     // Get retention config
     const configResult = await getRetentionConfig();
     if (!configResult.success || !configResult.data) {
@@ -729,8 +767,13 @@ export async function getArchiveHistory(
   limit: number = 50
 ): Promise<ActionResult<ArchiveRecord[]>> {
   try {
+    const profile = await getUserProfile();
+    if (!profile || !ADMIN_ROLES.includes(profile.role)) {
+      return { success: false, error: 'Unauthorized' };
+    }
+
     const supabase = await createClient();
-    
+
     // Try to get from audit_archive_log table
     const { data, error } = await supabase
       .from('audit_archive_log' as AnyTable)
@@ -774,6 +817,11 @@ export async function getRetentionSummary(): Promise<ActionResult<{
   };
 }>> {
   try {
+    const profile = await getUserProfile();
+    if (!profile || !ADMIN_ROLES.includes(profile.role)) {
+      return { success: false, error: 'Unauthorized' };
+    }
+
     const [storageResult, configResult, previewResult] = await Promise.all([
       getStorageStats(),
       getRetentionConfig(),

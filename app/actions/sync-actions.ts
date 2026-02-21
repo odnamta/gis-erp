@@ -6,7 +6,10 @@
 'use server';
 
 import { createClient } from '@/lib/supabase/server';
+import { getUserProfile } from '@/lib/permissions-server';
 import { revalidatePath } from 'next/cache';
+
+const ADMIN_ROLES = ['owner', 'director', 'sysadmin'];
 import {
   type SyncResult,
   type SyncLog,
@@ -64,6 +67,11 @@ export async function triggerManualSync(
   input: TriggerSyncInput
 ): Promise<ActionResult<SyncResult>> {
   try {
+    const profile = await getUserProfile();
+    if (!profile || !ADMIN_ROLES.includes(profile.role)) {
+      return { success: false, error: 'Unauthorized' };
+    }
+
     const { connectionId, mappingId, syncType = 'push' } = input;
 
     if (!connectionId) {
@@ -244,6 +252,11 @@ export async function retryFailedSync(
   syncLogId: string
 ): Promise<ActionResult<SyncResult>> {
   try {
+    const profile = await getUserProfile();
+    if (!profile || !ADMIN_ROLES.includes(profile.role)) {
+      return { success: false, error: 'Unauthorized' };
+    }
+
     if (!syncLogId) {
       return { success: false, error: 'Sync log ID is required' };
     }
@@ -657,6 +670,11 @@ export async function getSyncStatus(
   successRate: number;
 }>> {
   try {
+    const profile = await getUserProfile();
+    if (!profile || !ADMIN_ROLES.includes(profile.role)) {
+      return { success: false, error: 'Unauthorized' };
+    }
+
     if (!connectionId) {
       return { success: false, error: 'Connection ID is required' };
     }
@@ -708,6 +726,11 @@ export async function cancelSync(
   syncLogId: string
 ): Promise<ActionResult<void>> {
   try {
+    const profile = await getUserProfile();
+    if (!profile || !ADMIN_ROLES.includes(profile.role)) {
+      return { success: false, error: 'Unauthorized' };
+    }
+
     if (!syncLogId) {
       return { success: false, error: 'Sync log ID is required' };
     }

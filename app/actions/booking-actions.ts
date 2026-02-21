@@ -5,6 +5,7 @@
 // =====================================================
 
 import { createClient } from '@/lib/supabase/server';
+import { getUserProfile } from '@/lib/permissions-server';
 import { revalidatePath } from 'next/cache';
 import {
   FreightBooking,
@@ -166,8 +167,13 @@ function rowToStatusHistory(row: any): BookingStatusHistory {
 
 export async function createBooking(data: BookingFormData): Promise<{ success: boolean; data?: FreightBooking; error?: string }> {
   try {
+    const profile = await getUserProfile();
+    if (!profile) {
+      return { success: false, error: 'Unauthorized' };
+    }
+
     const supabase = await createClient();
-    
+
     const insertData = {
       job_order_id: data.jobOrderId || null,
       quotation_id: data.quotationId || null,
@@ -238,8 +244,13 @@ export async function createBooking(data: BookingFormData): Promise<{ success: b
 
 export async function updateBooking(id: string, data: BookingFormData): Promise<{ success: boolean; data?: FreightBooking; error?: string }> {
   try {
+    const profile = await getUserProfile();
+    if (!profile) {
+      return { success: false, error: 'Unauthorized' };
+    }
+
     const supabase = await createClient();
-    
+
     // Check if booking can be modified
     const { data: existing } = await supabase
       .from('freight_bookings')
@@ -322,8 +333,13 @@ export async function updateBooking(id: string, data: BookingFormData): Promise<
 
 export async function getBooking(id: string): Promise<FreightBooking | null> {
   try {
+    const profile = await getUserProfile();
+    if (!profile) {
+      return null;
+    }
+
     const supabase = await createClient();
-    
+
     const { data, error } = await supabase
       .from('freight_bookings')
       .select(`
@@ -347,8 +363,13 @@ export async function getBooking(id: string): Promise<FreightBooking | null> {
 
 export async function getBookings(filters?: BookingFilters): Promise<FreightBooking[]> {
   try {
+    const profile = await getUserProfile();
+    if (!profile) {
+      return [];
+    }
+
     const supabase = await createClient();
-    
+
     let query = supabase
       .from('freight_bookings')
       .select(`
@@ -408,8 +429,13 @@ export async function getBookings(filters?: BookingFilters): Promise<FreightBook
 
 export async function deleteBooking(id: string): Promise<{ success: boolean; error?: string }> {
   try {
+    const profile = await getUserProfile();
+    if (!profile) {
+      return { success: false, error: 'Unauthorized' };
+    }
+
     const supabase = await createClient();
-    
+
     const { error } = await supabase
       .from('freight_bookings')
       .delete()
@@ -432,8 +458,13 @@ export async function deleteBooking(id: string): Promise<{ success: boolean; err
 
 export async function submitBookingRequest(id: string): Promise<{ success: boolean; data?: FreightBooking; error?: string }> {
   try {
+    const profile = await getUserProfile();
+    if (!profile) {
+      return { success: false, error: 'Unauthorized' };
+    }
+
     const supabase = await createClient();
-    
+
     // Get current booking with containers
     const { data: booking } = await supabase
       .from('freight_bookings')
@@ -496,8 +527,13 @@ export async function submitBookingRequest(id: string): Promise<{ success: boole
 
 export async function confirmBooking(id: string, carrierBookingNumber?: string): Promise<{ success: boolean; data?: FreightBooking; error?: string }> {
   try {
+    const profile = await getUserProfile();
+    if (!profile) {
+      return { success: false, error: 'Unauthorized' };
+    }
+
     const supabase = await createClient();
-    
+
     const { data: booking } = await supabase
       .from('freight_bookings')
       .select('status')
@@ -549,8 +585,13 @@ export async function confirmBooking(id: string, carrierBookingNumber?: string):
 
 export async function cancelBooking(id: string, reason?: string): Promise<{ success: boolean; data?: FreightBooking; error?: string }> {
   try {
+    const profile = await getUserProfile();
+    if (!profile) {
+      return { success: false, error: 'Unauthorized' };
+    }
+
     const supabase = await createClient();
-    
+
     const { data: booking } = await supabase
       .from('freight_bookings')
       .select('status')
@@ -601,8 +642,13 @@ export async function cancelBooking(id: string, reason?: string): Promise<{ succ
 
 export async function markAsShipped(id: string): Promise<{ success: boolean; data?: FreightBooking; error?: string }> {
   try {
+    const profile = await getUserProfile();
+    if (!profile) {
+      return { success: false, error: 'Unauthorized' };
+    }
+
     const supabase = await createClient();
-    
+
     const { data: booking } = await supabase
       .from('freight_bookings')
       .select('status')
@@ -651,8 +697,13 @@ export async function markAsShipped(id: string): Promise<{ success: boolean; dat
 
 export async function completeBooking(id: string): Promise<{ success: boolean; data?: FreightBooking; error?: string }> {
   try {
+    const profile = await getUserProfile();
+    if (!profile) {
+      return { success: false, error: 'Unauthorized' };
+    }
+
     const supabase = await createClient();
-    
+
     const { data: booking } = await supabase
       .from('freight_bookings')
       .select('status')
@@ -704,8 +755,13 @@ export async function completeBooking(id: string): Promise<{ success: boolean; d
 
 export async function addContainer(bookingId: string, data: ContainerFormData): Promise<{ success: boolean; data?: BookingContainer; error?: string }> {
   try {
+    const profile = await getUserProfile();
+    if (!profile) {
+      return { success: false, error: 'Unauthorized' };
+    }
+
     const supabase = await createClient();
-    
+
     const insertData = {
       booking_id: bookingId,
       container_number: data.containerNumber || null,
@@ -738,8 +794,13 @@ export async function addContainer(bookingId: string, data: ContainerFormData): 
 
 export async function updateContainer(id: string, data: ContainerFormData): Promise<{ success: boolean; data?: BookingContainer; error?: string }> {
   try {
+    const profile = await getUserProfile();
+    if (!profile) {
+      return { success: false, error: 'Unauthorized' };
+    }
+
     const supabase = await createClient();
-    
+
     const updateData = {
       container_number: data.containerNumber || null,
       container_type: data.containerType,
@@ -770,8 +831,13 @@ export async function updateContainer(id: string, data: ContainerFormData): Prom
 
 export async function removeContainer(id: string): Promise<{ success: boolean; error?: string }> {
   try {
+    const profile = await getUserProfile();
+    if (!profile) {
+      return { success: false, error: 'Unauthorized' };
+    }
+
     const supabase = await createClient();
-    
+
     const { error } = await supabase
       .from('booking_containers')
       .delete()
@@ -789,8 +855,13 @@ export async function removeContainer(id: string): Promise<{ success: boolean; e
 
 export async function getBookingContainers(bookingId: string): Promise<BookingContainer[]> {
   try {
+    const profile = await getUserProfile();
+    if (!profile) {
+      return [];
+    }
+
     const supabase = await createClient();
-    
+
     const { data, error } = await supabase
       .from('booking_containers')
       .select('*')
@@ -811,8 +882,13 @@ export async function getBookingContainers(bookingId: string): Promise<BookingCo
 
 export async function requestAmendment(bookingId: string, data: AmendmentFormData): Promise<{ success: boolean; data?: BookingAmendment; error?: string }> {
   try {
+    const profile = await getUserProfile();
+    if (!profile) {
+      return { success: false, error: 'Unauthorized' };
+    }
+
     const supabase = await createClient();
-    
+
     // Get existing amendments to determine next number
     const { data: existingAmendments } = await supabase
       .from('booking_amendments')
@@ -855,8 +931,13 @@ export async function requestAmendment(bookingId: string, data: AmendmentFormDat
 
 export async function approveAmendment(id: string): Promise<{ success: boolean; data?: BookingAmendment; error?: string }> {
   try {
+    const profile = await getUserProfile();
+    if (!profile) {
+      return { success: false, error: 'Unauthorized' };
+    }
+
     const supabase = await createClient();
-    
+
     // Get the amendment
     const { data: amendment } = await supabase
       .from('booking_amendments')
@@ -915,8 +996,13 @@ export async function approveAmendment(id: string): Promise<{ success: boolean; 
 
 export async function rejectAmendment(id: string, reason?: string): Promise<{ success: boolean; data?: BookingAmendment; error?: string }> {
   try {
+    const profile = await getUserProfile();
+    if (!profile) {
+      return { success: false, error: 'Unauthorized' };
+    }
+
     const supabase = await createClient();
-    
+
     const updateData: Record<string, unknown> = {
       status: 'rejected',
     };
@@ -944,8 +1030,13 @@ export async function rejectAmendment(id: string, reason?: string): Promise<{ su
 
 export async function getBookingAmendments(bookingId: string): Promise<BookingAmendment[]> {
   try {
+    const profile = await getUserProfile();
+    if (!profile) {
+      return [];
+    }
+
     const supabase = await createClient();
-    
+
     const { data, error } = await supabase
       .from('booking_amendments')
       .select('*')
@@ -966,8 +1057,13 @@ export async function getBookingAmendments(bookingId: string): Promise<BookingAm
 
 export async function lookupRates(params: RateLookupParams): Promise<ShippingRate[]> {
   try {
+    const profile = await getUserProfile();
+    if (!profile) {
+      return [];
+    }
+
     const supabase = await createClient();
-    
+
     let query = supabase
       .from('shipping_rates')
       .select(`
@@ -1035,8 +1131,13 @@ export async function calculateFreight(rates: ShippingRate[], containers: Bookin
 
 export async function getStatusHistory(bookingId: string): Promise<BookingStatusHistory[]> {
   try {
+    const profile = await getUserProfile();
+    if (!profile) {
+      return [];
+    }
+
     const supabase = await createClient();
-    
+
     const { data, error } = await supabase
       .from('booking_status_history')
       .select('*')
@@ -1057,8 +1158,21 @@ export async function getStatusHistory(bookingId: string): Promise<BookingStatus
 
 export async function getBookingStats(): Promise<BookingStats> {
   try {
+    const profile = await getUserProfile();
+    if (!profile) {
+      return {
+        totalBookings: 0,
+        draftCount: 0,
+        requestedCount: 0,
+        confirmedCount: 0,
+        shippedCount: 0,
+        completedCount: 0,
+        cancelledCount: 0,
+      };
+    }
+
     const supabase = await createClient();
-    
+
     const { data, error } = await supabase
       .from('freight_bookings')
       .select('status');
