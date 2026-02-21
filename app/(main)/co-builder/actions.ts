@@ -6,6 +6,16 @@ import { revalidatePath } from 'next/cache'
 import { calculateEffortLevel } from '@/lib/co-builder-utils'
 
 // ============================================================
+// COMPETITION DATES
+// ============================================================
+
+const COMPETITION_END = new Date('2026-03-12T23:59:59+07:00')
+
+function isCompetitionOver(): boolean {
+  return new Date() > COMPETITION_END
+}
+
+// ============================================================
 // TYPES
 // ============================================================
 
@@ -112,6 +122,10 @@ export async function submitCompetitionFeedback(data: {
     const supabase = await createClient()
     const { data: { user } } = await supabase.auth.getUser()
     if (!user) return { success: false, error: 'Not authenticated' }
+
+    if (isCompetitionOver()) {
+      return { success: false, error: 'Kompetisi Co-Builder sudah berakhir (12 Maret 2026)' }
+    }
 
     // Validate description length (except praise)
     if (data.category !== 'praise' && (data.description?.length || 0) < 20) {
@@ -326,10 +340,10 @@ async function getLeaderboardDirect(): Promise<LeaderboardEntry[]> {
     const { data: points } = await supabase
       .from(// eslint-disable-next-line @typescript-eslint/no-explicit-any
     'point_events' as any)
-      .select('points, event_type')
+      .select('points, event_type, created_at')
       .eq('user_id', user.user_id)
 
-    const pointData = (points || []) as unknown as { points: number; event_type: string }[]
+    const pointData = (points || []) as unknown as { points: number; event_type: string; created_at: string }[]
     const totalPoints = pointData.reduce((sum, p) => sum + p.points, 0)
 
     // Get feedback count
@@ -358,7 +372,7 @@ async function getLeaderboardDirect(): Promise<LeaderboardEntry[]> {
       bonus_points: pointData.filter(p => !['feedback_submitted', 'feedback_reviewed', 'scenario_completed'].includes(p.event_type)).reduce((s, p) => s + p.points, 0),
       feedback_count: feedbackCount || 0,
       scenarios_completed: scenarioCount || 0,
-      active_days: [...new Set(pointData.map(() => ''))].length, // simplified
+      active_days: [...new Set(pointData.map(p => p.created_at?.split('T')[0]).filter(Boolean))].length,
       last_activity: null,
       rank: 0,
     })
@@ -711,6 +725,10 @@ export async function completeScenario(data: {
     const { data: { user } } = await supabase.auth.getUser()
     if (!user) return { success: false, error: 'Not authenticated' }
 
+    if (isCompetitionOver()) {
+      return { success: false, error: 'Kompetisi Co-Builder sudah berakhir (12 Maret 2026)' }
+    }
+
     // Check if already completed
     const { count } = await supabase
       .from(// eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -891,6 +909,10 @@ export async function submitTop5(data: {
     const supabase = await createClient()
     const { data: { user } } = await supabase.auth.getUser()
     if (!user) return { success: false, error: 'Not authenticated' }
+
+    if (isCompetitionOver()) {
+      return { success: false, error: 'Kompetisi Co-Builder sudah berakhir (12 Maret 2026)' }
+    }
 
     // Check if already submitted
     const { count } = await supabase
