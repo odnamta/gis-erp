@@ -47,6 +47,7 @@ const CATEGORIES = [
 ]
 
 export function CompetitionFeedbackButton() {
+  const { toast } = useToast()
   const [isOpen, setIsOpen] = useState(false)
   const [isSubmitting, setIsSubmitting] = useState(false)
   const [showSuccess, setShowSuccess] = useState(false)
@@ -134,7 +135,11 @@ export function CompetitionFeedbackButton() {
         setIsOpen(false)
       }, 3000)
     } else {
-      // Use native toast
+      toast({
+        title: 'Gagal',
+        description: result.error || 'Gagal mengirim feedback',
+        variant: 'destructive',
+      })
     }
   }
 

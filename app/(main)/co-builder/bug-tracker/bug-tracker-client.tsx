@@ -31,7 +31,6 @@ import {
   CheckCircle2,
   XCircle,
   AlertTriangle,
-  ExternalLink,
 } from 'lucide-react'
 import type { CompetitionFeedback } from '../actions'
 

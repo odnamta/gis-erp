@@ -22,7 +22,6 @@ import {
   Lock,
   Loader2,
   CheckCircle2,
-  GripVertical,
 } from 'lucide-react'
 import { useToast } from '@/hooks/use-toast'
 import { submitTop5 } from '../actions'

@@ -78,7 +78,6 @@ export interface LeaderboardEntry {
   last_activity: string | null
   rank: number
   has_top5: boolean
-  meets_requirements: boolean
 }
 
 export interface PointEvent {
@@ -366,10 +365,6 @@ export async function getLeaderboard(): Promise<LeaderboardEntry[]> {
 
   for (const entry of entries) {
     entry.has_top5 = top5UserIds.has(entry.user_id)
-    entry.meets_requirements = (entry.active_days || 0) >= 10
-      && (entry.feedback_count || 0) >= 5
-      && (entry.scenarios_completed || 0) >= 2
-      && entry.has_top5
   }
 
   // Sort by points only — requirements determine prize eligibility, not ranking
@@ -456,7 +451,6 @@ async function getLeaderboardDirect(): Promise<LeaderboardEntry[]> {
       last_activity: null,
       rank: 0,
       has_top5: hasTop5,
-      meets_requirements: activeDays >= 10 && fc >= 5 && sc >= 2 && hasTop5,
     })
   }
 
@@ -557,10 +551,9 @@ export async function getUserPointCounter(): Promise<{ points: number; rank: num
   const points = (pointEvents || []) as unknown as { points: number }[]
   const totalPoints = points.reduce((sum, p) => sum + p.points, 0)
 
-  // Simple rank calculation
+  // Simple rank calculation (read from materialized view, no refresh — writes handle that)
   let result: { data: unknown[] | null } = { data: null }
   try {
-    await supabase.rpc('refresh_leaderboard' as any)
     const { data: lbData } = await supabase
       .from(// eslint-disable-next-line @typescript-eslint/no-explicit-any
       'competition_leaderboard' as any)
@@ -604,11 +597,14 @@ export async function getUnseenPointEvents(): Promise<PointEvent[]> {
 
 export async function markPointEventsSeen(ids: string[]): Promise<void> {
   const supabase = await createClient()
+  const { data: { user } } = await supabase.auth.getUser()
+  if (!user) return
   await supabase
     .from(// eslint-disable-next-line @typescript-eslint/no-explicit-any
     'point_events' as any)
     .update({ is_seen: true } as Record<string, unknown>)
     .in('id', ids)
+    .eq('user_id', user.id)
 }
 
 // ============================================================
@@ -621,6 +617,8 @@ export async function getAllCompetitionFeedback(filters?: {
   impact?: string
 }): Promise<CompetitionFeedback[]> {
   const supabase = await createClient()
+  const { data: { user } } = await supabase.auth.getUser()
+  if (!user) return []
 
   let query = supabase
     .from(// eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -687,6 +685,7 @@ export async function getMyFeedback(): Promise<CompetitionFeedback[]> {
     'competition_feedback' as any)
     .select('*')
     .eq('user_id', user.id)
+    .eq('is_active', true)
     .order('created_at', { ascending: false })
 
   return (data || []) as unknown as CompetitionFeedback[]
@@ -842,7 +841,15 @@ export async function completeScenario(data: {
       return { success: false, error: 'Skenario sudah pernah diselesaikan' }
     }
 
-    const pointsEarned = 20
+    // Fetch scenario to get its points_value (fall back to 20)
+    const { data: scenarioData } = await supabase
+      .from(// eslint-disable-next-line @typescript-eslint/no-explicit-any
+    'test_scenarios' as any)
+      .select('points_value')
+      .eq('id', data.scenarioId)
+      .single()
+
+    const pointsEarned = (scenarioData as unknown as { points_value: number } | null)?.points_value || 20
 
     // Insert completion
     await supabase.from(// eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -909,8 +916,21 @@ export async function reviewFeedback(data: {
     if (!current) return { success: false, error: 'Feedback not found' }
 
     const fb = current as unknown as CompetitionFeedback
+
+    // Find existing feedback_reviewed event(s) for this feedback and account for them
+    const { data: existingReviewEvents } = await supabase
+      .from(// eslint-disable-next-line @typescript-eslint/no-explicit-any
+    'point_events' as any)
+      .select('id, points')
+      .eq('reference_id', data.feedbackId)
+      .eq('event_type', 'feedback_reviewed')
+
+    const existingReviewPoints = (existingReviewEvents || []).reduce((sum: number, e: any) => sum + e.points, 0)
+
+    // New total based on base_points * multiplier
     const newTotal = fb.base_points * multiplier
-    const pointsDiff = newTotal - fb.total_points
+    // Diff accounts for the multiplier change from base, minus what was already awarded from previous reviews
+    const pointsDiff = (newTotal - fb.base_points) - existingReviewPoints
 
     // Update feedback
     await supabase
@@ -970,7 +990,7 @@ export async function reviewFeedback(data: {
         .select('id, points, event_type')
         .eq('reference_id', data.feedbackId)
 
-      const events = (linkedEvents || []) as unknown as { id: string; points: number; event_type: string }[]
+      const events = (linkedEvents || []).filter((e: any) => e.event_type !== 'duplicate_reversal') as unknown as { id: string; points: number; event_type: string }[]
       const totalToReverse = events.reduce((sum, e) => sum + e.points, 0)
 
       if (totalToReverse !== 0) {

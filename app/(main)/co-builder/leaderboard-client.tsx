@@ -9,7 +9,7 @@ import {
 } from '@/components/ui/table'
 import {
   Trophy, Clock, Target, Flame, Calendar, Star, CheckCircle, XCircle,
-  Medal, Gift, Sparkles,
+  Medal, Sparkles,
 } from 'lucide-react'
 import { useEffect, useState } from 'react'
 import type { LeaderboardEntry, UserCompetitionStats } from './actions'
