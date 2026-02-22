@@ -21,14 +21,28 @@ Deno.serve(async (req) => {
       return jsonResponse({ success: false, error: 'Method not allowed' }, 405)
     }
 
-    // 1. Auth — restricted to executive roles
-    const { profile } = await getUserProfile(req)
+    // 1. Auth — two paths:
+    //    a) Service-role JWT: decode Authorization bearer, check role=service_role (server-to-server)
+    //    b) User JWT: standard getUserProfile flow (browser/app)
+    const authHeader = req.headers.get('Authorization') ?? ''
+    const token = authHeader.replace('Bearer ', '')
+    let isServiceRole = false
 
-    if (!ALLOWED_ROLES.includes(profile.role)) {
-      return jsonResponse(
-        { success: false, error: 'Akses hanya untuk owner/director' },
-        403
-      )
+    if (token) {
+      try {
+        const payload = JSON.parse(atob(token.split('.')[1]))
+        if (payload.role === 'service_role') isServiceRole = true
+      } catch { /* not a valid JWT, fall through to user auth */ }
+    }
+
+    if (!isServiceRole) {
+      const { profile } = await getUserProfile(req)
+      if (!ALLOWED_ROLES.includes(profile.role)) {
+        return jsonResponse(
+          { success: false, error: 'Akses hanya untuk owner/director' },
+          403
+        )
+      }
     }
 
     // 2. Determine period (default: current month)
