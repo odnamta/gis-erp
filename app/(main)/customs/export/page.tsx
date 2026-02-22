@@ -42,14 +42,14 @@ async function PEBContent({ filters }: { filters: PEBFilters }) {
     getCustomsOffices(),
   ])
 
-  const documents = documentsResult.data
+  const documents = documentsResult.data || []
   const statistics = statisticsResult.data || {
     active_pebs: 0,
     pending_approval: 0,
     loaded: 0,
     departed_mtd: 0,
   }
-  const customsOffices = officesResult.data
+  const customsOffices = officesResult.data || []
 
   return (
     <div className="space-y-6">

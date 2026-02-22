@@ -97,6 +97,8 @@ const carrierTypeOptions = [
   { value: 'WINGBOX', label: 'WINGBOX' }, { value: 'BOX TRUCK', label: 'BOX TRUCK' },
   { value: 'TANKER', label: 'TANKER' }, { value: 'DUMP TRUCK', label: 'DUMP TRUCK' },
   { value: 'SELF LOADER', label: 'SELF LOADER' }, { value: 'CRANE TRUCK', label: 'CRANE TRUCK' },
+  { value: 'SLIDING TRAILER', label: 'SLIDING TRAILER' }, { value: 'EXTENDABLE TRAILER', label: 'EXTENDABLE TRAILER' },
+  { value: 'MULTI AXLE TRAILER', label: 'MULTI AXLE TRAILER' },
 ]
 
 interface PJOFormProps {

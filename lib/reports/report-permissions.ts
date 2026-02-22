@@ -23,7 +23,7 @@ export const REPORTS: ReportConfig[] = [
     title: 'Revenue by Customer',
     description: 'Revenue breakdown by customer',
     category: 'financial',
-    href: '/reports/revenue-customer',
+    href: '/reports/revenue-by-customer',
     icon: 'Users',
     allowedRoles: ['owner', 'director', 'administration', 'marketing_manager', 'finance_manager', 'finance', 'marketing'],
   },
@@ -101,7 +101,7 @@ export const REPORTS: ReportConfig[] = [
     category: 'financial',
     href: '/reports/revenue-by-project',
     icon: 'FolderKanban',
-    allowedRoles: ['owner', 'director', 'administration', 'marketing_manager', 'finance_manager'],
+    allowedRoles: ['owner', 'director', 'administration', 'marketing_manager', 'finance_manager', 'finance'],
   },
   {
     id: 'on-time-delivery',

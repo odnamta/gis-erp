@@ -17,7 +17,7 @@ export default async function IncidentDetailPage({ params }: PageProps) {
   const [incidentResult, historyResult, employeesResult] = await Promise.all([
     getIncident(id),
     getIncidentHistory(id),
-    supabase.from('employees').select('id, full_name').eq('is_active', true).order('full_name'),
+    supabase.from('employees').select('id, full_name').eq('status', 'active').order('full_name'),
   ]);
 
   if (!incidentResult.success || !incidentResult.data) {

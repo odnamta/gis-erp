@@ -14,16 +14,16 @@ export default async function HRLayout({
     redirect('/login')
   }
 
-  const hasAccess = canViewEmployees(profile)
+  // HR layout allows ALL authenticated users through.
+  // Self-service pages (my-leave, my-attendance) need access for everyone.
+  // Sensitive HR pages (employees, payroll) have their own guardPage() checks.
+  const hasHRAccess = canViewEmployees(profile)
   const isExplorer = await isExplorerMode()
-
-  if (!hasAccess && !isExplorer) {
-    redirect('/dashboard')
-  }
+  const showBanner = !hasHRAccess && isExplorer
 
   return (
     <>
-      {!hasAccess && isExplorer && <ExplorerReadOnlyBanner />}
+      {showBanner && <ExplorerReadOnlyBanner />}
       {children}
     </>
   )

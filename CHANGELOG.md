@@ -5,6 +5,27 @@ All notable changes to GAMA ERP will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.10.7] - 2026-02-22 - Days 10-12 Mega Fix: HSE, Reports, HR, Engineering
+
+### Fixed
+- **HSE employees query** — `.eq('is_active', true)` changed to `.eq('status', 'active')` in incident report and detail pages (column `is_active` doesn't exist on employees table — always returned empty)
+- **Missing employee records** — created 12 employee records for all co-builder participants (root cause of HSE, Leave, Engineering action failures)
+- **Report "Revenue by Customer" 404** — broken href `/reports/revenue-customer` fixed to `/reports/revenue-by-customer`
+- **Revenue by Project access** — added `finance` role to allowedRoles (finance has revenue+profit permissions but was excluded from this report)
+- **HR layout blocking self-service** — `canViewEmployees` guard removed from layout; My Leave and My Attendance now accessible to all authenticated users
+- **PEB customs page crash** — added null safety (`|| []`) for documents and customs offices data when accessed via explorer mode
+- **HSE nav roles** — added `marketing_manager` and `finance_manager` to match permissions.ts `hse.nav`
+- **Revenue categorization** — added Indonesian keywords (kirim, angkut, mobilisasi, pelabuhan, bongkar, muat, etc.) so P&L report correctly categorizes items instead of dumping everything into "Other"
+
+### Added
+- **Carrier types** — SLIDING TRAILER, EXTENDABLE TRAILER, MULTI AXLE TRAILER added to PJO form
+- **12 employee records** for co-builder participants (CB- prefix codes)
+
+### Changed
+- HR layout now allows all authenticated users through; individual HR pages (employees, payroll) have their own guardPage() checks
+
+---
+
 ## [0.10.6] - 2026-02-22 - Co-Builder Bug Fixes & Scoring Cleanup
 
 ### Security

@@ -242,7 +242,7 @@ export const NAV_ITEMS: NavItem[] = [
     title: 'HSE',
     href: '/hse',
     icon: ShieldAlert,
-    roles: ['owner', 'director', 'operations_manager', 'administration', 'ops', 'hse', 'engineer'],
+    roles: ['owner', 'director', 'marketing_manager', 'finance_manager', 'operations_manager', 'administration', 'ops', 'hse', 'engineer'],
     children: [
       {
         title: 'Dashboard',

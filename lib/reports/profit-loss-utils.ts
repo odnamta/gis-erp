@@ -49,13 +49,21 @@ export function groupRevenueByCategory(items: RevenueItem[]): RevenueGroup[] {
     let category = 'other'
     const desc = item.description.toLowerCase()
     
-    if (desc.includes('truck') || desc.includes('transport') || desc.includes('delivery')) {
+    if (desc.includes('truck') || desc.includes('transport') || desc.includes('delivery')
+      || desc.includes('kirim') || desc.includes('angkut') || desc.includes('mobilisasi')
+      || desc.includes('trailer') || desc.includes('lowbed') || desc.includes('flatbed')
+      || desc.includes('truk') || desc.includes('kendaraan')) {
       category = 'trucking'
-    } else if (desc.includes('port') || desc.includes('terminal')) {
+    } else if (desc.includes('port') || desc.includes('terminal') || desc.includes('pelabuhan')
+      || desc.includes('dermaga') || desc.includes('sandar')) {
       category = 'port_handling'
-    } else if (desc.includes('doc') || desc.includes('clearance') || desc.includes('permit')) {
+    } else if (desc.includes('doc') || desc.includes('clearance') || desc.includes('permit')
+      || desc.includes('izin') || desc.includes('dokumen') || desc.includes('surat')
+      || desc.includes('perizinan') || desc.includes('administrasi')) {
       category = 'documentation'
-    } else if (desc.includes('handling') || desc.includes('loading') || desc.includes('unloading')) {
+    } else if (desc.includes('handling') || desc.includes('loading') || desc.includes('unloading')
+      || desc.includes('bongkar') || desc.includes('muat') || desc.includes('crane')
+      || desc.includes('lifting') || desc.includes('rigger')) {
       category = 'handling'
     }
     

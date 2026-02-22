@@ -449,6 +449,100 @@ Note: 5 number-generation functions (invoices, disbursements, pjo, bkk, executiv
 
 ---
 
+## Days 10-12 — Kamis-Sabtu, 20-22 Februari 2026
+
+**Pelapor aktif:** Kurniashanti (16 feedback), Choirul Anam (6), Iqbal Tito (1), Navisa Kafka (1), Hutami Widya Arini (2)
+**Feedback baru:** 25 item (terbanyak dari Kurniashanti: 16 item)
+**Pelapor baru:** Hutami Widya Arini (pertama kali submit feedback), Arka Basunjaya (login pertama kali Feb 20)
+
+### Root Cause Ditemukan: Missing Employee Records
+
+**Akar masalah:** SEMUA peserta co-builder tidak memiliki record di tabel `employees`. Ini menyebabkan kegagalan di semua modul yang memerlukan employee ID (HSE, Leave, Engineering actions). Auto-create fallback gagal karena RLS memblokir INSERT dari non-HR role.
+
+**Fix:** 12 employee records dibuat untuk semua peserta co-builder.
+
+### Root Cause Ditemukan: Employees Query Wrong Column
+
+**Akar masalah:** Query employees di `hse/incidents/report/page.tsx` dan `hse/incidents/[id]/page.tsx` menggunakan `.eq('is_active', true)` padahal kolom yang benar adalah `status` (bukan `is_active`). Ini menyebabkan dropdown employee selalu kosong.
+
+**Fix:** `.eq('is_active', true)` → `.eq('status', 'active')`
+
+### Bug yang Ditemukan & Diperbaiki
+
+| # | Bug | Pelapor | Severity | Status |
+|---|-----|---------|----------|--------|
+| 54 | Route survey tidak bisa ditambahkan (marketing FK/RLS) | Kurniashanti | Important | Fixed |
+| 55 | Generate PDF quotation error | Kurniashanti | Important | Investigating |
+| 56 | Tidak bisa menambahkan PJO (requires revenue+cost items) | Kurniashanti | Important | Acknowledged |
+| 57 | JMP tidak bisa submit to review (employee record missing) | Kurniashanti | Important | Fixed |
+| 58 | Drawing tidak berhasil ditambahkan (employee record missing) | Kurniashanti | Important | Fixed |
+| 59 | Revenue by customer financial report 404 (wrong href) | Kurniashanti | Critical | Fixed |
+| 60 | Tidak bisa menambahkan shipping line (explorer RLS) | Kurniashanti | Important | Fixed |
+| 61 | Tidak bisa melaporkan incident (employees query + no record) | Kurniashanti | Critical | Fixed |
+| 62 | Settings blank (explorer mode redirect — by design) | Kurniashanti | Helpful | Acknowledged |
+| 63 | "My Leave" menu tidak bisa (HR layout too restrictive) | Kurniashanti | Critical | Fixed |
+| 64 | JMP tidak bisa di print (window.print only) | Kurniashanti | Important | Acknowledged |
+| 65 | PEB customs page error (null safety explorer mode) | Navisa | Important | Fixed |
+| 66 | HSE laporkan insiden error (employees query + no record) | Iqbal | Critical | Fixed |
+| 67 | "Performa JO" system bagus (positive feedback) | Choirul | Helpful | Acknowledged |
+| 68 | HSE Report Incidents error (employees query + no record) | Choirul | Important | Fixed |
+| 69 | Financial Report Revenue breakdown error (wrong href) | Choirul | Important | Fixed |
+| 70 | Revenue by project access denied (finance role missing) | Choirul | Important | Fixed |
+
+### Saran & Pertanyaan Baru
+
+| # | Feedback | Pelapor | Type | Status |
+|---|----------|---------|------|--------|
+| Q2 | Cara menghapus quotation | Kurniashanti | Question | Answered — by design |
+| S3 | Active journey — no add button | Kurniashanti | Suggestion | Acknowledged |
+| S4 | Penambahan carrier type (sliding trailer) | Kurniashanti | Suggestion | Fixed — 3 types added |
+| S5 | Quotation flow — customer double input | Hutami | Workflow | Acknowledged — high impact |
+| S6 | Quotation flow — project name double input | Hutami | Workflow | Acknowledged |
+| S7 | P&L report — PPh erodes profit | Choirul | Suggestion | Acknowledged |
+| S8 | Report — "other" category fix needed | Choirul | Suggestion | Fixed — Indonesian keywords |
+| S9 | Invoice creation flow — proforma based | Choirul | Suggestion | Acknowledged |
+
+### Perbaikan Sistemik
+- 12 employee records dibuat untuk semua peserta co-builder (root cause HSE + Leave + Engineering failures)
+- `employees` query `.eq('is_active', true)` → `.eq('status', 'active')` di 2 file HSE
+- Report permissions: duplicate `revenue-customer` entry (wrong href) diperbaiki ke `revenue-by-customer`
+- `revenue-by-project` report: `finance` role ditambahkan ke allowedRoles
+- HR layout: diperbuka untuk self-service routes (my-leave, my-attendance) — semua user authenticated bisa akses
+- HSE nav: `marketing_manager` dan `finance_manager` ditambahkan (konsisten dengan permissions.ts)
+- PEB customs page: null safety pada documents dan customs offices data
+- Carrier type: ditambahkan SLIDING TRAILER, EXTENDABLE TRAILER, MULTI AXLE TRAILER
+- Revenue categorization P&L: ditambahkan keyword Indonesia (kirim, angkut, mobilisasi, pelabuhan, bongkar, muat, dll)
+
+### Partisipasi Tim
+
+| Status | Jumlah | Nama |
+|--------|--------|------|
+| Aktif (submit feedback) | 7 | Kurniashanti, Reza, Iqbal, Luthfi, Navisa, Choirul, **Hutami** (NEW!) |
+| Skenario saja | 1 | Chairul |
+| Login tapi belum submit | 4 | **Arka** (login Feb 20), Feri, Rania, Khuzainan |
+| Belum login | 2 | Rahadian, Dedy |
+| Excluded (GLS-ERP) | 1 | Yuma |
+
+### Leaderboard (per 22 Feb malam, final)
+
+| # | Nama | Total | Feedback | Skenario | Bonus | Perubahan |
+|---|------|-------|----------|----------|-------|-----------|
+| 1 | **Kurniashanti** | **915** | 594 | 100 | 221 | +505 (16 feedback, massive sprint!) |
+| 2 | Iqbal Tito | **571** | 402 | 100 | 69 | +80 (1 critical HSE bug) |
+| 3 | Reza Pramana | **539** | 338 | 120 | 81 | — (no new feedback) |
+| 4 | Luthfi Badarnawa | **384** | 218 | 120 | 46 | — (no new feedback) |
+| 5 | Choirul Anam | **343** | 189 | 160 | -6 | +229 (6 feedback, 8 scenarios!) |
+| 6 | Navisa Kafka | **274** | 124 | 100 | 50 | +51 (1 PEB bug) |
+| 7 | **Hutami Widya Arini** | **107** | 75 | 0 | 32 | NEW (2 workflow suggestions) |
+| 8 | Chairul Fajri | **88** | 8 | 80 | 0 | — (scenarios only) |
+
+**Kurniashanti meledak** — dari #3 ke #1 dengan selisih besar (+505 pts dalam 3 hari, 16 feedback items). Sekarang unggul 344 poin dari #2.
+
+### Commits
+- (pending push)
+
+---
+
 <!-- Template for new days:
 
 ## Day N — [Hari], [Tanggal] 2026
