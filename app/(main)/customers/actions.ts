@@ -17,7 +17,7 @@ const customerSchema = z.object({
 
 export type CustomerFormData = z.infer<typeof customerSchema>
 
-export async function createCustomer(data: CustomerFormData): Promise<{ error?: string }> {
+export async function createCustomer(data: CustomerFormData): Promise<{ error?: string; id?: string }> {
   const validation = customerSchema.safeParse(data)
   if (!validation.success) {
     return { error: validation.error.issues[0].message }
@@ -50,7 +50,8 @@ export async function createCustomer(data: CustomerFormData): Promise<{ error?: 
   invalidateCustomerCache()
 
   revalidatePath('/customers')
-  return {}
+  revalidatePath('/quotations/new')
+  return { id: customer?.id }
 }
 
 export async function updateCustomer(

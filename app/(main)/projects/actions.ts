@@ -16,7 +16,7 @@ const projectSchema = z.object({
 
 export type ProjectFormData = z.infer<typeof projectSchema>
 
-export async function createProject(data: ProjectFormData): Promise<{ error?: string }> {
+export async function createProject(data: ProjectFormData): Promise<{ error?: string; id?: string }> {
   const validation = projectSchema.safeParse(data)
   if (!validation.success) {
     return { error: validation.error.issues[0].message }
@@ -26,20 +26,21 @@ export async function createProject(data: ProjectFormData): Promise<{ error?: st
   const { data: { user } } = await supabase.auth.getUser()
   if (!user) return { error: 'Not authenticated' }
 
-  const { error } = await supabase.from('projects').insert({
+  const { data: project, error } = await supabase.from('projects').insert({
     customer_id: data.customer_id,
     name: data.name,
     status: data.status,
     description: data.site_address || null,
-  })
+  }).select('id').single()
 
   if (error) {
     return { error: error.message }
   }
 
   revalidatePath('/projects')
+  revalidatePath('/quotations/new')
   revalidatePath(`/customers/${data.customer_id}`)
-  return {}
+  return { id: project?.id }
 }
 
 export async function updateProject(

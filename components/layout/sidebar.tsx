@@ -8,7 +8,8 @@ import { usePermissions } from '@/components/providers/permission-provider'
 import { usePreview } from '@/hooks/use-preview'
 import { NAV_ITEMS, filterNavItems } from '@/lib/navigation'
 import { Skeleton } from '@/components/ui/skeleton'
-import { Truck, X, Globe, ArrowLeft } from 'lucide-react'
+import Image from 'next/image'
+import { X, Globe, ArrowLeft } from 'lucide-react'
 import { ChangelogNotificationDot } from '@/components/changelog/changelog-notification-dot'
 import { useMobileSidebar } from './mobile-sidebar-context'
 
@@ -61,9 +62,7 @@ export function Sidebar() {
       {/* Logo area - matches header height */}
       <div className="flex h-16 shrink-0 items-center justify-between border-b px-4">
         <Link href="/dashboard" className="flex items-center gap-2">
-          <div className="flex h-9 w-9 items-center justify-center rounded-lg bg-primary">
-            <Truck className="h-5 w-5 text-primary-foreground" />
-          </div>
+          <Image src="/logo-gis.jpeg" alt="GIS" width={40} height={40} className="rounded-lg" />
           <div className="flex flex-col">
             <span className="text-lg font-bold leading-tight text-foreground">Gama</span>
             <span className="text-[10px] font-medium uppercase tracking-wider text-muted-foreground">ERP System</span>

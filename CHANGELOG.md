@@ -5,6 +5,21 @@ All notable changes to GAMA ERP will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.10.8] - 2026-02-22 - GIS Logo + Inline Customer/Project Creation
+
+### Added
+- **GIS Logo** — Applied official GIS logo to sidebar and login page (replaces generic Truck icon and "G" placeholder)
+- **Inline customer creation** — "+" button next to Customer dropdown in quotation form opens quick-add dialog (name only, data can be completed later)
+- **Inline project creation** — "+" button next to Project dropdown in quotation form opens quick-add dialog (requires customer selected first)
+- Customer and project actions now return created IDs for inline creation flow
+
+### Changed
+- Login page now shows GIS logo instead of plain "G" circle
+- Sidebar branding uses actual GIS logo image
+- `createCustomer` and `createProject` return `{ id }` on success for use in inline forms
+
+---
+
 ## [0.10.7] - 2026-02-22 - Days 10-12 Mega Fix: HSE, Reports, HR, Engineering
 
 ### Fixed

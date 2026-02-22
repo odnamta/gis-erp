@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useEffect } from 'react'
+import { useState } from 'react'
 import { useRouter } from 'next/navigation'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
@@ -11,12 +11,15 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Switch } from '@/components/ui/switch'
 import { Calendar } from '@/components/ui/calendar'
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover'
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog'
 import { useToast } from '@/hooks/use-toast'
 import { createQuotation, updateQuotation } from '@/app/(main)/quotations/actions'
+import { createCustomer } from '@/app/(main)/customers/actions'
+import { createProject } from '@/app/(main)/projects/actions'
 import { QuotationWithRelations, QuotationCreateInput } from '@/types/quotation'
 import { TerrainType } from '@/types/market-classification'
 import { format } from 'date-fns'
-import { CalendarIcon, Save, ArrowLeft } from 'lucide-react'
+import { CalendarIcon, Save, ArrowLeft, Plus, Loader2 } from 'lucide-react'
 import { cn } from '@/lib/utils'
 import Link from 'next/link'
 
@@ -26,11 +29,21 @@ interface QuotationFormProps {
   quotation?: QuotationWithRelations
 }
 
-export function QuotationForm({ customers, projects, quotation }: QuotationFormProps) {
+export function QuotationForm({ customers: initialCustomers, projects: initialProjects, quotation }: QuotationFormProps) {
   const router = useRouter()
   const { toast } = useToast()
   const [isLoading, setIsLoading] = useState(false)
-  
+  const [customers, setCustomers] = useState(initialCustomers)
+  const [projects, setProjects] = useState(initialProjects)
+
+  // Quick add dialogs
+  const [customerDialogOpen, setCustomerDialogOpen] = useState(false)
+  const [projectDialogOpen, setProjectDialogOpen] = useState(false)
+  const [newCustomerName, setNewCustomerName] = useState('')
+  const [newProjectName, setNewProjectName] = useState('')
+  const [isSavingCustomer, setIsSavingCustomer] = useState(false)
+  const [isSavingProject, setIsSavingProject] = useState(false)
+
   const [formData, setFormData] = useState<QuotationCreateInput>({
     customer_id: quotation?.customer_id || '',
     project_id: quotation?.project_id || undefined,
@@ -61,9 +74,49 @@ export function QuotationForm({ customers, projects, quotation }: QuotationFormP
     ? projects.filter(p => p.customer_id === formData.customer_id)
     : projects
 
+  async function handleQuickAddCustomer() {
+    if (!newCustomerName.trim()) return
+    setIsSavingCustomer(true)
+    try {
+      const result = await createCustomer({ name: newCustomerName.trim(), email: '', phone: '', address: '' })
+      if (result.error) {
+        toast({ title: 'Error', description: result.error, variant: 'destructive' })
+      } else if (result.id) {
+        const newCustomer = { id: result.id, name: newCustomerName.trim() }
+        setCustomers(prev => [...prev, newCustomer].sort((a, b) => a.name.localeCompare(b.name)))
+        setFormData(prev => ({ ...prev, customer_id: result.id!, project_id: undefined }))
+        toast({ title: 'Customer ditambahkan', description: `${newCustomerName.trim()} berhasil dibuat. Lengkapi data di halaman Customer nanti.` })
+        setNewCustomerName('')
+        setCustomerDialogOpen(false)
+      }
+    } finally {
+      setIsSavingCustomer(false)
+    }
+  }
+
+  async function handleQuickAddProject() {
+    if (!newProjectName.trim() || !formData.customer_id) return
+    setIsSavingProject(true)
+    try {
+      const result = await createProject({ customer_id: formData.customer_id, name: newProjectName.trim(), status: 'active' })
+      if (result.error) {
+        toast({ title: 'Error', description: result.error, variant: 'destructive' })
+      } else if (result.id) {
+        const newProject = { id: result.id, name: newProjectName.trim(), customer_id: formData.customer_id }
+        setProjects(prev => [...prev, newProject])
+        setFormData(prev => ({ ...prev, project_id: result.id! }))
+        toast({ title: 'Project ditambahkan', description: `${newProjectName.trim()} berhasil dibuat.` })
+        setNewProjectName('')
+        setProjectDialogOpen(false)
+      }
+    } finally {
+      setIsSavingProject(false)
+    }
+  }
+
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault()
-    
+
     if (!formData.customer_id) {
       toast({ title: 'Error', description: 'Please select a customer', variant: 'destructive' })
       return
@@ -82,7 +135,7 @@ export function QuotationForm({ customers, projects, quotation }: QuotationFormP
       const result = quotation
         ? await updateQuotation({ ...formData, id: quotation.id })
         : await createQuotation(formData)
-      
+
       if (result.error) {
         toast({ title: 'Error', description: result.error, variant: 'destructive' })
       } else {
@@ -104,26 +157,76 @@ export function QuotationForm({ customers, projects, quotation }: QuotationFormP
         <CardContent className="grid gap-4 md:grid-cols-2">
           <div className="space-y-2">
             <Label htmlFor="customer_id">Customer *</Label>
-            <Select value={formData.customer_id} onValueChange={(v) => setFormData({ ...formData, customer_id: v, project_id: undefined })}>
-              <SelectTrigger><SelectValue placeholder="Select customer" /></SelectTrigger>
-              <SelectContent>
-                {customers.map(c => (
-                  <SelectItem key={c.id} value={c.id}>{c.name}</SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
+            <div className="flex gap-2">
+              <Select value={formData.customer_id} onValueChange={(v) => setFormData({ ...formData, customer_id: v, project_id: undefined })}>
+                <SelectTrigger className="flex-1"><SelectValue placeholder="Pilih customer" /></SelectTrigger>
+                <SelectContent>
+                  {customers.map(c => (
+                    <SelectItem key={c.id} value={c.id}>{c.name}</SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+              <Dialog open={customerDialogOpen} onOpenChange={setCustomerDialogOpen}>
+                <DialogTrigger asChild>
+                  <Button type="button" variant="outline" size="icon" title="Tambah Customer Baru">
+                    <Plus className="h-4 w-4" />
+                  </Button>
+                </DialogTrigger>
+                <DialogContent className="sm:max-w-md">
+                  <DialogHeader>
+                    <DialogTitle>Tambah Customer Baru</DialogTitle>
+                  </DialogHeader>
+                  <p className="text-sm text-muted-foreground">Masukkan nama customer. Data lainnya bisa dilengkapi nanti di halaman Customer.</p>
+                  <div className="space-y-3">
+                    <div className="space-y-2">
+                      <Label>Nama Customer *</Label>
+                      <Input value={newCustomerName} onChange={e => setNewCustomerName(e.target.value)} placeholder="Nama perusahaan / customer" autoFocus onKeyDown={e => e.key === 'Enter' && (e.preventDefault(), handleQuickAddCustomer())} />
+                    </div>
+                    <Button type="button" onClick={handleQuickAddCustomer} disabled={!newCustomerName.trim() || isSavingCustomer} className="w-full">
+                      {isSavingCustomer ? <><Loader2 className="mr-2 h-4 w-4 animate-spin" />Menyimpan...</> : <><Plus className="mr-2 h-4 w-4" />Tambah Customer</>}
+                    </Button>
+                  </div>
+                </DialogContent>
+              </Dialog>
+            </div>
           </div>
           <div className="space-y-2">
             <Label htmlFor="project_id">Project (optional)</Label>
-            <Select value={formData.project_id || 'none'} onValueChange={(v) => setFormData({ ...formData, project_id: v === 'none' ? undefined : v })}>
-              <SelectTrigger><SelectValue placeholder="Select project" /></SelectTrigger>
-              <SelectContent>
-                <SelectItem value="none">No project</SelectItem>
-                {filteredProjects.map(p => (
-                  <SelectItem key={p.id} value={p.id}>{p.name}</SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
+            <div className="flex gap-2">
+              <Select value={formData.project_id || 'none'} onValueChange={(v) => setFormData({ ...formData, project_id: v === 'none' ? undefined : v })}>
+                <SelectTrigger className="flex-1"><SelectValue placeholder="Pilih project" /></SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="none">Tanpa project</SelectItem>
+                  {filteredProjects.map(p => (
+                    <SelectItem key={p.id} value={p.id}>{p.name}</SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+              <Dialog open={projectDialogOpen} onOpenChange={setProjectDialogOpen}>
+                <DialogTrigger asChild>
+                  <Button type="button" variant="outline" size="icon" title="Tambah Project Baru" disabled={!formData.customer_id}>
+                    <Plus className="h-4 w-4" />
+                  </Button>
+                </DialogTrigger>
+                <DialogContent className="sm:max-w-md">
+                  <DialogHeader>
+                    <DialogTitle>Tambah Project Baru</DialogTitle>
+                  </DialogHeader>
+                  <p className="text-sm text-muted-foreground">
+                    Project untuk customer: <span className="font-medium">{customers.find(c => c.id === formData.customer_id)?.name}</span>
+                  </p>
+                  <div className="space-y-3">
+                    <div className="space-y-2">
+                      <Label>Nama Project *</Label>
+                      <Input value={newProjectName} onChange={e => setNewProjectName(e.target.value)} placeholder="Nama project" autoFocus onKeyDown={e => e.key === 'Enter' && (e.preventDefault(), handleQuickAddProject())} />
+                    </div>
+                    <Button type="button" onClick={handleQuickAddProject} disabled={!newProjectName.trim() || isSavingProject} className="w-full">
+                      {isSavingProject ? <><Loader2 className="mr-2 h-4 w-4 animate-spin" />Menyimpan...</> : <><Plus className="mr-2 h-4 w-4" />Tambah Project</>}
+                    </Button>
+                  </div>
+                </DialogContent>
+              </Dialog>
+            </div>
           </div>
           <div className="space-y-2 md:col-span-2">
             <Label htmlFor="title">Title *</Label>
