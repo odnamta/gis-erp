@@ -166,7 +166,7 @@ export async function createPJO(data: PJOFormData): Promise<{ error?: string; id
       profit: profit,
       notes: data.notes || null,
       status: 'draft',
-      created_by: user.id,
+      created_by: profile.id,
       is_active: true,
       // Market classification fields
       cargo_weight_kg: data.cargo_weight_kg ?? null,

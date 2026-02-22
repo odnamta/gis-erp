@@ -23,12 +23,17 @@ export async function createChangelogEntry(data: ChangelogEntryInput): Promise<A
   try {
     const supabase = await createClient();
     
-    // Get current user
+    // Get current user and profile
     const { data: { user } } = await supabase.auth.getUser();
     if (!user) {
       return { success: false, error: 'Not authenticated' };
     }
-    
+    const { data: profile } = await supabase
+      .from('user_profiles')
+      .select('id')
+      .eq('user_id', user.id)
+      .single();
+
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const { data: result, error } = await (supabase as any)
       .from('changelog_entries')
@@ -39,7 +44,7 @@ export async function createChangelogEntry(data: ChangelogEntryInput): Promise<A
         category: data.category,
         is_major: data.is_major || false,
         published_at: data.published_at || new Date().toISOString(),
-        created_by: user.id,
+        created_by: profile?.id || user.id,
       })
       .select('id')
       .single();

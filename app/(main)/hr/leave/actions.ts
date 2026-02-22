@@ -758,7 +758,7 @@ export async function getEmployeesForSelect(): Promise<{ id: string; full_name: 
   const { data, error } = await supabase
     .from('employees')
     .select('id, full_name, department_id')
-    .eq('is_active', true)
+    .eq('status', 'active')
     .order('full_name');
   
   if (error) {

@@ -1148,7 +1148,7 @@ export async function getEmployeesForSelection(): Promise<{ id: string; full_nam
     const { data, error } = await supabase
       .from('employees')
       .select('id, full_name, phone')
-      .eq('is_active', true)
+      .eq('status', 'active')
       .order('full_name');
 
     if (error) throw error;
