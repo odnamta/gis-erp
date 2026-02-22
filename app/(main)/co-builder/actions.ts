@@ -10,6 +10,25 @@ import { calculateEffortLevel } from '@/lib/co-builder-utils'
 // ============================================================
 
 const COMPETITION_END = new Date('2026-03-12T23:59:59+07:00')
+const PERFECT_ATTENDANCE_START = new Date('2026-02-23T00:00:00+07:00')
+
+/** Get all weekdays (Mon-Fri) between start and end dates in WIB */
+function getRequiredWeekdays(): string[] {
+  const days: string[] = []
+  const end = COMPETITION_END
+  const current = new Date(PERFECT_ATTENDANCE_START)
+  while (current <= end) {
+    const wib = new Date(current.getTime() + 7 * 60 * 60 * 1000)
+    const dayOfWeek = wib.getUTCDay()
+    // 0=Sun, 6=Sat — skip weekends
+    if (dayOfWeek !== 0 && dayOfWeek !== 6) {
+      days.push(wib.toISOString().split('T')[0])
+    }
+    current.setUTCDate(current.getUTCDate() + 1)
+  }
+  return days
+}
+
 function isCompetitionOver(): boolean {
   return new Date() > COMPETITION_END
 }
@@ -101,6 +120,12 @@ export interface UserCompetitionStats {
   currentStreak: number
   hasSubmittedTop5: boolean
   loginDays: number
+  perfectAttendance: {
+    activeDays: number
+    totalRequired: number
+    missedDays: number
+    onTrack: boolean
+  }
 }
 
 export interface TestScenario {
@@ -520,6 +545,18 @@ export async function getUserCompetitionStats(): Promise<UserCompetitionStats | 
   // Estimate login days from point_events distinct dates
   const loginDays = activeDays
 
+  // Perfect attendance: weekdays from Feb 23 to Mar 12
+  const requiredWeekdays = getRequiredWeekdays()
+  const activeDateSet = new Set(points.map(p => {
+    const utc = new Date(p.created_at)
+    const wib = new Date(utc.getTime() + 7 * 60 * 60 * 1000)
+    return wib.toISOString().split('T')[0]
+  }))
+  const todayWIB = getTodayWIB()
+  const passedWeekdays = requiredWeekdays.filter(d => d <= todayWIB)
+  const activeOnRequired = passedWeekdays.filter(d => activeDateSet.has(d)).length
+  const missedDays = passedWeekdays.length - activeOnRequired
+
   return {
     totalPoints,
     rank,
@@ -530,6 +567,12 @@ export async function getUserCompetitionStats(): Promise<UserCompetitionStats | 
     currentStreak: streak,
     hasSubmittedTop5: (top5Count || 0) > 0,
     loginDays,
+    perfectAttendance: {
+      activeDays: activeOnRequired,
+      totalRequired: requiredWeekdays.length,
+      missedDays,
+      onTrack: missedDays === 0,
+    },
   }
 }
 

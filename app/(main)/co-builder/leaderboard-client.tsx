@@ -292,6 +292,33 @@ export function LeaderboardClient({ leaderboard, stats, activity }: Props) {
                     </span>
                   </div>
                 </div>
+
+                {/* Perfect Attendance Tracker */}
+                <div className="space-y-2 pt-2 border-t">
+                  <div className="text-sm font-medium flex items-center gap-2">
+                    <Calendar className="h-4 w-4" />
+                    Perfect Attendance (+Rp 150.000)
+                  </div>
+                  <RequirementRow
+                    label="Hadir hari kerja"
+                    current={stats.perfectAttendance.activeDays}
+                    target={stats.perfectAttendance.totalRequired}
+                    met={stats.perfectAttendance.onTrack && stats.perfectAttendance.activeDays === stats.perfectAttendance.totalRequired}
+                  />
+                  {stats.perfectAttendance.missedDays > 0 ? (
+                    <p className="text-xs text-red-500">
+                      Missed {stats.perfectAttendance.missedDays} hari kerja
+                    </p>
+                  ) : stats.perfectAttendance.activeDays > 0 ? (
+                    <p className="text-xs text-green-600">
+                      On track! Jangan sampai terlewat
+                    </p>
+                  ) : (
+                    <p className="text-xs text-muted-foreground">
+                      Mulai 23 Feb — aktif setiap hari kerja (Sen-Jum)
+                    </p>
+                  )}
+                </div>
               </CardContent>
             </Card>
           )}
