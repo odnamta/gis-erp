@@ -23,6 +23,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - **Leaderboard ranks by points only** — removed hard gate sorting that pushed unqualified users below qualified regardless of points. Requirements determine prize eligibility at competition end, not daily ranking
 - **Removed visual punishment** — no more opacity dimming or "(belum lengkap)" labels on leaderboard
 - **Perfect Attendance +Rp 150.000 kept** — confirmed by owner, already visible to participants
+- **Perfect Attendance tracker** — sidebar now shows progress toward 14 required weekdays (Mon-Fri, Feb 23 – Mar 12), with missed days count and on-track status
 
 ### Cleanup
 - Removed dead `meets_requirements` computation from leaderboard
