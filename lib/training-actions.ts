@@ -343,13 +343,13 @@ export async function createTrainingRecord(input: CreateRecordInput): Promise<Tr
     status = result.status;
   }
 
-  const { data: user } = await supabase.auth.getUser();
+  const { data: { user } } = await supabase.auth.getUser();
 
   // Get user profile (FK references user_profiles.id, not auth UUID)
   const { data: profile } = await supabase
     .from('user_profiles')
     .select('id')
-    .eq('user_id', user?.user?.id || '')
+    .eq('user_id', user?.id || '')
     .single();
 
   const { data, error } = await supabase
@@ -651,13 +651,13 @@ export async function createSession(input: CreateSessionInput): Promise<Training
     (count || 0) + 1
   );
 
-  const { data: user } = await supabase.auth.getUser();
+  const { data: { user } } = await supabase.auth.getUser();
 
   // Get user profile (FK references user_profiles.id, not auth UUID)
   const { data: sessionProfile } = await supabase
     .from('user_profiles')
     .select('id')
-    .eq('user_id', user?.user?.id || '')
+    .eq('user_id', user?.id || '')
     .single();
 
   const { data, error } = await supabase
@@ -755,13 +755,13 @@ export async function completeSession(id: string): Promise<{ session: TrainingSe
   }
 
   const course = session.safety_training_courses;
-  const { data: user } = await supabase.auth.getUser();
+  const { data: { user } } = await supabase.auth.getUser();
 
   // Get user profile (FK references user_profiles.id, not auth UUID)
   const { data: completionProfile } = await supabase
     .from('user_profiles')
     .select('id')
-    .eq('user_id', user?.user?.id || '')
+    .eq('user_id', user?.id || '')
     .single();
 
   let recordsCreated = 0;

@@ -153,7 +153,7 @@ export default async function HseDashboardPage() {
       {/* Quick Actions */}
       <div className="flex flex-wrap gap-2">
         <Link 
-          href="/hse/incidents/new"
+          href="/hse/incidents/report"
           className="inline-flex items-center gap-2 px-3 py-2 text-sm font-medium rounded-md border hover:bg-accent"
         >
           <Plus className="h-4 w-4" />

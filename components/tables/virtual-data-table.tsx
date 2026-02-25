@@ -114,7 +114,7 @@ export function VirtualDataTable<T>({
       <div
         ref={parentRef}
         className="overflow-auto"
-        style={{ maxHeight: stickyHeader ? maxHeight - 40 : maxHeight }}
+        style={{ maxHeight: stickyHeader ? maxHeight - 40 : maxHeight, minHeight: Math.min(data.length * rowHeight + 2, 200) }}
       >
         {!stickyHeader && (
           <Table>

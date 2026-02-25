@@ -11,6 +11,7 @@ export function LoginClient() {
   const [error, setError] = useState<string | null>(null)
   const [urlError, setUrlError] = useState<string | null>(null)
   const [urlMessage, setUrlMessage] = useState<string | null>(null)
+  const [debugInfo, setDebugInfo] = useState<string | null>(null)
 
   // Read URL params on client side to avoid SSR bailout
   useEffect(() => {
@@ -22,18 +23,41 @@ export function LoginClient() {
   const handleGoogleSignIn = async () => {
     setIsLoading(true)
     setError(null)
+    setDebugInfo(null)
 
-    const supabase = createClient()
+    // Safety timeout: if redirect doesn't happen within 8s, show diagnostic error
+    const timeoutId = setTimeout(() => {
+      setError('Login gagal — browser tidak bisa redirect ke Google. Hubungi admin.')
+      setDebugInfo(`Origin: ${window.location.origin} | URL: ${process.env.NEXT_PUBLIC_SUPABASE_URL ? 'set' : 'MISSING'} | Key: ${process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY ? 'set' : 'MISSING'}`)
+      setIsLoading(false)
+    }, 8000)
 
-    const { error } = await supabase.auth.signInWithOAuth({
-      provider: 'google',
-      options: {
-        redirectTo: `${window.location.origin}/auth/callback`,
-      },
-    })
+    try {
+      const supabase = createClient()
 
-    if (error) {
-      setError(error.message)
+      const { data, error } = await supabase.auth.signInWithOAuth({
+        provider: 'google',
+        options: {
+          redirectTo: `${window.location.origin}/auth/callback`,
+        },
+      })
+
+      if (error) {
+        clearTimeout(timeoutId)
+        setError(`Login error: ${error.message}`)
+        setIsLoading(false)
+        return
+      }
+
+      // If we have a URL but browser didn't redirect, try manual redirect
+      if (data?.url) {
+        clearTimeout(timeoutId)
+        window.location.href = data.url
+      }
+    } catch (e) {
+      clearTimeout(timeoutId)
+      const errMsg = e instanceof Error ? e.message : String(e)
+      setError(`Terjadi kesalahan: ${errMsg}`)
       setIsLoading(false)
     }
   }
@@ -45,6 +69,12 @@ export function LoginClient() {
       {displayError && (
         <Alert variant="destructive">
           <AlertDescription>{displayError}</AlertDescription>
+        </Alert>
+      )}
+
+      {debugInfo && (
+        <Alert>
+          <AlertDescription className="font-mono text-xs">{debugInfo}</AlertDescription>
         </Alert>
       )}
 
