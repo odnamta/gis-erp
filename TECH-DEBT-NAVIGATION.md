@@ -9,7 +9,7 @@ Routes referenced in `lib/navigation.ts` that have no corresponding `page.tsx`.
 | # | Nav Item | Dead href | Status | Fix |
 |---|----------|-----------|--------|-----|
 | 1 | ~~Admin (parent)~~ | ~~/admin/audit-logs~~ | **FIXED** (Feb 25) | Changed parent href to `/admin/feedback` |
-| 2 | Help (parent) | `/help` | **OPEN** | Create `/app/(main)/help/page.tsx` as help center landing |
+| 2 | ~~Help (parent)~~ | ~~/help~~ | **NOT A BUG** | Page exists at `app/help/page.tsx` (outside `(main)` route group, standalone layout) |
 
 ## RLS UUID Mismatch (employee_id = auth.uid())
 
@@ -34,17 +34,19 @@ employee_id IN (
 
 ## Orphan Admin Pages (not in navigation)
 
-Pages that exist under `/admin/` but aren't linked from the sidebar. Accessible only by direct URL.
+Pages that exist under `/admin/` but aren't linked from the sidebar.
 
-| Page | Purpose | Action Needed |
-|------|---------|---------------|
-| `/admin/changelog` | Change history viewer | Consider adding to Admin nav children |
-| `/admin/security/events` | Security event logs | Consider adding to Admin nav children |
-| `/admin/security/blocked-ips` | IP blocking | Consider adding to Admin nav children |
-| `/admin/security/api-keys` | API key management | Consider adding to Admin nav children |
-| `/admin/security/sessions` | Session management | Consider adding to Admin nav children |
+| Page | Purpose | Status |
+|------|---------|--------|
+| ~~`/admin/changelog`~~ | Change history viewer | **FIXED** — Added to Admin nav children |
+| ~~`/admin/security/events`~~ | Security event logs | **FIXED** — Added to Admin nav children |
+| ~~`/admin/security/blocked-ips`~~ | IP blocking | **FIXED** — Added to Admin nav children |
+| ~~`/admin/security/api-keys`~~ | API key management | **FIXED** — Added to Admin nav children |
+| ~~`/admin/security/sessions`~~ | Session management | **FIXED** — Added to Admin nav children |
 
 ## Decision Log
 
 - **2026-02-25**: `/admin/audit-logs` parent href changed to `/admin/feedback` — Feedback is the most commonly used admin page and exists as a real page.
 - **2026-02-25**: 5 RLS policies fixed with proper join pattern. All employee-related tables now correctly resolve auth UUID → user_profiles.user_id → user_profiles.id → employees.user_id → employees.id.
+- **2026-02-25**: 5 orphan admin pages (changelog, security events/sessions/blocked-ips/api-keys) added to Admin nav children.
+- **2026-02-25**: `/help` confirmed NOT a dead link — page exists at `app/help/page.tsx` (standalone route group with its own layout).

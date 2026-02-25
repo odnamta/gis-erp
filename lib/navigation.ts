@@ -527,6 +527,26 @@ export const NAV_ITEMS: NavItem[] = [
         title: 'Job Failures',
         href: '/admin/jobs',
       },
+      {
+        title: 'Changelog',
+        href: '/admin/changelog',
+      },
+      {
+        title: 'Security Events',
+        href: '/admin/security/events',
+      },
+      {
+        title: 'Sessions',
+        href: '/admin/security/sessions',
+      },
+      {
+        title: 'Blocked IPs',
+        href: '/admin/security/blocked-ips',
+      },
+      {
+        title: 'API Keys',
+        href: '/admin/security/api-keys',
+      },
     ],
   },
   {
