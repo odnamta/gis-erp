@@ -491,7 +491,7 @@ export const NAV_ITEMS: NavItem[] = [
   },
   {
     title: 'Admin',
-    href: '/admin/audit-logs',
+    href: '/admin/feedback',
     icon: Shield,
     roles: ['owner', 'director', 'sysadmin'],
     children: [
