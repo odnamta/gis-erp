@@ -123,6 +123,7 @@ export async function fetchDashboardKPIs(): Promise<DashboardKPIs> {
       .from('invoices')
       .select('total_amount')
       .in('status', ['sent', 'overdue'])
+      .limit(1000)
   ])
 
   // Calculate outstanding AR sum
@@ -230,10 +231,11 @@ export async function fetchRecentActivity(): Promise<ActivityEntry[]> {
 
 /**
  * Fetch operations queue - PJOs needing cost entry
+ * Optimized: include cost items in the same query (eliminates N+1)
  */
 export async function fetchOperationsQueue(): Promise<OpsQueueItem[]> {
   const supabase = await createClient()
-  
+
   const { data, error } = await supabase
     .from('proforma_job_orders')
     .select(`
@@ -244,33 +246,28 @@ export async function fetchOperationsQueue(): Promise<OpsQueueItem[]> {
       projects(
         name,
         customers(name)
-      )
+      ),
+      pjo_cost_items(actual_amount)
     `)
     .eq('status', 'approved')
     .eq('all_costs_confirmed', false)
     .order('created_at', { ascending: false })
+    .limit(1000)
 
   if (error) {
     return []
   }
 
-  // For each PJO, get cost item progress
-  const queueItems: OpsQueueItem[] = []
-  
-  for (const pjo of data || []) {
-    const { data: costItems } = await supabase
-      .from('pjo_cost_items')
-      .select('actual_amount')
-      .eq('pjo_id', pjo.id)
-
-    const costsTotal = costItems?.length || 0
-    const costsConfirmed = costItems?.filter(
-      item => item.actual_amount !== null
-    ).length || 0
+  return (data || []).map((pjo) => {
+    const costItems = pjo.pjo_cost_items || []
+    const costsTotal = costItems.length
+    const costsConfirmed = costItems.filter(
+      (item: { actual_amount: number | null }) => item.actual_amount !== null
+    ).length
 
     const project = pjo.projects as { name: string; customers: { name: string } } | null
 
-    queueItems.push({
+    return {
       id: pjo.id,
       pjo_number: pjo.pjo_number,
       customer_name: project?.customers?.name || 'Unknown',
@@ -279,10 +276,8 @@ export async function fetchOperationsQueue(): Promise<OpsQueueItem[]> {
       costs_confirmed: costsConfirmed,
       costs_total: costsTotal,
       created_at: pjo.created_at || ''
-    })
-  }
-
-  return queueItems
+    }
+  })
 }
 
 /**
@@ -301,6 +296,7 @@ export async function fetchManagerMetrics(): Promise<ManagerMetrics> {
     .select('final_revenue, final_cost')
     .gte('created_at', startOfMonth)
     .lte('created_at', endOfMonth)
+    .limit(1000)
 
   if (error) {
     return {
@@ -400,23 +396,27 @@ export async function fetchFinanceDashboardData(): Promise<FinanceDashboardData>
         notes,
         customers(name)
       `)
-      .order('due_date', { ascending: true }),
+      .order('due_date', { ascending: true })
+      .limit(1000),
 
     // Fetch PJOs for pipeline
     supabase
       .from('proforma_job_orders')
       .select('status, total_revenue_calculated, is_active')
-      .eq('is_active', true),
+      .eq('is_active', true)
+      .limit(1000),
 
     // Fetch job orders for revenue calculation
     supabase
       .from('job_orders')
-      .select('final_revenue, completed_at, status'),
+      .select('final_revenue, completed_at, status')
+      .limit(1000),
 
     // Fetch payments for monthly total calculation
     supabase
       .from('payments')
-      .select('amount, payment_date'),
+      .select('amount, payment_date')
+      .limit(1000),
 
     // Fetch pending BKKs for approval
     supabase
@@ -439,7 +439,8 @@ export async function fetchFinanceDashboardData(): Promise<FinanceDashboardData>
         )
       `)
       .eq('status', 'pending')
-      .order('requested_at', { ascending: true }),
+      .order('requested_at', { ascending: true })
+      .limit(1000),
   ])
 
   // Transform invoice data
@@ -541,7 +542,8 @@ export async function fetchSalesDashboardData(
         )
       `)
       .eq('is_active', true)
-      .order('created_at', { ascending: false }),
+      .order('created_at', { ascending: false })
+      .limit(1000),
 
     // Fetch new customers count for the period
     supabase
@@ -685,7 +687,8 @@ export async function fetchManagerDashboardData(
     supabase
       .from('job_orders')
       .select('id, final_revenue, final_cost, status, created_at, completed_at')
-      .order('created_at', { ascending: false }),
+      .order('created_at', { ascending: false })
+      .limit(1000),
 
     // Fetch PJOs for approval queue
     supabase
@@ -703,7 +706,8 @@ export async function fetchManagerDashboardData(
         )
       `)
       .eq('is_active', true)
-      .order('created_at', { ascending: false }),
+      .order('created_at', { ascending: false })
+      .limit(1000),
 
     // Fetch cost items for budget alerts and P&L breakdown
     supabase
@@ -716,19 +720,22 @@ export async function fetchManagerDashboardData(
         actual_amount,
         status,
         proforma_job_orders(pjo_number)
-      `),
+      `)
+      .limit(1000),
 
     // Fetch active jobs for jobs in progress count
     supabase
       .from('job_orders')
       .select('id, status')
-      .eq('status', 'active'),
+      .eq('status', 'active')
+      .limit(1000),
 
     // Fetch user profiles for team metrics
     supabase
       .from('user_profiles')
       .select('id, full_name, role')
-      .in('role', ['sysadmin', 'administration', 'marketing', 'ops']),
+      .in('role', ['sysadmin', 'administration', 'marketing', 'ops'])
+      .limit(1000),
   ])
 
   // Transform data
@@ -1016,7 +1023,8 @@ export async function fetchAdminDashboardData(
         )
       `)
       .eq('is_active', true)
-      .order('created_at', { ascending: false }),
+      .order('created_at', { ascending: false })
+      .limit(1000),
 
     // Fetch JOs with customer info
     supabase
@@ -1035,7 +1043,8 @@ export async function fetchAdminDashboardData(
           )
         )
       `)
-      .order('created_at', { ascending: false }),
+      .order('created_at', { ascending: false })
+      .limit(1000),
 
     // Fetch Invoices with customer info
     supabase
@@ -1058,7 +1067,8 @@ export async function fetchAdminDashboardData(
           )
         )
       `)
-      .order('created_at', { ascending: false }),
+      .order('created_at', { ascending: false })
+      .limit(1000),
   ])
 
   // Transform PJO data

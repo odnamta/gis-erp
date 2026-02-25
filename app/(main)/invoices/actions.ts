@@ -301,7 +301,7 @@ export async function getInvoices(filters?: InvoiceFilters): Promise<InvoiceWith
     query = query.or(`invoice_number.ilike.${searchTerm},customers.name.ilike.${searchTerm}`)
   }
 
-  const { data, error } = await query
+  const { data, error } = await query.limit(1000)
 
   if (error) {
     return []

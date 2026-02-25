@@ -677,12 +677,12 @@ export async function getLeaveRequests(
     query = query.lte('end_date', filters.end_date);
   }
   
-  const { data, error } = await query;
-  
+  const { data, error } = await query.limit(1000);
+
   if (error) {
     throw new Error('Failed to fetch leave requests');
   }
-  
+
   return (data || []) as unknown as LeaveRequest[];
 }
 

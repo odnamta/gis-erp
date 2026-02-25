@@ -319,12 +319,12 @@ export async function listQuotations(filters?: {
       query = query.lte('created_at', filters.date_to)
     }
     
-    const { data, error } = await query
-    
+    const { data, error } = await query.limit(1000)
+
     if (error) {
       return { success: false, error: error.message }
     }
-    
+
     return { success: true, data: data as unknown as QuotationWithRelations[] }
   } catch (err) {
     return { success: false, error: 'Failed to list quotations' }

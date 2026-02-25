@@ -28,6 +28,7 @@ export async function getJobOrders(): Promise<JobOrderWithRelations[]> {
       )
     `)
     .order('created_at', { ascending: false })
+    .limit(1000)
 
   if (error) {
     return []

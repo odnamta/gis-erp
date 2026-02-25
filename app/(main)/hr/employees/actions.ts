@@ -48,7 +48,7 @@ export async function getEmployees(
     query = query.or(`full_name.ilike.%${filters.search}%,employee_code.ilike.%${filters.search}%`);
   }
 
-  const { data, error } = await query;
+  const { data, error } = await query.limit(1000);
 
   if (error) {
     return { data: null, error: error.message };
@@ -451,7 +451,8 @@ export async function getEmployeesForDropdown(): Promise<{
     .from('employees')
     .select('id, employee_code, full_name')
     .eq('status', 'active')
-    .order('full_name');
+    .order('full_name')
+    .limit(1000);
 
   if (error) {
     return { data: null, error: error.message };
@@ -473,7 +474,8 @@ export async function getUnlinkedUsers(): Promise<{
   const { data: linkedEmployees } = await supabase
     .from('employees')
     .select('user_id')
-    .not('user_id', 'is', null);
+    .not('user_id', 'is', null)
+    .limit(1000);
 
   const linkedUserIds = linkedEmployees?.map((e) => e.user_id).filter(Boolean) || [];
 

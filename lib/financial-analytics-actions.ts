@@ -162,7 +162,8 @@ export async function fetchBudgetItems(
     .select('*')
     .eq('budget_year', year)
     .eq('budget_month', month)
-    .order('category');
+    .order('category')
+    .limit(1000);
 
   if (error) {
     return [];
@@ -222,7 +223,8 @@ export async function fetchMonthlyActuals(
     .select('*')
     .eq('actual_year', year)
     .eq('actual_month', month)
-    .order('category');
+    .order('category')
+    .limit(1000);
 
   if (error) {
     return [];
@@ -306,7 +308,8 @@ export async function fetchCashFlowTransactions(
     .select('*')
     .gte('transaction_date', startDate)
     .lte('transaction_date', endDate)
-    .order('transaction_date', { ascending: true });
+    .order('transaction_date', { ascending: true })
+    .limit(1000);
 
   if (error) {
     return [];
@@ -394,7 +397,8 @@ export async function fetchCashFlowForecast(
     .select('*')
     .gte('forecast_date', startDate)
     .lte('forecast_date', endDate)
-    .order('forecast_date', { ascending: true });
+    .order('forecast_date', { ascending: true })
+    .limit(1000);
 
   if (error) {
     return [];
@@ -425,7 +429,8 @@ export async function fetchCustomerProfitability(): Promise<CustomerProfitabilit
   const { data, error } = await (supabase as any)
     .from('customer_profitability')
     .select('*')
-    .order('total_profit', { ascending: false });
+    .order('total_profit', { ascending: false })
+    .limit(1000);
 
   if (error) {
     return [];
@@ -450,7 +455,8 @@ export async function fetchJobTypeProfitability(): Promise<JobTypeProfitability[
   const { data, error } = await (supabase as any)
     .from('job_type_profitability')
     .select('*')
-    .order('total_profit', { ascending: false });
+    .order('total_profit', { ascending: false })
+    .limit(1000);
 
   if (error) {
     return [];
@@ -475,7 +481,8 @@ export async function fetchMonthlyPLSummary(): Promise<MonthlyPLSummary[]> {
   const { data, error } = await (supabase as any)
     .from('monthly_pl_summary')
     .select('*')
-    .order('month', { ascending: false });
+    .order('month', { ascending: false })
+    .limit(1000);
 
   if (error) {
     return [];

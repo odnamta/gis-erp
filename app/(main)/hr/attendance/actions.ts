@@ -57,7 +57,7 @@ export async function getAttendanceRecords(
     query = query.eq('status', filters.status);
   }
 
-  const { data, error } = await query;
+  const { data, error } = await query.limit(1000);
 
   if (error) {
     return { data: null, error: error.message };

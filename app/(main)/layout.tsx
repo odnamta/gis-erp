@@ -17,6 +17,7 @@ import { TermsConditionsWrapper } from '@/components/terms-conditions-wrapper'
 import { hasAcceptedCurrentTerms } from '@/lib/terms-conditions'
 import { WelcomeWrapper } from '@/components/welcome-wrapper'
 import { shouldShowWelcome } from '@/lib/welcome-content'
+import { AppBreadcrumbs } from '@/components/breadcrumbs'
 
 export default async function MainLayout({ children }: { children: React.ReactNode }) {
   const supabase = await createClient()
@@ -75,7 +76,10 @@ export default async function MainLayout({ children }: { children: React.ReactNo
                     <Sidebar />
                     <div className="flex flex-1 min-w-0 flex-col overflow-hidden">
                       <Header user={userInfo} />
-                      <main className="flex-1 overflow-auto bg-muted/30 p-3 sm:p-4 md:p-6">{children}</main>
+                      <main className="flex-1 overflow-auto bg-muted/30 p-3 sm:p-4 md:p-6">
+                        <AppBreadcrumbs />
+                        {children}
+                      </main>
                     </div>
                     <Toaster />
                     <OnboardingRouteTracker userId={userProfile?.id || null} />

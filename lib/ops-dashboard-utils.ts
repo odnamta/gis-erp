@@ -69,51 +69,54 @@ export function calculateTrend(
 
 /**
  * Get KPIs for ops dashboard
+ * Optimized: single query for approved PJOs with cost items, count queries in parallel
  */
 export async function getOpsKPIs(): Promise<OpsKPIs> {
   const supabase = await createClient()
 
-  // Get pending cost entries count
-  const { data: pendingPJOs } = await supabase
-    .from('proforma_job_orders')
-    .select('id, approved_at, pjo_cost_items(id, confirmed_at)')
-    .eq('status', 'approved')
-    .eq('converted_to_jo', false)
+  const weekStart = startOfWeek(new Date(), { weekStartsOn: 1 })
+  const weekEnd = endOfWeek(new Date(), { weekStartsOn: 1 })
+
+  // Fetch approved PJOs with cost items ONCE (was 2 separate queries)
+  // Plus count queries in parallel
+  const [
+    { data: approvedPJOs },
+    { count: inProgressJobs },
+    { count: overBudgetItems },
+  ] = await Promise.all([
+    supabase
+      .from('proforma_job_orders')
+      .select('id, approved_at, converted_to_jo, pjo_cost_items(id, confirmed_at)')
+      .eq('status', 'approved')
+      .limit(1000),
+    supabase
+      .from('job_orders')
+      .select('*', { count: 'exact', head: true })
+      .in('status', ['active', 'in_progress']),
+    supabase
+      .from('pjo_cost_items')
+      .select('*', { count: 'exact', head: true })
+      .eq('status', 'exceeded'),
+  ])
 
   let pendingCostEntries = 0
   let urgentCount = 0
+  let completedThisWeek = 0
 
-  pendingPJOs?.forEach((pjo) => {
+  approvedPJOs?.forEach((pjo) => {
     const costItems = pjo.pjo_cost_items || []
     const confirmedCount = costItems.filter((item: { confirmed_at: string | null }) => item.confirmed_at !== null).length
-    if (confirmedCount < costItems.length) {
+    const allConfirmed = confirmedCount === costItems.length && costItems.length > 0
+
+    // Count pending cost entries (only unconverted PJOs)
+    if (!pjo.converted_to_jo && confirmedCount < costItems.length) {
       pendingCostEntries++
       if (isUrgent(pjo.approved_at)) {
         urgentCount++
       }
     }
-  })
 
-  // Get in-progress jobs count
-  const { count: inProgressJobs } = await supabase
-    .from('job_orders')
-    .select('*', { count: 'exact', head: true })
-    .in('status', ['active', 'in_progress'])
-
-  // Get completed this week
-  const weekStart = startOfWeek(new Date(), { weekStartsOn: 1 })
-  const weekEnd = endOfWeek(new Date(), { weekStartsOn: 1 })
-
-  const { data: completedPJOs } = await supabase
-    .from('proforma_job_orders')
-    .select('id, pjo_cost_items(id, confirmed_at)')
-    .eq('status', 'approved')
-
-  let completedThisWeek = 0
-  completedPJOs?.forEach((pjo) => {
-    const costItems = pjo.pjo_cost_items || []
-    if (costItems.length === 0) return
-    const allConfirmed = costItems.every((item: { confirmed_at: string | null }) => item.confirmed_at !== null)
+    // Count completed this week (all cost items confirmed, last confirmation this week)
     if (allConfirmed) {
       const lastConfirmed = costItems
         .map((item: { confirmed_at: string | null }) => item.confirmed_at)
@@ -128,12 +131,6 @@ export async function getOpsKPIs(): Promise<OpsKPIs> {
       }
     }
   })
-
-  // Get over budget items count
-  const { count: overBudgetItems } = await supabase
-    .from('pjo_cost_items')
-    .select('*', { count: 'exact', head: true })
-    .eq('status', 'exceeded')
 
   return {
     pendingCostEntries,
@@ -167,6 +164,7 @@ export async function getPendingCostEntries(): Promise<PendingCostEntry[]> {
     .eq('status', 'approved')
     .eq('converted_to_jo', false)
     .order('approved_at', { ascending: true })
+    .limit(1000)
 
   if (!pjos) return []
 
@@ -223,6 +221,7 @@ export async function getActiveJobs(): Promise<ActiveJob[]> {
     `)
     .in('status', ['active', 'in_progress'])
     .order('created_at', { ascending: false })
+    .limit(1000)
 
   if (!jobs) return []
 
@@ -258,7 +257,7 @@ export async function getWeeklyStats(): Promise<WeeklyStats> {
   const lastWeekStart = startOfWeek(subWeeks(now, 1), { weekStartsOn: 1 })
   const lastWeekEnd = endOfWeek(subWeeks(now, 1), { weekStartsOn: 1 })
 
-  // Get all PJOs with cost items
+  // Get all PJOs with cost items (safety cap)
   const { data: pjos } = await supabase
     .from('proforma_job_orders')
     .select(`
@@ -267,6 +266,7 @@ export async function getWeeklyStats(): Promise<WeeklyStats> {
       pjo_cost_items(id, confirmed_at)
     `)
     .eq('status', 'approved')
+    .limit(1000)
 
   let completedThisWeek = 0
   let completedLastWeek = 0

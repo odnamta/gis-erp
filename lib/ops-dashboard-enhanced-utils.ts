@@ -232,6 +232,7 @@ export async function getCostSummary(activeJobs: OperationsJobItem[]): Promise<C
     .from('bukti_kas_keluar')
     .select('amount_requested')
     .in('status', ['pending', 'approved'])
+    .limit(1000)
 
   const bkkPendingAmount = pendingBKK?.reduce(
     (sum, b) => sum + Number(b.amount_requested),
@@ -260,6 +261,7 @@ export async function getPendingOperationsActions(): Promise<PendingAction[]> {
     .from('berita_acara')
     .select('jo_id, job_orders(jo_number)')
     .in('status', ['draft', 'pending'])
+    .limit(1000)
 
   if (pendingBA?.length) {
     const joNumbers = pendingBA

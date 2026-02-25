@@ -96,7 +96,7 @@ export async function getVendors(filters?: Partial<VendorFilterState>): Promise<
     query = query.or(`vendor_name.ilike.%${filters.search}%,vendor_code.ilike.%${filters.search}%`);
   }
 
-  const { data, error } = await query;
+  const { data, error } = await query.limit(1000);
 
   if (error) {
     return { data: [], error: error.message };
@@ -168,7 +168,8 @@ export async function getVendorsByType(type: VendorType): Promise<{
     .eq('is_active', true)
     .order('is_preferred', { ascending: false })
     .order('average_rating', { ascending: false, nullsFirst: false })
-    .order('vendor_name');
+    .order('vendor_name')
+    .limit(1000);
 
   if (error) {
     return { data: [], error: error.message };
@@ -191,7 +192,8 @@ export async function getActiveVendors(): Promise<{
     .select('*')
     .eq('is_active', true)
     .order('is_preferred', { ascending: false })
-    .order('vendor_name');
+    .order('vendor_name')
+    .limit(1000);
 
   if (error) {
     return { data: [], error: error.message };
@@ -211,7 +213,8 @@ export async function getVendorSummaryStats(): Promise<{
 
   const { data, error } = await supabase
     .from('vendors')
-    .select('is_active, is_preferred, is_verified');
+    .select('is_active, is_preferred, is_verified')
+    .limit(1000);
 
   if (error) {
     return {
@@ -471,14 +474,16 @@ export async function updateVendorMetrics(vendorId: string): Promise<{ error?: s
   const { data: ratings } = await supabase
     .from('vendor_ratings')
     .select('overall_rating, was_on_time')
-    .eq('vendor_id', vendorId);
+    .eq('vendor_id', vendorId)
+    .limit(1000);
 
   // Get BKK stats
   const { data: bkkStats } = await supabase
     .from('bukti_kas_keluar')
     .select('amount_spent')
     .eq('vendor_id', vendorId)
-    .eq('status', 'settled');
+    .eq('status', 'settled')
+    .limit(1000);
 
   // Calculate metrics
   let averageRating: number | null = null;

@@ -93,43 +93,30 @@ async function calculateKPIValueFromDB(
   // Calculate based on KPI code
   switch (kpiCode) {
     case 'REV_MTD':
-    case 'REV_YTD': {
-      const { data } = await supabase
-        .from('job_orders')
-        .select('final_revenue')
-        .eq('status', 'completed')
-        .gte('completed_at', startStr)
-        .lte('completed_at', endStr);
-      return data?.reduce((sum, jo) => sum + Number(jo.final_revenue || 0), 0) || 0;
-    }
-
-    case 'PROFIT_MTD': {
-      const { data } = await supabase
-        .from('job_orders')
-        .select('final_revenue, final_cost')
-        .eq('status', 'completed')
-        .gte('completed_at', startStr)
-        .lte('completed_at', endStr);
-      return data?.reduce((sum, jo) => sum + (Number(jo.final_revenue || 0) - Number(jo.final_cost || 0)), 0) || 0;
-    }
-
+    case 'REV_YTD':
+    case 'PROFIT_MTD':
     case 'PROFIT_MARGIN': {
+      // Batched: all four KPIs use the same job_orders query
       const { data } = await supabase
         .from('job_orders')
         .select('final_revenue, final_cost')
         .eq('status', 'completed')
         .gte('completed_at', startStr)
-        .lte('completed_at', endStr);
+        .lte('completed_at', endStr)
+        .limit(1000);
       const totalRevenue = data?.reduce((sum, jo) => sum + Number(jo.final_revenue || 0), 0) || 0;
       const totalCost = data?.reduce((sum, jo) => sum + Number(jo.final_cost || 0), 0) || 0;
-      return totalRevenue > 0 ? ((totalRevenue - totalCost) / totalRevenue) * 100 : 0;
+      if (kpiCode === 'REV_MTD' || kpiCode === 'REV_YTD') return totalRevenue;
+      if (kpiCode === 'PROFIT_MTD') return totalRevenue - totalCost;
+      /* PROFIT_MARGIN */ return totalRevenue > 0 ? ((totalRevenue - totalCost) / totalRevenue) * 100 : 0;
     }
 
     case 'AR_OUTSTANDING': {
       const { data } = await supabase
         .from('invoices')
         .select('total_amount, amount_paid')
-        .in('status', ['sent', 'partial', 'overdue']);
+        .in('status', ['sent', 'partial', 'overdue'])
+        .limit(1000);
       return data?.reduce((sum, inv) => sum + (Number(inv.total_amount || 0) - Number(inv.amount_paid || 0)), 0) || 0;
     }
 
@@ -140,7 +127,8 @@ async function calculateKPIValueFromDB(
         .from('invoices')
         .select('total_amount, amount_paid')
         .eq('status', 'overdue')
-        .lt('due_date', thirtyDaysAgo.toISOString().split('T')[0]);
+        .lt('due_date', thirtyDaysAgo.toISOString().split('T')[0])
+        .limit(1000);
       return data?.reduce((sum, inv) => sum + (Number(inv.total_amount || 0) - Number(inv.amount_paid || 0)), 0) || 0;
     }
 
@@ -151,7 +139,8 @@ async function calculateKPIValueFromDB(
         .select('total_amount, amount_paid, invoice_date, paid_at')
         .in('status', ['sent', 'partial', 'overdue', 'paid'])
         .gte('invoice_date', startStr)
-        .lte('invoice_date', endStr);
+        .lte('invoice_date', endStr)
+        .limit(1000);
       
       if (!invoices || invoices.length === 0) return 0;
       
@@ -183,7 +172,8 @@ async function calculateKPIValueFromDB(
         .from('quotations')
         .select('total_revenue')
         .gte('created_at', startStr)
-        .lte('created_at', endStr);
+        .lte('created_at', endStr)
+        .limit(1000);
       return data?.reduce((sum, q) => sum + Number(q.total_revenue || 0), 0) || 0;
     }
 
@@ -193,7 +183,8 @@ async function calculateKPIValueFromDB(
         .select('status')
         .in('status', ['won', 'lost'])
         .gte('updated_at', startStr)
-        .lte('updated_at', endStr);
+        .lte('updated_at', endStr)
+        .limit(1000);
       const total = data?.length || 0;
       const won = data?.filter(q => q.status === 'won').length || 0;
       return total > 0 ? (won / total) * 100 : 0;
@@ -203,7 +194,8 @@ async function calculateKPIValueFromDB(
       const { data } = await supabase
         .from('quotations')
         .select('total_revenue')
-        .in('status', ['draft', 'submitted', 'engineering_review', 'ready']);
+        .in('status', ['draft', 'submitted', 'engineering_review', 'ready'])
+        .limit(1000);
       return data?.reduce((sum, q) => sum + Number(q.total_revenue || 0), 0) || 0;
     }
 
@@ -213,7 +205,8 @@ async function calculateKPIValueFromDB(
         .select('total_revenue')
         .eq('status', 'won')
         .gte('updated_at', startStr)
-        .lte('updated_at', endStr);
+        .lte('updated_at', endStr)
+        .limit(1000);
       const total = data?.reduce((sum, q) => sum + Number(q.total_revenue || 0), 0) || 0;
       const count = data?.length || 0;
       return count > 0 ? total / count : 0;
@@ -247,7 +240,8 @@ async function calculateKPIValueFromDB(
         .select('created_at, completed_at')
         .eq('status', 'completed')
         .gte('completed_at', startStr)
-        .lte('completed_at', endStr);
+        .lte('completed_at', endStr)
+        .limit(1000);
       
       if (!completedJobs || completedJobs.length === 0) return 0;
       
@@ -290,7 +284,8 @@ async function calculateKPIValueFromDB(
         .select('final_revenue, final_cost')
         .eq('status', 'completed')
         .gte('completed_at', startStr)
-        .lte('completed_at', endStr);
+        .lte('completed_at', endStr)
+        .limit(1000);
       if (!data || data.length === 0) return 0;
       const margins = data.map(jo => {
         const revenue = Number(jo.final_revenue || 0);
@@ -723,7 +718,8 @@ export async function getSalesFunnelData(): Promise<FunnelStage[]> {
   const { data } = await supabase
     .from('quotations')
     .select('status, total_revenue')
-    .in('status', ['draft', 'submitted', 'engineering_review', 'ready', 'won']);
+    .in('status', ['draft', 'submitted', 'engineering_review', 'ready', 'won'])
+    .limit(1000);
 
   const stages = [
     { dbStatus: 'draft', label: 'Lead' },
