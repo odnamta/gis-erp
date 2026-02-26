@@ -95,16 +95,31 @@ export function CompetitionFeedbackButton() {
     setIsUploading(true)
     setScreenshotPreview(URL.createObjectURL(file))
 
-    const formData = new FormData()
-    formData.append('file', file)
+    try {
+      const formData = new FormData()
+      formData.append('file', file)
 
-    const result = await uploadCompetitionScreenshot(formData)
-    setIsUploading(false)
+      const result = await uploadCompetitionScreenshot(formData)
 
-    if (result.url) {
-      setScreenshotUrl(result.url)
-    } else {
+      if (result.url) {
+        setScreenshotUrl(result.url)
+      } else {
+        setScreenshotPreview('')
+        toast({
+          title: 'Upload gagal',
+          description: result.error || 'Gagal upload screenshot',
+          variant: 'destructive',
+        })
+      }
+    } catch {
       setScreenshotPreview('')
+      toast({
+        title: 'Upload gagal',
+        description: 'Gagal upload screenshot. Coba lagi.',
+        variant: 'destructive',
+      })
+    } finally {
+      setIsUploading(false)
     }
   }
 
@@ -113,33 +128,42 @@ export function CompetitionFeedbackButton() {
     if (!isDescValid) return
 
     setIsSubmitting(true)
-    const result = await submitCompetitionFeedback({
-      category,
-      title,
-      description,
-      steps_to_reproduce: stepsToReproduce || undefined,
-      suggestion: suggestion || undefined,
-      page_url: pathname,
-      screenshot_url: screenshotUrl || undefined,
-    })
-    setIsSubmitting(false)
+    try {
+      const result = await submitCompetitionFeedback({
+        category,
+        title,
+        description,
+        steps_to_reproduce: stepsToReproduce || undefined,
+        suggestion: suggestion || undefined,
+        page_url: pathname,
+        screenshot_url: screenshotUrl || undefined,
+      })
 
-    if (result.success) {
-      setEarnedPoints(result.points || 0)
-      setEarnedBonuses(result.bonuses || [])
-      setShowSuccess(true)
-      resetForm()
+      if (result.success) {
+        setEarnedPoints(result.points || 0)
+        setEarnedBonuses(result.bonuses || [])
+        setShowSuccess(true)
+        resetForm()
 
-      setTimeout(() => {
-        setShowSuccess(false)
-        setIsOpen(false)
-      }, 3000)
-    } else {
+        setTimeout(() => {
+          setShowSuccess(false)
+          setIsOpen(false)
+        }, 3000)
+      } else {
+        toast({
+          title: 'Gagal',
+          description: result.error || 'Gagal mengirim feedback',
+          variant: 'destructive',
+        })
+      }
+    } catch {
       toast({
         title: 'Gagal',
-        description: result.error || 'Gagal mengirim feedback',
+        description: 'Terjadi kesalahan. Coba lagi.',
         variant: 'destructive',
       })
+    } finally {
+      setIsSubmitting(false)
     }
   }
 
