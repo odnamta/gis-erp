@@ -152,6 +152,7 @@ export async function getSystemLogs(
     
     return { success: true, data: result };
   } catch (error) {
+    console.error('getSystemLogs error:', error);
     return { success: false, error: 'Failed to fetch system logs' };
   }
 }
@@ -208,15 +209,16 @@ export async function getLogStatistics(
       query = query.ilike('module', `%${filters.module}%`);
     }
     
-    const { data: entries, error } = await query;
-    
+    const { data: entries, error } = await query.limit(10000);
+
     if (error) throw error;
-    
+
     // Use the utility function to calculate stats
     const stats = calculateLogStats((entries || []) as SystemLogEntry[]);
-    
+
     return { success: true, data: stats };
   } catch (error) {
+    console.error('getLogStatistics error:', error);
     return { success: false, error: 'Failed to fetch log statistics' };
   }
 }

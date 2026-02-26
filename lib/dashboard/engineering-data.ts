@@ -117,7 +117,8 @@ export async function getEngineeringDashboardMetrics(
       // All survey statuses + completed_at — one query replaces 3 count queries
       supabase
         .from('route_surveys')
-        .select('status, completed_at'),
+        .select('status, completed_at')
+        .limit(10000),
 
       // Recent surveys (last 5)
       supabase
@@ -129,7 +130,8 @@ export async function getEngineeringDashboardMetrics(
       // All JMP statuses + planned_departure — one query replaces 3 count queries
       supabase
         .from('journey_management_plans')
-        .select('status, planned_departure'),
+        .select('status, planned_departure')
+        .limit(10000),
 
       // Recent JMPs (last 5)
       supabase
@@ -141,7 +143,8 @@ export async function getEngineeringDashboardMetrics(
       // All assessment statuses + completed_at — one query replaces 3 count queries
       supabase
         .from('engineering_assessments')
-        .select('status, completed_at'),
+        .select('status, completed_at')
+        .limit(10000),
 
       // Recent assessments (last 5) with PJO info
       supabase

@@ -126,6 +126,7 @@ export async function submitFeedback(
       data: { ticketNumber: result.ticket_number, id: result.id },
     };
   } catch (err) {
+    console.error('submitFeedback error:', err);
     return { success: false, error: 'An unexpected error occurred' };
   }
 }
@@ -186,6 +187,7 @@ export async function uploadScreenshot(
       },
     };
   } catch (err) {
+    console.error('uploadScreenshot error:', err);
     return { success: false, error: 'Failed to upload screenshot' };
   }
 }
@@ -217,7 +219,8 @@ export async function getMySubmissions(): Promise<FeedbackActionResult<FeedbackL
       .from('feedback_with_comments' as any)
       .select('*')
       .eq('submitted_by', profile.id)
-      .order('created_at', { ascending: false });
+      .order('created_at', { ascending: false })
+      .limit(100);
 
     if (error) {
       return { success: false, error: 'Failed to fetch submissions' };
@@ -225,6 +228,7 @@ export async function getMySubmissions(): Promise<FeedbackActionResult<FeedbackL
 
     return { success: true, data: data as unknown as FeedbackListItem[] };
   } catch (err) {
+    console.error('getMySubmissions error:', err);
     return { success: false, error: 'An unexpected error occurred' };
   }
 }
@@ -253,6 +257,7 @@ export async function getMyOpenTicketCount(): Promise<FeedbackActionResult<numbe
 
     return { success: true, data: count || 0 };
   } catch (err) {
+    console.error('getMyOpenTicketCount error:', err);
     return { success: true, data: 0 };
   }
 }
