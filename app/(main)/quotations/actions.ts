@@ -142,6 +142,8 @@ export async function createQuotation(
         created_by: profile?.id || null,
         notes: data.notes,
         entity_type: entityType,
+        scope_of_work: data.scope_of_work || 'inland_transport',
+        quotation_ref_number: data.quotation_ref_number || null,
       })
       .select()
       .single()

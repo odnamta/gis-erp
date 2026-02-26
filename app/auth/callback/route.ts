@@ -64,8 +64,15 @@ export async function GET(request: Request) {
       // Sync user metadata to JWT claims for middleware performance optimization
       // This eliminates the need for database queries on every page navigation
       if (user) {
+        // Build roles array from profile (multi-role support)
+        const profileWithRoles = profile as { roles?: string[] }
+        const roles = Array.isArray(profileWithRoles.roles) && profileWithRoles.roles.length > 0
+          ? profileWithRoles.roles
+          : profile.role ? [profile.role] : []
+
         await syncUserMetadataToAuth(user.id, {
           role: profile.role,
+          roles,
           is_active: profile.is_active,
           custom_homepage: profile.custom_homepage,
         })

@@ -15,6 +15,7 @@
 import { createClient } from '@/lib/supabase/server'
 export interface UserMetadataForJWT {
   role: string
+  roles: string[]
   is_active: boolean
   custom_homepage: string | null
 }
@@ -43,6 +44,7 @@ export async function syncUserMetadataToAuth(
     const { error } = await supabaseAdmin.auth.admin.updateUserById(userId, {
       app_metadata: {
         role: metadata.role,
+        roles: metadata.roles,
         is_active: metadata.is_active,
         custom_homepage: metadata.custom_homepage,
       },
@@ -66,18 +68,25 @@ export async function syncUserMetadataFromProfile(userId: string): Promise<{ suc
   try {
     const supabase = await createClient()
     
-    const { data: profile, error: profileError } = await supabase
+    const { data: rawProfile, error: profileError } = await supabase
       .from('user_profiles')
-      .select('role, is_active, custom_homepage')
+      .select('*')
       .eq('user_id', userId)
       .single()
 
+    const profile = rawProfile as { role: string; roles?: string[]; is_active: boolean; custom_homepage: string | null } | null
     if (profileError || !profile) {
       return { success: false, error: 'Profile not found' }
     }
 
+    // Build roles array: use DB roles if populated, otherwise fallback to [role]
+    const roles = Array.isArray(profile.roles) && profile.roles.length > 0
+      ? profile.roles
+      : profile.role ? [profile.role] : []
+
     return syncUserMetadataToAuth(userId, {
       role: profile.role,
+      roles,
       is_active: profile.is_active,
       custom_homepage: profile.custom_homepage,
     })
@@ -97,8 +106,14 @@ export function getUserMetadataFromSession(user: { app_metadata?: Record<string,
     return null
   }
 
+  // Read roles array from JWT, fallback to [role]
+  const roles = Array.isArray(appMetadata.roles) && appMetadata.roles.length > 0
+    ? appMetadata.roles as string[]
+    : [appMetadata.role as string]
+
   return {
     role: appMetadata.role as string,
+    roles,
     is_active: appMetadata.is_active !== false, // Default to true if not set
     custom_homepage: (appMetadata.custom_homepage as string | null) || null,
   }

@@ -24,12 +24,21 @@ export async function getUserProfile(): Promise<UserProfile | null> {
     .eq('user_id', user.id)
     .single()
 
-  // Ensure department_scope is always an array
-  if (profile && !profile.department_scope) {
-    profile.department_scope = []
+  if (profile) {
+    // Ensure department_scope is always an array
+    if (!profile.department_scope) {
+      profile.department_scope = []
+    }
+    // Ensure roles is always an array (multi-role support)
+    // Cast needed: 'roles' column exists in DB but not in generated types
+    const p = profile as unknown as UserProfile
+    if (!Array.isArray(p.roles) || p.roles.length === 0) {
+      p.roles = p.role ? [p.role] : []
+    }
+    return p
   }
 
-  return profile as unknown as UserProfile | null
+  return null
 }
 
 /**
@@ -76,7 +85,10 @@ export async function requireRole(
   }
 
   const allowedRoles = Array.isArray(roles) ? roles : [roles]
-  if (!allowedRoles.includes(profile.role as UserRole)) {
+  // Multi-role: check if ANY of the user's roles matches ANY of the allowed roles
+  const userRoles = profile.roles?.length ? profile.roles : [profile.role]
+  const hasMatch = userRoles.some(r => allowedRoles.includes(r as UserRole))
+  if (!hasMatch) {
     throw new Error(`Forbidden: Required role ${allowedRoles.join(' or ')}`)
   }
 
@@ -212,11 +224,12 @@ export async function createUserProfile(
     full_name: fullName || null,
     avatar_url: avatarUrl || null,
     role: role as string | null,
+    roles: role ? [role] : [],
     department_scope: [],
     custom_dashboard: role === 'owner' ? 'executive' : 'default',
     ...permissions,
   }
-  
+
   const result = await supabase
     .from('user_profiles')
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -426,6 +439,7 @@ export async function ensureUserProfile(): Promise<UserProfile | null> {
     full_name: fullName || null,
     avatar_url: avatarUrl || null,
     role: role ?? undefined,
+    roles: role ? [role] : [],
     department_scope: [],
     custom_dashboard: role === 'owner' ? 'executive' : (role && ['marketing_manager', 'finance_manager', 'operations_manager'].includes(role) ? 'manager' : 'default'),
     last_login_at: new Date().toISOString(),
@@ -526,10 +540,23 @@ export async function updateUserRole(
     customs: 'default',
   }
 
+  // Fetch current roles to merge (for multi-role support)
+  const { data: currentRolesData } = await supabase
+    .from('user_profiles')
+    .select('*')
+    .eq('user_id', targetUserId)
+    .single()
+
+  // Update primary role and ensure it's in the roles array
+  const rolesFromDB = (currentRolesData as Record<string, unknown> | null)?.roles
+  const currentRoles: string[] = Array.isArray(rolesFromDB) ? rolesFromDB as string[] : []
+  const updatedRoles = currentRoles.includes(newRole) ? currentRoles : [...currentRoles.filter(r => r !== previousRole), newRole]
+
   const { error } = await supabase
     .from('user_profiles')
     .update({
       role: newRole,
+      roles: updatedRoles,
       custom_dashboard: dashboardMap[newRole] || 'default',
       ...permissions,
       updated_at: new Date().toISOString(),
@@ -661,6 +688,7 @@ export async function createPreregisteredUser(
       full_name: fullName || null,
       avatar_url: null,
       role,
+      roles: [role],
       custom_dashboard: 'default',
       is_active: true,
       ...permissions,

@@ -15,6 +15,7 @@ import { shouldExcludePath, shouldLogPageView } from '@/lib/page-view-tracker'
  */
 interface UserMetadataFromJWT {
   role: string
+  roles: string[]
   is_active: boolean
   custom_homepage: string | null
 }
@@ -104,9 +105,12 @@ export async function middleware(request: NextRequest) {
     // Get role and active status from JWT metadata (fast path)
     // Falls back to database query only if metadata is missing (rare case for legacy sessions)
     let role: string | undefined = appMetadata?.role
+    let roles: string[] = Array.isArray(appMetadata?.roles) && appMetadata!.roles.length > 0
+      ? appMetadata!.roles
+      : role ? [role] : []
     let isActive: boolean = appMetadata?.is_active !== false // Default to true
     let customHomepage: string | null = appMetadata?.custom_homepage ?? null
-    
+
     // Fallback: Query database only if JWT metadata is missing
     // This handles legacy sessions before metadata sync was implemented
     if (!role) {
@@ -125,14 +129,18 @@ export async function middleware(request: NextRequest) {
         }
       )
 
-      const { data: profile } = await supabase
+      const { data: rawProfile } = await supabase
         .from('user_profiles')
-        .select('role, is_active, custom_homepage')
+        .select('*')
         .eq('user_id', user.id)
         .single()
-      
+
+      const profile = rawProfile as { role: string; roles?: string[]; is_active: boolean; custom_homepage: string | null } | null
       if (profile) {
         role = profile.role
+        roles = Array.isArray(profile.roles) && profile.roles.length > 0
+          ? profile.roles
+          : profile.role ? [profile.role] : []
         isActive = profile.is_active
         customHomepage = profile.custom_homepage
       }
@@ -145,8 +153,8 @@ export async function middleware(request: NextRequest) {
     }
 
     // v0.84: Role Request System - Handle users without valid roles
-    // Check if user has a valid role that grants access to the application
-    const hasValidRole = role && VALID_ROLES.includes(role as UserRole)
+    // Check if user has any valid role (multi-role aware)
+    const hasValidRole = roles.some(r => VALID_ROLES.includes(r as UserRole))
     const isNoRoleRequiredRoute = NO_ROLE_REQUIRED_ROUTES.some(route => pathname.startsWith(route))
     
     // Redirect users WITHOUT a valid role to /request-access
@@ -192,16 +200,19 @@ export async function middleware(request: NextRequest) {
     const isOpsRestrictedRoute = OPS_RESTRICTED_ROUTES.some(route => pathname.startsWith(route))
     const isSalesRestrictedRoute = SALES_RESTRICTED_ROUTES.some(route => pathname.startsWith(route))
 
-    // Redirect ops users to their dashboard for ops-restricted routes
-    if (role === 'ops' && isOpsRestrictedRoute) {
+    // Redirect ops-only users to their dashboard for ops-restricted routes
+    // Multi-role: only restrict if ALL roles are 'ops' (no other role grants access)
+    const isOpsOnly = roles.length > 0 && roles.every(r => r === 'ops')
+    if (isOpsOnly && isOpsRestrictedRoute) {
       const homepage = getHomepageForRole('ops', customHomepage)
       const dashboardUrl = new URL(homepage, request.url)
       dashboardUrl.searchParams.set('restricted', 'true')
       return NextResponse.redirect(dashboardUrl)
     }
 
-    // Redirect sales users to their dashboard for sales-restricted routes
-    if (role === 'sales' && isSalesRestrictedRoute) {
+    // Redirect sales-only users to their dashboard for sales-restricted routes
+    const isSalesOnly = roles.length > 0 && roles.every(r => r === 'sales')
+    if (isSalesOnly && isSalesRestrictedRoute) {
       const homepage = getHomepageForRole('sales', customHomepage)
       const dashboardUrl = new URL(homepage, request.url)
       dashboardUrl.searchParams.set('restricted', 'true')

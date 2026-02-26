@@ -4,6 +4,25 @@ import { Tables, Json } from './database'
 import { EngineeringStatus } from './engineering'
 import { MarketType, TerrainType, ComplexityFactor } from './market-classification'
 
+// Scope of Work types (Hutami's insight: not all quotations are inland transport)
+export type ScopeOfWork =
+  | 'inland_transport'
+  | 'customs_clearance'
+  | 'pbm'
+  | 'local_service'
+  | 'multi_scope'
+
+export const SCOPE_OF_WORK_LABELS: Record<ScopeOfWork, string> = {
+  inland_transport: 'Inland Transport (Heavy-Haul)',
+  customs_clearance: 'Customs Clearance',
+  pbm: 'PBM (Bongkar Muat)',
+  local_service: 'Local Service',
+  multi_scope: 'Multi-Scope',
+}
+
+// Scopes that require cargo dimensions and route details
+export const TRANSPORT_SCOPES: ScopeOfWork[] = ['inland_transport', 'multi_scope']
+
 // Status types
 export type QuotationStatus =
   | 'draft'
@@ -104,6 +123,10 @@ export interface Quotation {
   updated_at: string | null
   is_active: boolean | null
   notes: string | null
+  // New fields (not yet in generated Supabase types)
+  scope_of_work?: string | null
+  quotation_ref_number?: string | null
+  entity_type?: string | null
 }
 
 export interface QuotationRevenueItem {
@@ -191,6 +214,8 @@ export interface QuotationCreateInput {
   duration_days?: number
   estimated_shipments?: number
   notes?: string
+  scope_of_work?: ScopeOfWork
+  quotation_ref_number?: string
 }
 
 export interface QuotationUpdateInput extends Partial<QuotationCreateInput> {

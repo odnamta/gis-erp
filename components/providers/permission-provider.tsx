@@ -45,7 +45,12 @@ export function PermissionProvider({ children, initialProfile }: PermissionProvi
       .single()
 
     if (profileData) {
-      setProfile(profileData as unknown as UserProfile)
+      const p = profileData as unknown as UserProfile
+      // Ensure roles array is populated (multi-role support)
+      if (!Array.isArray(p.roles) || p.roles.length === 0) {
+        p.roles = p.role ? [p.role] : []
+      }
+      setProfile(p)
     }
     setIsLoading(false)
   }, [])

@@ -10,6 +10,7 @@ import { logActivity } from '@/lib/activity-logger'
 
 const customerSchema = z.object({
   name: z.string().min(1, 'Name is required'),
+  company_name: z.string().optional(),
   email: z.string().email('Invalid email format').or(z.literal('')),
   phone: z.string().optional(),
   address: z.string().optional(),
@@ -29,6 +30,7 @@ export async function createCustomer(data: CustomerFormData): Promise<{ error?: 
 
   const { data: customer, error } = await supabase.from('customers').insert({
     name: data.name,
+    company_name: data.company_name || null,
     email: data.email || '',
     phone: data.phone || null,
     address: data.address || null,
@@ -70,6 +72,7 @@ export async function updateCustomer(
     .from('customers')
     .update({
       name: data.name,
+      company_name: data.company_name || null,
       email: data.email || '',
       phone: data.phone || null,
       address: data.address || null,

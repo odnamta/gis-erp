@@ -16,7 +16,7 @@ import { useToast } from '@/hooks/use-toast'
 import { createQuotation, updateQuotation } from '@/app/(main)/quotations/actions'
 import { createCustomer } from '@/app/(main)/customers/actions'
 import { createProject } from '@/app/(main)/projects/actions'
-import { QuotationWithRelations, QuotationCreateInput } from '@/types/quotation'
+import { QuotationWithRelations, QuotationCreateInput, ScopeOfWork, SCOPE_OF_WORK_LABELS, TRANSPORT_SCOPES } from '@/types/quotation'
 import { TerrainType } from '@/types/market-classification'
 import { format } from 'date-fns'
 import { CalendarIcon, Save, ArrowLeft, Plus, Loader2 } from 'lucide-react'
@@ -40,6 +40,7 @@ export function QuotationForm({ customers: initialCustomers, projects: initialPr
   const [customerDialogOpen, setCustomerDialogOpen] = useState(false)
   const [projectDialogOpen, setProjectDialogOpen] = useState(false)
   const [newCustomerName, setNewCustomerName] = useState('')
+  const [newCustomerCompany, setNewCustomerCompany] = useState('')
   const [newProjectName, setNewProjectName] = useState('')
   const [isSavingCustomer, setIsSavingCustomer] = useState(false)
   const [isSavingProject, setIsSavingProject] = useState(false)
@@ -67,6 +68,8 @@ export function QuotationForm({ customers: initialCustomers, projects: initialPr
     duration_days: quotation?.duration_days || undefined,
     estimated_shipments: quotation?.estimated_shipments || 1,
     notes: quotation?.notes || '',
+    scope_of_work: (quotation?.scope_of_work as ScopeOfWork) || 'inland_transport',
+    quotation_ref_number: quotation?.quotation_ref_number || '',
   })
 
   // Filter projects by selected customer
@@ -78,15 +81,25 @@ export function QuotationForm({ customers: initialCustomers, projects: initialPr
     if (!newCustomerName.trim()) return
     setIsSavingCustomer(true)
     try {
-      const result = await createCustomer({ name: newCustomerName.trim(), email: '', phone: '', address: '' })
+      const result = await createCustomer({
+        name: newCustomerName.trim(),
+        company_name: newCustomerCompany.trim() || undefined,
+        email: '',
+        phone: '',
+        address: '',
+      })
       if (result.error) {
         toast({ title: 'Error', description: result.error, variant: 'destructive' })
       } else if (result.id) {
-        const newCustomer = { id: result.id, name: newCustomerName.trim() }
+        const displayName = newCustomerCompany.trim()
+          ? `${newCustomerCompany.trim()} (${newCustomerName.trim()})`
+          : newCustomerName.trim()
+        const newCustomer = { id: result.id, name: displayName }
         setCustomers(prev => [...prev, newCustomer].sort((a, b) => a.name.localeCompare(b.name)))
         setFormData(prev => ({ ...prev, customer_id: result.id!, project_id: undefined }))
-        toast({ title: 'Customer ditambahkan', description: `${newCustomerName.trim()} berhasil dibuat. Lengkapi data di halaman Customer nanti.` })
+        toast({ title: 'Customer ditambahkan', description: `${displayName} berhasil dibuat. Lengkapi data di halaman Customer nanti.` })
         setNewCustomerName('')
+        setNewCustomerCompany('')
         setCustomerDialogOpen(false)
       }
     } finally {
@@ -176,11 +189,15 @@ export function QuotationForm({ customers: initialCustomers, projects: initialPr
                   <DialogHeader>
                     <DialogTitle>Tambah Customer Baru</DialogTitle>
                   </DialogHeader>
-                  <p className="text-sm text-muted-foreground">Masukkan nama customer. Data lainnya bisa dilengkapi nanti di halaman Customer.</p>
+                  <p className="text-sm text-muted-foreground">Masukkan data customer minimal. Lengkapi nanti di halaman Customer.</p>
                   <div className="space-y-3">
                     <div className="space-y-2">
-                      <Label>Nama Customer *</Label>
-                      <Input value={newCustomerName} onChange={e => setNewCustomerName(e.target.value)} placeholder="Nama perusahaan / customer" autoFocus onKeyDown={e => e.key === 'Enter' && (e.preventDefault(), handleQuickAddCustomer())} />
+                      <Label>Nama Perusahaan</Label>
+                      <Input value={newCustomerCompany} onChange={e => setNewCustomerCompany(e.target.value)} placeholder="PT. Contoh Indonesia" autoFocus />
+                    </div>
+                    <div className="space-y-2">
+                      <Label>Nama PIC / Contact Person *</Label>
+                      <Input value={newCustomerName} onChange={e => setNewCustomerName(e.target.value)} placeholder="Nama kontak" onKeyDown={e => e.key === 'Enter' && (e.preventDefault(), handleQuickAddCustomer())} />
                     </div>
                     <Button type="button" onClick={handleQuickAddCustomer} disabled={!newCustomerName.trim() || isSavingCustomer} className="w-full">
                       {isSavingCustomer ? <><Loader2 className="mr-2 h-4 w-4 animate-spin" />Menyimpan...</> : <><Plus className="mr-2 h-4 w-4" />Tambah Customer</>}
@@ -233,8 +250,23 @@ export function QuotationForm({ customers: initialCustomers, projects: initialPr
             <Input id="title" value={formData.title} onChange={(e) => setFormData({ ...formData, title: e.target.value })} placeholder="e.g., Heavy Equipment Transport Jakarta-Surabaya" />
           </div>
           <div className="space-y-2">
+            <Label>Scope of Work *</Label>
+            <Select value={formData.scope_of_work || 'inland_transport'} onValueChange={(v) => setFormData({ ...formData, scope_of_work: v as ScopeOfWork })}>
+              <SelectTrigger><SelectValue placeholder="Pilih scope" /></SelectTrigger>
+              <SelectContent>
+                {Object.entries(SCOPE_OF_WORK_LABELS).map(([value, label]) => (
+                  <SelectItem key={value} value={value}>{label}</SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          </div>
+          <div className="space-y-2">
             <Label htmlFor="commodity">Commodity</Label>
             <Input id="commodity" value={formData.commodity || ''} onChange={(e) => setFormData({ ...formData, commodity: e.target.value })} placeholder="e.g., Excavator, Transformer" />
+          </div>
+          <div className="space-y-2">
+            <Label htmlFor="quotation_ref_number">No. Surat Penawaran</Label>
+            <Input id="quotation_ref_number" value={formData.quotation_ref_number || ''} onChange={(e) => setFormData({ ...formData, quotation_ref_number: e.target.value })} placeholder="e.g., 001/QUO/GIS/II/2026" />
           </div>
           <div className="space-y-2">
             <Label htmlFor="estimated_shipments">Estimated Shipments</Label>
@@ -301,51 +333,53 @@ export function QuotationForm({ customers: initialCustomers, projects: initialPr
         </CardContent>
       </Card>
 
-      {/* Cargo Specifications */}
-      <Card>
-        <CardHeader>
-          <CardTitle>Cargo Specifications</CardTitle>
-        </CardHeader>
-        <CardContent className="space-y-6">
-          <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-5">
-            <div className="space-y-2">
-              <Label>Weight (kg)</Label>
-              <Input type="number" min={0} value={formData.cargo_weight_kg || ''} onChange={(e) => setFormData({ ...formData, cargo_weight_kg: parseFloat(e.target.value) || undefined })} />
+      {/* Cargo Specifications — only for transport/multi-scope */}
+      {TRANSPORT_SCOPES.includes(formData.scope_of_work as ScopeOfWork) && (
+        <Card>
+          <CardHeader>
+            <CardTitle>Cargo Specifications</CardTitle>
+          </CardHeader>
+          <CardContent className="space-y-6">
+            <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-5">
+              <div className="space-y-2">
+                <Label>Weight (kg)</Label>
+                <Input type="number" min={0} value={formData.cargo_weight_kg || ''} onChange={(e) => setFormData({ ...formData, cargo_weight_kg: parseFloat(e.target.value) || undefined })} />
+              </div>
+              <div className="space-y-2">
+                <Label>Length (m)</Label>
+                <Input type="number" min={0} step={0.1} value={formData.cargo_length_m || ''} onChange={(e) => setFormData({ ...formData, cargo_length_m: parseFloat(e.target.value) || undefined })} />
+              </div>
+              <div className="space-y-2">
+                <Label>Width (m)</Label>
+                <Input type="number" min={0} step={0.1} value={formData.cargo_width_m || ''} onChange={(e) => setFormData({ ...formData, cargo_width_m: parseFloat(e.target.value) || undefined })} />
+              </div>
+              <div className="space-y-2">
+                <Label>Height (m)</Label>
+                <Input type="number" min={0} step={0.1} value={formData.cargo_height_m || ''} onChange={(e) => setFormData({ ...formData, cargo_height_m: parseFloat(e.target.value) || undefined })} />
+              </div>
+              <div className="space-y-2">
+                <Label>Cargo Value (IDR)</Label>
+                <Input type="number" min={0} value={formData.cargo_value || ''} onChange={(e) => setFormData({ ...formData, cargo_value: parseFloat(e.target.value) || undefined })} />
+              </div>
             </div>
-            <div className="space-y-2">
-              <Label>Length (m)</Label>
-              <Input type="number" min={0} step={0.1} value={formData.cargo_length_m || ''} onChange={(e) => setFormData({ ...formData, cargo_length_m: parseFloat(e.target.value) || undefined })} />
-            </div>
-            <div className="space-y-2">
-              <Label>Width (m)</Label>
-              <Input type="number" min={0} step={0.1} value={formData.cargo_width_m || ''} onChange={(e) => setFormData({ ...formData, cargo_width_m: parseFloat(e.target.value) || undefined })} />
-            </div>
-            <div className="space-y-2">
-              <Label>Height (m)</Label>
-              <Input type="number" min={0} step={0.1} value={formData.cargo_height_m || ''} onChange={(e) => setFormData({ ...formData, cargo_height_m: parseFloat(e.target.value) || undefined })} />
-            </div>
-            <div className="space-y-2">
-              <Label>Value (IDR)</Label>
-              <Input type="number" min={0} value={formData.cargo_value || ''} onChange={(e) => setFormData({ ...formData, cargo_value: parseFloat(e.target.value) || undefined })} />
-            </div>
-          </div>
 
-          <div className="flex flex-wrap gap-6">
-            <div className="flex items-center space-x-2">
-              <Switch id="is_new_route" checked={formData.is_new_route} onCheckedChange={(v) => setFormData({ ...formData, is_new_route: v })} />
-              <Label htmlFor="is_new_route">New Route</Label>
+            <div className="flex flex-wrap gap-6">
+              <div className="flex items-center space-x-2">
+                <Switch id="is_new_route" checked={formData.is_new_route} onCheckedChange={(v) => setFormData({ ...formData, is_new_route: v })} />
+                <Label htmlFor="is_new_route">New Route</Label>
+              </div>
+              <div className="flex items-center space-x-2">
+                <Switch id="requires_special_permit" checked={formData.requires_special_permit} onCheckedChange={(v) => setFormData({ ...formData, requires_special_permit: v })} />
+                <Label htmlFor="requires_special_permit">Requires Special Permit</Label>
+              </div>
+              <div className="flex items-center space-x-2">
+                <Switch id="is_hazardous" checked={formData.is_hazardous} onCheckedChange={(v) => setFormData({ ...formData, is_hazardous: v })} />
+                <Label htmlFor="is_hazardous">Hazardous Cargo</Label>
+              </div>
             </div>
-            <div className="flex items-center space-x-2">
-              <Switch id="requires_special_permit" checked={formData.requires_special_permit} onCheckedChange={(v) => setFormData({ ...formData, requires_special_permit: v })} />
-              <Label htmlFor="requires_special_permit">Requires Special Permit</Label>
-            </div>
-            <div className="flex items-center space-x-2">
-              <Switch id="is_hazardous" checked={formData.is_hazardous} onCheckedChange={(v) => setFormData({ ...formData, is_hazardous: v })} />
-              <Label htmlFor="is_hazardous">Hazardous Cargo</Label>
-            </div>
-          </div>
-        </CardContent>
-      </Card>
+          </CardContent>
+        </Card>
+      )}
 
       {/* Notes */}
       <Card>

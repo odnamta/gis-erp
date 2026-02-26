@@ -6,7 +6,7 @@ import { useState } from 'react'
 import { GenerateDialog } from '@/components/document-generation/generate-dialog'
 import { useToast } from '@/hooks/use-toast'
 
-export type PDFDocumentType = 'invoice' | 'surat-jalan' | 'berita-acara' | 'quotation' | 'job_order'
+export type PDFDocumentType = 'invoice' | 'surat-jalan' | 'berita-acara' | 'quotation' | 'job_order' | 'pjo' | 'bkk' | 'job-order'
 
 interface PDFButtonsProps {
   documentType: PDFDocumentType

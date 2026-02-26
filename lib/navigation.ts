@@ -666,11 +666,19 @@ export function filterNavItems(
   permissions: Partial<UserPermissions>,
   profile?: UserProfile | null
 ): NavItem[] {
-  // Get inherited roles for managers
-  const effectiveRoles: UserRole[] = [userRole]
-  if (profile && ['marketing_manager', 'finance_manager', 'operations_manager'].includes(profile.role) && profile.department_scope?.length) {
+  // Multi-role: start with all user roles
+  const userRoles = profile?.roles?.length ? profile.roles : [userRole]
+  const effectiveRoles: UserRole[] = [...new Set(userRoles)]
+
+  // Manager inheritance for any manager role in the set
+  const hasManagerRole = effectiveRoles.some(r =>
+    ['marketing_manager', 'finance_manager', 'operations_manager'].includes(r)
+  )
+  if (profile && hasManagerRole && profile.department_scope?.length) {
     const inheritedRoles = getInheritedRoles(profile)
-    effectiveRoles.push(...inheritedRoles)
+    for (const r of inheritedRoles) {
+      if (!effectiveRoles.includes(r)) effectiveRoles.push(r)
+    }
   }
   
   return items

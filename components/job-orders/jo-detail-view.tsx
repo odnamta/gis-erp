@@ -140,11 +140,9 @@ export function JODetailView({ jobOrder, userId, userRole }: JODetailViewProps) 
         </div>
         <div className="flex gap-2">
           <PDFButtons
-            documentType="job_order"
+            documentType="job-order"
             documentId={jobOrder.id}
             documentNumber={jobOrder.jo_number}
-            userId={userId}
-            showGenerateButton={!!userId}
           />
           {(jobOrder.status === 'active' || jobOrder.status === 'in_progress') && (
             <Button onClick={handleMarkCompleted} disabled={isLoading}>

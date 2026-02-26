@@ -91,7 +91,8 @@ export interface UserProfile {
   email: string
   full_name: string | null
   avatar_url: string | null
-  role: UserRole
+  role: UserRole              // Primary role (backward compat)
+  roles: UserRole[]           // All assigned roles (multi-role support)
   department_scope: DepartmentScope[]  // For managers
   custom_dashboard: DashboardType
   custom_homepage: string | null  // Custom homepage route override

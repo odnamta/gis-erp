@@ -575,19 +575,25 @@ const FEATURE_PERMISSION_MAP: Record<FeatureKey, (profile: UserProfile) => boole
  */
 export function canAccessFeature(profile: UserProfile | null, feature: FeatureKey): boolean {
   if (!profile) return false
-  
+
   const checker = FEATURE_PERMISSION_MAP[feature]
   if (!checker) return false
-  
-  // Direct role check
-  if (checker(profile)) {
-    return true
+
+  // Multi-role: try each user role
+  const userRoles = profile.roles?.length ? profile.roles : [profile.role]
+  for (const userRole of userRoles) {
+    const virtualProfile = { ...profile, role: userRole }
+    if (checker(virtualProfile)) {
+      return true
+    }
   }
-  
-  // Manager inheritance check (for specific manager roles)
-  if (['marketing_manager', 'finance_manager', 'operations_manager'].includes(profile.role) && profile.department_scope?.length) {
+
+  // Manager inheritance check (for manager roles in the user's role set)
+  const managerRoles = userRoles.filter(r =>
+    ['marketing_manager', 'finance_manager', 'operations_manager'].includes(r)
+  )
+  if (managerRoles.length > 0 && profile.department_scope?.length) {
     const inheritedRoles = getInheritedRoles(profile)
-    
     for (const inheritedRole of inheritedRoles) {
       const virtualProfile = { ...profile, role: inheritedRole }
       if (checker(virtualProfile)) {
@@ -595,7 +601,7 @@ export function canAccessFeature(profile: UserProfile | null, feature: FeatureKe
       }
     }
   }
-  
+
   return false
 }
 
@@ -615,8 +621,10 @@ export function hasPermission(
  */
 export function isRole(profile: UserProfile | null, role: UserRole | UserRole[]): boolean {
   if (!profile) return false
-  const roles = Array.isArray(role) ? role : [role]
-  return roles.includes(profile.role)
+  const requiredRoles = Array.isArray(role) ? role : [role]
+  // Multi-role: check if ANY of the user's roles matches ANY required role
+  const userRoles = profile.roles?.length ? profile.roles : [profile.role]
+  return requiredRoles.some(r => userRoles.includes(r))
 }
 
 /**

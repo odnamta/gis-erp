@@ -37,6 +37,7 @@ import { Progress } from '@/components/ui/progress'
 import { Skeleton } from '@/components/ui/skeleton'
 import { AlertTriangle } from 'lucide-react'
 import { FileQuestion } from 'lucide-react'
+import { PDFButtons } from '@/components/pdf/pdf-buttons'
 // Engineering components
 import { EngineeringStatusBanner } from '@/components/engineering/engineering-status-banner'
 import { EngineeringAssessmentsSection } from '@/components/engineering/engineering-assessments-section'
@@ -328,6 +329,13 @@ export function PJODetailView({ pjo, canApprove = true, userRole, userId }: PJOD
           </div>
         </div>
         <div className="flex gap-2">
+          <PDFButtons
+            documentType="pjo"
+            documentId={pjo.id}
+            documentNumber={pjo.pjo_number}
+            size="sm"
+            variant="outline"
+          />
           {pjo.status === 'draft' && (
             <>
               <Button variant="outline" asChild>

@@ -8,6 +8,7 @@ import { formatBKKCurrency } from '@/lib/bkk-utils'
 import type { BKKWithRelations, BKKStatus } from '@/types'
 import { format } from 'date-fns'
 import { ExternalLink } from 'lucide-react'
+import { PDFButtons } from '@/components/pdf/pdf-buttons'
 
 interface BKKDetailViewProps {
   bkk: BKKWithRelations
@@ -31,8 +32,17 @@ export function BKKDetailView({ bkk }: BKKDetailViewProps) {
       <Card>
         <CardHeader>
           <div className="flex items-center justify-between">
-            <CardTitle>{bkk.bkk_number}</CardTitle>
-            <BKKStatusBadge 
+            <div className="flex items-center gap-3">
+              <CardTitle>{bkk.bkk_number}</CardTitle>
+              <PDFButtons
+                documentType="bkk"
+                documentId={bkk.id}
+                documentNumber={bkk.bkk_number}
+                size="sm"
+                variant="outline"
+              />
+            </div>
+            <BKKStatusBadge
               status={bkk.status as BKKStatus}
               showDetails
               requestedAt={bkk.requested_at}
