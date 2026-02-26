@@ -192,7 +192,8 @@ export async function initializeYearlyBalances(
     
     return { success: true };
   } catch (error) {
-    return { success: false, error: 'Failed to initialize leave balances' };
+    console.error('initializeYearlyBalances error:', error);
+    return { success: false, error: 'Gagal inisialisasi saldo cuti' };
   }
 }
 
@@ -319,7 +320,9 @@ export async function submitLeaveRequest(
     
     return { success: true, data: request as unknown as LeaveRequest };
   } catch (error) {
-    return { success: false, error: 'Failed to submit leave request' };
+    console.error('submitLeaveRequest error:', error);
+    const msg = error instanceof Error ? error.message : 'Unknown error';
+    return { success: false, error: `Gagal mengajukan cuti: ${msg}` };
   }
 }
 
@@ -423,7 +426,9 @@ export async function approveLeaveRequest(
     
     return { success: true };
   } catch (error) {
-    return { success: false, error: 'Failed to approve leave request' };
+    console.error('approveLeaveRequest error:', error);
+    const msg = error instanceof Error ? error.message : 'Unknown error';
+    return { success: false, error: `Gagal menyetujui cuti: ${msg}` };
   }
 }
 
@@ -524,7 +529,9 @@ export async function rejectLeaveRequest(
     
     return { success: true };
   } catch (error) {
-    return { success: false, error: 'Failed to reject leave request' };
+    console.error('rejectLeaveRequest error:', error);
+    const msg = error instanceof Error ? error.message : 'Unknown error';
+    return { success: false, error: `Gagal menolak cuti: ${msg}` };
   }
 }
 
@@ -586,7 +593,9 @@ export async function cancelLeaveRequest(
     
     return { success: true };
   } catch (error) {
-    return { success: false, error: 'Failed to cancel leave request' };
+    console.error('cancelLeaveRequest error:', error);
+    const msg = error instanceof Error ? error.message : 'Unknown error';
+    return { success: false, error: `Gagal membatalkan cuti: ${msg}` };
   }
 }
 

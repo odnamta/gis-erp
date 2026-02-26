@@ -202,7 +202,8 @@ export async function reportIncident(
       .single();
 
     if (insertError) {
-      return { success: false, error: 'Failed to report incident' };
+      console.error('Incident insert error:', insertError);
+      return { success: false, error: `Gagal melaporkan insiden: ${insertError.message}` };
     }
 
     // Add persons involved
@@ -259,7 +260,8 @@ export async function reportIncident(
       data: transformIncidentRow(incident as IncidentRow),
     };
   } catch (error) {
-    return { success: false, error: 'An unexpected error occurred' };
+    console.error('reportIncident error:', error);
+    return { success: false, error: `Terjadi kesalahan: ${error instanceof Error ? error.message : 'Unknown error'}` };
   }
 }
 

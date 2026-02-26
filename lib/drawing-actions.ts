@@ -183,17 +183,23 @@ export async function createDrawing(input: DrawingFormInput): Promise<ActionResu
     .single();
 
   if (error) {
-    return { success: false, error: 'Failed to create drawing' };
+    console.error('Drawing insert error:', error);
+    return { success: false, error: `Gagal membuat gambar: ${error.message}` };
   }
 
   // Create initial revision
-  await supabase.from('drawing_revisions').insert({
+  const { error: revisionError } = await supabase.from('drawing_revisions').insert({
     drawing_id: data.id,
     revision_number: 'A',
     change_description: 'Initial issue',
     change_reason: 'initial',
     is_current: true,
   });
+
+  if (revisionError) {
+    console.error('Drawing revision insert error:', revisionError);
+    // Drawing was created but revision failed — still return success with warning
+  }
 
   revalidatePath('/engineering/drawings');
   return { success: true, data: data as unknown as Drawing };
@@ -221,7 +227,8 @@ export async function updateDrawing(
     .single();
 
   if (error) {
-    return { success: false, error: 'Failed to update drawing' };
+    console.error('Drawing update error:', error);
+    return { success: false, error: `Gagal memperbarui gambar: ${error.message}` };
   }
 
   revalidatePath('/engineering/drawings');
@@ -238,7 +245,8 @@ export async function deleteDrawing(id: string): Promise<ActionResult<void>> {
     .eq('id', id);
 
   if (error) {
-    return { success: false, error: 'Failed to delete drawing' };
+    console.error('Drawing delete error:', error);
+    return { success: false, error: `Gagal menghapus gambar: ${error.message}` };
   }
 
   revalidatePath('/engineering/drawings');
@@ -313,7 +321,8 @@ export async function createRevision(
     .single();
 
   if (revError) {
-    return { success: false, error: 'Failed to create revision' };
+    console.error('Revision create error:', revError);
+    return { success: false, error: `Gagal membuat revisi: ${revError.message}` };
   }
 
   // Update drawing
@@ -427,7 +436,8 @@ async function updateDrawingStatus(
     .single();
 
   if (error) {
-    return { success: false, error: 'Failed to update drawing status' };
+    console.error('Drawing status update error:', error);
+    return { success: false, error: `Gagal memperbarui status gambar: ${error.message}` };
   }
 
   revalidatePath('/engineering/drawings');
@@ -515,7 +525,8 @@ export async function createTransmittal(
     .single();
 
   if (error) {
-    return { success: false, error: 'Failed to create transmittal' };
+    console.error('Transmittal create error:', error);
+    return { success: false, error: `Gagal membuat transmittal: ${error.message}` };
   }
 
   revalidatePath('/engineering/drawings/transmittals');
@@ -545,7 +556,8 @@ export async function sendTransmittal(id: string): Promise<ActionResult<DrawingT
     .single();
 
   if (error) {
-    return { success: false, error: 'Failed to send transmittal' };
+    console.error('Transmittal send error:', error);
+    return { success: false, error: `Gagal mengirim transmittal: ${error.message}` };
   }
 
   revalidatePath('/engineering/drawings/transmittals');
@@ -567,7 +579,8 @@ export async function acknowledgeTransmittal(id: string): Promise<ActionResult<D
     .single();
 
   if (error) {
-    return { success: false, error: 'Failed to acknowledge transmittal' };
+    console.error('Transmittal acknowledge error:', error);
+    return { success: false, error: `Gagal mengonfirmasi transmittal: ${error.message}` };
   }
 
   revalidatePath('/engineering/drawings/transmittals');

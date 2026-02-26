@@ -212,6 +212,7 @@ export async function createPJO(data: PJOFormData): Promise<{ error?: string; id
       .insert(revenueItemsToInsert)
 
     if (revenueError) {
+      console.error('PJO revenue items insert error:', revenueError);
     }
   }
 
@@ -223,7 +224,7 @@ export async function createPJO(data: PJOFormData): Promise<{ error?: string; id
       description: item.description,
       estimated_amount: item.estimated_amount,
       status: 'estimated',
-      estimated_by: user.id,
+      estimated_by: profile.id,
     }))
 
     const { error: costError } = await supabase
@@ -231,6 +232,7 @@ export async function createPJO(data: PJOFormData): Promise<{ error?: string; id
       .insert(costItemsToInsert)
 
     if (costError) {
+      console.error('PJO cost items insert error:', costError);
     }
 
     // Update PJO with total_cost_estimated
@@ -448,7 +450,7 @@ export async function updatePJO(
           description: item.description,
           estimated_amount: item.estimated_amount,
           status: 'estimated',
-          estimated_by: user?.id,
+          estimated_by: profile.id,
         })
       }
     }

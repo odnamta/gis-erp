@@ -4,6 +4,7 @@ import { Button } from '@/components/ui/button'
 import { Eye, Download, Loader2, FileText } from 'lucide-react'
 import { useState } from 'react'
 import { GenerateDialog } from '@/components/document-generation/generate-dialog'
+import { useToast } from '@/hooks/use-toast'
 
 export type PDFDocumentType = 'invoice' | 'surat-jalan' | 'berita-acara' | 'quotation' | 'job_order'
 
@@ -28,6 +29,7 @@ export function PDFButtons({
   userId,
   showGenerateButton = false,
 }: PDFButtonsProps) {
+  const { toast } = useToast()
   const [isViewing, setIsViewing] = useState(false)
   const [isDownloading, setIsDownloading] = useState(false)
   const [generateDialogOpen, setGenerateDialogOpen] = useState(false)
@@ -53,11 +55,28 @@ export function PDFButtons({
     return download ? `${baseUrl}?download=true` : baseUrl
   }
 
-  const handleView = () => {
+  const handleView = async () => {
     setIsViewing(true)
-    window.open(getPDFUrl(false), '_blank')
-    // Reset loading state after a short delay
-    setTimeout(() => setIsViewing(false), 1000)
+    try {
+      const response = await fetch(getPDFUrl(false), { method: 'HEAD' })
+      if (!response.ok) {
+        toast({
+          title: 'PDF belum tersedia',
+          description: 'Gunakan tombol "Generate PDF" untuk membuat dokumen terlebih dahulu.',
+          variant: 'destructive',
+        })
+        return
+      }
+      window.open(getPDFUrl(false), '_blank')
+    } catch {
+      toast({
+        title: 'PDF belum tersedia',
+        description: 'Gunakan tombol "Generate PDF" untuk membuat dokumen terlebih dahulu.',
+        variant: 'destructive',
+      })
+    } finally {
+      setIsViewing(false)
+    }
   }
 
   const handleDownload = async () => {
@@ -65,9 +84,14 @@ export function PDFButtons({
     try {
       const response = await fetch(getPDFUrl(true))
       if (!response.ok) {
-        throw new Error('Failed to download PDF')
+        toast({
+          title: 'Download gagal',
+          description: 'PDF belum tersedia. Gunakan tombol "Generate PDF" terlebih dahulu.',
+          variant: 'destructive',
+        })
+        return
       }
-      
+
       const blob = await response.blob()
       const url = window.URL.createObjectURL(blob)
       const a = document.createElement('a')
@@ -77,8 +101,12 @@ export function PDFButtons({
       a.click()
       document.body.removeChild(a)
       window.URL.revokeObjectURL(url)
-    } catch (error) {
-      console.error('Error downloading PDF:', error)
+    } catch {
+      toast({
+        title: 'Download gagal',
+        description: 'Terjadi kesalahan saat mengunduh PDF.',
+        variant: 'destructive',
+      })
     } finally {
       setIsDownloading(false)
     }

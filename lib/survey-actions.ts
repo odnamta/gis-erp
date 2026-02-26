@@ -91,13 +91,17 @@ export async function createSurvey(data: SurveyFormData): Promise<{ success: boo
       return { success: false, error: error.message };
     }
 
-    // Initialize checklist from template
-    await initializeSurveyChecklist(survey.id);
+    // Initialize checklist from template (non-blocking — survey already created)
+    const checklistResult = await initializeSurveyChecklist(survey.id);
+    if (!checklistResult.success) {
+      console.error('Survey checklist init error:', checklistResult.error);
+    }
 
     revalidatePath('/engineering/surveys');
     return { success: true, data: rowToSurvey(survey as unknown as RouteSurveyRow) };
   } catch (error) {
-    return { success: false, error: 'Failed to create survey' };
+    console.error('createSurvey error:', error);
+    return { success: false, error: `Gagal membuat survey: ${error instanceof Error ? error.message : 'Unknown error'}` };
   }
 }
 

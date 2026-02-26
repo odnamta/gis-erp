@@ -76,3 +76,44 @@
     @apply bg-background text-foreground;
   }
 }
+
+/* Print styles — hide navigation and chrome, show only content */
+@media print {
+  /* Hide sidebar, header, breadcrumbs, toaster, feedback buttons */
+  nav,
+  header,
+  .no-print,
+  [data-sidebar],
+  [role="navigation"],
+  [data-radix-popper-content-wrapper] {
+    display: none !important;
+  }
+
+  /* Make main content full-width without background */
+  body {
+    background: white !important;
+    color: black !important;
+  }
+  main {
+    padding: 0 !important;
+    overflow: visible !important;
+  }
+  .flex.h-screen {
+    display: block !important;
+    height: auto !important;
+    overflow: visible !important;
+  }
+
+  /* Hide action buttons in detail views */
+  button,
+  a[role="button"] {
+    display: none !important;
+  }
+
+  /* But show content inside tables/cards */
+  table,
+  [class*="Card"],
+  [class*="card"] {
+    break-inside: avoid;
+  }
+}
