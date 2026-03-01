@@ -298,6 +298,10 @@ export const NAV_ITEMS: NavItem[] = [
         href: '/hse/training/sessions',
       },
       {
+        title: 'Medical Checkup',
+        href: '/hse/medical-checkups',
+      },
+      {
         title: 'PPE Management',
         href: '/hse/ppe',
       },

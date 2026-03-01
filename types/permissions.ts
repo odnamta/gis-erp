@@ -231,6 +231,8 @@ export type FeatureKey =
   | 'hse.training.view'
   | 'hse.training.view_own'
   | 'hse.training.manage'
+  | 'hse.medical_checkups.view'
+  | 'hse.medical_checkups.manage'
   | 'hse.ppe.view'
   | 'hse.ppe.manage'
   | 'hse.nav'

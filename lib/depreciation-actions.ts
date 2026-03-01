@@ -492,6 +492,34 @@ export async function getTCOSummary(
 }
 
 /**
+ * Get TCO summary for a single asset
+ */
+export async function getAssetTCOSummary(
+  assetId: string
+): Promise<{ success: boolean; data?: AssetTCOSummary; error?: string }> {
+  try {
+    const supabase = await createClient();
+
+    const { data, error } = await supabase
+      .from('asset_tco_summary')
+      .select('*')
+      .eq('asset_id', assetId)
+      .single();
+
+    if (error || !data) {
+      return { success: false, error: 'TCO data not found for this asset' };
+    }
+
+    return {
+      success: true,
+      data: transformTCOSummaryRow(data as AssetTCOSummaryRow),
+    };
+  } catch (error) {
+    return { success: false, error: 'An unexpected error occurred' };
+  }
+}
+
+/**
  * Refresh the TCO materialized view
  */
 export async function refreshTCOView(): Promise<{

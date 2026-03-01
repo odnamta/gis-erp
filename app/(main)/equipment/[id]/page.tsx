@@ -2,10 +2,28 @@
 
 import { useState, useEffect } from 'react'
 import { useRouter, useParams } from 'next/navigation'
-import { ArrowLeft, Edit, Loader2, RefreshCw, Plus, FileText, ImageIcon, Wrench, Eye, ClipboardList, Link2, Calculator, TrendingDown } from 'lucide-react'
+import { ArrowLeft, Edit, Loader2, RefreshCw, Plus, FileText, ImageIcon, Wrench, Eye, ClipboardList, Link2, Calculator, TrendingDown, DollarSign, Fuel, Shield, MoreHorizontal } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from '@/components/ui/dialog'
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/select'
+import { Input } from '@/components/ui/input'
+import { Label } from '@/components/ui/label'
+import { Textarea } from '@/components/ui/textarea'
 import {
   Table,
   TableBody,
@@ -39,9 +57,12 @@ import {
   getAssetLocations,
 } from '@/lib/asset-actions'
 import { getMaintenanceHistory } from '@/lib/maintenance-actions'
+import { getAssetTCOSummary, recordCost, refreshTCOView } from '@/lib/depreciation-actions'
+import { AssetTCOSummary, CostType } from '@/types/depreciation'
 import { useToast } from '@/hooks/use-toast'
 import { usePermissions } from '@/components/providers/permission-provider'
 import { formatDate, formatIDR } from '@/lib/pjo-utils'
+import { formatCurrency, formatCurrencyShort } from '@/lib/utils/format'
 
 function getMaintenanceStatusBadge(status: string) {
   switch (status) {
@@ -69,9 +90,18 @@ export default function AssetDetailPage() {
   const [documents, setDocuments] = useState<AssetDocument[]>([])
   const [locations, setLocations] = useState<AssetLocation[]>([])
   const [maintenanceHistory, setMaintenanceHistory] = useState<MaintenanceRecord[]>([])
+  const [tcoSummary, setTcoSummary] = useState<AssetTCOSummary | null>(null)
   const [isLoading, setIsLoading] = useState(true)
   const [statusDialogOpen, setStatusDialogOpen] = useState(false)
   const [documentFormOpen, setDocumentFormOpen] = useState(false)
+  const [costDialogOpen, setCostDialogOpen] = useState(false)
+  const [costSubmitting, setCostSubmitting] = useState(false)
+  const [costForm, setCostForm] = useState({
+    cost_type: '' as CostType | '',
+    cost_date: new Date().toISOString().split('T')[0],
+    amount: '',
+    notes: '',
+  })
 
   const assetId = params.id as string
   const canEdit = canAccess('assets.edit')
@@ -81,12 +111,13 @@ export default function AssetDetailPage() {
   const loadData = async () => {
     setIsLoading(true)
     try {
-      const [assetResult, historyResult, docsResult, locationsResult, maintenanceResult] = await Promise.all([
+      const [assetResult, historyResult, docsResult, locationsResult, maintenanceResult, tcoResult] = await Promise.all([
         getAssetById(assetId),
         getAssetStatusHistory(assetId),
         getAssetDocuments(assetId),
         getAssetLocations(),
         getMaintenanceHistory({ assetId } as MaintenanceHistoryFilters),
+        getAssetTCOSummary(assetId),
       ])
 
       if (!assetResult) {
@@ -104,6 +135,9 @@ export default function AssetDetailPage() {
       setDocuments(docsResult)
       setLocations(locationsResult)
       setMaintenanceHistory(maintenanceResult)
+      if (tcoResult.success && tcoResult.data) {
+        setTcoSummary(tcoResult.data)
+      }
     } catch (error) {
       toast({
         title: 'Error',
@@ -155,6 +189,76 @@ export default function AssetDetailPage() {
     // Reload documents
     const docsResult = await getAssetDocuments(assetId)
     setDocuments(docsResult)
+  }
+
+  const handleAddCost = async () => {
+    if (!costForm.cost_type || !costForm.amount || !costForm.cost_date) {
+      toast({
+        title: 'Error',
+        description: 'Tipe biaya, tanggal, dan jumlah wajib diisi',
+        variant: 'destructive',
+      })
+      return
+    }
+
+    const amount = parseFloat(costForm.amount)
+    if (isNaN(amount) || amount <= 0) {
+      toast({
+        title: 'Error',
+        description: 'Jumlah harus lebih dari 0',
+        variant: 'destructive',
+      })
+      return
+    }
+
+    setCostSubmitting(true)
+    try {
+      const result = await recordCost({
+        assetId,
+        costType: costForm.cost_type as CostType,
+        costDate: costForm.cost_date,
+        amount,
+        notes: costForm.notes || undefined,
+      })
+
+      if (!result.success) {
+        toast({
+          title: 'Error',
+          description: result.error || 'Gagal menambahkan biaya',
+          variant: 'destructive',
+        })
+        return
+      }
+
+      // Refresh TCO view and reload data
+      await refreshTCOView()
+      const tcoResult = await getAssetTCOSummary(assetId)
+      if (tcoResult.success && tcoResult.data) {
+        setTcoSummary(tcoResult.data)
+      }
+
+      toast({
+        title: 'Berhasil',
+        description: 'Biaya berhasil ditambahkan',
+      })
+
+      // Reset form and close dialog
+      setCostForm({
+        cost_type: '',
+        cost_date: new Date().toISOString().split('T')[0],
+        amount: '',
+        notes: '',
+      })
+      setCostDialogOpen(false)
+    } catch {
+      toast({
+        title: 'Error',
+        description: 'Gagal menambahkan biaya',
+        variant: 'destructive',
+      })
+    } finally {
+      setCostSubmitting(false)
+    }
   }
 
   if (isLoading) {
@@ -371,50 +475,140 @@ export default function AssetDetailPage() {
         </CardContent>
       </Card>
 
-      {/* Costing Section */}
+      {/* Cost Monitoring Section */}
       <Card>
         <CardHeader className="flex flex-row items-center justify-between">
           <CardTitle className="flex items-center gap-2">
-            <Calculator className="h-5 w-5" />
-            Costing & Depreciation
+            <DollarSign className="h-5 w-5" />
+            Monitoring Biaya
           </CardTitle>
           <div className="flex gap-2">
+            {canEdit && (
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={() => setCostDialogOpen(true)}
+              >
+                <Plus className="mr-2 h-4 w-4" />
+                Tambah Biaya
+              </Button>
+            )}
             <Button
               variant="outline"
               size="sm"
               onClick={() => router.push(`/equipment/${assetId}/depreciation`)}
             >
               <TrendingDown className="mr-2 h-4 w-4" />
-              Depreciation
+              Depresiasi
             </Button>
             <Button
               size="sm"
               onClick={() => router.push(`/equipment/${assetId}/costs`)}
             >
               <Calculator className="mr-2 h-4 w-4" />
-              View Costs
+              Riwayat Biaya
             </Button>
           </div>
         </CardHeader>
-        <CardContent>
-          <div className="grid gap-4 md:grid-cols-4">
-            <div className="rounded-lg border p-4">
-              <p className="text-sm text-muted-foreground">Purchase Price</p>
-              <p className="text-2xl font-bold">{formatIDR(asset.purchase_price || 0)}</p>
+        <CardContent className="space-y-4">
+          {/* TCO Summary Cards */}
+          <div className="grid gap-4 md:grid-cols-3">
+            <div className="rounded-lg border bg-primary/5 p-4">
+              <p className="text-sm text-muted-foreground">Total Biaya Kepemilikan (TCO)</p>
+              <p className="text-2xl font-bold text-primary">
+                {formatCurrency(tcoSummary?.totalTCO ?? 0)}
+              </p>
             </div>
             <div className="rounded-lg border p-4">
-              <p className="text-sm text-muted-foreground">Book Value</p>
-              <p className="text-2xl font-bold">{formatIDR(asset.book_value || asset.purchase_price || 0)}</p>
+              <p className="text-sm text-muted-foreground">Harga Beli</p>
+              <p className="text-2xl font-bold">{formatCurrency(asset.purchase_price || 0)}</p>
             </div>
             <div className="rounded-lg border p-4">
-              <p className="text-sm text-muted-foreground">Accumulated Depreciation</p>
-              <p className="text-2xl font-bold text-orange-600">{formatIDR(asset.accumulated_depreciation || 0)}</p>
-            </div>
-            <div className="rounded-lg border p-4">
-              <p className="text-sm text-muted-foreground">Salvage Value</p>
-              <p className="text-2xl font-bold">{formatIDR(asset.salvage_value || 0)}</p>
+              <p className="text-sm text-muted-foreground">Nilai Buku</p>
+              <p className="text-2xl font-bold">{formatCurrency(asset.book_value || asset.purchase_price || 0)}</p>
             </div>
           </div>
+
+          {/* Cost Breakdown Cards */}
+          <div className="grid gap-4 md:grid-cols-5">
+            <div className="rounded-lg border p-4">
+              <div className="flex items-center gap-2 mb-1">
+                <Wrench className="h-4 w-4 text-blue-500" />
+                <p className="text-sm text-muted-foreground">Maintenance</p>
+              </div>
+              <p className="text-lg font-semibold">
+                {formatCurrencyShort(tcoSummary?.totalMaintenanceCost ?? 0)}
+              </p>
+            </div>
+            <div className="rounded-lg border p-4">
+              <div className="flex items-center gap-2 mb-1">
+                <TrendingDown className="h-4 w-4 text-orange-500" />
+                <p className="text-sm text-muted-foreground">Depresiasi</p>
+              </div>
+              <p className="text-lg font-semibold text-orange-600">
+                {formatCurrencyShort(tcoSummary?.totalDepreciation ?? 0)}
+              </p>
+            </div>
+            <div className="rounded-lg border p-4">
+              <div className="flex items-center gap-2 mb-1">
+                <Fuel className="h-4 w-4 text-green-500" />
+                <p className="text-sm text-muted-foreground">BBM</p>
+              </div>
+              <p className="text-lg font-semibold">
+                {formatCurrencyShort(tcoSummary?.totalFuelCost ?? 0)}
+              </p>
+            </div>
+            <div className="rounded-lg border p-4">
+              <div className="flex items-center gap-2 mb-1">
+                <Shield className="h-4 w-4 text-purple-500" />
+                <p className="text-sm text-muted-foreground">Asuransi</p>
+              </div>
+              <p className="text-lg font-semibold">
+                {formatCurrencyShort(tcoSummary?.totalInsuranceCost ?? 0)}
+              </p>
+            </div>
+            <div className="rounded-lg border p-4">
+              <div className="flex items-center gap-2 mb-1">
+                <MoreHorizontal className="h-4 w-4 text-gray-500" />
+                <p className="text-sm text-muted-foreground">Lainnya</p>
+              </div>
+              <p className="text-lg font-semibold">
+                {formatCurrencyShort(
+                  (tcoSummary?.totalRegistrationCost ?? 0) + (tcoSummary?.totalOtherCost ?? 0)
+                )}
+              </p>
+            </div>
+          </div>
+
+          {/* Cost per KM / per Hour */}
+          {tcoSummary && (tcoSummary.costPerKm || tcoSummary.costPerHour) && (
+            <div className="grid gap-4 md:grid-cols-2">
+              {tcoSummary.costPerKm !== undefined && tcoSummary.costPerKm > 0 && (
+                <div className="rounded-lg border border-dashed p-4">
+                  <p className="text-sm text-muted-foreground">Biaya per KM</p>
+                  <p className="text-xl font-bold">
+                    {formatCurrency(Math.round(tcoSummary.costPerKm))}
+                    <span className="text-sm font-normal text-muted-foreground ml-1">/ km</span>
+                  </p>
+                  <p className="text-xs text-muted-foreground mt-1">
+                    Total {tcoSummary.totalKm?.toLocaleString('id-ID') || 0} km
+                  </p>
+                </div>
+              )}
+              {tcoSummary.costPerHour !== undefined && tcoSummary.costPerHour > 0 && (
+                <div className="rounded-lg border border-dashed p-4">
+                  <p className="text-sm text-muted-foreground">Biaya per Jam</p>
+                  <p className="text-xl font-bold">
+                    {formatCurrency(Math.round(tcoSummary.costPerHour))}
+                    <span className="text-sm font-normal text-muted-foreground ml-1">/ jam</span>
+                  </p>
+                  <p className="text-xs text-muted-foreground mt-1">
+                    Total {tcoSummary.totalHours?.toLocaleString('id-ID') || 0} jam
+                  </p>
+                </div>
+              )}
+            </div>
+          )}
         </CardContent>
       </Card>
 
@@ -434,6 +628,87 @@ export default function AssetDetailPage() {
         onOpenChange={setDocumentFormOpen}
         onSubmit={handleAddDocument}
       />
+
+      {/* Cost Entry Dialog */}
+      <Dialog open={costDialogOpen} onOpenChange={setCostDialogOpen}>
+        <DialogContent className="sm:max-w-[425px]">
+          <DialogHeader>
+            <DialogTitle>Tambah Biaya</DialogTitle>
+            <DialogDescription>
+              Catat biaya untuk aset {asset.asset_code}
+            </DialogDescription>
+          </DialogHeader>
+          <div className="grid gap-4 py-4">
+            <div className="grid gap-2">
+              <Label htmlFor="cost_type">Tipe Biaya</Label>
+              <Select
+                value={costForm.cost_type}
+                onValueChange={(value) =>
+                  setCostForm((prev) => ({ ...prev, cost_type: value as CostType }))
+                }
+              >
+                <SelectTrigger id="cost_type">
+                  <SelectValue placeholder="Pilih tipe biaya" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="fuel">BBM (Bahan Bakar)</SelectItem>
+                  <SelectItem value="insurance">Asuransi</SelectItem>
+                  <SelectItem value="registration">Registrasi / STNK / KIR</SelectItem>
+                  <SelectItem value="maintenance">Maintenance</SelectItem>
+                  <SelectItem value="other">Lainnya</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+            <div className="grid gap-2">
+              <Label htmlFor="cost_date">Tanggal</Label>
+              <Input
+                id="cost_date"
+                type="date"
+                value={costForm.cost_date}
+                onChange={(e) =>
+                  setCostForm((prev) => ({ ...prev, cost_date: e.target.value }))
+                }
+              />
+            </div>
+            <div className="grid gap-2">
+              <Label htmlFor="amount">Jumlah (Rp)</Label>
+              <Input
+                id="amount"
+                type="number"
+                placeholder="0"
+                value={costForm.amount}
+                onChange={(e) =>
+                  setCostForm((prev) => ({ ...prev, amount: e.target.value }))
+                }
+              />
+            </div>
+            <div className="grid gap-2">
+              <Label htmlFor="notes">Catatan</Label>
+              <Textarea
+                id="notes"
+                placeholder="Keterangan tambahan (opsional)"
+                value={costForm.notes}
+                onChange={(e) =>
+                  setCostForm((prev) => ({ ...prev, notes: e.target.value }))
+                }
+              />
+            </div>
+          </div>
+          <DialogFooter>
+            <Button
+              variant="outline"
+              onClick={() => setCostDialogOpen(false)}
+              disabled={costSubmitting}
+            >
+              Batal
+            </Button>
+            <Button onClick={handleAddCost} disabled={costSubmitting}>
+              {costSubmitting && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+              Simpan
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </div>
   )
 }

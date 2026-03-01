@@ -8,10 +8,13 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { VendorDetailView } from '@/components/vendors/vendor-detail-view';
 import { EquipmentTable } from '@/components/vendors/equipment-table';
 import { VendorDocuments } from '@/components/vendors/vendor-documents';
+import { VendorRatesSection } from '@/components/vendors/vendor-rates-section';
 import { VendorWithStats, VendorEquipment, VendorDocument } from '@/types/vendors';
+import type { VendorRate } from '@/types/vendor-rate';
 import { getVendorById, verifyVendor, togglePreferredVendor } from '../actions';
 import { getVendorEquipment, deleteEquipment } from '../equipment-actions';
 import { getVendorDocuments, uploadVendorDocument, deleteVendorDocument } from '../document-actions';
+import { getVendorRates } from '@/lib/vendor-rate-actions';
 import { useToast } from '@/hooks/use-toast';
 import { usePermissions } from '@/components/providers/permission-provider';
 
@@ -24,6 +27,7 @@ export default function VendorDetailPage() {
   const [vendor, setVendor] = useState<VendorWithStats | null>(null);
   const [equipment, setEquipment] = useState<VendorEquipment[]>([]);
   const [documents, setDocuments] = useState<VendorDocument[]>([]);
+  const [rates, setRates] = useState<VendorRate[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [isVerifying, setIsVerifying] = useState(false);
   const [isTogglingPreferred, setIsTogglingPreferred] = useState(false);
@@ -35,10 +39,11 @@ export default function VendorDetailPage() {
   const canAddEquipment = canAccess('vendors.add_equipment');
 
   const loadData = async () => {
-    const [vendorResult, equipmentResult, documentsResult] = await Promise.all([
+    const [vendorResult, equipmentResult, documentsResult, ratesResult] = await Promise.all([
       getVendorById(vendorId),
       getVendorEquipment(vendorId),
       getVendorDocuments(vendorId),
+      getVendorRates(vendorId),
     ]);
 
     if (vendorResult.error) {
@@ -60,6 +65,9 @@ export default function VendorDetailPage() {
     if (documentsResult.data) {
       setDocuments(documentsResult.data);
     }
+    if (ratesResult.data) {
+      setRates(ratesResult.data);
+    }
     setIsLoading(false);
   };
 
@@ -67,6 +75,13 @@ export default function VendorDetailPage() {
     const result = await getVendorDocuments(vendorId);
     if (result.data) {
       setDocuments(result.data);
+    }
+  };
+
+  const loadRates = async () => {
+    const result = await getVendorRates(vendorId);
+    if (result.data) {
+      setRates(result.data);
     }
   };
 
@@ -253,6 +268,14 @@ export default function VendorDetailPage() {
           />
         </CardContent>
       </Card>
+
+      {/* Rates & Pricing Section */}
+      <VendorRatesSection
+        vendorId={vendorId}
+        rates={rates}
+        canEdit={canEdit}
+        onRefresh={loadRates}
+      />
 
       {/* Documents Section */}
       <Card>

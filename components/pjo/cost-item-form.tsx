@@ -22,7 +22,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select'
-import { Loader2 } from 'lucide-react'
+import { Loader2, Tag } from 'lucide-react'
 import { PJOCostItem, CostCategory } from '@/types'
 import { createCostItem, updateCostEstimate, CostItemFormData } from '@/app/(main)/proforma-jo/cost-actions'
 import { useToast } from '@/hooks/use-toast'
@@ -31,6 +31,10 @@ import { VendorSelector } from '@/components/vendors/vendor-selector'
 import { EquipmentSelector } from '@/components/vendors/equipment-selector'
 import { mapCostCategoryToVendorType } from '@/lib/vendor-utils'
 import { Vendor, VendorEquipment } from '@/types/vendors'
+import { getActiveVendorRates } from '@/lib/vendor-rate-actions'
+import type { VendorRate } from '@/types/vendor-rate'
+import { SERVICE_TYPE_LABELS, UNIT_LABELS } from '@/types/vendor-rate'
+import { formatCurrency } from '@/lib/utils/format'
 
 const schema = z.object({
   category: z.enum([
@@ -62,6 +66,8 @@ export function CostItemForm({ pjoId, item, open, onOpenChange, onSuccess }: Cos
   const [isLoading, setIsLoading] = useState(false)
   const [selectedVendorId, setSelectedVendorId] = useState<string | null>(item?.vendor_id || null)
   const [selectedEquipmentId, setSelectedEquipmentId] = useState<string | null>(item?.vendor_equipment_id || null)
+  const [vendorRates, setVendorRates] = useState<VendorRate[]>([])
+  const [isLoadingRates, setIsLoadingRates] = useState(false)
   const isEdit = !!item
 
   const {
@@ -95,6 +101,24 @@ export function CostItemForm({ pjoId, item, open, onOpenChange, onSuccess }: Cos
       setValue('vendor_equipment_id', null)
     }
   }, [selectedCategory, isEdit, setValue])
+
+  // Fetch vendor rates when vendor changes
+  useEffect(() => {
+    if (selectedVendorId) {
+      setIsLoadingRates(true)
+      getActiveVendorRates(selectedVendorId)
+        .then((result) => {
+          if (result.data) {
+            setVendorRates(result.data)
+          } else {
+            setVendorRates([])
+          }
+        })
+        .finally(() => setIsLoadingRates(false))
+    } else {
+      setVendorRates([])
+    }
+  }, [selectedVendorId])
 
   const handleVendorChange = (vendorId: string | null, vendor?: Vendor) => {
     setSelectedVendorId(vendorId)
@@ -210,6 +234,48 @@ export function CostItemForm({ pjoId, item, open, onOpenChange, onSuccess }: Cos
                 placeholder="Select equipment..."
                 disabled={isLoading}
               />
+            </div>
+          )}
+
+          {/* Available Vendor Rates */}
+          {selectedVendorId && vendorRates.length > 0 && (
+            <div className="space-y-2">
+              <Label className="flex items-center gap-1.5">
+                <Tag className="h-3.5 w-3.5" />
+                Tarif Tersedia
+              </Label>
+              <div className="flex flex-wrap gap-2">
+                {vendorRates.map((rate) => {
+                  const unitLabel = UNIT_LABELS[rate.unit] || rate.unit
+                  return (
+                    <button
+                      key={rate.id}
+                      type="button"
+                      className="inline-flex items-center gap-1.5 rounded-md border px-2.5 py-1 text-xs transition-colors hover:bg-accent hover:text-accent-foreground cursor-pointer"
+                      onClick={() => {
+                        setValue('estimated_amount', rate.base_price)
+                        if (!watch('description') && rate.description) {
+                          setValue('description', rate.description)
+                        }
+                      }}
+                      title={`Klik untuk mengisi ${formatCurrency(rate.base_price)} sebagai estimasi`}
+                    >
+                      <span className="font-medium">{formatCurrency(rate.base_price)}</span>
+                      <span className="text-muted-foreground">/ {unitLabel}</span>
+                      <span className="text-muted-foreground">- {rate.description}</span>
+                    </button>
+                  )
+                })}
+              </div>
+              <p className="text-xs text-muted-foreground">
+                Klik tarif untuk mengisi estimasi biaya
+              </p>
+            </div>
+          )}
+          {selectedVendorId && isLoadingRates && (
+            <div className="flex items-center gap-2 text-xs text-muted-foreground">
+              <Loader2 className="h-3 w-3 animate-spin" />
+              Memuat tarif vendor...
             </div>
           )}
 
