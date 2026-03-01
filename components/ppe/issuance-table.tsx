@@ -25,6 +25,7 @@ import {
   formatIssuanceStatus,
   getIssuanceStatusColor,
   formatPPEDate,
+  formatCondition,
   isReplacementOverdue,
   isReplacementDueSoon,
 } from '@/lib/ppe-utils';
@@ -56,18 +57,18 @@ export function IssuanceTable({ issuances, ppeTypes, employees }: IssuanceTableP
 
     if (isReplacementOverdue(issuance.expected_replacement_date)) {
       return (
-        <Badge variant="destructive" className="ml-2">
+        <Badge variant="destructive" className="ml-2 text-xs">
           <AlertTriangle className="mr-1 h-3 w-3" />
-          Overdue
+          Terlambat
         </Badge>
       );
     }
 
     if (isReplacementDueSoon(issuance.expected_replacement_date)) {
       return (
-        <Badge variant="outline" className="ml-2 border-yellow-500 text-yellow-700">
+        <Badge variant="outline" className="ml-2 text-xs border-yellow-500 text-yellow-700">
           <Clock className="mr-1 h-3 w-3" />
-          Due Soon
+          Segera
         </Badge>
       );
     }
@@ -78,10 +79,15 @@ export function IssuanceTable({ issuances, ppeTypes, employees }: IssuanceTableP
   return (
     <div className="space-y-4">
       <div className="flex justify-between items-center">
-        <h2 className="text-lg font-semibold">PPE Issuances</h2>
+        <div>
+          <h2 className="text-lg font-semibold">Daftar Pengeluaran PPE</h2>
+          <p className="text-sm text-muted-foreground">
+            {issuances.length} catatan pengeluaran
+          </p>
+        </div>
         <Button onClick={() => setShowIssueForm(true)}>
           <Plus className="mr-2 h-4 w-4" />
-          Issue PPE
+          Keluarkan PPE
         </Button>
       </div>
 
@@ -89,21 +95,22 @@ export function IssuanceTable({ issuances, ppeTypes, employees }: IssuanceTableP
         <Table>
           <TableHeader>
             <TableRow>
-              <TableHead>Employee</TableHead>
-              <TableHead>PPE Type</TableHead>
-              <TableHead>Size</TableHead>
-              <TableHead>Issued Date</TableHead>
-              <TableHead>Replacement Due</TableHead>
-              <TableHead>Status</TableHead>
-              <TableHead className="w-[70px]"></TableHead>
+              <TableHead className="min-w-[180px]">Karyawan</TableHead>
+              <TableHead className="min-w-[140px]">Item PPE</TableHead>
+              <TableHead className="text-center w-[60px]">Qty</TableHead>
+              <TableHead className="w-[110px]">Tgl Dikeluarkan</TableHead>
+              <TableHead className="w-[100px]">Kondisi</TableHead>
+              <TableHead className="min-w-[140px]">Jadwal Penggantian</TableHead>
+              <TableHead className="w-[100px]">Status</TableHead>
+              <TableHead className="w-[60px]"></TableHead>
             </TableRow>
           </TableHeader>
           <TableBody>
             {issuances.length === 0 ? (
               <TableRow>
-                <TableCell colSpan={7} className="text-center text-muted-foreground py-8">
+                <TableCell colSpan={8} className="text-center text-muted-foreground py-8">
                   <HardHat className="mx-auto h-8 w-8 mb-2 opacity-50" />
-                  No PPE issuances found. Issue PPE to get started.
+                  Belum ada pengeluaran PPE. Keluarkan PPE untuk memulai.
                 </TableCell>
               </TableRow>
             ) : (
@@ -111,32 +118,55 @@ export function IssuanceTable({ issuances, ppeTypes, employees }: IssuanceTableP
                 <TableRow key={issuance.id}>
                   <TableCell>
                     <div>
-                      <div className="font-medium">{issuance.employee?.full_name}</div>
-                      <div className="text-sm text-muted-foreground">
+                      <div className="font-medium text-sm">{issuance.employee?.full_name}</div>
+                      <div className="text-xs text-muted-foreground">
                         {issuance.employee?.employee_code}
                       </div>
                     </div>
                   </TableCell>
-                  <TableCell>{issuance.ppe_type?.ppe_name}</TableCell>
-                  <TableCell>{issuance.size || '-'}</TableCell>
-                  <TableCell>{formatPPEDate(issuance.issued_date)}</TableCell>
                   <TableCell>
-                    <div className="flex items-center">
-                      {issuance.expected_replacement_date
-                        ? formatPPEDate(issuance.expected_replacement_date)
-                        : '-'}
+                    <div>
+                      <div className="text-sm">{issuance.ppe_type?.ppe_name}</div>
+                      {issuance.size && (
+                        <div className="text-xs text-muted-foreground">
+                          Ukuran: {issuance.size}
+                        </div>
+                      )}
+                    </div>
+                  </TableCell>
+                  <TableCell className="text-center">
+                    <span className="font-mono text-sm">{issuance.quantity}</span>
+                  </TableCell>
+                  <TableCell>
+                    <span className="text-sm">{formatPPEDate(issuance.issued_date)}</span>
+                  </TableCell>
+                  <TableCell>
+                    <span className="text-sm">{formatCondition(issuance.condition_at_issue)}</span>
+                  </TableCell>
+                  <TableCell>
+                    <div className="flex items-center flex-wrap gap-1">
+                      <span className="text-sm">
+                        {issuance.expected_replacement_date
+                          ? formatPPEDate(issuance.expected_replacement_date)
+                          : '-'}
+                      </span>
                       {issuance.status === 'active' && getReplacementBadge(issuance)}
                     </div>
                   </TableCell>
                   <TableCell>
-                    <Badge className={getIssuanceStatusColor(issuance.status)}>
+                    <Badge className={`text-xs ${getIssuanceStatusColor(issuance.status)}`}>
                       {formatIssuanceStatus(issuance.status)}
                     </Badge>
+                    {issuance.returned_date && (
+                      <div className="text-xs text-muted-foreground mt-1">
+                        {formatPPEDate(issuance.returned_date)}
+                      </div>
+                    )}
                   </TableCell>
                   <TableCell>
                     <DropdownMenu>
                       <DropdownMenuTrigger asChild>
-                        <Button variant="ghost" size="icon">
+                        <Button variant="ghost" size="icon" className="h-8 w-8">
                           <MoreHorizontal className="h-4 w-4" />
                         </Button>
                       </DropdownMenuTrigger>
@@ -144,7 +174,7 @@ export function IssuanceTable({ issuances, ppeTypes, employees }: IssuanceTableP
                         <DropdownMenuItem asChild>
                           <Link href={`/hse/ppe/issuance/${issuance.id}`}>
                             <Eye className="mr-2 h-4 w-4" />
-                            View Details
+                            Lihat Detail
                           </Link>
                         </DropdownMenuItem>
                         {issuance.status === 'active' && (
@@ -152,7 +182,7 @@ export function IssuanceTable({ issuances, ppeTypes, employees }: IssuanceTableP
                             <DropdownMenuSeparator />
                             <DropdownMenuItem onClick={() => setReturningIssuance(issuance)}>
                               <RotateCcw className="mr-2 h-4 w-4" />
-                              Return / Replace
+                              Kembalikan / Ganti
                             </DropdownMenuItem>
                           </>
                         )}

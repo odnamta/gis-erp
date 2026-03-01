@@ -161,7 +161,7 @@ export async function notifyBudgetExceeded(
  */
 export async function notifyInvoiceStatusChange(
   invoice: InvoiceData,
-  newStatus: 'sent' | 'paid' | 'overdue'
+  newStatus: 'sent' | 'received' | 'paid' | 'overdue'
 ): Promise<void> {
   const amount = new Intl.NumberFormat('id-ID', {
     style: 'currency',
@@ -185,6 +185,28 @@ export async function notifyInvoiceStatusChange(
         status: newStatus,
       },
     })
+  } else if (newStatus === 'received') {
+    const users = await getUsersByRoles(['finance', 'finance_manager'])
+    if (users.length > 0) {
+      await createBulkNotifications(
+        {
+          title: 'Invoice Diterima',
+          message: `${invoice.invoice_number} (${amount}) dari ${invoice.customer_name || 'customer'} telah diterima`,
+          type: 'status_change',
+          priority: 'normal',
+          entityType: 'invoice',
+          entityId: invoice.id,
+          actionUrl: `/invoices/${invoice.id}`,
+          metadata: {
+            invoice_number: invoice.invoice_number,
+            customer_name: invoice.customer_name,
+            total_amount: invoice.total_amount,
+            status: newStatus,
+          },
+        },
+        { userIds: users.map((u) => u.id) }
+      )
+    }
   } else if (newStatus === 'paid') {
     const users = await getUsersByRoles(['finance', 'finance_manager'])
     if (users.length > 0) {
@@ -770,4 +792,236 @@ export async function notifyQuotationDeadlineApproaching(quotation: QuotationDat
       days_until_deadline: daysUntil,
     },
   })
+}
+
+
+// ============================================
+// Invoice Reminder Notifications
+// ============================================
+
+interface InvoiceReminderParams {
+  invoiceId: string
+  invoiceNumber: string
+  customerName: string
+  amount: number
+  dueDate: string
+  daysOverdue?: number
+  assigneeIds: string[] // finance team user_ids
+}
+
+/**
+ * Notify finance team about invoice payment reminders.
+ * Called when an invoice is approaching its due date or is overdue.
+ *
+ * - Approaching due date (daysOverdue undefined or <= 0): normal priority
+ * - 1-7 days overdue: high priority
+ * - 8+ days overdue: urgent priority
+ *
+ * Recipients: finance team members specified in assigneeIds
+ * All messages in Indonesian.
+ */
+export async function notifyInvoiceReminder(params: InvoiceReminderParams): Promise<void> {
+  const {
+    invoiceId,
+    invoiceNumber,
+    customerName,
+    amount,
+    dueDate,
+    daysOverdue,
+    assigneeIds,
+  } = params
+
+  if (assigneeIds.length === 0) return
+
+  const formattedAmount = new Intl.NumberFormat('id-ID', {
+    style: 'currency',
+    currency: 'IDR',
+    minimumFractionDigits: 0,
+    maximumFractionDigits: 0,
+  }).format(amount)
+
+  const dueDateFormatted = new Date(dueDate).toLocaleDateString('id-ID', {
+    day: 'numeric',
+    month: 'long',
+    year: 'numeric',
+  })
+
+  // Determine priority and message based on overdue status
+  let title: string
+  let message: string
+  let priority: NotificationPriority
+  let type: 'deadline' | 'overdue'
+
+  if (daysOverdue !== undefined && daysOverdue > 0) {
+    // Invoice is overdue
+    priority = daysOverdue > 7 ? 'urgent' : 'high'
+    type = 'overdue'
+    title = 'Pengingat Invoice Jatuh Tempo'
+    message = `Invoice ${invoiceNumber} dari ${customerName} sebesar ${formattedAmount} telah jatuh tempo ${daysOverdue} hari (jatuh tempo: ${dueDateFormatted})`
+  } else if (daysOverdue !== undefined && daysOverdue === 0) {
+    // Due today
+    priority = 'high'
+    type = 'deadline'
+    title = 'Invoice Jatuh Tempo Hari Ini'
+    message = `Invoice ${invoiceNumber} dari ${customerName} sebesar ${formattedAmount} jatuh tempo hari ini (${dueDateFormatted})`
+  } else {
+    // Approaching due date (daysOverdue is undefined or negative = days until due)
+    const daysUntilDue = daysOverdue !== undefined ? Math.abs(daysOverdue) : 0
+    priority = daysUntilDue <= 3 ? 'high' : 'normal'
+    type = 'deadline'
+    title = 'Pengingat Invoice Mendekati Jatuh Tempo'
+    message = daysUntilDue > 0
+      ? `Invoice ${invoiceNumber} dari ${customerName} sebesar ${formattedAmount} akan jatuh tempo dalam ${daysUntilDue} hari (${dueDateFormatted})`
+      : `Invoice ${invoiceNumber} dari ${customerName} sebesar ${formattedAmount} mendekati jatuh tempo (${dueDateFormatted})`
+  }
+
+  await createBulkNotifications(
+    {
+      title,
+      message,
+      type,
+      priority,
+      entityType: 'invoice',
+      entityId: invoiceId,
+      actionUrl: `/invoices/${invoiceId}`,
+      metadata: {
+        invoice_number: invoiceNumber,
+        customer_name: customerName,
+        amount,
+        due_date: dueDate,
+        days_overdue: daysOverdue,
+        reminder_type: 'invoice_payment',
+      },
+    },
+    { userIds: assigneeIds }
+  )
+}
+
+// ============================================
+// Generic Deadline Notifications
+// ============================================
+
+/**
+ * Entity type labels in Indonesian for deadline messages
+ */
+const ENTITY_TYPE_LABELS: Record<string, string> = {
+  quotation: 'Quotation',
+  invoice: 'Invoice',
+  jmp: 'JMP',
+  pjo: 'PJO',
+}
+
+/**
+ * Map entity types to their detail page URL patterns
+ */
+const ENTITY_TYPE_URLS: Record<string, (id: string) => string> = {
+  quotation: (id) => `/quotations/${id}`,
+  invoice: (id) => `/invoices/${id}`,
+  jmp: (id) => `/engineering/jmp/${id}`,
+  pjo: (id) => `/proforma-jo/${id}`,
+}
+
+/**
+ * Map entity types to the roles that should be notified about deadlines
+ */
+const ENTITY_TYPE_NOTIFY_ROLES: Record<string, string[]> = {
+  quotation: ['marketing', 'marketing_manager'],
+  invoice: ['finance', 'finance_manager', 'administration'],
+  jmp: ['engineer', 'operations_manager'],
+  pjo: ['administration', 'marketing_manager', 'operations_manager'],
+}
+
+interface DeadlineApproachingParams {
+  entityType: 'quotation' | 'invoice' | 'jmp' | 'pjo'
+  entityId: string
+  entityNumber: string
+  deadline: string // ISO date
+  daysRemaining: number
+  assigneeId?: string
+}
+
+/**
+ * Generic "deadline approaching" notification trigger.
+ * Can be used for any entity type that has a deadline/due date.
+ *
+ * Notification is sent to:
+ * - The assignee (if provided)
+ * - All users with roles relevant to the entity type
+ *
+ * Priority is determined by how many days remain:
+ * - 0 or less days: urgent
+ * - 1 day: urgent
+ * - 2-3 days: high
+ * - 4+ days: normal
+ *
+ * All user-facing messages are in Indonesian.
+ */
+export async function notifyDeadlineApproaching(params: DeadlineApproachingParams): Promise<void> {
+  const { entityType, entityId, entityNumber, deadline, daysRemaining, assigneeId } = params
+
+  const entityLabel = ENTITY_TYPE_LABELS[entityType] || entityType.toUpperCase()
+  const actionUrl = ENTITY_TYPE_URLS[entityType]?.(entityId) || `/dashboard`
+  const notifyRoles = ENTITY_TYPE_NOTIFY_ROLES[entityType] || []
+
+  // Determine priority based on days remaining
+  const priority: NotificationPriority =
+    daysRemaining <= 1 ? 'urgent' : daysRemaining <= 3 ? 'high' : 'normal'
+
+  // Format deadline for display
+  const deadlineDate = new Date(deadline)
+  const deadlineFormatted = deadlineDate.toLocaleDateString('id-ID', {
+    day: 'numeric',
+    month: 'long',
+    year: 'numeric',
+  })
+
+  // Build message in Indonesian
+  let message: string
+  if (daysRemaining <= 0) {
+    message = `${entityLabel} ${entityNumber} sudah melewati batas waktu (${deadlineFormatted})`
+  } else if (daysRemaining === 1) {
+    message = `${entityLabel} ${entityNumber} akan jatuh tempo besok (${deadlineFormatted})`
+  } else {
+    message = `${entityLabel} ${entityNumber} akan jatuh tempo dalam ${daysRemaining} hari (${deadlineFormatted})`
+  }
+
+  const title = daysRemaining <= 0
+    ? `${entityLabel} Melewati Batas Waktu`
+    : `${entityLabel} Mendekati Batas Waktu`
+
+  const notificationPayload = {
+    title,
+    message,
+    type: 'deadline' as const,
+    priority,
+    entityType: entityType as 'quotation' | 'invoice' | 'jmp' | 'pjo',
+    entityId,
+    actionUrl,
+    metadata: {
+      entity_type: entityType,
+      entity_number: entityNumber,
+      deadline,
+      days_remaining: daysRemaining,
+    },
+  }
+
+  // Notify assignee directly if provided
+  if (assigneeId) {
+    await createNotification({
+      ...notificationPayload,
+      userId: assigneeId,
+    })
+  }
+
+  // Notify all relevant role holders (excluding assignee to avoid duplicates)
+  if (notifyRoles.length > 0) {
+    const roleUsers = await getUsersByRoles(notifyRoles)
+    const roleUserIds = roleUsers
+      .map((u) => u.id)
+      .filter((id) => id !== assigneeId) // avoid duplicate to assignee
+
+    if (roleUserIds.length > 0) {
+      await createBulkNotifications(notificationPayload, { userIds: roleUserIds })
+    }
+  }
 }

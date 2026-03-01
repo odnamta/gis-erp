@@ -341,6 +341,72 @@ export const PURSUIT_COST_CATEGORY_LABELS: Record<PursuitCostCategory, string> =
   other: 'Other',
 }
 
+// Lost reason categories for marketing evaluation
+export type LostReasonCategory =
+  | 'harga_tinggi'
+  | 'kalah_kompetitor'
+  | 'teknikal_issue'
+  | 'customer_cancel'
+  | 'lainnya'
+
+export const LOST_REASON_LABELS: Record<LostReasonCategory, string> = {
+  harga_tinggi: 'Harga terlalu tinggi',
+  kalah_kompetitor: 'Kalah kompetitor',
+  teknikal_issue: 'Teknikal issue',
+  customer_cancel: 'Customer cancel',
+  lainnya: 'Lainnya',
+}
+
+export const LOST_REASON_COLORS: Record<LostReasonCategory, string> = {
+  harga_tinggi: 'bg-orange-100 text-orange-800',
+  kalah_kompetitor: 'bg-red-100 text-red-800',
+  teknikal_issue: 'bg-yellow-100 text-yellow-800',
+  customer_cancel: 'bg-purple-100 text-purple-800',
+  lainnya: 'bg-gray-100 text-gray-800',
+}
+
+/**
+ * Parse an outcome_reason string into category + detail.
+ * Format stored: "category|detail" or just "category" if no detail.
+ * Legacy values (no pipe separator) are treated as 'lainnya' with the full text as detail.
+ */
+export function parseOutcomeReason(outcomeReason: string | null): {
+  category: LostReasonCategory
+  detail: string
+} {
+  if (!outcomeReason) return { category: 'lainnya', detail: '' }
+
+  const pipeIndex = outcomeReason.indexOf('|')
+  if (pipeIndex === -1) {
+    // Legacy format: check if it matches a known category key
+    if (outcomeReason in LOST_REASON_LABELS) {
+      return { category: outcomeReason as LostReasonCategory, detail: '' }
+    }
+    // Otherwise treat as free text under "lainnya"
+    return { category: 'lainnya', detail: outcomeReason }
+  }
+
+  const category = outcomeReason.substring(0, pipeIndex) as LostReasonCategory
+  const detail = outcomeReason.substring(pipeIndex + 1)
+
+  if (category in LOST_REASON_LABELS) {
+    return { category, detail }
+  }
+
+  // Fallback for unrecognized category
+  return { category: 'lainnya', detail: outcomeReason }
+}
+
+/**
+ * Format category + detail into the stored outcome_reason string.
+ */
+export function formatOutcomeReason(category: LostReasonCategory, detail: string): string {
+  if (detail.trim()) {
+    return `${category}|${detail.trim()}`
+  }
+  return category
+}
+
 // Valid status transitions
 export const VALID_STATUS_TRANSITIONS: Record<QuotationStatus, QuotationStatus[]> = {
   draft: ['engineering_review', 'ready', 'cancelled'],

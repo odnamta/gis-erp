@@ -13,6 +13,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select';
+import { EmployeeCombobox } from '@/components/ui/employee-combobox';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import {
   TrainingRecord,
@@ -146,22 +147,13 @@ export function RecordForm({ record, employees, onSuccess }: RecordFormProps) {
             <div className="grid gap-4 md:grid-cols-2">
               <div className="space-y-2">
                 <Label htmlFor="employeeId">Karyawan *</Label>
-                <Select
+                <EmployeeCombobox
+                  employees={employees}
                   value={formData.employeeId}
                   onValueChange={(value) => setFormData({ ...formData, employeeId: value })}
+                  placeholder="Cari karyawan..."
                   disabled={!!record}
-                >
-                  <SelectTrigger>
-                    <SelectValue placeholder="Pilih karyawan" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    {employees.map((emp) => (
-                      <SelectItem key={emp.id} value={emp.id}>
-                        {emp.employee_code} - {emp.full_name}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
+                />
               </div>
               <div className="space-y-2">
                 <Label htmlFor="courseId">Kursus *</Label>

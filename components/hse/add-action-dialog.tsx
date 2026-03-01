@@ -12,13 +12,7 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from '@/components/ui/select';
+import { EmployeeCombobox } from '@/components/ui/employee-combobox';
 import { AddActionInput } from '@/types/incident';
 
 interface Employee {
@@ -89,18 +83,12 @@ export function AddActionDialog({
 
           <div className="space-y-2">
             <Label>Penanggung Jawab</Label>
-            <Select value={responsibleId} onValueChange={setResponsibleId}>
-              <SelectTrigger>
-                <SelectValue placeholder="Pilih penanggung jawab" />
-              </SelectTrigger>
-              <SelectContent>
-                {employees.map((emp) => (
-                  <SelectItem key={emp.id} value={emp.id}>
-                    {emp.full_name}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
+            <EmployeeCombobox
+              employees={employees}
+              value={responsibleId}
+              onValueChange={setResponsibleId}
+              placeholder="Cari penanggung jawab..."
+            />
           </div>
 
           <div className="space-y-2">

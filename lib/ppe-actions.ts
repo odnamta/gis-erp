@@ -311,6 +311,48 @@ export async function recordPurchase(input: RecordPurchaseInput): Promise<PPEInv
   return data as PPEInventory;
 }
 
+export async function deleteInventoryItem(id: string): Promise<void> {
+  const supabase = await createClient();
+
+  // Verify the inventory item exists
+  const { data: item, error: fetchError } = await supabase
+    .from('ppe_inventory')
+    .select('id, ppe_type_id, size')
+    .eq('id', id)
+    .single();
+
+  if (fetchError || !item) {
+    throw new Error('Item inventaris tidak ditemukan');
+  }
+
+  // Check for active issuances referencing this PPE type + size
+  let issuanceQuery = supabase
+    .from('ppe_issuance')
+    .select('*', { count: 'exact', head: true })
+    .eq('ppe_type_id', item.ppe_type_id)
+    .eq('status', 'active');
+
+  if (item.size) {
+    issuanceQuery = issuanceQuery.eq('size', item.size);
+  }
+
+  const { count } = await issuanceQuery;
+
+  if (count && count > 0) {
+    throw new Error('Tidak dapat menghapus item inventaris yang masih memiliki pengeluaran aktif');
+  }
+
+  // Hard delete the inventory record (inventory entries are stock-tracking records, not business documents)
+  const { error } = await supabase
+    .from('ppe_inventory')
+    .delete()
+    .eq('id', id);
+
+  if (error) throw new Error(`Gagal menghapus item inventaris: ${error.message}`);
+
+  revalidatePath('/hse/ppe/inventory');
+}
+
 export async function getLowStockItems(): Promise<PPEInventory[]> {
   const supabase = await createClient();
   

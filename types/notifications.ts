@@ -11,7 +11,7 @@ export type NotificationType =
 
 export type NotificationPriority = 'low' | 'normal' | 'high' | 'urgent'
 
-export type EntityType = 'pjo' | 'jo' | 'invoice' | 'user' | 'cost_item' | 'feedback' | 'quotation'
+export type EntityType = 'pjo' | 'jo' | 'invoice' | 'user' | 'cost_item' | 'feedback' | 'quotation' | 'jmp'
 
 // Json type from database
 type Json = string | number | boolean | null | { [key: string]: Json | undefined } | Json[]

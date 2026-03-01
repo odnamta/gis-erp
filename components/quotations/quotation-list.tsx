@@ -2,7 +2,14 @@
 
 import { useState, useMemo } from 'react'
 import Link from 'next/link'
-import { QuotationWithRelations, QuotationStatus, QUOTATION_STATUS_LABELS, QUOTATION_STATUS_COLORS } from '@/types/quotation'
+import {
+  QuotationWithRelations,
+  QuotationStatus,
+  QUOTATION_STATUS_LABELS,
+  QUOTATION_STATUS_COLORS,
+  parseOutcomeReason,
+  LOST_REASON_LABELS,
+} from '@/types/quotation'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
@@ -248,7 +255,14 @@ export function QuotationList({ quotations, customers, userRole }: QuotationList
                       </TableCell>
                     )}
                     <TableCell>
-                      <QuotationStatusBadge status={q.status as QuotationStatus} />
+                      <div className="flex flex-col gap-1">
+                        <QuotationStatusBadge status={q.status as QuotationStatus} />
+                        {q.status === 'lost' && q.outcome_reason && (
+                          <span className="text-xs text-muted-foreground">
+                            {LOST_REASON_LABELS[parseOutcomeReason(q.outcome_reason).category]}
+                          </span>
+                        )}
+                      </div>
                     </TableCell>
                     <TableCell className="text-muted-foreground">
                       {q.created_at ? formatDate(q.created_at) : '-'}

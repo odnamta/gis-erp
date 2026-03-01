@@ -21,6 +21,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select';
+import { EmployeeCombobox } from '@/components/ui/employee-combobox';
 import { PPEType, IssuePPEInput, PPEEmployee } from '@/types/ppe';
 import { issuePPE } from '@/lib/ppe-actions';
 import { toast } from 'sonner';
@@ -96,21 +97,12 @@ export function IssuanceForm({
         <form onSubmit={handleSubmit} className="space-y-4">
           <div className="space-y-2">
             <Label htmlFor="employee">Employee</Label>
-            <Select
+            <EmployeeCombobox
+              employees={employees}
               value={formData.employee_id}
               onValueChange={value => setFormData({ ...formData, employee_id: value })}
-            >
-              <SelectTrigger>
-                <SelectValue placeholder="Select employee" />
-              </SelectTrigger>
-              <SelectContent>
-                {employees.map(emp => (
-                  <SelectItem key={emp.id} value={emp.id}>
-                    {emp.employee_code} - {emp.full_name}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
+              placeholder="Cari karyawan..."
+            />
           </div>
 
           <div className="space-y-2">

@@ -5,9 +5,10 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Button } from '@/components/ui/button'
 import { StatusBadge } from '@/components/ui/status-badge'
 import { PJOStatusBadge } from '@/components/ui/pjo-status-badge'
-import { AttachmentsSection } from '@/components/attachments'
+import { AttachmentsSectionFiltered, SpkWoSection } from '@/components/attachments'
 import { formatDate } from '@/lib/pjo-utils'
-import { ArrowLeft, Building2, MapPin, Calendar, FolderOpen, FileText, ClipboardList } from 'lucide-react'
+import { formatCurrency } from '@/lib/utils/format'
+import { ArrowLeft, Building2, MapPin, Calendar, FolderOpen, FileText, ClipboardList, DollarSign, StickyNote } from 'lucide-react'
 
 interface ProjectDetailPageProps {
   params: Promise<{ id: string }>
@@ -95,6 +96,26 @@ export default async function ProjectDetailPage({ params }: ProjectDetailPagePro
                 </p>
               </div>
             </div>
+            <div className="flex items-center gap-3">
+              <DollarSign className="h-4 w-4 text-muted-foreground" />
+              <div>
+                <p className="text-sm text-muted-foreground">Nilai Kontrak</p>
+                <p className="font-medium">
+                  {(project as Record<string, unknown>).contract_value
+                    ? formatCurrency((project as Record<string, unknown>).contract_value as number)
+                    : '-'}
+                </p>
+              </div>
+            </div>
+            {typeof (project as Record<string, unknown>).contract_notes === 'string' && (project as Record<string, unknown>).contract_notes !== '' && (
+              <div className="flex items-center gap-3">
+                <StickyNote className="h-4 w-4 text-muted-foreground" />
+                <div>
+                  <p className="text-sm text-muted-foreground">Catatan Kontrak</p>
+                  <p className="font-medium whitespace-pre-wrap">{String((project as Record<string, unknown>).contract_notes)}</p>
+                </div>
+              </div>
+            )}
           </CardContent>
         </Card>
 
@@ -186,11 +207,18 @@ export default async function ProjectDetailPage({ params }: ProjectDetailPagePro
         </Card>
       </div>
 
-      {/* Attachments */}
-      <AttachmentsSection
+      {/* Dokumen SPK/WO - Separate section for customer work orders */}
+      <SpkWoSection
         entityType="project"
         entityId={project.id}
-        title="Project Documents"
+      />
+
+      {/* Dokumen Umum - General project documents (excludes SPK/WO) */}
+      <AttachmentsSectionFiltered
+        entityType="project"
+        entityId={project.id}
+        title="Dokumen Lainnya"
+        excludeCategory="spk_wo"
       />
     </div>
   )

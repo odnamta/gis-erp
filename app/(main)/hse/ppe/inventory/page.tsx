@@ -11,17 +11,17 @@ export default async function PPEInventoryPage() {
   return (
     <div className="container mx-auto py-6 space-y-6">
       <div>
-        <h1 className="text-2xl font-bold">PPE Inventory</h1>
+        <h1 className="text-2xl font-bold">Inventaris PPE</h1>
         <p className="text-muted-foreground">
-          Track stock levels and record purchases for Personal Protective Equipment.
+          Pantau stok dan catat pembelian Alat Pelindung Diri (APD).
         </p>
       </div>
 
       <Card>
         <CardHeader>
-          <CardTitle>Stock Levels</CardTitle>
+          <CardTitle>Level Stok</CardTitle>
           <CardDescription>
-            Monitor inventory quantities and reorder alerts.
+            Pantau jumlah inventaris dan peringatan reorder.
           </CardDescription>
         </CardHeader>
         <CardContent>

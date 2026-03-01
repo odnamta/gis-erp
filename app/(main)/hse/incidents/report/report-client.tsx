@@ -15,6 +15,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select';
+import { EmployeeCombobox } from '@/components/ui/employee-combobox';
 import { ArrowLeft, Plus, Save } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import {
@@ -325,17 +326,14 @@ export function ReportClient({ categories, employees, jobOrders, assets, readOnl
             </div>
             <div className="space-y-2">
               <Label>Supervisor</Label>
-              <Select value={supervisorId || '__none__'} onValueChange={(v) => setSupervisorId(v === '__none__' ? '' : v)} disabled={readOnly}>
-                <SelectTrigger>
-                  <SelectValue placeholder="Pilih supervisor (opsional)" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="__none__">Tidak ada</SelectItem>
-                  {employees.map((emp) => (
-                    <SelectItem key={emp.id} value={emp.id}>{emp.full_name}</SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
+              <EmployeeCombobox
+                employees={employees}
+                value={supervisorId}
+                onValueChange={setSupervisorId}
+                placeholder="Cari supervisor (opsional)..."
+                disabled={readOnly}
+                allowClear
+              />
             </div>
           </CardContent>
         </Card>

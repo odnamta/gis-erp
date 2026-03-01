@@ -31,17 +31,17 @@ export default async function PPEIssuancePage() {
   return (
     <div className="container mx-auto py-6 space-y-6">
       <div>
-        <h1 className="text-2xl font-bold">PPE Issuance</h1>
+        <h1 className="text-2xl font-bold">Pengeluaran PPE</h1>
         <p className="text-muted-foreground">
-          Issue and track Personal Protective Equipment for employees.
+          Kelola pengeluaran dan pelacakan Alat Pelindung Diri (APD) untuk karyawan.
         </p>
       </div>
 
       <Card>
         <CardHeader>
-          <CardTitle>Issuance Records</CardTitle>
+          <CardTitle>Catatan Pengeluaran</CardTitle>
           <CardDescription>
-            View all PPE issuances, returns, and replacements.
+            Lihat semua pengeluaran, pengembalian, dan penggantian PPE.
           </CardDescription>
         </CardHeader>
         <CardContent>

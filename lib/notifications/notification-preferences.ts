@@ -90,6 +90,9 @@ export async function shouldNotify(userId: string, type: NotificationType): Prom
       return preferences.status_change_enabled ?? true
     case 'overdue':
       return preferences.overdue_enabled ?? true
+    case 'deadline':
+      // Deadline shares preference with overdue (both are time-based alerts)
+      return preferences.overdue_enabled ?? true
     case 'system':
       return preferences.system_enabled ?? true
     case 'info':
@@ -113,6 +116,9 @@ export function getPreferenceFieldForType(
     case 'status_change':
       return 'status_change_enabled'
     case 'overdue':
+      return 'overdue_enabled'
+    case 'deadline':
+      // Deadline shares preference with overdue (both are time-based alerts)
       return 'overdue_enabled'
     case 'system':
       return 'system_enabled'

@@ -56,6 +56,8 @@ export function getNotificationIcon(type: NotificationType | string | null): str
       return 'RefreshCw'
     case 'overdue':
       return 'Clock'
+    case 'deadline':
+      return 'CalendarClock'
     case 'system':
       return 'Info'
     case 'info':
@@ -86,6 +88,8 @@ export function getNotificationIconColor(
       return 'text-green-500'
     case 'overdue':
       return 'text-red-500'
+    case 'deadline':
+      return 'text-amber-500'
     case 'system':
       return 'text-gray-500'
     case 'info':
@@ -122,6 +126,8 @@ export function getNotificationTypeLabel(type: NotificationType): string {
       return 'Status Change'
     case 'overdue':
       return 'Overdue'
+    case 'deadline':
+      return 'Deadline'
     case 'system':
       return 'System'
     case 'info':

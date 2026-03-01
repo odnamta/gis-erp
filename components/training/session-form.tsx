@@ -13,6 +13,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select';
+import { EmployeeCombobox } from '@/components/ui/employee-combobox';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import {
   TrainingSession,
@@ -212,22 +213,13 @@ export function SessionForm({ session, employees, onSuccess }: SessionFormProps)
             <div className="grid gap-4 md:grid-cols-2">
               <div className="space-y-2">
                 <Label htmlFor="trainerEmployeeId">Trainer (Karyawan)</Label>
-                <Select
-                  value={formData.trainerEmployeeId || '__none__'}
-                  onValueChange={(value) => setFormData({ ...formData, trainerEmployeeId: value === '__none__' ? '' : value })}
-                >
-                  <SelectTrigger>
-                    <SelectValue placeholder="Pilih trainer dari karyawan" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="__none__">Tidak ada</SelectItem>
-                    {employees.map((emp) => (
-                      <SelectItem key={emp.id} value={emp.id}>
-                        {emp.employee_code} - {emp.full_name}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
+                <EmployeeCombobox
+                  employees={employees}
+                  value={formData.trainerEmployeeId}
+                  onValueChange={(value) => setFormData({ ...formData, trainerEmployeeId: value })}
+                  placeholder="Cari trainer dari karyawan..."
+                  allowClear
+                />
               </div>
               <div className="space-y-2">
                 <Label htmlFor="trainerName">Nama Trainer (Eksternal)</Label>

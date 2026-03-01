@@ -20,6 +20,7 @@ import {
   SelectValue,
 } from '@/components/ui/select';
 import { Switch } from '@/components/ui/switch';
+import { EmployeeCombobox } from '@/components/ui/employee-combobox';
 import { AddPersonInput, PersonType, TreatmentLevel } from '@/types/incident';
 import { getPersonTypeLabel, getTreatmentLabel } from '@/lib/incident-utils';
 
@@ -129,18 +130,12 @@ export function AddPersonDialog({
           {isEmployee ? (
             <div className="space-y-2">
               <Label>Karyawan</Label>
-              <Select value={employeeId} onValueChange={setEmployeeId}>
-                <SelectTrigger>
-                  <SelectValue placeholder="Pilih karyawan" />
-                </SelectTrigger>
-                <SelectContent>
-                  {employees.map((emp) => (
-                    <SelectItem key={emp.id} value={emp.id}>
-                      {emp.full_name}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
+              <EmployeeCombobox
+                employees={employees}
+                value={employeeId}
+                onValueChange={setEmployeeId}
+                placeholder="Cari karyawan..."
+              />
             </div>
           ) : (
             <>

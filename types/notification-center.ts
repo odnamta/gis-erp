@@ -52,6 +52,7 @@ export const TYPE_TO_CATEGORY: Record<string, NotificationCategory> = {
   budget_alert: 'finance',
   status_change: 'operations',
   overdue: 'finance',
+  deadline: 'operations',
   system: 'system',
   info: 'system',
   leave_request: 'hr',
