@@ -307,25 +307,24 @@ export async function getRecentBKK(): Promise<RecentBKK[]> {
   const supabase = await createClient()
 
   const result = await supabase
-    .from('bkk_records')
-    .select('id, bkk_number, description, amount, created_at')
-    .eq('is_active', true)
+    .from('bukti_kas_keluar' as any)
+    .select('id, bkk_number, purpose, amount_requested, created_at')
     .order('created_at', { ascending: false })
     .limit(5)
 
   const bkkRecords = result.data as {
     id: string
     bkk_number: string
-    description: string | null
-    amount: number
+    purpose: string | null
+    amount_requested: number
     created_at: string
   }[] | null
 
   return (bkkRecords || []).map(bkk => ({
     id: bkk.id,
     bkkNumber: bkk.bkk_number,
-    description: bkk.description || '',
-    amount: Number(bkk.amount) || 0,
+    description: bkk.purpose || '',
+    amount: Number(bkk.amount_requested) || 0,
     createdAt: bkk.created_at
   }))
 }

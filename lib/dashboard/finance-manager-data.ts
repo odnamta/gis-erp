@@ -159,7 +159,7 @@ export async function getFinanceManagerMetrics(): Promise<FinanceManagerMetrics>
       
       // Pending BKK
       supabase
-        .from('bkk_records')
+        .from('bukti_kas_keluar' as any)
         .select('id', { count: 'exact', head: true })
         .eq('status', 'draft'),
       
@@ -231,11 +231,10 @@ export async function getFinanceManagerMetrics(): Promise<FinanceManagerMetrics>
       
       // Expenses MTD (approved/paid BKK records this month)
       supabase
-        .from('bkk_records')
-        .select('amount')
-        .in('workflow_status', ['approved', 'paid'])
-        .gte('approved_at', startOfMonth.toISOString())
-        .eq('is_active', true),
+        .from('bukti_kas_keluar' as any)
+        .select('amount_requested')
+        .in('status', ['approved', 'paid'])
+        .gte('approved_at', startOfMonth.toISOString()),
       
       // AR Aging data (all outstanding invoices with due_date for aging calculation)
       supabase
@@ -245,18 +244,16 @@ export async function getFinanceManagerMetrics(): Promise<FinanceManagerMetrics>
       
       // AP Outstanding (pending disbursements)
       supabase
-        .from('bkk_records')
-        .select('amount')
-        .in('workflow_status', ['draft', 'pending_check', 'pending_approval'])
-        .eq('is_active', true),
+        .from('bukti_kas_keluar' as any)
+        .select('amount_requested')
+        .in('status', ['draft', 'pending_check', 'pending_approval']),
       
       // AP Due This Week (approved BKK records created in last 7 days - proxy for urgency)
       supabase
-        .from('bkk_records')
-        .select('amount')
-        .eq('workflow_status', 'approved')
-        .gte('created_at', sevenDaysAgo.toISOString())
-        .eq('is_active', true),
+        .from('bukti_kas_keluar' as any)
+        .select('amount_requested')
+        .eq('status', 'approved')
+        .gte('created_at', sevenDaysAgo.toISOString()),
       
       // Pending PJO Approvals (count and value)
       supabase
@@ -267,10 +264,9 @@ export async function getFinanceManagerMetrics(): Promise<FinanceManagerMetrics>
       
       // Pending Disbursement Approvals (count and value)
       supabase
-        .from('bkk_records')
-        .select('id, amount')
-        .in('workflow_status', ['pending_check', 'pending_approval'])
-        .eq('is_active', true),
+        .from('bukti_kas_keluar' as any)
+        .select('id, amount_requested')
+        .in('status', ['pending_check', 'pending_approval']),
       
       // Recent Invoices (last 5 created)
       supabase
@@ -381,8 +377,9 @@ export async function getFinanceManagerMetrics(): Promise<FinanceManagerMetrics>
     }, 0)
     
     // Calculate Expenses MTD (sum of approved/paid BKK records this month)
-    const expensesMTD = (expensesMTDResult.data || []).reduce((sum, bkk) => {
-      return sum + (bkk.amount || 0)
+    const expensesMTDData = (expensesMTDResult.data || []) as { amount_requested?: number }[]
+    const expensesMTD = expensesMTDData.reduce((sum, bkk) => {
+      return sum + (bkk.amount_requested || 0)
     }, 0)
     
     // Calculate Gross Profit (Revenue MTD - Expenses MTD)
@@ -414,13 +411,15 @@ export async function getFinanceManagerMetrics(): Promise<FinanceManagerMetrics>
     )
     
     // Calculate AP Outstanding (sum of pending disbursements)
-    const apOutstanding = (apOutstandingResult.data || []).reduce((sum, bkk) => {
-      return sum + (bkk.amount || 0)
+    const apOutstandingData = (apOutstandingResult.data || []) as { amount_requested?: number }[]
+    const apOutstanding = apOutstandingData.reduce((sum, bkk) => {
+      return sum + (bkk.amount_requested || 0)
     }, 0)
-    
+
     // Calculate AP Due This Week (approved BKK records from last 7 days)
-    const apDueThisWeek = (apDueThisWeekResult.data || []).reduce((sum, bkk) => {
-      return sum + (bkk.amount || 0)
+    const apDueThisWeekData = (apDueThisWeekResult.data || []) as { amount_requested?: number }[]
+    const apDueThisWeek = apDueThisWeekData.reduce((sum, bkk) => {
+      return sum + (bkk.amount_requested || 0)
     }, 0)
     
     // Calculate Pending PJO Approvals (count and total value)
@@ -431,10 +430,10 @@ export async function getFinanceManagerMetrics(): Promise<FinanceManagerMetrics>
     }
     
     // Calculate Pending Disbursement Approvals (count and total value)
-    const pendingDisbursementApprovalsData = pendingDisbursementApprovalsResult.data || []
+    const pendingDisbursementApprovalsData = (pendingDisbursementApprovalsResult.data || []) as { id: string; amount_requested?: number }[]
     const pendingDisbursementApprovals: ApprovalQueueItem = {
       count: pendingDisbursementApprovalsData.length,
-      totalValue: pendingDisbursementApprovalsData.reduce((sum, bkk) => sum + (bkk.amount || 0), 0)
+      totalValue: pendingDisbursementApprovalsData.reduce((sum, bkk) => sum + (bkk.amount_requested || 0), 0)
     }
     
     // Transform Recent Invoices

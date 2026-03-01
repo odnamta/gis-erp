@@ -28,6 +28,7 @@ export async function getJobOrders(): Promise<JobOrderWithRelations[]> {
         pjo_number
       )
     `)
+    .eq('is_active', true)
     .order('created_at', { ascending: false })
     .limit(1000)
 

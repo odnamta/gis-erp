@@ -34,8 +34,9 @@ export function QuotationList({ quotations, customers, userRole }: QuotationList
   const [marketTypeFilter, setMarketTypeFilter] = useState<string>('all')
   const [customerFilter, setCustomerFilter] = useState<string>('all')
   
-  // Profit margin visibility - only owner, director, administration, manager, finance can see
-  const canViewProfitMargin = ['owner', 'director', 'administration', 'manager', 'finance', 'sysadmin'].includes(userRole || '')
+  // Profit margin visibility - owner, director, administration, finance, sysadmin, and manager-level roles
+  // Note: operations_manager CAN see profit (management level), but ops staff CANNOT
+  const canViewProfitMargin = ['owner', 'director', 'administration', 'marketing_manager', 'finance_manager', 'operations_manager', 'finance', 'sysadmin'].includes(userRole || '')
 
   // Filter quotations
   const filteredQuotations = useMemo(() => {

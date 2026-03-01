@@ -235,8 +235,11 @@ export async function createInvoice(data: InvoiceFormData): Promise<ActionResult
 
   if (lineItemsError) {
     // Rollback invoice creation
-    await supabase.from('invoices').delete().eq('id', invoice.id)
-    return { success: false, error: 'Failed to create invoice line items' }
+    const { error: rollbackError } = await supabase.from('invoices').delete().eq('id', invoice.id)
+    if (rollbackError) {
+      return { success: false, error: `Gagal membuat line item invoice dan gagal rollback invoice ${invoice.invoice_number}. Harap hapus manual.` }
+    }
+    return { success: false, error: 'Gagal membuat line item invoice' }
   }
 
   // Update JO status to 'invoiced'
@@ -664,8 +667,11 @@ export async function generateSplitInvoice(
 
   if (lineItemError) {
     // Rollback invoice
-    await supabase.from('invoices').delete().eq('id', invoice.id)
-    return { success: false, error: 'Failed to create invoice line item' }
+    const { error: rollbackError } = await supabase.from('invoices').delete().eq('id', invoice.id)
+    if (rollbackError) {
+      return { success: false, error: `Gagal membuat line item invoice dan gagal rollback invoice ${invoice.invoice_number}. Harap hapus manual.` }
+    }
+    return { success: false, error: 'Gagal membuat line item invoice' }
   }
 
   // Update term as invoiced
@@ -840,7 +846,10 @@ export async function createDPInvoice(
 
   if (lineItemError) {
     // Rollback invoice creation
-    await supabase.from('invoices').delete().eq('id', invoice.id)
+    const { error: rollbackError } = await supabase.from('invoices').delete().eq('id', invoice.id)
+    if (rollbackError) {
+      return { success: false, error: `Gagal membuat line item invoice DP dan gagal rollback invoice ${invoice.invoice_number}. Harap hapus manual.` }
+    }
     return { success: false, error: 'Gagal membuat line item invoice DP' }
   }
 

@@ -110,43 +110,61 @@ export default function AssetDetailPage() {
 
   const loadData = async () => {
     setIsLoading(true)
-    try {
-      const [assetResult, historyResult, docsResult, locationsResult, maintenanceResult, tcoResult] = await Promise.all([
-        getAssetById(assetId),
-        getAssetStatusHistory(assetId),
-        getAssetDocuments(assetId),
-        getAssetLocations(),
-        getMaintenanceHistory({ assetId } as MaintenanceHistoryFilters),
-        getAssetTCOSummary(assetId),
-      ])
 
-      if (!assetResult) {
+    // Use Promise.allSettled to prevent one failing request from blocking all data
+    const results = await Promise.allSettled([
+      getAssetById(assetId),
+      getAssetStatusHistory(assetId),
+      getAssetDocuments(assetId),
+      getAssetLocations(),
+      getMaintenanceHistory({ assetId } as MaintenanceHistoryFilters),
+      getAssetTCOSummary(assetId),
+    ])
+
+    const [assetResult, historyResult, docsResult, locationsResult, maintenanceResult, tcoResult] = results
+
+    // Asset is the critical data — if this fails, redirect
+    if (assetResult.status === 'fulfilled') {
+      if (!assetResult.value) {
         toast({
           title: 'Error',
-          description: 'Asset not found',
+          description: 'Aset tidak ditemukan',
           variant: 'destructive',
         })
         router.push('/equipment')
+        setIsLoading(false)
         return
       }
-
-      setAsset(assetResult)
-      setStatusHistory(historyResult)
-      setDocuments(docsResult)
-      setLocations(locationsResult)
-      setMaintenanceHistory(maintenanceResult)
-      if (tcoResult.success && tcoResult.data) {
-        setTcoSummary(tcoResult.data)
-      }
-    } catch (error) {
+      setAsset(assetResult.value)
+    } else {
+      console.error('Failed to load asset:', assetResult.reason)
       toast({
         title: 'Error',
-        description: 'Failed to load asset details',
+        description: 'Gagal memuat detail aset. Silakan coba lagi.',
         variant: 'destructive',
       })
-    } finally {
       setIsLoading(false)
+      return
     }
+
+    // Non-critical data — load what we can
+    if (historyResult.status === 'fulfilled') {
+      setStatusHistory(historyResult.value)
+    }
+    if (docsResult.status === 'fulfilled') {
+      setDocuments(docsResult.value)
+    }
+    if (locationsResult.status === 'fulfilled') {
+      setLocations(locationsResult.value)
+    }
+    if (maintenanceResult.status === 'fulfilled') {
+      setMaintenanceHistory(maintenanceResult.value)
+    }
+    if (tcoResult.status === 'fulfilled' && tcoResult.value.success && tcoResult.value.data) {
+      setTcoSummary(tcoResult.value.data)
+    }
+
+    setIsLoading(false)
   }
 
   useEffect(() => {

@@ -6,41 +6,35 @@ import { getUserProfile } from '@/lib/permissions-server'
 import { logActivity } from '@/lib/activity-logger'
 
 interface CreateDisbursementInput {
-  category: 'job_cost' | 'vendor_payment' | 'overhead' | 'other'
-  job_order_id?: string
+  jo_id: string
+  purpose: string
+  amount_requested: number
+  budget_category?: string
+  budget_amount?: number
   vendor_id?: string
-  date: string
-  description: string
-  amount: number
-  currency: string
-  exchange_rate?: number
-  payment_method?: string
-  bank_account?: string
-  reference_number?: string
+  release_method?: string
+  release_reference?: string
   notes?: string
-  created_by: string
 }
 
 export async function generateBKKNumber(): Promise<string> {
   const supabase = await createClient()
-  const now = new Date()
-  const year = now.getFullYear()
-  const month = String(now.getMonth() + 1).padStart(2, '0')
-  const prefix = `BKK-${year}${month}-`
+  const year = new Date().getFullYear()
+  const prefix = `BKK-${year}-`
 
-  // Get the latest BKK number for this month
-  const { data } = await supabase
-    .from('bkk_records')
+  // Get the latest BKK number for this year
+  const { data } = await (supabase
+    .from('bukti_kas_keluar' as any)
     .select('bkk_number')
     .like('bkk_number', `${prefix}%`)
     .order('bkk_number', { ascending: false })
-    .limit(1)
+    .limit(1) as any)
 
   let sequence = 1
   if (data && data.length > 0) {
     const lastNumber = data[0].bkk_number
-    const lastSequence = parseInt(lastNumber.split('-').pop() || '0', 10)
-    sequence = lastSequence + 1
+    const lastSeq = parseInt(lastNumber.split('-')[2], 10)
+    if (!isNaN(lastSeq)) sequence = lastSeq + 1
   }
 
   return `${prefix}${String(sequence).padStart(4, '0')}`
@@ -53,49 +47,45 @@ export async function createDisbursement(input: CreateDisbursementInput) {
     // Generate BKK number
     const bkkNumber = await generateBKKNumber()
 
-    // Determine entity_type and created_by from server-side profile (not client input)
+    // Determine entity_type and requested_by from server-side profile
     const profile = await getUserProfile()
     if (!profile) {
       return { data: null, error: 'Not authenticated' }
     }
     const entityType = profile.role === 'agency' ? 'gama_agency' : 'gama_main'
-    const createdBy = profile.id
+    const requestedBy = profile.id
 
-    const { data, error } = await supabase
-      .from('bkk_records')
+    const { data, error } = await (supabase
+      .from('bukti_kas_keluar' as any)
       .insert({
         bkk_number: bkkNumber,
-        category: input.category,
-        job_order_id: input.job_order_id || null,
+        jo_id: input.jo_id,
+        purpose: input.purpose,
+        amount_requested: input.amount_requested,
+        budget_category: input.budget_category || null,
+        budget_amount: input.budget_amount || null,
         vendor_id: input.vendor_id || null,
-        date: input.date,
-        description: input.description,
-        amount: input.amount,
-        currency: input.currency,
-        exchange_rate: input.exchange_rate || 1,
-        payment_method: input.payment_method || null,
-        bank_account: input.bank_account || null,
-        reference_number: input.reference_number || null,
+        release_method: input.release_method || null,
+        release_reference: input.release_reference || null,
         notes: input.notes || null,
         status: 'draft',
-        created_by: createdBy,
+        requested_by: requestedBy,
         entity_type: entityType,
       })
       .select()
-      .single()
+      .single() as any)
 
     if (error) throw error
 
-    // Log activity (v0.13.1)
+    // Log activity
     if (data) {
-      logActivity(createdBy, 'create', 'disbursement', data.id, { bkk_number: bkkNumber })
+      logActivity(requestedBy, 'create', 'disbursement', data.id, { bkk_number: bkkNumber })
     }
 
     revalidatePath('/disbursements')
     return { data, error: null }
   } catch (error) {
-    console.error('createDisbursement error:', error)
-    return { data: null, error: 'Failed to create disbursement' }
+    return { data: null, error: 'Gagal membuat disbursement' }
   }
 }
 
@@ -106,15 +96,15 @@ export async function updateDisbursement(
   const supabase = await createClient()
 
   try {
-    const { data, error } = await supabase
-      .from('bkk_records')
+    const { data, error } = await (supabase
+      .from('bukti_kas_keluar' as any)
       .update({
         ...input,
         updated_at: new Date().toISOString(),
       })
       .eq('id', id)
       .select()
-      .single()
+      .single() as any)
 
     if (error) throw error
 
@@ -122,8 +112,7 @@ export async function updateDisbursement(
     revalidatePath(`/disbursements/${id}`)
     return { data, error: null }
   } catch (error) {
-    console.error('updateDisbursement error:', error)
-    return { data: null, error: 'Failed to update disbursement' }
+    return { data: null, error: 'Gagal mengupdate disbursement' }
   }
 }
 
@@ -131,8 +120,8 @@ export async function submitForApproval(id: string) {
   const supabase = await createClient()
 
   try {
-    const { data, error } = await supabase
-      .from('bkk_records')
+    const { data, error } = await (supabase
+      .from('bukti_kas_keluar' as any)
       .update({
         status: 'pending',
         updated_at: new Date().toISOString(),
@@ -140,7 +129,7 @@ export async function submitForApproval(id: string) {
       .eq('id', id)
       .eq('status', 'draft')
       .select()
-      .single()
+      .single() as any)
 
     if (error) throw error
 
@@ -148,8 +137,7 @@ export async function submitForApproval(id: string) {
     revalidatePath(`/disbursements/${id}`)
     return { data, error: null }
   } catch (error) {
-    console.error('submitForApproval error:', error)
-    return { data: null, error: 'Failed to submit for approval' }
+    return { data: null, error: 'Gagal submit untuk approval' }
   }
 }
 
@@ -164,8 +152,8 @@ export async function approveDisbursement(id: string, _userId?: string) {
     }
     const approvedBy = profile.id
 
-    const { data, error } = await supabase
-      .from('bkk_records')
+    const { data, error } = await (supabase
+      .from('bukti_kas_keluar' as any)
       .update({
         status: 'approved',
         approved_by: approvedBy,
@@ -175,11 +163,11 @@ export async function approveDisbursement(id: string, _userId?: string) {
       .eq('id', id)
       .eq('status', 'pending')
       .select()
-      .single()
+      .single() as any)
 
     if (error) throw error
 
-    // Log activity (v0.13.1)
+    // Log activity
     if (data) {
       logActivity(approvedBy, 'approve', 'disbursement', id, { bkk_number: data.bkk_number })
     }
@@ -188,8 +176,7 @@ export async function approveDisbursement(id: string, _userId?: string) {
     revalidatePath(`/disbursements/${id}`)
     return { data, error: null }
   } catch (error) {
-    console.error('approveDisbursement error:', error)
-    return { data: null, error: 'Failed to approve disbursement' }
+    return { data: null, error: 'Gagal meng-approve disbursement' }
   }
 }
 
@@ -203,17 +190,17 @@ export async function rejectDisbursement(id: string, _userId?: string, reason?: 
       return { data: null, error: 'Not authenticated' }
     }
 
-    const { data, error } = await supabase
-      .from('bkk_records')
+    const { data, error } = await (supabase
+      .from('bukti_kas_keluar' as any)
       .update({
         status: 'rejected',
-        notes: reason ? `Rejected: ${reason}` : 'Rejected',
+        rejection_reason: reason || null,
         updated_at: new Date().toISOString(),
       })
       .eq('id', id)
       .eq('status', 'pending')
       .select()
-      .single()
+      .single() as any)
 
     if (error) throw error
 
@@ -221,8 +208,7 @@ export async function rejectDisbursement(id: string, _userId?: string, reason?: 
     revalidatePath(`/disbursements/${id}`)
     return { data, error: null }
   } catch (error) {
-    console.error('rejectDisbursement error:', error)
-    return { data: null, error: 'Failed to reject disbursement' }
+    return { data: null, error: 'Gagal menolak disbursement' }
   }
 }
 
@@ -237,8 +223,8 @@ export async function releaseDisbursement(id: string, _userId?: string) {
     }
     const releasedBy = profile.id
 
-    const { data, error } = await supabase
-      .from('bkk_records')
+    const { data, error } = await (supabase
+      .from('bukti_kas_keluar' as any)
       .update({
         status: 'released',
         released_by: releasedBy,
@@ -248,11 +234,11 @@ export async function releaseDisbursement(id: string, _userId?: string) {
       .eq('id', id)
       .eq('status', 'approved')
       .select()
-      .single()
+      .single() as any)
 
     if (error) throw error
 
-    // Log activity (v0.13.1)
+    // Log activity
     if (data) {
       logActivity(releasedBy, 'update', 'disbursement', id, { bkk_number: data.bkk_number, status: 'released' })
     }
@@ -261,8 +247,7 @@ export async function releaseDisbursement(id: string, _userId?: string) {
     revalidatePath(`/disbursements/${id}`)
     return { data, error: null }
   } catch (error) {
-    console.error('releaseDisbursement error:', error)
-    return { data: null, error: 'Failed to release disbursement' }
+    return { data: null, error: 'Gagal melepas dana disbursement' }
   }
 }
 
@@ -277,8 +262,8 @@ export async function settleDisbursement(id: string, _userId?: string) {
     }
     const settledBy = profile.id
 
-    const { data, error } = await supabase
-      .from('bkk_records')
+    const { data, error } = await (supabase
+      .from('bukti_kas_keluar' as any)
       .update({
         status: 'settled',
         settled_by: settledBy,
@@ -288,7 +273,7 @@ export async function settleDisbursement(id: string, _userId?: string) {
       .eq('id', id)
       .eq('status', 'released')
       .select()
-      .single()
+      .single() as any)
 
     if (error) throw error
 
@@ -296,8 +281,7 @@ export async function settleDisbursement(id: string, _userId?: string) {
     revalidatePath(`/disbursements/${id}`)
     return { data, error: null }
   } catch (error) {
-    console.error('settleDisbursement error:', error)
-    return { data: null, error: 'Failed to settle disbursement' }
+    return { data: null, error: 'Gagal menyelesaikan disbursement' }
   }
 }
 
@@ -305,19 +289,18 @@ export async function deleteDisbursement(id: string) {
   const supabase = await createClient()
 
   try {
-    // Soft delete: set is_active = false instead of hard deleting
-    const { error } = await supabase
-      .from('bkk_records')
-      .update({ is_active: false, updated_at: new Date().toISOString() })
+    // Set status to 'cancelled' since bukti_kas_keluar has no is_active column
+    const { error } = await (supabase
+      .from('bukti_kas_keluar' as any)
+      .update({ status: 'cancelled', updated_at: new Date().toISOString() })
       .eq('id', id)
-      .eq('status', 'draft')
+      .eq('status', 'draft') as any)
 
     if (error) throw error
 
     revalidatePath('/disbursements')
     return { error: null }
   } catch (error) {
-    console.error('deleteDisbursement error:', error)
-    return { error: 'Failed to delete disbursement' }
+    return { error: 'Gagal menghapus disbursement' }
   }
 }

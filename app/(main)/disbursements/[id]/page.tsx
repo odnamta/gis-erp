@@ -14,21 +14,20 @@ interface PageProps {
 
 async function fetchBKKRecord(id: string): Promise<{ data: BKKRecord | null; error: unknown }> {
   const supabase = await createClient()
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  const result = await supabase
-    .from('bkk_records')
+  const result = await (supabase
+    .from('bukti_kas_keluar' as any)
     .select(`
       *,
-      job_orders (id, jo_number, customer_name, status),
-      vendors (id, name, vendor_code, bank_name, bank_account, bank_account_name),
-      created_by_profile:user_profiles!bkk_records_created_by_fkey (id, full_name, email),
-      approved_by_profile:user_profiles!bkk_records_approved_by_fkey (id, full_name, email),
-      released_by_profile:user_profiles!bkk_records_released_by_fkey (id, full_name, email),
-      settled_by_profile:user_profiles!bkk_records_settled_by_fkey (id, full_name, email)
+      job_orders:jo_id (id, jo_number, customer_name, status),
+      vendors:vendor_id (id, vendor_name, vendor_code, bank_name, bank_account, bank_account_name),
+      requested_by_profile:user_profiles!bukti_kas_keluar_requested_by_fkey (id, full_name, email),
+      approved_by_profile:user_profiles!bukti_kas_keluar_approved_by_fkey (id, full_name, email),
+      released_by_profile:user_profiles!bukti_kas_keluar_released_by_fkey (id, full_name, email),
+      settled_by_profile:user_profiles!bukti_kas_keluar_settled_by_fkey (id, full_name, email)
     `)
     .eq('id', id)
-    .single()
-  
+    .single() as any)
+
   return result as { data: BKKRecord | null; error: unknown }
 }
 

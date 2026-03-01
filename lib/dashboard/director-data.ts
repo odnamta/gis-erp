@@ -180,10 +180,9 @@ export async function getDirectorDashboardMetrics(): Promise<DirectorDashboardMe
       
       // Pending BKK Approvals
       supabase
-        .from('bkk_records')
+        .from('bukti_kas_keluar' as any)
         .select('id', { count: 'exact', head: true })
-        .in('workflow_status', ['pending_check', 'pending_approval'])
-        .eq('is_active', true),
+        .in('status', ['pending_check', 'pending_approval']),
       
       // Quotations by status - Draft
       supabase

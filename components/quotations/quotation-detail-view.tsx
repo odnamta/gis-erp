@@ -113,8 +113,9 @@ export function QuotationDetailView({ quotation, userRole, userId }: QuotationDe
   const canMarkOutcome = status === 'submitted'
   const canConvert = status === 'won'
   
-  // Profit margin visibility - only owner, director, administration, manager, finance can see
-  const canViewProfitMargin = ['owner', 'director', 'administration', 'manager', 'finance', 'sysadmin'].includes(userRole || '')
+  // Profit margin visibility - owner, director, administration, finance, sysadmin, and manager-level roles
+  // Note: operations_manager CAN see profit (management level), but ops staff CANNOT
+  const canViewProfitMargin = ['owner', 'director', 'administration', 'marketing_manager', 'finance_manager', 'operations_manager', 'finance', 'sysadmin'].includes(userRole || '')
 
   const loadAssessments = async () => {
     if (!requiresEngineering) return

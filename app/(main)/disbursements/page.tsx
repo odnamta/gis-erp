@@ -13,17 +13,17 @@ export const metadata = {
 
 async function fetchBKKRecords() {
   const supabase = await createClient()
-  const result = await supabase
-    .from('bkk_records')
+  const result = await (supabase
+    .from('bukti_kas_keluar' as any)
     .select(`
       *,
-      job_orders (jo_number),
-      vendors (vendor_name, vendor_code),
-      created_by_profile:user_profiles!bkk_records_created_by_fkey (full_name),
-      approved_by_profile:user_profiles!bkk_records_approved_by_fkey (full_name)
+      job_orders:jo_id (jo_number, customer_name),
+      vendors:vendor_id (vendor_name, vendor_code),
+      requested_by_profile:user_profiles!bukti_kas_keluar_requested_by_fkey (full_name),
+      approved_by_profile:user_profiles!bukti_kas_keluar_approved_by_fkey (full_name)
     `)
     .order('created_at', { ascending: false })
-    .limit(200)
+    .limit(200) as any)
 
   return result
 }
