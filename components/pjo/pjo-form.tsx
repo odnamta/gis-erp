@@ -4,15 +4,18 @@ import { useForm } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { z } from 'zod'
 import { useRouter } from 'next/navigation'
-import { useState, useCallback } from 'react'
+import { useState, useCallback, useEffect } from 'react'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { Textarea } from '@/components/ui/textarea'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
+import { ManagedSelect } from '@/components/ui/managed-select'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
-import { Loader2, FileQuestion, AlertCircle } from 'lucide-react'
+import { Loader2, FileQuestion, AlertCircle, Info } from 'lucide-react'
 import { cn } from '@/lib/utils'
+import { formatCurrency } from '@/lib/utils/format'
+import { createClient } from '@/lib/supabase/client'
 import { ProformaJobOrder, PJORevenueItem, PJOCostItem } from '@/types'
 import { ProjectWithCustomer } from '@/components/projects/project-table'
 import { createPJO, updatePJO } from '@/app/(main)/proforma-jo/actions'
@@ -50,6 +53,8 @@ const costItemSchema = z.object({
   status: z.enum(['estimated', 'confirmed', 'exceeded', 'under_budget']),
   actual_amount: z.number().optional(),
   estimated_by: z.string().optional(),
+  vendor_id: z.string().optional().nullable(),
+  vendor_name: z.string().optional().nullable(),
 })
 
 export const pjoSchema = z.object({
@@ -81,25 +86,6 @@ export const pjoSchema = z.object({
 
 export type PJOFormValues = z.infer<typeof pjoSchema>
 
-const quantityUnitOptions = [
-  { value: 'TRIP', label: 'TRIP' }, { value: 'TRIPS', label: 'TRIPS' },
-  { value: 'LOT', label: 'LOT' }, { value: 'CASE', label: 'CASE' },
-  { value: 'UNIT', label: 'UNIT' }, { value: 'UNITS', label: 'UNITS' },
-  { value: 'SET', label: 'SET' }, { value: 'PACKAGE', label: 'PACKAGE' },
-  { value: 'CONTAINER', label: 'CONTAINER' }, { value: 'TON', label: 'TON' },
-  { value: 'KG', label: 'KG' }, { value: 'CBM', label: 'CBM' },
-]
-
-const carrierTypeOptions = [
-  { value: 'FUSO', label: 'FUSO' }, { value: 'TRAILER 20FT', label: 'TRAILER 20FT' },
-  { value: 'TRAILER 40FT', label: 'TRAILER 40FT' }, { value: 'TRAILER 45FT', label: 'TRAILER 45FT' },
-  { value: 'LOWBED', label: 'LOWBED' }, { value: 'FLATBED', label: 'FLATBED' },
-  { value: 'WINGBOX', label: 'WINGBOX' }, { value: 'BOX TRUCK', label: 'BOX TRUCK' },
-  { value: 'TANKER', label: 'TANKER' }, { value: 'DUMP TRUCK', label: 'DUMP TRUCK' },
-  { value: 'SELF LOADER', label: 'SELF LOADER' }, { value: 'CRANE TRUCK', label: 'CRANE TRUCK' },
-  { value: 'SLIDING TRAILER', label: 'SLIDING TRAILER' }, { value: 'EXTENDABLE TRAILER', label: 'EXTENDABLE TRAILER' },
-  { value: 'MULTI AXLE TRAILER', label: 'MULTI AXLE TRAILER' },
-]
 
 interface PJOFormProps {
   projects: ProjectWithCustomer[]
@@ -122,6 +108,7 @@ function toCostItemRow(item: PJOCostItem): CostItemRow {
     actual_amount: item.actual_amount ?? undefined,
     status: item.status as 'estimated' | 'confirmed' | 'exceeded' | 'under_budget',
     estimated_by: item.estimated_by ?? undefined,
+    vendor_id: item.vendor_id ?? null,
   }
 }
 
@@ -218,6 +205,24 @@ export function PJOForm({ projects, pjo, existingRevenueItems = [], existingCost
   const polValue = watch('pol') || ''
   const podValue = watch('pod') || ''
   const selectedProject = projects.find((p) => p.id === selectedProjectId)
+
+  // Contract value for selected project
+  const [contractValue, setContractValue] = useState<number | null>(null)
+  useEffect(() => {
+    if (!selectedProjectId) {
+      setContractValue(null)
+      return
+    }
+    const supabase = createClient()
+    ;(supabase.from('projects') as any)
+      .select('contract_value')
+      .eq('id', selectedProjectId)
+      .single()
+      .then(({ data }: { data: { contract_value: number | null } | null }) => {
+        setContractValue(data?.contract_value ?? null)
+      })
+  }, [selectedProjectId])
+
 
   const handleRevenueItemsChange = useCallback((items: RevenueItemRow[]) => {
     setRevenueItems(items)
@@ -329,6 +334,7 @@ export function PJOForm({ projects, pjo, existingRevenueItems = [], existingCost
         cost_items: costItems.map(item => ({
           id: item.id, category: item.category, description: item.description,
           estimated_amount: item.estimated_amount,
+          vendor_id: item.vendor_id || null,
         })),
         // Market classification fields
         cargo_weight_kg: cargoSpecs.cargo_weight_kg,
@@ -413,10 +419,14 @@ export function PJOForm({ projects, pjo, existingRevenueItems = [], existingCost
             </div>
             <div className="space-y-2">
               <Label htmlFor="quantity_unit">Unit</Label>
-              <Select value={selectedQuantityUnit} onValueChange={(v) => setValue('quantity_unit', v)} disabled={isLoading}>
-                <SelectTrigger><SelectValue placeholder="Select unit" /></SelectTrigger>
-                <SelectContent>{quantityUnitOptions.map((o) => <SelectItem key={o.value} value={o.value}>{o.label}</SelectItem>)}</SelectContent>
-              </Select>
+              <ManagedSelect
+                category="quantity_unit"
+                value={selectedQuantityUnit}
+                onValueChange={(v) => setValue('quantity_unit', v)}
+                placeholder="Satuan"
+                canManage={true}
+                disabled={isLoading}
+              />
             </div>
           </div>
         </CardContent>
@@ -444,10 +454,14 @@ export function PJOForm({ projects, pjo, existingRevenueItems = [], existingCost
           </div>
           <div className="space-y-2">
             <Label htmlFor="carrier_type">Carrier Type</Label>
-            <Select value={selectedCarrierType} onValueChange={(v) => setValue('carrier_type', v)} disabled={isLoading}>
-              <SelectTrigger><SelectValue placeholder="Select carrier type" /></SelectTrigger>
-              <SelectContent>{carrierTypeOptions.map((o) => <SelectItem key={o.value} value={o.value}>{o.label}</SelectItem>)}</SelectContent>
-            </Select>
+            <ManagedSelect
+              category="carrier_type"
+              value={selectedCarrierType}
+              onValueChange={(v) => setValue('carrier_type', v)}
+              placeholder="Pilih tipe kendaraan"
+              canManage={true}
+              disabled={isLoading}
+            />
           </div>
         </CardContent>
       </Card>
@@ -497,7 +511,17 @@ export function PJOForm({ projects, pjo, existingRevenueItems = [], existingCost
       />
 
       <Card>
-        <CardHeader><CardTitle>Revenue Items</CardTitle></CardHeader>
+        <CardHeader>
+          <div className="flex items-center justify-between">
+            <CardTitle>Revenue Items</CardTitle>
+            {contractValue != null && contractValue > 0 && (
+              <div className="flex items-center gap-1.5 rounded-md bg-blue-50 px-3 py-1.5 text-sm text-blue-700 border border-blue-200">
+                <Info className="h-3.5 w-3.5" />
+                <span>Nilai Kontrak: {formatCurrency(contractValue)}</span>
+              </div>
+            )}
+          </div>
+        </CardHeader>
         <CardContent>
           <RevenueItemsTable items={revenueItems} onChange={handleRevenueItemsChange} errors={revenueItemErrors} disabled={isLoading} />
           {errors.revenue_items && <p className="text-sm text-destructive mt-2">{errors.revenue_items.message}</p>}

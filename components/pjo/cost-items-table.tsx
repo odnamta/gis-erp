@@ -1,15 +1,9 @@
 'use client'
 
-import { useCallback, useRef } from 'react'
+import { useCallback } from 'react'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from '@/components/ui/select'
+import { ManagedSelect } from '@/components/ui/managed-select'
 import {
   Table,
   TableBody,
@@ -20,6 +14,9 @@ import {
 } from '@/components/ui/table'
 import { Plus, Trash2, Clock, CheckCircle, AlertTriangle, XCircle } from 'lucide-react'
 import { formatIDR } from '@/lib/pjo-utils'
+import { VendorSelector } from '@/components/vendors/vendor-selector'
+import { mapCostCategoryToVendorType } from '@/lib/vendor-utils'
+import type { Vendor } from '@/types/vendors'
 
 export type CostCategory =
   | 'trucking'
@@ -41,18 +38,10 @@ export interface CostItemRow {
   actual_amount?: number
   status: CostItemStatus
   estimated_by?: string
+  vendor_id?: string | null
+  vendor_name?: string | null
 }
 
-export const COST_CATEGORIES: { value: CostCategory; label: string }[] = [
-  { value: 'trucking', label: 'Trucking' },
-  { value: 'port_charges', label: 'Port Charges' },
-  { value: 'documentation', label: 'Documentation' },
-  { value: 'handling', label: 'Handling' },
-  { value: 'crew', label: 'Crew' },
-  { value: 'fuel', label: 'Fuel' },
-  { value: 'tolls', label: 'Tolls' },
-  { value: 'other', label: 'Other' },
-]
 
 interface CostItemsTableProps {
   items: CostItemRow[]
@@ -137,8 +126,6 @@ export function getSequentialLineNumbers(items: CostItemRow[]): number[] {
 }
 
 export function CostItemsTable({ items, onChange, errors = {}, disabled = false }: CostItemsTableProps) {
-  const categoryRefs = useRef<(HTMLButtonElement | null)[]>([])
-
   const totalEstimatedCost = calculateTotalEstimatedCost(items)
 
   const handleAddItem = useCallback(() => {
@@ -150,10 +137,6 @@ export function CostItemsTable({ items, onChange, errors = {}, disabled = false 
     }
     const newItems = [...items, newItem]
     onChange(newItems)
-    // Focus the new row's category dropdown after render
-    setTimeout(() => {
-      categoryRefs.current[newItems.length - 1]?.focus()
-    }, 0)
   }, [items, onChange])
 
   const handleDeleteItem = useCallback((index: number) => {
@@ -170,10 +153,22 @@ export function CostItemsTable({ items, onChange, errors = {}, disabled = false 
       item[field] = numValue
     } else if (field === 'category') {
       item.category = value as CostCategory | ''
+      // Clear vendor when category changes (vendor type may differ)
+      item.vendor_id = null
+      item.vendor_name = null
     } else if (field === 'description') {
       item.description = value as string
     }
 
+    newItems[index] = item
+    onChange(newItems)
+  }, [items, onChange])
+
+  const handleVendorChange = useCallback((index: number, vendorId: string | null, vendor?: Vendor) => {
+    const newItems = [...items]
+    const item = { ...newItems[index] }
+    item.vendor_id = vendorId
+    item.vendor_name = vendor?.vendor_name ?? null
     newItems[index] = item
     onChange(newItems)
   }, [items, onChange])
@@ -197,6 +192,7 @@ export function CostItemsTable({ items, onChange, errors = {}, disabled = false 
                   <TableHead className="w-12 text-center">#</TableHead>
                   <TableHead className="w-40">Category</TableHead>
                   <TableHead className="min-w-[200px]">Description</TableHead>
+                  <TableHead className="w-48">Vendor</TableHead>
                   <TableHead className="w-40 text-right">Estimated Amount</TableHead>
                   <TableHead className="w-28 text-center">Status</TableHead>
                   <TableHead className="w-16">Actions</TableHead>
@@ -211,25 +207,15 @@ export function CostItemsTable({ items, onChange, errors = {}, disabled = false 
                         {index + 1}
                       </TableCell>
                       <TableCell>
-                        <Select
-                          value={item.category}
-                          onValueChange={(value) => handleFieldChange(index, 'category', value)}
+                        <ManagedSelect
+                          category="cost_category"
+                          value={item.category || undefined}
+                          onValueChange={(v) => handleFieldChange(index, 'category', v)}
+                          placeholder="Pilih kategori"
+                          canManage={true}
                           disabled={disabled}
-                        >
-                          <SelectTrigger
-                            ref={(el) => { categoryRefs.current[index] = el }}
-                            className={errors[index]?.category ? 'border-destructive' : ''}
-                          >
-                            <SelectValue placeholder="Select..." />
-                          </SelectTrigger>
-                          <SelectContent>
-                            {COST_CATEGORIES.map((cat) => (
-                              <SelectItem key={cat.value} value={cat.value}>
-                                {cat.label}
-                              </SelectItem>
-                            ))}
-                          </SelectContent>
-                        </Select>
+                          className={errors[index]?.category ? 'flex-1 border-destructive' : 'flex-1'}
+                        />
                         {errors[index]?.category && (
                           <p className="text-xs text-destructive mt-1">{errors[index].category}</p>
                         )}
@@ -245,6 +231,16 @@ export function CostItemsTable({ items, onChange, errors = {}, disabled = false 
                         {errors[index]?.description && (
                           <p className="text-xs text-destructive mt-1">{errors[index].description}</p>
                         )}
+                      </TableCell>
+                      <TableCell>
+                        <VendorSelector
+                          value={item.vendor_id ?? null}
+                          onChange={(vendorId, vendor) => handleVendorChange(index, vendorId, vendor)}
+                          vendorType={item.category ? mapCostCategoryToVendorType(item.category) : undefined}
+                          placeholder="Pilih vendor..."
+                          disabled={disabled}
+                          className="w-full text-sm"
+                        />
                       </TableCell>
                       <TableCell>
                         <Input

@@ -34,6 +34,8 @@ import {
 } from '@/lib/jmp-actions';
 import { CheckpointTable } from './checkpoint-table';
 import { RiskAssessmentTable } from './risk-assessment-table';
+import { JmpDocumentUpload } from './jmp-document-upload';
+import { PDFButtons } from '@/components/pdf/pdf-buttons';
 
 interface JmpDetailViewProps {
   jmp: JmpWithRelations;
@@ -145,6 +147,13 @@ export function JmpDetailView({ jmp, currentUserId }: JmpDetailViewProps) {
               Start Journey
             </Button>
           )}
+          <PDFButtons
+            documentType="jmp"
+            documentId={jmp.id}
+            documentNumber={jmp.jmpNumber}
+            size="sm"
+            variant="outline"
+          />
           <Button variant="outline" onClick={() => window.print()}>
             <Printer className="mr-2 h-4 w-4" />
             Print
@@ -382,20 +391,11 @@ export function JmpDetailView({ jmp, currentUserId }: JmpDetailViewProps) {
               <CardTitle>Documents</CardTitle>
             </CardHeader>
             <CardContent>
-              {jmp.documents && jmp.documents.length > 0 ? (
-                <ul className="space-y-2">
-                  {jmp.documents.map((doc, idx) => (
-                    <li key={idx} className="flex justify-between items-center p-2 bg-muted rounded">
-                      <span>{doc.name || doc.type}</span>
-                      <a href={doc.url} target="_blank" rel="noopener noreferrer" className="text-blue-600 hover:underline">
-                        View
-                      </a>
-                    </li>
-                  ))}
-                </ul>
-              ) : (
-                <p className="text-muted-foreground">No documents attached</p>
-              )}
+              <JmpDocumentUpload
+                jmpId={jmp.id}
+                documents={jmp.documents || []}
+                onSuccess={() => router.refresh()}
+              />
             </CardContent>
           </Card>
         </TabsContent>

@@ -1098,6 +1098,154 @@ export async function deleteRisk(id: string): Promise<ActionResult<void>> {
 }
 
 /**
+ * Upload a document to a JMP
+ */
+export async function uploadJmpDocument(
+  jmpId: string,
+  formData: FormData
+): Promise<ActionResult<{ url: string }>> {
+  try {
+    const supabase = await createClient();
+
+    const file = formData.get('file') as File | null;
+    const docName = formData.get('name') as string | null;
+    const docType = formData.get('type') as string | null;
+
+    if (!file) {
+      return { success: false, error: 'No file provided' };
+    }
+
+    // Validate file size (max 10MB)
+    if (file.size > 10 * 1024 * 1024) {
+      return { success: false, error: 'File size must be under 10MB' };
+    }
+
+    // Validate file type
+    const allowedTypes = [
+      'application/pdf',
+      'application/msword',
+      'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
+      'application/vnd.ms-excel',
+      'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+      'image/jpeg',
+      'image/png',
+    ];
+    if (!allowedTypes.includes(file.type)) {
+      return { success: false, error: 'File type not allowed. Accepted: PDF, DOC, DOCX, XLS, XLSX, JPG, PNG' };
+    }
+
+    // Upload to storage
+    const fileExt = file.name.split('.').pop();
+    const fileName = `jmp/${jmpId}/${Date.now()}.${fileExt}`;
+
+    const { error: uploadError } = await supabase.storage
+      .from('documents')
+      .upload(fileName, file);
+
+    if (uploadError) {
+      return { success: false, error: uploadError.message };
+    }
+
+    // Get public URL
+    const { data: urlData } = supabase.storage
+      .from('documents')
+      .getPublicUrl(fileName);
+
+    const documentUrl = urlData.publicUrl;
+
+    // Get current documents from JMP
+    const { data: jmp, error: fetchError } = await supabase
+      .from('journey_management_plans')
+      .select('documents')
+      .eq('id', jmpId)
+      .single();
+
+    if (fetchError) {
+      return { success: false, error: fetchError.message };
+    }
+
+    const currentDocs = (jmp?.documents as unknown as Array<{ type: string; url: string; name?: string; uploadedAt?: string }>) || [];
+    currentDocs.push({
+      type: docType || 'other',
+      url: documentUrl,
+      name: docName || file.name,
+      uploadedAt: new Date().toISOString(),
+    });
+
+    const { error: updateError } = await supabase
+      .from('journey_management_plans')
+      .update({
+        documents: currentDocs,
+        updated_at: new Date().toISOString(),
+      })
+      .eq('id', jmpId);
+
+    if (updateError) {
+      return { success: false, error: updateError.message };
+    }
+
+    revalidatePath(`/engineering/jmp/${jmpId}`);
+    return { success: true, data: { url: documentUrl } };
+  } catch {
+    return { success: false, error: 'Failed to upload document' };
+  }
+}
+
+/**
+ * Delete a document from a JMP
+ */
+export async function deleteJmpDocument(
+  jmpId: string,
+  documentUrl: string
+): Promise<ActionResult<void>> {
+  try {
+    const supabase = await createClient();
+
+    // Get current documents
+    const { data: jmp, error: fetchError } = await supabase
+      .from('journey_management_plans')
+      .select('documents')
+      .eq('id', jmpId)
+      .single();
+
+    if (fetchError) {
+      return { success: false, error: fetchError.message };
+    }
+
+    const currentDocs = (jmp?.documents as unknown as Array<{ type: string; url: string; name?: string; uploadedAt?: string }>) || [];
+    const updatedDocs = currentDocs.filter(d => d.url !== documentUrl);
+
+    const { error: updateError } = await supabase
+      .from('journey_management_plans')
+      .update({
+        documents: updatedDocs,
+        updated_at: new Date().toISOString(),
+      })
+      .eq('id', jmpId);
+
+    if (updateError) {
+      return { success: false, error: updateError.message };
+    }
+
+    // Try to delete from storage
+    try {
+      const urlParts = documentUrl.split('/documents/');
+      if (urlParts.length > 1) {
+        const storagePath = urlParts[urlParts.length - 1];
+        await supabase.storage.from('documents').remove([storagePath]);
+      }
+    } catch {
+      // Storage delete failure is non-critical
+    }
+
+    revalidatePath(`/engineering/jmp/${jmpId}`);
+    return { success: true };
+  } catch {
+    return { success: false, error: 'Failed to delete document' };
+  }
+}
+
+/**
  * Get completed surveys for JMP creation
  */
 export async function getCompletedSurveys(): Promise<{ id: string; survey_number: string; cargo_description: string; origin_location: string; destination_location: string }[]> {

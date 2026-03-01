@@ -23,6 +23,7 @@ import {
 } from '@/components/ui/alert-dialog'
 import { Plus, Pencil, Trash2 } from 'lucide-react'
 import { PJOCostItem } from '@/types'
+import type { PJOCostItemWithVendor } from '@/app/(main)/proforma-jo/cost-actions'
 import { CostItemForm } from './cost-item-form'
 import { deleteCostItem } from '@/app/(main)/proforma-jo/cost-actions'
 import { useToast } from '@/hooks/use-toast'
@@ -30,13 +31,14 @@ import { formatIDR, calculateCostTotal, calculateProfit, calculateMargin, COST_C
 
 interface CostItemsSectionProps {
   pjoId: string
-  items: PJOCostItem[]
+  items: PJOCostItemWithVendor[]
   totalRevenue: number
   isEditable: boolean
   onRefresh?: () => void
+  hideProfit?: boolean
 }
 
-export function CostItemsSection({ pjoId, items, totalRevenue, isEditable, onRefresh }: CostItemsSectionProps) {
+export function CostItemsSection({ pjoId, items, totalRevenue, isEditable, onRefresh, hideProfit }: CostItemsSectionProps) {
   const { toast } = useToast()
   const [formOpen, setFormOpen] = useState(false)
   const [editingItem, setEditingItem] = useState<PJOCostItem | null>(null)
@@ -98,6 +100,7 @@ export function CostItemsSection({ pjoId, items, totalRevenue, isEditable, onRef
                   <TableRow>
                     <TableHead>Category</TableHead>
                     <TableHead>Description</TableHead>
+                    <TableHead>Vendor</TableHead>
                     <TableHead className="text-right">Estimated Amount</TableHead>
                     {isEditable && <TableHead className="w-[100px]">Actions</TableHead>}
                   </TableRow>
@@ -109,6 +112,9 @@ export function CostItemsSection({ pjoId, items, totalRevenue, isEditable, onRef
                         {COST_CATEGORY_LABELS[item.category] || item.category}
                       </TableCell>
                       <TableCell>{item.description}</TableCell>
+                      <TableCell className="text-muted-foreground">
+                        {item.vendor_name || '-'}
+                      </TableCell>
                       <TableCell className="text-right">{formatIDR(item.estimated_amount)}</TableCell>
                       {isEditable && (
                         <TableCell>
@@ -134,23 +140,27 @@ export function CostItemsSection({ pjoId, items, totalRevenue, isEditable, onRef
                   ))}
                 </TableBody>
               </Table>
-              <div className="grid grid-cols-3 gap-4 mt-4 pt-4 border-t">
+              <div className={`grid ${hideProfit ? 'grid-cols-1' : 'grid-cols-3'} gap-4 mt-4 pt-4 border-t`}>
                 <div className="text-right">
                   <p className="text-sm text-muted-foreground">Total Estimated Cost</p>
                   <p className="text-xl font-bold">{formatIDR(totalEstimated)}</p>
                 </div>
-                <div className="text-right">
-                  <p className="text-sm text-muted-foreground">Estimated Profit</p>
-                  <p className={`text-xl font-bold ${estimatedProfit >= 0 ? 'text-green-600' : 'text-red-600'}`}>
-                    {formatIDR(estimatedProfit)}
-                  </p>
-                </div>
-                <div className="text-right">
-                  <p className="text-sm text-muted-foreground">Estimated Margin</p>
-                  <p className={`text-xl font-bold ${estimatedMargin >= 0 ? 'text-green-600' : 'text-red-600'}`}>
-                    {estimatedMargin.toFixed(2)}%
-                  </p>
-                </div>
+                {!hideProfit && (
+                  <>
+                    <div className="text-right">
+                      <p className="text-sm text-muted-foreground">Estimated Profit</p>
+                      <p className={`text-xl font-bold ${estimatedProfit >= 0 ? 'text-green-600' : 'text-red-600'}`}>
+                        {formatIDR(estimatedProfit)}
+                      </p>
+                    </div>
+                    <div className="text-right">
+                      <p className="text-sm text-muted-foreground">Estimated Margin</p>
+                      <p className={`text-xl font-bold ${estimatedMargin >= 0 ? 'text-green-600' : 'text-red-600'}`}>
+                        {estimatedMargin.toFixed(2)}%
+                      </p>
+                    </div>
+                  </>
+                )}
               </div>
             </>
           )}

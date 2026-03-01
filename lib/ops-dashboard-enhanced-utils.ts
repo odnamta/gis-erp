@@ -66,12 +66,21 @@ export interface PendingAction {
   jobs?: string[]
 }
 
+export interface ManpowerMember {
+  id: string
+  fullName: string
+  role: string
+  isActive: boolean
+  currentAssignment: string | null
+}
+
 export interface EnhancedOpsDashboardData {
   summary: EnhancedOpsSummary
   activeJobs: OperationsJobItem[]
   deliverySchedule: DeliveryItem[]
   costSummary: CostSummary
   pendingActions: PendingAction[]
+  manpower: ManpowerMember[]
 }
 
 /**
@@ -311,15 +320,66 @@ export async function getPendingOperationsActions(): Promise<PendingAction[]> {
 }
 
 /**
+ * Get operations team members (ops, operations_manager roles)
+ * Does NOT expose revenue or salary information
+ */
+export async function getOperationsManpower(): Promise<ManpowerMember[]> {
+  const supabase = await createClient()
+
+  const { data: members, error } = await supabase
+    .from('user_profiles')
+    .select('id, full_name, role, is_active')
+    .in('role', ['ops', 'operations_manager', 'engineer'])
+    .order('full_name', { ascending: true })
+
+  if (error) {
+    return []
+  }
+
+  // For each active member, try to find their current JO assignment
+  const result: ManpowerMember[] = []
+
+  for (const member of members || []) {
+    let currentAssignment: string | null = null
+
+    // Check if user has recent activity on any active JO
+    if (member.is_active) {
+      const { data: recentActivity } = await supabase
+        .from('activity_log')
+        .select('document_number')
+        .eq('user_id', member.id)
+        .eq('document_type', 'jo')
+        .order('created_at', { ascending: false })
+        .limit(1)
+
+      if (recentActivity && recentActivity.length > 0) {
+        currentAssignment = recentActivity[0].document_number || null
+      }
+    }
+
+    result.push({
+      id: member.id,
+      fullName: member.full_name || 'Unnamed',
+      role: member.role,
+      isActive: member.is_active,
+      currentAssignment,
+    })
+  }
+
+  return result
+}
+
+/**
  * Get all enhanced ops dashboard data in one call
  * IMPORTANT: This does NOT include revenue or profit data
  */
 export async function getEnhancedOpsDashboardData(): Promise<EnhancedOpsDashboardData> {
-  const [summary, activeJobs, deliverySchedule, pendingActions] = await Promise.all([
+  const [summary, activeJobs, deliverySchedule, pendingActions, manpower] = await Promise.all([
     getEnhancedOpsSummary(),
     getOperationsJobList(),
     getDeliverySchedule(),
     getPendingOperationsActions(),
+    getOperationsManpower(),
   ])
 
   const costSummary = await getCostSummary(activeJobs)
@@ -330,5 +390,6 @@ export async function getEnhancedOpsDashboardData(): Promise<EnhancedOpsDashboar
     deliverySchedule,
     costSummary,
     pendingActions,
+    manpower,
   }
 }

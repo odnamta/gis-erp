@@ -76,13 +76,13 @@ export function getDefaultDueDate(paymentTerms: number = DEFAULT_PAYMENT_TERMS):
  * Check if an invoice is overdue
  */
 export function isInvoiceOverdue(dueDate: string, status: InvoiceStatus): boolean {
-  if (status !== 'sent') return false
-  
+  if (status !== 'sent' && status !== 'received') return false
+
   const due = new Date(dueDate)
   const today = new Date()
   today.setHours(0, 0, 0, 0)
   due.setHours(0, 0, 0, 0)
-  
+
   return due < today
 }
 
@@ -92,7 +92,8 @@ export function isInvoiceOverdue(dueDate: string, status: InvoiceStatus): boolea
  */
 export const VALID_STATUS_TRANSITIONS: Record<InvoiceStatus, InvoiceStatus[]> = {
   draft: ['sent', 'cancelled'],
-  sent: ['partial', 'paid', 'overdue', 'cancelled'],
+  sent: ['received', 'partial', 'paid', 'overdue', 'cancelled'],
+  received: ['partial', 'paid', 'overdue', 'cancelled'],
   partial: ['paid', 'overdue', 'cancelled'],
   overdue: ['partial', 'paid', 'cancelled'],
   paid: [],
@@ -115,6 +116,7 @@ export function isValidStatusTransition(
 export const INVOICE_STATUS_LABELS: Record<InvoiceStatus, string> = {
   draft: 'Draft',
   sent: 'Sent',
+  received: 'Diterima',
   partial: 'Partial',
   paid: 'Paid',
   overdue: 'Overdue',
@@ -127,6 +129,7 @@ export const INVOICE_STATUS_LABELS: Record<InvoiceStatus, string> = {
 export const INVOICE_STATUS_COLORS: Record<InvoiceStatus, string> = {
   draft: 'gray',
   sent: 'blue',
+  received: 'indigo',
   partial: 'amber',
   paid: 'green',
   overdue: 'red',

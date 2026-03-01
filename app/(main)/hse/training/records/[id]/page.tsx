@@ -2,6 +2,7 @@ import { notFound } from 'next/navigation';
 import { createClient } from '@/lib/supabase/server';
 import { RecordForm } from '@/components/training/record-form';
 import { TrainingRecordRow, transformRecordRow } from '@/types/training';
+import { PDFButtons } from '@/components/pdf/pdf-buttons';
 
 interface RecordDetailPageProps {
   params: Promise<{ id: string }>;
@@ -42,11 +43,20 @@ export default async function RecordDetailPage({ params }: RecordDetailPageProps
 
   return (
     <div className="space-y-6">
-      <div>
-        <h1 className="text-2xl font-bold">Edit Catatan Pelatihan</h1>
-        <p className="text-muted-foreground">
-          {record.employeeName} - {record.courseName}
-        </p>
+      <div className="flex items-center justify-between">
+        <div>
+          <h1 className="text-2xl font-bold">Edit Catatan Pelatihan</h1>
+          <p className="text-muted-foreground">
+            {record.employeeName} - {record.courseName}
+          </p>
+        </div>
+        <PDFButtons
+          documentType="training"
+          documentId={id}
+          documentNumber={record.certificateNumber || undefined}
+          size="sm"
+          variant="outline"
+        />
       </div>
 
       <RecordForm record={record} employees={employees || []} />

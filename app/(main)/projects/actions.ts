@@ -120,6 +120,40 @@ export async function deleteProject(id: string): Promise<{ error?: string }> {
   return {}
 }
 
+const contractValueSchema = z.object({
+  contract_value: z.number().min(0, 'Nilai kontrak harus non-negatif'),
+  contract_notes: z.string().optional(),
+})
+
+export async function updateContractValue(
+  id: string,
+  data: { contract_value: number; contract_notes?: string }
+): Promise<{ error?: string }> {
+  const validation = contractValueSchema.safeParse(data)
+  if (!validation.success) {
+    return { error: validation.error.issues[0].message }
+  }
+
+  const supabase = await createClient()
+  const { data: { user } } = await supabase.auth.getUser()
+  if (!user) return { error: 'Not authenticated' }
+
+  const { error } = await (supabase.from('projects') as any)
+    .update({
+      contract_value: data.contract_value,
+      contract_notes: data.contract_notes || null,
+    })
+    .eq('id', id)
+
+  if (error) {
+    return { error: error.message }
+  }
+
+  revalidatePath('/projects')
+  revalidatePath(`/projects/${id}`)
+  return {}
+}
+
 export async function restoreProject(id: string): Promise<{ error?: string }> {
   const supabase = await createClient()
 

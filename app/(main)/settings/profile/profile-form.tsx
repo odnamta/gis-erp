@@ -9,12 +9,14 @@ import { Button } from '@/components/ui/button'
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar'
 import { Badge } from '@/components/ui/badge'
 import { Loader2, Save } from 'lucide-react'
+import { Textarea } from '@/components/ui/textarea'
 import { UserProfile } from '@/types/permissions'
 import { updateProfile } from './actions'
 import { useToast } from '@/hooks/use-toast'
 
 interface ProfileFormProps {
   profile: UserProfile
+  extendedData?: { phone: string | null; address: string | null } | null
 }
 
 function getInitials(name: string): string {
@@ -33,18 +35,20 @@ function formatRole(role: string): string {
     .join(' ')
 }
 
-export function ProfileForm({ profile }: ProfileFormProps) {
+export function ProfileForm({ profile, extendedData }: ProfileFormProps) {
   const router = useRouter()
   const { toast } = useToast()
   const [isLoading, setIsLoading] = useState(false)
   const [fullName, setFullName] = useState(profile.full_name || '')
+  const [phone, setPhone] = useState(extendedData?.phone || '')
+  const [address, setAddress] = useState(extendedData?.address || '')
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
     setIsLoading(true)
 
     try {
-      const result = await updateProfile({ full_name: fullName })
+      const result = await updateProfile({ full_name: fullName, phone, address })
       
       if (result.success) {
         toast({
@@ -123,6 +127,28 @@ export function ProfileForm({ profile }: ProfileFormProps) {
                 value={fullName}
                 onChange={(e) => setFullName(e.target.value)}
                 placeholder="Enter your full name"
+              />
+            </div>
+
+            <div className="space-y-2">
+              <Label htmlFor="phone">Nomor Telepon</Label>
+              <Input
+                id="phone"
+                type="tel"
+                value={phone}
+                onChange={(e) => setPhone(e.target.value)}
+                placeholder="08xxxxxxxxxx"
+              />
+            </div>
+
+            <div className="space-y-2">
+              <Label htmlFor="address">Alamat</Label>
+              <Textarea
+                id="address"
+                value={address}
+                onChange={(e) => setAddress(e.target.value)}
+                placeholder="Masukkan alamat lengkap"
+                rows={3}
               />
             </div>
 

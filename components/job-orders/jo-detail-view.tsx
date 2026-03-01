@@ -7,13 +7,18 @@ import { JobOrderWithRelations, PJORevenueItem, PJOCostItem } from '@/types'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Label } from '@/components/ui/label'
+import { Alert, AlertDescription } from '@/components/ui/alert'
+import { Badge } from '@/components/ui/badge'
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table'
+import { ManagedSelect } from '@/components/ui/managed-select'
+import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog'
+import { Textarea } from '@/components/ui/textarea'
 import { JOStatusBadge } from '@/components/ui/jo-status-badge'
 import { formatIDR, formatDate, formatDateTime, COST_CATEGORY_LABELS } from '@/lib/pjo-utils'
-import { markCompleted, submitToFinance, getJORevenueItems, getJOCostItems } from '@/app/(main)/job-orders/actions'
+import { markCompleted, submitToFinance, getJORevenueItems, getJOCostItems, updateJOCategory, requestJORevision } from '@/app/(main)/job-orders/actions'
 import { getJobOverheadBreakdown, getJobProfitability } from '@/app/(main)/job-orders/overhead-actions'
 import { useToast } from '@/hooks/use-toast'
-import { CheckCircle, Send, ArrowLeft, Loader2, Receipt } from 'lucide-react'
+import { CheckCircle, Send, ArrowLeft, Loader2, Receipt, AlertTriangle, RotateCcw, Clock } from 'lucide-react'
 import { AttachmentsSection } from '@/components/attachments'
 import { InvoiceTermsSection } from './invoice-terms-section'
 import { SuratJalanSection } from '@/components/surat-jalan/surat-jalan-section'
@@ -22,9 +27,34 @@ import { BKKSection } from '@/components/bkk/bkk-section'
 import { ProfitabilitySection } from './profitability-section'
 import { JobCustomsSection } from '@/components/customs-fees/job-customs-section'
 import { PDFButtons } from '@/components/pdf/pdf-buttons'
+import { TaxProfitSection } from '@/components/shared/tax-profit-section'
 import { getBKKsByJobOrder } from '@/app/(main)/job-orders/bkk-actions'
-import type { BKKWithRelations } from '@/types'
+import { getDPInvoicesForPJO } from '@/app/(main)/invoices/actions'
+import type { BKKWithRelations, InvoiceWithRelations } from '@/types'
 import type { JobOverheadAllocationWithCategory } from '@/types/overhead'
+import { Info, ExternalLink } from 'lucide-react'
+
+// JO Category definitions
+const JO_CATEGORIES: Record<string, string> = {
+  heavy_haul: 'Heavy Haul',
+  general_cargo: 'General Cargo',
+  project_cargo: 'Project Cargo',
+  breakbulk: 'Breakbulk',
+  container: 'Container',
+  special: 'Special',
+}
+
+const JO_CATEGORY_COLORS: Record<string, string> = {
+  heavy_haul: 'bg-red-100 text-red-800 border-red-200',
+  general_cargo: 'bg-blue-100 text-blue-800 border-blue-200',
+  project_cargo: 'bg-purple-100 text-purple-800 border-purple-200',
+  breakbulk: 'bg-orange-100 text-orange-800 border-orange-200',
+  container: 'bg-green-100 text-green-800 border-green-200',
+  special: 'bg-yellow-100 text-yellow-800 border-yellow-200',
+}
+
+// Roles allowed for revision and budget warnings
+const PRIVILEGED_ROLES = ['finance_manager', 'administration', 'owner', 'director']
 
 interface JODetailViewProps {
   jobOrder: JobOrderWithRelations
@@ -34,6 +64,7 @@ interface JODetailViewProps {
 
 export function JODetailView({ jobOrder, userId, userRole }: JODetailViewProps) {
   const isOps = userRole === 'ops'
+  const isPrivileged = PRIVILEGED_ROLES.includes(userRole || '')
   const router = useRouter()
   const { toast } = useToast()
   const [isLoading, setIsLoading] = useState(false)
@@ -41,12 +72,23 @@ export function JODetailView({ jobOrder, userId, userRole }: JODetailViewProps) 
   const [costItems, setCostItems] = useState<PJOCostItem[]>([])
   const [bkks, setBkks] = useState<BKKWithRelations[]>([])
   const [itemsLoading, setItemsLoading] = useState(true)
+  const [dpInvoices, setDpInvoices] = useState<InvoiceWithRelations[]>([])
   const [overheadBreakdown, setOverheadBreakdown] = useState<JobOverheadAllocationWithCategory[]>([])
   const [profitabilityData, setProfitabilityData] = useState<{
     totalOverhead: number;
     netProfit: number;
     netMargin: number;
   } | null>(null)
+
+  // Feature 1: JO Category state
+  const joAny = jobOrder as any
+  const [currentCategory, setCurrentCategory] = useState<string>(joAny.jo_category || '')
+  const [categoryLoading, setCategoryLoading] = useState(false)
+
+  // Feature 2: Revision dialog state
+  const [revisionDialogOpen, setRevisionDialogOpen] = useState(false)
+  const [revisionNotes, setRevisionNotes] = useState('')
+  const [revisionLoading, setRevisionLoading] = useState(false)
 
   const pjo = jobOrder.proforma_job_orders
   const profit = (jobOrder.final_revenue ?? jobOrder.amount ?? 0) - (jobOrder.final_cost ?? 0)
@@ -85,7 +127,18 @@ export function JODetailView({ jobOrder, userId, userRole }: JODetailViewProps) 
       }
     }
     loadItems()
-  }, [pjo?.id, jobOrder.id])
+
+    // Load DP invoices if JO has a linked PJO
+    async function loadDPInvoices() {
+      if (!jobOrder.pjo_id || isOps) return
+      const result = await getDPInvoicesForPJO(jobOrder.pjo_id)
+      if (result.success) {
+        // Only show non-cancelled DP invoices
+        setDpInvoices(result.data.filter(inv => inv.status !== 'cancelled'))
+      }
+    }
+    loadDPInvoices()
+  }, [pjo?.id, jobOrder.id, jobOrder.pjo_id, isOps])
 
   async function handleMarkCompleted() {
     setIsLoading(true)
@@ -117,8 +170,70 @@ export function JODetailView({ jobOrder, userId, userRole }: JODetailViewProps) 
     }
   }
 
+  async function handleCategoryChange(value: string) {
+    setCategoryLoading(true)
+    try {
+      const result = await updateJOCategory(jobOrder.id, value)
+      if (result.error) {
+        toast({ title: 'Error', description: result.error, variant: 'destructive' })
+      } else {
+        setCurrentCategory(value)
+        toast({ title: 'Success', description: 'Kategori JO berhasil diperbarui' })
+      }
+    } finally {
+      setCategoryLoading(false)
+    }
+  }
+
+  async function handleRequestRevision() {
+    if (!revisionNotes.trim()) {
+      toast({ title: 'Error', description: 'Alasan revisi wajib diisi', variant: 'destructive' })
+      return
+    }
+    setRevisionLoading(true)
+    try {
+      const result = await requestJORevision(jobOrder.id, revisionNotes)
+      if (result.error) {
+        toast({ title: 'Error', description: result.error, variant: 'destructive' })
+      } else {
+        toast({ title: 'Success', description: 'Permintaan revisi berhasil dikirim' })
+        setRevisionDialogOpen(false)
+        setRevisionNotes('')
+        router.refresh()
+      }
+    } finally {
+      setRevisionLoading(false)
+    }
+  }
+
+  // Feature 3: Budget allocation warning check
+  const sixMonthsAgo = new Date()
+  sixMonthsAgo.setMonth(sixMonthsAgo.getMonth() - 6)
+  const joCreatedAt = jobOrder.created_at ? new Date(jobOrder.created_at) : null
+  const isOlderThan6Months = joCreatedAt ? joCreatedAt < sixMonthsAgo : false
+  const hasUnusedBudget = costItems.some(
+    (item) => item.actual_amount === 0 || item.actual_amount === null || item.actual_amount === undefined
+  )
+  const showBudgetWarning = isPrivileged && isOlderThan6Months && hasUnusedBudget && !itemsLoading
+
   return (
     <div className="space-y-6">
+      {/* Feature 2: Revision Banner */}
+      {joAny.revision_notes && (
+        <Alert className="border-yellow-300 bg-yellow-50">
+          <RotateCcw className="h-4 w-4 text-yellow-600" />
+          <AlertDescription className="text-yellow-800">
+            <p className="font-medium">JO ini sedang dalam revisi.</p>
+            <p>Alasan: {joAny.revision_notes}</p>
+            {joAny.revision_requested_at && (
+              <p className="text-xs text-yellow-600 mt-1">
+                Diminta pada: {formatDateTime(joAny.revision_requested_at)}
+              </p>
+            )}
+          </AlertDescription>
+        </Alert>
+      )}
+
       {/* Header */}
       <div className="flex items-center justify-between">
         <div>
@@ -172,6 +287,54 @@ export function JODetailView({ jobOrder, userId, userRole }: JODetailViewProps) 
               </Link>
             </Button>
           )}
+          {/* Feature 2: Minta Revisi button */}
+          {isPrivileged && ['submitted_to_finance', 'invoiced', 'completed'].includes(jobOrder.status) && (
+            <Dialog open={revisionDialogOpen} onOpenChange={setRevisionDialogOpen}>
+              <DialogTrigger asChild>
+                <Button variant="outline" className="border-yellow-500 text-yellow-700 hover:bg-yellow-50">
+                  <RotateCcw className="mr-2 h-4 w-4" />
+                  Minta Revisi
+                </Button>
+              </DialogTrigger>
+              <DialogContent>
+                <DialogHeader>
+                  <DialogTitle>Minta Revisi Job Order</DialogTitle>
+                  <DialogDescription>
+                    JO akan dikembalikan ke status &quot;In Progress&quot; agar biaya dapat diedit kembali. Mohon isi alasan revisi.
+                  </DialogDescription>
+                </DialogHeader>
+                <div className="space-y-4 py-4">
+                  <div>
+                    <Label className="text-sm font-medium">Alasan Revisi *</Label>
+                    <Textarea
+                      placeholder="Jelaskan alasan mengapa JO perlu direvisi..."
+                      value={revisionNotes}
+                      onChange={(e) => setRevisionNotes(e.target.value)}
+                      className="mt-2"
+                      rows={4}
+                    />
+                  </div>
+                </div>
+                <DialogFooter>
+                  <Button variant="outline" onClick={() => setRevisionDialogOpen(false)} disabled={revisionLoading}>
+                    Batal
+                  </Button>
+                  <Button
+                    onClick={handleRequestRevision}
+                    disabled={revisionLoading || !revisionNotes.trim()}
+                    className="bg-yellow-600 hover:bg-yellow-700"
+                  >
+                    {revisionLoading ? (
+                      <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                    ) : (
+                      <RotateCcw className="mr-2 h-4 w-4" />
+                    )}
+                    Kirim Permintaan Revisi
+                  </Button>
+                </DialogFooter>
+              </DialogContent>
+            </Dialog>
+          )}
         </div>
       </div>
 
@@ -222,6 +385,27 @@ export function JODetailView({ jobOrder, userId, userRole }: JODetailViewProps) 
           <div>
             <Label className="text-muted-foreground">Description</Label>
             <p className="font-medium">{jobOrder.description || pjo?.commodity || '-'}</p>
+          </div>
+          {/* Feature 1: Kategori JO */}
+          <div>
+            <Label className="text-muted-foreground">Kategori JO</Label>
+            <div className="flex items-center gap-2 mt-1">
+              {currentCategory && (
+                <Badge className={JO_CATEGORY_COLORS[currentCategory] || ''}>
+                  {JO_CATEGORIES[currentCategory] || currentCategory}
+                </Badge>
+              )}
+              <ManagedSelect
+                category="jo_category"
+                value={currentCategory}
+                onValueChange={handleCategoryChange}
+                placeholder="Pilih kategori"
+                canManage={true}
+                disabled={categoryLoading}
+                className="w-[180px] h-8 text-sm"
+              />
+              {categoryLoading && <Loader2 className="h-4 w-4 animate-spin text-muted-foreground" />}
+            </div>
           </div>
           {pjo?.quantity && (
             <div>
@@ -312,6 +496,43 @@ export function JODetailView({ jobOrder, userId, userRole }: JODetailViewProps) 
         />
       )}
 
+      {/* Tax & Net Profit — hidden from ops role */}
+      {!isOps && (
+        <TaxProfitSection
+          totalRevenue={jobOrder.final_revenue ?? jobOrder.amount ?? 0}
+          totalCosts={jobOrder.final_cost ?? 0}
+          grossProfit={profit}
+          grossMargin={margin}
+        />
+      )}
+
+      {/* DP Invoice Info Banner — show when JO has linked DP invoices, hidden from ops */}
+      {!isOps && dpInvoices.length > 0 && (
+        <Alert className="border-blue-300 bg-blue-50">
+          <Info className="h-4 w-4 text-blue-600" />
+          <AlertDescription className="text-blue-800">
+            <div className="space-y-2">
+              <p className="font-medium">Invoice DP sudah dibuat dari PJO:</p>
+              {dpInvoices.map((inv) => (
+                <div key={inv.id} className="flex items-center justify-between">
+                  <Link
+                    href={`/invoices/${inv.id}`}
+                    className="text-blue-600 hover:underline flex items-center gap-1"
+                  >
+                    {inv.invoice_number}
+                    <ExternalLink className="h-3 w-3" />
+                  </Link>
+                  <span className="font-semibold">{formatIDR(inv.total_amount ?? 0)}</span>
+                </div>
+              ))}
+              <p className="text-sm">
+                Total DP: {formatIDR(dpInvoices.reduce((sum, inv) => sum + (inv.total_amount ?? 0), 0))} — Akan dikurangkan dari invoice final.
+              </p>
+            </div>
+          </AlertDescription>
+        </Alert>
+      )}
+
       {/* Invoice Terms - Show when JO is submitted to finance or later, hidden from ops */}
       {!isOps && ['submitted_to_finance', 'invoiced', 'closed'].includes(jobOrder.status) && (
         <InvoiceTermsSection
@@ -325,6 +546,23 @@ export function JODetailView({ jobOrder, userId, userRole }: JODetailViewProps) 
           pjoRevenueTotal={revenueItems.reduce((sum, item) => sum + (item.subtotal || 0), 0)}
         />
       )}
+
+      {/* Invoice vs JO Value Alert — show when invoiced/closed and amounts differ by >1% */}
+      {!isOps && ['invoiced', 'closed'].includes(jobOrder.status) && (jobOrder.total_invoiced ?? 0) > 0 && (() => {
+        const totalInvoiced = jobOrder.total_invoiced ?? 0
+        const joRevenueWithVAT = (jobOrder.final_revenue ?? jobOrder.amount ?? 0) * 1.11
+        const difference = totalInvoiced - joRevenueWithVAT
+        const percentDiff = joRevenueWithVAT > 0 ? Math.abs(difference) / joRevenueWithVAT : 0
+        if (percentDiff <= 0.01) return null
+        return (
+          <Alert className="border-yellow-300 bg-yellow-50">
+            <AlertTriangle className="h-4 w-4 text-yellow-600" />
+            <AlertDescription className="text-yellow-800">
+              Total invoice ({formatIDR(totalInvoiced)}) berbeda dengan nilai JO + PPN 11% ({formatIDR(joRevenueWithVAT)}). Selisih: {formatIDR(Math.abs(difference))}
+            </AlertDescription>
+          </Alert>
+        )
+      })()}
 
       {/* Revenue Breakdown — hidden from ops role */}
       {!isOps && (
@@ -378,6 +616,15 @@ export function JODetailView({ jobOrder, userId, userRole }: JODetailViewProps) 
           <CardTitle>Cost Breakdown (Actual)</CardTitle>
         </CardHeader>
         <CardContent>
+          {/* Feature 3: Budget Allocation Warning */}
+          {showBudgetWarning && (
+            <Alert className="border-amber-300 bg-amber-50 mb-4">
+              <Clock className="h-4 w-4 text-amber-600" />
+              <AlertDescription className="text-amber-800">
+                Ada anggaran biaya yang dialokasikan lebih dari 6 bulan yang lalu dan belum terpakai. Mohon review.
+              </AlertDescription>
+            </Alert>
+          )}
           {itemsLoading ? (
             <div className="flex items-center justify-center py-4 text-muted-foreground">
               <Loader2 className="h-4 w-4 animate-spin mr-2" />
@@ -391,6 +638,7 @@ export function JODetailView({ jobOrder, userId, userRole }: JODetailViewProps) 
                 <TableRow>
                   <TableHead>Category</TableHead>
                   <TableHead>Description</TableHead>
+                  <TableHead>Vendor</TableHead>
                   <TableHead className="text-right">Estimated</TableHead>
                   <TableHead className="text-right">BKK Disbursed</TableHead>
                   <TableHead className="text-right">Actual</TableHead>
@@ -409,6 +657,9 @@ export function JODetailView({ jobOrder, userId, userRole }: JODetailViewProps) 
                     <TableRow key={item.id}>
                       <TableCell>{COST_CATEGORY_LABELS[item.category] || item.category}</TableCell>
                       <TableCell>{item.description}</TableCell>
+                      <TableCell className="text-muted-foreground">
+                        {(item as PJOCostItem & { vendor_name?: string | null }).vendor_name || '-'}
+                      </TableCell>
                       <TableCell className="text-right">{formatIDR(item.estimated_amount ?? 0)}</TableCell>
                       <TableCell className="text-right text-blue-600">
                         {disbursed > 0 ? formatIDR(disbursed) : '-'}
@@ -421,7 +672,7 @@ export function JODetailView({ jobOrder, userId, userRole }: JODetailViewProps) 
                   )
                 })}
                 <TableRow className="bg-muted/50 font-semibold">
-                  <TableCell colSpan={3}>Total Cost</TableCell>
+                  <TableCell colSpan={4}>Total Cost</TableCell>
                   <TableCell className="text-right text-blue-600">
                     {formatIDR(bkks.filter(b => b.status && ['released', 'settled'].includes(b.status)).reduce((sum, b) => sum + (b.amount_requested || 0), 0))}
                   </TableCell>

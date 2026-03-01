@@ -6,10 +6,14 @@
 import { redirect } from 'next/navigation'
 import { getUserProfile } from '@/lib/permissions-server'
 import { ProfileForm } from './profile-form'
+import { getProfileExtended } from './actions'
 
 export default async function ProfilePage() {
-  const profile = await getUserProfile()
-  
+  const [profile, extendedData] = await Promise.all([
+    getUserProfile(),
+    getProfileExtended(),
+  ])
+
   if (!profile) {
     redirect('/login')
   }
@@ -22,8 +26,8 @@ export default async function ProfilePage() {
           View and update your profile information
         </p>
       </div>
-      
-      <ProfileForm profile={profile} />
+
+      <ProfileForm profile={profile} extendedData={extendedData} />
     </div>
   )
 }

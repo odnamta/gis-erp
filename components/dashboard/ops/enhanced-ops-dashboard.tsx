@@ -8,6 +8,7 @@ import { DeliveryScheduleCard } from './delivery-schedule-card'
 import { CostTrackingCard } from './cost-tracking-card'
 import { PendingActionsCard } from './pending-actions-card'
 import { QuickActionsBar } from './quick-actions-bar'
+import { ManpowerList } from './manpower-list'
 import { EnhancedOpsDashboardData } from '@/lib/ops-dashboard-enhanced-utils'
 import { format } from 'date-fns'
 
@@ -69,6 +70,17 @@ export function EnhancedOpsDashboard({ data, userName }: EnhancedOpsDashboardPro
         <DeliveryScheduleCard deliveries={data.deliverySchedule} />
         <CostTrackingCard costSummary={data.costSummary} />
       </div>
+
+      {/* Manpower List */}
+      <ManpowerList
+        members={data.manpower.map(m => ({
+          id: m.id,
+          fullName: m.fullName,
+          role: m.role,
+          isActive: m.isActive,
+          currentAssignment: m.currentAssignment,
+        }))}
+      />
 
       {/* Pending Actions */}
       <PendingActionsCard actions={data.pendingActions} />

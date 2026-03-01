@@ -234,20 +234,34 @@ export async function updateQuotation(
 export async function deleteQuotation(id: string): Promise<ActionResult> {
   try {
     const supabase = await createClient()
-    
+
+    // Verify quotation is in draft status before allowing deletion
+    const { data: existing, error: fetchError } = await supabase
+      .from('quotations')
+      .select('status')
+      .eq('id', id)
+      .single()
+
+    if (fetchError || !existing) {
+      return { success: false, error: 'Quotation not found' }
+    }
+
+    if (existing.status !== 'draft') {
+      return { success: false, error: 'Only draft quotations can be deleted' }
+    }
+
     const { error } = await supabase
       .from('quotations')
       .update({ is_active: false })
       .eq('id', id)
-    
+
     if (error) {
       return { success: false, error: error.message }
     }
-    
+
     revalidatePath('/quotations')
     return { success: true }
-  } catch (err) {
-    console.error('deleteQuotation error:', err)
+  } catch {
     return { success: false, error: 'Failed to delete quotation' }
   }
 }

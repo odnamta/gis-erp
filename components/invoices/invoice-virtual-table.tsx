@@ -2,6 +2,7 @@
 
 import { useRouter } from 'next/navigation'
 import { InvoiceStatusBadge } from '@/components/ui/invoice-status-badge'
+import { Badge } from '@/components/ui/badge'
 import { InvoiceWithRelations } from '@/types'
 import { formatIDR, formatDate } from '@/lib/pjo-utils'
 import { VirtualDataTable, VirtualColumn } from '@/components/tables/virtual-data-table'
@@ -24,7 +25,14 @@ export function InvoiceVirtualTable({ invoices }: InvoiceVirtualTableProps) {
     {
       key: 'customer',
       header: 'Customer',
-      render: (invoice) => invoice.customers?.name || '-',
+      render: (invoice) => (
+        <div>
+          <span>{invoice.customers?.company_name || invoice.customers?.name || '-'}</span>
+          {invoice.customers?.company_name && invoice.customers?.name && (
+            <span className="block text-xs text-muted-foreground">{invoice.customers.name}</span>
+          )}
+        </div>
+      ),
     },
     {
       key: 'jo_number',
@@ -65,8 +73,17 @@ export function InvoiceVirtualTable({ invoices }: InvoiceVirtualTableProps) {
     {
       key: 'status',
       header: 'Status',
-      width: '100px',
-      render: (invoice) => <InvoiceStatusBadge status={invoice.status} />,
+      width: '140px',
+      render: (invoice) => (
+        <div className="flex items-center gap-1">
+          <InvoiceStatusBadge status={invoice.status} />
+          {invoice.has_bg && (
+            <Badge variant="outline" className="bg-purple-100 text-purple-800 hover:bg-purple-100 text-[10px] px-1 py-0">
+              BG
+            </Badge>
+          )}
+        </div>
+      ),
     },
   ]
 
@@ -82,9 +99,21 @@ export function InvoiceVirtualTable({ invoices }: InvoiceVirtualTableProps) {
         <div className="rounded-lg border bg-card p-4 space-y-2 active:bg-muted/50">
           <div className="flex items-start justify-between gap-2">
             <span className="font-medium text-sm">{invoice.invoice_number}</span>
-            <InvoiceStatusBadge status={invoice.status} />
+            <div className="flex items-center gap-1">
+              <InvoiceStatusBadge status={invoice.status} />
+              {invoice.has_bg && (
+                <Badge variant="outline" className="bg-purple-100 text-purple-800 hover:bg-purple-100 text-[10px] px-1 py-0">
+                  BG
+                </Badge>
+              )}
+            </div>
           </div>
-          <div className="text-sm">{invoice.customers?.name || '-'}</div>
+          <div className="text-sm">
+            {invoice.customers?.company_name || invoice.customers?.name || '-'}
+            {invoice.customers?.company_name && invoice.customers?.name && (
+              <span className="block text-xs text-muted-foreground">{invoice.customers.name}</span>
+            )}
+          </div>
           <div className="text-xs text-muted-foreground">JO: {invoice.job_orders?.jo_number || '-'}</div>
           <div className="flex items-center justify-between text-sm">
             <span className="font-semibold">{formatIDR(invoice.total_amount)}</span>

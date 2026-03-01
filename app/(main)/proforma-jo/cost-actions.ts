@@ -27,20 +27,33 @@ const costConfirmationSchema = z.object({
 export type CostItemFormData = z.infer<typeof costItemSchema>
 export type CostConfirmationData = z.infer<typeof costConfirmationSchema>
 
-export async function getCostItems(pjoId: string): Promise<PJOCostItem[]> {
+export interface PJOCostItemWithVendor extends PJOCostItem {
+  vendor_name?: string | null
+}
+
+export async function getCostItems(pjoId: string): Promise<PJOCostItemWithVendor[]> {
   const supabase = await createClient()
-  
+
   const { data, error } = await supabase
     .from('pjo_cost_items')
-    .select('*')
+    .select('*, vendors(vendor_name)')
     .eq('pjo_id', pjoId)
     .order('created_at', { ascending: true })
-  
+
   if (error) {
     return []
   }
-  
-  return data as PJOCostItem[]
+
+  // Map vendor name from joined data
+  const items = (data || []).map((item) => {
+    const vendors = item.vendors as { vendor_name: string } | null
+    return {
+      ...item,
+      vendor_name: vendors?.vendor_name ?? null,
+    }
+  })
+
+  return items as PJOCostItemWithVendor[]
 }
 
 export async function createCostItem(

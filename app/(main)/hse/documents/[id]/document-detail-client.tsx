@@ -23,6 +23,7 @@ import {
 import { submitForReview, approveDocument } from '@/lib/safety-document-actions';
 import { formatDate } from '@/lib/pjo-utils';
 import { useToast } from '@/hooks/use-toast';
+import { PDFButtons } from '@/components/pdf/pdf-buttons';
 
 interface DocumentDetailClientProps {
   document: SafetyDocument;
@@ -89,6 +90,13 @@ export function DocumentDetailClient({
           </div>
         </div>
         <div className="flex gap-2">
+          <PDFButtons
+            documentType="safety-document"
+            documentId={document.id}
+            documentNumber={document.documentNumber}
+            size="sm"
+            variant="outline"
+          />
           {canSubmit && (
             <Button onClick={handleSubmitForReview} disabled={loading === 'submit'}>
               {loading === 'submit' ? <Loader2 className="h-4 w-4 animate-spin mr-2" /> : <Send className="h-4 w-4 mr-2" />}

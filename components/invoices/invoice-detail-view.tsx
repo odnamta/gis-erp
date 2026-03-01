@@ -13,11 +13,12 @@ import { formatIDR, formatDate, formatDateTime } from '@/lib/pjo-utils'
 import { isInvoiceOverdue, VAT_RATE } from '@/lib/invoice-utils'
 import { updateInvoiceStatus } from '@/app/(main)/invoices/actions'
 import { useToast } from '@/hooks/use-toast'
-import { ArrowLeft, Send, XCircle, AlertTriangle, Loader2 } from 'lucide-react'
+import { ArrowLeft, Send, XCircle, AlertTriangle, Loader2, CheckCircle } from 'lucide-react'
 import { AttachmentsSection } from '@/components/attachments'
 import { PaymentsSection } from '@/components/payments'
 import { canRecordPayment } from '@/lib/payment-utils'
 import { PDFButtons } from '@/components/pdf/pdf-buttons'
+import { BGSection } from '@/components/invoices/bg-section'
 
 interface InvoiceDetailViewProps {
   invoice: InvoiceWithRelations
@@ -30,9 +31,11 @@ export function InvoiceDetailView({ invoice, userRole = 'viewer', userId }: Invo
   const { toast } = useToast()
   const [isLoading, setIsLoading] = useState(false)
 
-  const canMarkOverdue = invoice.status === 'sent' && isInvoiceOverdue(invoice.due_date, 'sent')
+  const canMarkOverdue = (invoice.status === 'sent' || invoice.status === 'received') && isInvoiceOverdue(invoice.due_date, invoice.status as InvoiceStatus)
   const canManagePayments = canRecordPayment(userRole)
   const showPaymentSection = invoice.status !== 'draft' && invoice.status !== 'cancelled'
+  const OPS_ROLES = ['ops']
+  const showBGSection = !OPS_ROLES.includes(userRole)
 
   async function handleStatusChange(targetStatus: InvoiceStatus) {
     setIsLoading(true)
@@ -84,13 +87,19 @@ export function InvoiceDetailView({ invoice, userRole = 'viewer', userId }: Invo
               Send Invoice
             </Button>
           )}
+          {invoice.status === 'sent' && (
+            <Button variant="outline" onClick={() => handleStatusChange('received' as InvoiceStatus)} disabled={isLoading}>
+              {isLoading ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <CheckCircle className="mr-2 h-4 w-4" />}
+              Tandai Diterima
+            </Button>
+          )}
           {canMarkOverdue && (
             <Button variant="outline" onClick={() => handleStatusChange('overdue')} disabled={isLoading}>
               <AlertTriangle className="mr-2 h-4 w-4" />
               Mark Overdue
             </Button>
           )}
-          {['draft', 'sent', 'overdue', 'partial'].includes(invoice.status) && (
+          {['draft', 'sent', 'received', 'overdue', 'partial'].includes(invoice.status) && (
             <Button variant="destructive" onClick={() => handleStatusChange('cancelled')} disabled={isLoading}>
               <XCircle className="mr-2 h-4 w-4" />
               Cancel
@@ -240,6 +249,14 @@ export function InvoiceDetailView({ invoice, userRole = 'viewer', userId }: Invo
           totalAmount={invoice.total_amount}
           amountPaid={invoice.amount_paid || 0}
           canRecordPayment={canManagePayments}
+        />
+      )}
+
+      {/* Bilyet Giro Section */}
+      {showBGSection && (
+        <BGSection
+          invoiceId={invoice.id}
+          invoiceNumber={invoice.invoice_number}
         />
       )}
 

@@ -1,5 +1,6 @@
 'use client'
 
+import { useState } from 'react'
 import { useForm } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { z } from 'zod'
@@ -8,12 +9,14 @@ import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { Loader2 } from 'lucide-react'
 import { Customer } from '@/types'
+import { DatePicker } from '@/components/forms/date-picker'
 
 export const customerSchema = z.object({
   name: z.string().min(1, 'Name is required'),
   email: z.string().email('Invalid email format').or(z.literal('')),
   phone: z.string().optional(),
   address: z.string().optional(),
+  established_date: z.string().optional(),
 })
 
 export type CustomerFormData = z.infer<typeof customerSchema>
@@ -25,9 +28,15 @@ interface CustomerFormProps {
 }
 
 export function CustomerForm({ customer, onSubmit, isLoading }: CustomerFormProps) {
+  const existingDate = (customer as any)?.established_date
+    ? new Date((customer as any).established_date)
+    : undefined
+  const [establishedDate, setEstablishedDate] = useState<Date | undefined>(existingDate)
+
   const {
     register,
     handleSubmit,
+    setValue,
     formState: { errors },
   } = useForm<CustomerFormData>({
     resolver: zodResolver(customerSchema),
@@ -36,8 +45,22 @@ export function CustomerForm({ customer, onSubmit, isLoading }: CustomerFormProp
       email: customer?.email || '',
       phone: customer?.phone || '',
       address: customer?.address || '',
+      established_date: (customer as any)?.established_date || '',
     },
   })
+
+  const handleDateSelect = (date: Date | undefined) => {
+    setEstablishedDate(date)
+    if (date) {
+      // Format as YYYY-MM-DD for database storage
+      const year = date.getFullYear()
+      const month = String(date.getMonth() + 1).padStart(2, '0')
+      const day = String(date.getDate()).padStart(2, '0')
+      setValue('established_date', `${year}-${month}-${day}`)
+    } else {
+      setValue('established_date', '')
+    }
+  }
 
   return (
     <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
@@ -85,6 +108,15 @@ export function CustomerForm({ customer, onSubmit, isLoading }: CustomerFormProp
           {...register('address')}
           placeholder="Customer address"
           disabled={isLoading}
+        />
+      </div>
+
+      <div className="space-y-2">
+        <Label>Tanggal Berdiri</Label>
+        <DatePicker
+          date={establishedDate}
+          onSelect={handleDateSelect}
+          placeholder="Pilih tanggal berdiri"
         />
       </div>
 

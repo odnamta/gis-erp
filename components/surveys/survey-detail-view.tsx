@@ -50,6 +50,7 @@ import {
 } from 'lucide-react';
 import Link from 'next/link';
 import { toast } from 'sonner';
+import { PDFButtons } from '@/components/pdf/pdf-buttons';
 
 interface SurveyDetailViewProps {
   survey: RouteSurveyWithRelations;
@@ -140,6 +141,13 @@ export function SurveyDetailView({
               </Link>
             </Button>
           )}
+          <PDFButtons
+            documentType="survey"
+            documentId={survey.id}
+            documentNumber={survey.surveyNumber}
+            size="sm"
+            variant="outline"
+          />
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
               <Button variant="ghost" size="icon">

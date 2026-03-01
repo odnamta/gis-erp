@@ -285,33 +285,55 @@ export async function getInvoices(filters?: InvoiceFilters): Promise<InvoiceWith
 
   const supabase = await createClient()
 
-  let query = supabase
-    .from('invoices')
-    .select(`
-      *,
-      customers (id, name, email, address),
-      job_orders (id, jo_number, pjo_id)
-    `)
-    .order('created_at', { ascending: false })
+  // company_name exists in DB but not in generated Supabase types — use as any cast
+  const result = await (async () => {
+    let query = supabase
+      .from('invoices')
+      .select(`
+        *,
+        customers (id, name, email, address, company_name),
+        job_orders (id, jo_number, pjo_id)
+      `)
+      .order('created_at', { ascending: false })
 
-  // Apply status filter
-  if (filters?.status) {
-    query = query.eq('status', filters.status)
-  }
+    // Apply status filter
+    if (filters?.status) {
+      query = query.eq('status', filters.status)
+    }
 
-  // Apply search filter (invoice number or customer name)
-  if (filters?.search) {
-    const searchTerm = `%${sanitizeSearchInput(filters.search)}%`
-    query = query.or(`invoice_number.ilike.${searchTerm},customers.name.ilike.${searchTerm}`)
-  }
+    // Apply search filter (invoice number or customer name)
+    if (filters?.search) {
+      const searchTerm = `%${sanitizeSearchInput(filters.search)}%`
+      query = query.or(`invoice_number.ilike.${searchTerm},customers.name.ilike.${searchTerm}`)
+    }
 
-  const { data, error } = await query.limit(1000)
+    return query.limit(1000)
+  })()
 
-  if (error) {
+  if (result.error) {
     return []
   }
 
-  return (data || []) as InvoiceWithRelations[]
+  const invoices = (result.data || []) as unknown as InvoiceWithRelations[]
+
+  // Fetch which invoices have BG records
+  if (invoices.length > 0) {
+    const invoiceIds = invoices.map(inv => inv.id)
+    const bgQuery = (supabase as any).from('bilyet_giro')
+      .select('invoice_id')
+      .in('invoice_id', invoiceIds)
+      .eq('is_active', true)
+    const { data: bgData } = await bgQuery
+
+    if (bgData && bgData.length > 0) {
+      const bgInvoiceIds = new Set((bgData as { invoice_id: string }[]).map(bg => bg.invoice_id))
+      for (const inv of invoices) {
+        (inv as InvoiceWithRelations & { has_bg?: boolean }).has_bg = bgInvoiceIds.has(inv.id)
+      }
+    }
+  }
+
+  return invoices
 }
 
 /**
@@ -409,6 +431,17 @@ export async function updateInvoiceStatus(
   // Set appropriate timestamp based on target status
   if (targetStatus === 'sent') {
     updateData.sent_at = new Date().toISOString()
+  } else if (targetStatus === 'received') {
+    // received_at column doesn't exist — append timestamp to notes
+    const receivedTimestamp = new Date().toISOString().split('T')[0]
+    const { data: currentInvoice } = await supabase
+      .from('invoices')
+      .select('notes')
+      .eq('id', id)
+      .single()
+    const existingNotes = currentInvoice?.notes || ''
+    const receivedNote = `[Diterima: ${receivedTimestamp}]`
+    updateData.notes = existingNotes ? `${existingNotes}\n${receivedNote}` : receivedNote
   } else if (targetStatus === 'paid') {
     updateData.paid_at = new Date().toISOString()
   } else if (targetStatus === 'cancelled') {
@@ -426,7 +459,7 @@ export async function updateInvoiceStatus(
   }
 
   // Send notification for status change
-  if (['sent', 'paid', 'overdue'].includes(targetStatus)) {
+  if (['sent', 'received', 'paid', 'overdue'].includes(targetStatus)) {
     try {
       const { data: invoiceDetails } = await supabase
         .from('invoices')
@@ -451,7 +484,7 @@ export async function updateInvoiceStatus(
             total_amount: invoiceDetails.total_amount,
             created_by: userProfile?.id,
           },
-          targetStatus as 'sent' | 'paid' | 'overdue'
+          targetStatus as 'sent' | 'received' | 'paid' | 'overdue'
         )
       }
     } catch (e) {
@@ -676,4 +709,189 @@ export async function generateSplitInvoice(
   revalidatePath(`/job-orders/${joId}`)
 
   return { success: true, data: { id: invoice.id, invoice_number: invoice.invoice_number } }
+}
+
+
+/**
+ * Create a Down Payment (DP) invoice from an approved Proforma Job Order.
+ * DP invoices are sent BEFORE work starts, based on confirmed PJO rates.
+ */
+export async function createDPInvoice(
+  pjoId: string,
+  dpPercentage: number,
+  notes?: string
+): Promise<ActionResult<{ id: string; invoice_number: string }>> {
+  const profile = await getUserProfile()
+  if (!profile || !INVOICE_ALLOWED_ROLES.includes(profile.role as typeof INVOICE_ALLOWED_ROLES[number])) {
+    return { success: false, error: 'Unauthorized' }
+  }
+
+  if (dpPercentage <= 0 || dpPercentage > 100) {
+    return { success: false, error: 'Persentase DP harus antara 1-100%' }
+  }
+
+  const supabase = await createClient()
+
+  // Validate PJO exists and is approved
+  const { data: pjo, error: pjoError } = await supabase
+    .from('proforma_job_orders')
+    .select(`
+      *,
+      projects (
+        id,
+        name,
+        customer_id,
+        customers (
+          id,
+          name
+        )
+      )
+    `)
+    .eq('id', pjoId)
+    .single()
+
+  if (pjoError || !pjo) {
+    return { success: false, error: 'Proforma Job Order tidak ditemukan' }
+  }
+
+  if (pjo.status !== 'approved') {
+    return { success: false, error: 'PJO harus berstatus approved untuk membuat invoice DP' }
+  }
+
+  // Get customer_id from project relation
+  const customerId = pjo.projects?.customer_id
+  if (!customerId) {
+    return { success: false, error: 'Customer tidak ditemukan pada project PJO ini' }
+  }
+
+  // Fetch PJO revenue items for total calculation
+  const { data: revenueItems } = await supabase
+    .from('pjo_revenue_items')
+    .select('*')
+    .eq('pjo_id', pjoId)
+    .order('created_at', { ascending: true })
+
+  // Calculate total revenue from revenue items or fall back to PJO estimated_revenue
+  const totalRevenue = revenueItems && revenueItems.length > 0
+    ? revenueItems.reduce((sum, item) => sum + (item.subtotal || (item.quantity * item.unit_price)), 0)
+    : (pjo.total_revenue ?? 0)
+
+  if (totalRevenue <= 0) {
+    return { success: false, error: 'Total revenue PJO harus lebih dari 0 untuk membuat invoice DP' }
+  }
+
+  // Calculate DP amount and VAT
+  const dpAmount = totalRevenue * (dpPercentage / 100)
+  const vatAmount = dpAmount * 0.11 // PPN 11%
+  const grandTotal = dpAmount + vatAmount
+
+  // Generate invoice number
+  const invoiceNumber = await generateInvoiceNumber()
+
+  // Get payment terms
+  const { data: paymentTermsSetting } = await supabase
+    .from('company_settings')
+    .select('value')
+    .eq('key', 'default_payment_terms')
+    .single()
+
+  const paymentTerms = paymentTermsSetting?.value
+    ? parseInt(paymentTermsSetting.value, 10)
+    : DEFAULT_SETTINGS.default_payment_terms
+
+  const dueDate = getDefaultDueDate(paymentTerms)
+  const entityType = profile.role === 'agency' ? 'gama_agency' : 'gama_main'
+
+  // Create invoice with invoice_type = 'dp' and pjo_id (new columns not in generated types)
+  const { data: invoice, error: invoiceError } = await (supabase.from('invoices') as any)
+    .insert({
+      invoice_number: invoiceNumber,
+      jo_id: null,
+      customer_id: customerId,
+      invoice_date: new Date().toISOString().split('T')[0],
+      due_date: dueDate.toISOString().split('T')[0],
+      subtotal: dpAmount,
+      tax_amount: vatAmount,
+      total_amount: grandTotal,
+      status: 'draft',
+      notes: notes || null,
+      entity_type: entityType,
+      invoice_type: 'dp',
+      pjo_id: pjoId,
+    })
+    .select('id, invoice_number')
+    .single()
+
+  if (invoiceError || !invoice) {
+    return { success: false, error: invoiceError?.message || 'Gagal membuat invoice DP' }
+  }
+
+  // Create a single line item for the DP
+  const { error: lineItemError } = await supabase
+    .from('invoice_line_items')
+    .insert({
+      invoice_id: invoice.id,
+      line_number: 1,
+      description: `Down Payment (${dpPercentage}%) - ${pjo.pjo_number}`,
+      quantity: 1,
+      unit: 'LOT',
+      unit_price: dpAmount,
+    })
+
+  if (lineItemError) {
+    // Rollback invoice creation
+    await supabase.from('invoices').delete().eq('id', invoice.id)
+    return { success: false, error: 'Gagal membuat line item invoice DP' }
+  }
+
+  // Invalidate dashboard cache
+  invalidateDashboardCache()
+
+  // Log activity
+  const { data: { user } } = await supabase.auth.getUser()
+  if (user) {
+    logActivity(user.id, 'create', 'invoice', invoice.id, {
+      invoice_number: invoice.invoice_number,
+      invoice_type: 'dp',
+      pjo_id: pjoId,
+      dp_percentage: dpPercentage,
+    })
+  }
+
+  revalidatePath('/invoices')
+  revalidatePath('/proforma-jo')
+  revalidatePath(`/proforma-jo/${pjoId}`)
+
+  return { success: true, data: { id: invoice.id, invoice_number: invoice.invoice_number } }
+}
+
+
+/**
+ * Get all DP invoices linked to a specific Proforma Job Order.
+ */
+export async function getDPInvoicesForPJO(
+  pjoId: string
+): Promise<ActionResult<InvoiceWithRelations[]>> {
+  const profile = await getUserProfile()
+  if (!profile || !INVOICE_ALLOWED_ROLES.includes(profile.role as typeof INVOICE_ALLOWED_ROLES[number])) {
+    return { success: false, error: 'Unauthorized' }
+  }
+
+  const supabase = await createClient()
+
+  // Query invoices with pjo_id and invoice_type = 'dp' (new columns, use as any)
+  const { data, error } = await (supabase.from('invoices') as any)
+    .select(`
+      *,
+      customers (id, name, email, address)
+    `)
+    .eq('pjo_id', pjoId)
+    .eq('invoice_type', 'dp')
+    .order('created_at', { ascending: false })
+
+  if (error) {
+    return { success: false, error: error.message }
+  }
+
+  return { success: true, data: (data || []) as InvoiceWithRelations[] }
 }

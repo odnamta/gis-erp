@@ -14,6 +14,7 @@ const customerSchema = z.object({
   email: z.string().email('Invalid email format').or(z.literal('')),
   phone: z.string().optional(),
   address: z.string().optional(),
+  established_date: z.string().optional(),
 })
 
 export type CustomerFormData = z.infer<typeof customerSchema>
@@ -28,13 +29,17 @@ export async function createCustomer(data: CustomerFormData): Promise<{ error?: 
 
   const profile = await getUserProfile()
 
-  const { data: customer, error } = await supabase.from('customers').insert({
+  const insertData = {
     name: data.name,
     company_name: data.company_name || null,
     email: data.email || '',
     phone: data.phone || null,
     address: data.address || null,
-  }).select('id').single()
+    ...(data.established_date ? { established_date: data.established_date } : {}),
+  }
+
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const { data: customer, error } = await supabase.from('customers').insert(insertData as any).select('id').single()
 
   if (error) {
     return { error: error.message }
@@ -68,15 +73,18 @@ export async function updateCustomer(
   const supabase = await createClient()
   const profile = await getUserProfile()
 
-  const { error } = await supabase
-    .from('customers')
-    .update({
-      name: data.name,
-      company_name: data.company_name || null,
-      email: data.email || '',
-      phone: data.phone || null,
-      address: data.address || null,
-    })
+  const updateData = {
+    name: data.name,
+    company_name: data.company_name || null,
+    email: data.email || '',
+    phone: data.phone || null,
+    address: data.address || null,
+    established_date: data.established_date || null,
+  }
+
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const { error } = await supabase.from('customers')
+    .update(updateData as any)
     .eq('id', id)
 
   if (error) {

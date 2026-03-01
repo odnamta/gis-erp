@@ -17,6 +17,7 @@ import {
 import {
   AssetDetailView,
   AssetPhotoGallery,
+  AssetPhotoUpload,
   AssetDocumentList,
   AssetStatusDialog,
   AssetDocumentForm,
@@ -211,14 +212,21 @@ export default function AssetDetailPage() {
 
       {/* Photos Section */}
       <Card>
-        <CardHeader>
+        <CardHeader className="flex flex-row items-center justify-between">
           <CardTitle className="flex items-center gap-2">
             <ImageIcon className="h-5 w-5" />
-            Photos
+            Photos ({(asset.photos || []).length})
           </CardTitle>
         </CardHeader>
-        <CardContent>
+        <CardContent className="space-y-4">
           <AssetPhotoGallery photos={asset.photos || []} />
+          {canEdit && (
+            <AssetPhotoUpload
+              assetId={assetId}
+              photos={asset.photos || []}
+              onSuccess={loadData}
+            />
+          )}
         </CardContent>
       </Card>
 

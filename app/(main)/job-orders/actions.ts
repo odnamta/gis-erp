@@ -20,7 +20,8 @@ export async function getJobOrders(): Promise<JobOrderWithRelations[]> {
       ),
       customers (
         id,
-        name
+        name,
+        company_name
       ),
       proforma_job_orders!job_orders_pjo_id_fkey (
         id,
@@ -34,7 +35,7 @@ export async function getJobOrders(): Promise<JobOrderWithRelations[]> {
     return []
   }
 
-  return (data ?? []) as JobOrderWithRelations[]
+  return (data ?? []) as unknown as JobOrderWithRelations[]
 }
 
 export async function getJobOrder(id: string): Promise<JobOrderWithRelations | null> {
@@ -43,28 +44,7 @@ export async function getJobOrder(id: string): Promise<JobOrderWithRelations | n
   const { data, error } = await supabase
     .from('job_orders')
     .select(`
-      id,
-      jo_number,
-      customer_id,
-      project_id,
-      pjo_id,
-      description,
-      amount,
-      status,
-      final_revenue,
-      final_cost,
-      invoice_terms,
-      invoiceable_amount,
-      total_invoiced,
-      has_surat_jalan,
-      has_berita_acara,
-      requires_berita_acara,
-      converted_from_pjo_at,
-      completed_at,
-      submitted_to_finance_at,
-      submitted_by,
-      created_at,
-      updated_at,
+      *,
       projects (
         id,
         name
@@ -94,7 +74,7 @@ export async function getJobOrder(id: string): Promise<JobOrderWithRelations | n
     return null
   }
 
-  return data as JobOrderWithRelations
+  return data as unknown as JobOrderWithRelations
 }
 
 export async function markCompleted(joId: string): Promise<{ error?: string }> {
@@ -272,7 +252,7 @@ export async function getJOCostItems(pjoId: string) {
 
   const { data, error } = await supabase
     .from('pjo_cost_items')
-    .select('*')
+    .select('*, vendors(vendor_name)')
     .eq('pjo_id', pjoId)
     .order('created_at', { ascending: true })
 
@@ -280,7 +260,14 @@ export async function getJOCostItems(pjoId: string) {
     return []
   }
 
-  return data
+  // Map vendor name from joined data
+  return (data || []).map((item) => {
+    const vendors = item.vendors as { vendor_name: string } | null
+    return {
+      ...item,
+      vendor_name: vendors?.vendor_name ?? null,
+    }
+  })
 }
 
 
@@ -371,4 +358,117 @@ export async function getJOInvoices(joId: string) {
   }
 
   return data
+}
+
+/**
+ * Update JO Category/Classification
+ * Column `jo_category` added via migration, not yet in generated types.
+ */
+export async function updateJOCategory(
+  joId: string,
+  category: string
+): Promise<{ error?: string }> {
+  const supabase = await createClient()
+
+  const { data: { user } } = await supabase.auth.getUser()
+  if (!user) {
+    return { error: 'Not authenticated' }
+  }
+
+  const { data: jo, error: fetchError } = await supabase
+    .from('job_orders')
+    .select('jo_number')
+    .eq('id', joId)
+    .single()
+
+  if (fetchError || !jo) {
+    return { error: 'Job Order not found' }
+  }
+
+  const { error } = await supabase
+    .from('job_orders')
+    .update({
+      jo_category: category,
+      updated_at: new Date().toISOString(),
+    } as any)
+    .eq('id', joId)
+
+  if (error) {
+    return { error: error.message }
+  }
+
+  logActivity(user.id, 'update', 'job_order', joId, {
+    jo_number: jo.jo_number,
+    action: 'category_updated',
+    jo_category: category,
+  })
+
+  revalidatePath('/job-orders')
+  revalidatePath(`/job-orders/${joId}`)
+  return {}
+}
+
+/**
+ * Request revision on a locked/approved JO
+ * Sets status back to in_progress so costs can be edited again.
+ * Columns `revision_notes`, `revision_requested_at`, `revision_requested_by`
+ * added via migration, not yet in generated types.
+ */
+export async function requestJORevision(
+  joId: string,
+  notes: string
+): Promise<{ error?: string }> {
+  const supabase = await createClient()
+
+  const { data: { user } } = await supabase.auth.getUser()
+  if (!user) {
+    return { error: 'Not authenticated' }
+  }
+
+  if (!notes || notes.trim().length === 0) {
+    return { error: 'Revision notes are required' }
+  }
+
+  const { data: jo, error: fetchError } = await supabase
+    .from('job_orders')
+    .select('status, jo_number, customers(name)')
+    .eq('id', joId)
+    .single()
+
+  if (fetchError || !jo) {
+    return { error: 'Job Order not found' }
+  }
+
+  const allowedStatuses = ['submitted_to_finance', 'invoiced', 'completed']
+  if (!allowedStatuses.includes(jo.status)) {
+    return { error: 'Revision can only be requested on completed, submitted, or invoiced Job Orders' }
+  }
+
+  const { error } = await supabase
+    .from('job_orders')
+    .update({
+      status: 'in_progress',
+      revision_notes: notes.trim(),
+      revision_requested_at: new Date().toISOString(),
+      revision_requested_by: user.id,
+      updated_at: new Date().toISOString(),
+    } as any)
+    .eq('id', joId)
+
+  if (error) {
+    return { error: error.message }
+  }
+
+  logActivity(user.id, 'update', 'job_order', joId, {
+    jo_number: jo.jo_number,
+    action: 'revision_requested',
+    revision_notes: notes.trim(),
+    previous_status: jo.status,
+  })
+
+  invalidateDashboardCache()
+
+  revalidatePath('/job-orders')
+  revalidatePath(`/job-orders/${joId}`)
+  return {}
 }

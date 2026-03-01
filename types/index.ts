@@ -10,7 +10,7 @@ export type CustomerStatus = 'active' | 'inactive'
 export type ProjectStatus = 'active' | 'completed' | 'on_hold'
 // PJOStatus is now exported from database.ts
 export type JOStatus = 'pending' | 'in_progress' | 'completed' | 'cancelled'
-export type InvoiceStatus = 'draft' | 'sent' | 'partial' | 'paid' | 'overdue' | 'cancelled'
+export type InvoiceStatus = 'draft' | 'sent' | 'received' | 'partial' | 'paid' | 'overdue' | 'cancelled'
 
 // Re-export payment types
 export * from './payments'
@@ -92,6 +92,7 @@ export interface PJOWithRelations extends Omit<ProformaJobOrder, 'quotation_id'>
     customers?: {
       id: string
       name: string
+      company_name?: string | null
     } | null
   } | null
   // Quotation reference (for PJOs created from quotations)
@@ -105,7 +106,7 @@ export interface PJOWithRelations extends Omit<ProformaJobOrder, 'quotation_id'>
 
 // Extended types with relations
 export interface JobOrderWithRelations extends JobOrder {
-  customers?: Pick<Customer, 'id' | 'name'> | null
+  customers?: (Pick<Customer, 'id' | 'name'> & { company_name?: string | null }) | null
   projects?: Pick<Project, 'id' | 'name'> | null
   proforma_job_orders?: (Pick<ProformaJobOrder, 'id' | 'pjo_number' | 'commodity' | 'quantity' | 'quantity_unit' | 'pol' | 'pod' | 'etd' | 'eta' | 'carrier_type' | 'notes'>) | null
   // Invoice terms parsed from JSONB
@@ -113,9 +114,11 @@ export interface JobOrderWithRelations extends JobOrder {
 }
 
 export interface InvoiceWithRelations extends Invoice {
-  customers?: Pick<Customer, 'id' | 'name' | 'email' | 'address'> | null
+  customers?: (Pick<Customer, 'id' | 'name' | 'email' | 'address'> & { company_name?: string | null }) | null
   job_orders?: Pick<JobOrder, 'id' | 'jo_number' | 'pjo_id'> | null
   invoice_line_items?: InvoiceLineItem[]
+  /** Whether this invoice has linked Bilyet Giro records */
+  has_bg?: boolean
 }
 
 // Form data types

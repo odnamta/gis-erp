@@ -14,7 +14,8 @@ import {
   TableHeader,
   TableRow,
 } from '@/components/ui/table'
-import { ArrowLeft, Wrench, Calendar, Gauge, MapPin, User, FileText } from 'lucide-react'
+import Link from 'next/link'
+import { ArrowLeft, Wrench, Calendar, Gauge, MapPin, User, FileText, Pencil } from 'lucide-react'
 import { MaintenanceRecord, MaintenancePart } from '@/types/maintenance'
 import { getMaintenanceRecordById } from '@/lib/maintenance-actions'
 import { formatIDR, formatDate } from '@/lib/pjo-utils'
@@ -104,7 +105,15 @@ export function MaintenanceDetailClient({ recordId }: MaintenanceDetailClientPro
             </p>
           </div>
         </div>
-        {getStatusBadge(record.status)}
+        <div className="flex items-center gap-2">
+          <Button variant="outline" asChild>
+            <Link href={`/equipment/maintenance/${record.id}/edit`}>
+              <Pencil className="mr-2 h-4 w-4" />
+              Edit
+            </Link>
+          </Button>
+          {getStatusBadge(record.status)}
+        </div>
       </div>
 
       <div className="grid gap-6 md:grid-cols-2">

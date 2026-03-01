@@ -143,6 +143,37 @@ export async function recordPayment(data: PaymentFormData): Promise<{
       })
       .eq('id', invoice.jo_id)
 
+    // Check for uninvoiced revenue and notify finance
+    try {
+      const { data: jo } = await supabase
+        .from('job_orders')
+        .select('jo_number, final_revenue, invoice_terms, customers(name)')
+        .eq('id', invoice.jo_id)
+        .single()
+
+      if (jo?.invoice_terms && jo?.final_revenue) {
+        const { calculateUninvoicedRevenue } = await import('@/lib/invoice-terms-utils')
+        const { notifyUninvoicedRevenue } = await import('@/lib/notifications/notification-triggers')
+        const terms = Array.isArray(jo.invoice_terms) ? jo.invoice_terms : []
+        const { uninvoicedAmount, uninvoicedPercent } = calculateUninvoicedRevenue(
+          terms as any,
+          jo.final_revenue
+        )
+        if (uninvoicedPercent > 0) {
+          await notifyUninvoicedRevenue({
+            joId: invoice.jo_id,
+            joNumber: jo.jo_number,
+            uninvoicedAmount,
+            uninvoicedPercent,
+            totalRevenue: jo.final_revenue,
+            customerName: (jo.customers as any)?.name,
+          })
+        }
+      }
+    } catch {
+      // Non-critical: don't fail payment recording if notification fails
+    }
+
     // Log activity (use invoice_number from initial fetch)
     if (invoice.invoice_number) {
       await supabase.from('activity_log').insert({

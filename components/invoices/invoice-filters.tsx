@@ -19,7 +19,7 @@ interface InvoiceFiltersProps {
   onSearchChange: (search: string) => void
 }
 
-const statusOptions: (InvoiceStatus | 'all')[] = ['all', 'draft', 'sent', 'paid', 'overdue', 'cancelled']
+const statusOptions: (InvoiceStatus | 'all')[] = ['all', 'draft', 'sent', 'received', 'paid', 'overdue', 'cancelled']
 
 export function InvoiceFilters({
   status,

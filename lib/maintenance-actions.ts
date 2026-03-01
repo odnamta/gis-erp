@@ -397,6 +397,52 @@ async function updateNextMaintenanceDue(
 }
 
 
+export async function updateMaintenanceRecord(
+  id: string,
+  input: Partial<MaintenanceRecordInput>
+): Promise<{ success: boolean; error?: string }> {
+  const supabase = await createClient();
+
+  const updateData: Record<string, unknown> = {
+    updated_at: new Date().toISOString(),
+  };
+
+  if (input.maintenanceTypeId !== undefined) updateData.maintenance_type_id = input.maintenanceTypeId;
+  if (input.maintenanceDate !== undefined) updateData.maintenance_date = input.maintenanceDate;
+  if (input.odometerKm !== undefined) updateData.odometer_km = input.odometerKm || null;
+  if (input.hourMeter !== undefined) updateData.hour_meter = input.hourMeter || null;
+  if (input.performedAt !== undefined) updateData.performed_at = input.performedAt;
+  if (input.workshopName !== undefined) updateData.workshop_name = input.workshopName || null;
+  if (input.workshopAddress !== undefined) updateData.workshop_address = input.workshopAddress || null;
+  if (input.description !== undefined) updateData.description = input.description;
+  if (input.findings !== undefined) updateData.findings = input.findings || null;
+  if (input.recommendations !== undefined) updateData.recommendations = input.recommendations || null;
+  if (input.technicianName !== undefined) updateData.technician_name = input.technicianName || null;
+  if (input.laborCost !== undefined) updateData.labor_cost = input.laborCost;
+  if (input.externalCost !== undefined) updateData.external_cost = input.externalCost;
+  if (input.notes !== undefined) updateData.notes = input.notes || null;
+
+  // Recalculate parts cost if parts are provided
+  if (input.parts !== undefined) {
+    const partsCost = calculatePartsCost(input.parts);
+    updateData.parts_cost = partsCost;
+    updateData.total_cost = (input.laborCost ?? 0) + partsCost + (input.externalCost ?? 0);
+  }
+
+  const { error } = await supabase
+    .from('maintenance_records')
+    .update(updateData)
+    .eq('id', id);
+
+  if (error) {
+    return { success: false, error: error.message };
+  }
+
+  revalidatePath('/equipment/maintenance');
+  revalidatePath(`/equipment/maintenance/${id}`);
+  return { success: true };
+}
+
 export async function getMaintenanceRecordById(id: string): Promise<MaintenanceRecord | null> {
   const supabase = await createClient();
 

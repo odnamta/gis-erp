@@ -222,6 +222,7 @@ describe('Enhanced Ops Dashboard Types', () => {
           bkkPendingAmount: 0,
         },
         pendingActions: [],
+        manpower: [],
       }
 
       expect(dashboardData).toHaveProperty('summary')
@@ -229,6 +230,7 @@ describe('Enhanced Ops Dashboard Types', () => {
       expect(dashboardData).toHaveProperty('deliverySchedule')
       expect(dashboardData).toHaveProperty('costSummary')
       expect(dashboardData).toHaveProperty('pendingActions')
+      expect(dashboardData).toHaveProperty('manpower')
     })
 
     it('should NOT expose revenue or profit data anywhere', () => {
@@ -271,6 +273,7 @@ describe('Enhanced Ops Dashboard Types', () => {
           bkkPendingAmount: 0,
         },
         pendingActions: [],
+        manpower: [],
       }
 
       // Stringify and check for revenue/profit keywords

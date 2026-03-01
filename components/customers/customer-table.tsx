@@ -13,7 +13,8 @@ import {
   TableHeader,
   TableRow,
 } from '@/components/ui/table'
-import { Pencil, Eye, Search, Trash2, MoreHorizontal } from 'lucide-react'
+import { Badge } from '@/components/ui/badge'
+import { Pencil, Eye, Search, Trash2, MoreHorizontal, Cake } from 'lucide-react'
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -32,6 +33,41 @@ export function filterCustomersByName(customers: Customer[], searchTerm: string)
   if (!searchTerm.trim()) return customers
   const term = searchTerm.toLowerCase()
   return customers.filter(c => c.name.toLowerCase().includes(term))
+}
+
+function getDaysUntilAnniversary(customer: Customer): number | null {
+  const estDate = (customer as any).established_date
+  if (!estDate) return null
+  const today = new Date()
+  today.setHours(0, 0, 0, 0)
+  const established = new Date(estDate)
+  const anniversaryThisYear = new Date(
+    today.getFullYear(),
+    established.getMonth(),
+    established.getDate()
+  )
+  const nextAnniversary =
+    anniversaryThisYear >= today
+      ? anniversaryThisYear
+      : new Date(
+          today.getFullYear() + 1,
+          established.getMonth(),
+          established.getDate()
+        )
+  return Math.ceil(
+    (nextAnniversary.getTime() - today.getTime()) / (1000 * 60 * 60 * 24)
+  )
+}
+
+function AnniversaryBadge({ customer }: { customer: Customer }) {
+  const days = getDaysUntilAnniversary(customer)
+  if (days === null || days > 30) return null
+  return (
+    <Badge variant="warning" className="ml-2 gap-1 text-[10px] px-1.5 py-0">
+      <Cake className="h-3 w-3" />
+      {days === 0 ? 'Hari ini!' : `${days}hr`}
+    </Badge>
+  )
 }
 
 export function CustomerTable({ customers, onEdit, onDelete }: CustomerTableProps) {
@@ -62,9 +98,12 @@ export function CustomerTable({ customers, onEdit, onDelete }: CustomerTableProp
           {filteredCustomers.map((customer) => (
             <div key={customer.id} className="rounded-lg border bg-card p-4 space-y-1.5 active:bg-muted/50">
               <div className="flex items-start justify-between gap-2">
-                <Link href={`/customers/${customer.id}`} className="font-medium text-sm hover:underline">
-                  {customer.name}
-                </Link>
+                <span className="flex items-center">
+                  <Link href={`/customers/${customer.id}`} className="font-medium text-sm hover:underline">
+                    {customer.name}
+                  </Link>
+                  <AnniversaryBadge customer={customer} />
+                </span>
                 <DropdownMenu>
                   <DropdownMenuTrigger asChild>
                     <Button variant="ghost" size="icon" className="h-8 w-8 shrink-0">
@@ -117,12 +156,15 @@ export function CustomerTable({ customers, onEdit, onDelete }: CustomerTableProp
               {filteredCustomers.map((customer) => (
                 <TableRow key={customer.id}>
                   <TableCell className="font-medium">
-                    <Link
-                      href={`/customers/${customer.id}`}
-                      className="hover:underline"
-                    >
-                      {customer.name}
-                    </Link>
+                    <span className="flex items-center">
+                      <Link
+                        href={`/customers/${customer.id}`}
+                        className="hover:underline"
+                      >
+                        {customer.name}
+                      </Link>
+                      <AnniversaryBadge customer={customer} />
+                    </span>
                   </TableCell>
                   <TableCell>{customer.email || '-'}</TableCell>
                   <TableCell>{customer.phone || '-'}</TableCell>

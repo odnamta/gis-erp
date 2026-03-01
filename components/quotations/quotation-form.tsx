@@ -21,6 +21,7 @@ import { TerrainType } from '@/types/market-classification'
 import { format } from 'date-fns'
 import { CalendarIcon, Save, ArrowLeft, Plus, Loader2 } from 'lucide-react'
 import { cn } from '@/lib/utils'
+import { ManagedSelect } from '@/components/ui/managed-select'
 import Link from 'next/link'
 
 interface QuotationFormProps {
@@ -171,7 +172,10 @@ export function QuotationForm({ customers: initialCustomers, projects: initialPr
           <div className="space-y-2">
             <Label htmlFor="customer_id">Customer *</Label>
             <div className="flex gap-2">
-              <Select value={formData.customer_id} onValueChange={(v) => setFormData({ ...formData, customer_id: v, project_id: undefined })}>
+              <Select value={formData.customer_id} onValueChange={(v) => {
+                const customerProjects = projects.filter(p => p.customer_id === v)
+                setFormData({ ...formData, customer_id: v, project_id: customerProjects.length === 1 ? customerProjects[0].id : undefined })
+              }}>
                 <SelectTrigger className="flex-1"><SelectValue placeholder="Pilih customer" /></SelectTrigger>
                 <SelectContent>
                   {customers.map(c => (
@@ -251,14 +255,13 @@ export function QuotationForm({ customers: initialCustomers, projects: initialPr
           </div>
           <div className="space-y-2">
             <Label>Scope of Work *</Label>
-            <Select value={formData.scope_of_work || 'inland_transport'} onValueChange={(v) => setFormData({ ...formData, scope_of_work: v as ScopeOfWork })}>
-              <SelectTrigger><SelectValue placeholder="Pilih scope" /></SelectTrigger>
-              <SelectContent>
-                {Object.entries(SCOPE_OF_WORK_LABELS).map(([value, label]) => (
-                  <SelectItem key={value} value={value}>{label}</SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
+            <ManagedSelect
+              category="scope_of_work"
+              value={formData.scope_of_work || undefined}
+              onValueChange={(v) => setFormData({ ...formData, scope_of_work: v as ScopeOfWork })}
+              placeholder="Pilih scope"
+              canManage={true}
+            />
           </div>
           <div className="space-y-2">
             <Label htmlFor="commodity">Commodity</Label>
@@ -320,15 +323,13 @@ export function QuotationForm({ customers: initialCustomers, projects: initialPr
           </div>
           <div className="space-y-2">
             <Label>Terrain Type</Label>
-            <Select value={formData.terrain_type || 'normal'} onValueChange={(v) => setFormData({ ...formData, terrain_type: (v === 'normal' ? undefined : v) as TerrainType | undefined })}>
-              <SelectTrigger><SelectValue placeholder="Select terrain" /></SelectTrigger>
-              <SelectContent>
-                <SelectItem value="normal">Normal</SelectItem>
-                <SelectItem value="mountain">Mountain</SelectItem>
-                <SelectItem value="unpaved">Unpaved</SelectItem>
-                <SelectItem value="narrow">Narrow</SelectItem>
-              </SelectContent>
-            </Select>
+            <ManagedSelect
+              category="terrain_type"
+              value={formData.terrain_type || undefined}
+              onValueChange={(v) => setFormData({ ...formData, terrain_type: v as TerrainType })}
+              placeholder="Pilih terrain"
+              canManage={true}
+            />
           </div>
         </CardContent>
       </Card>

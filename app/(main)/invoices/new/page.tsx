@@ -1,4 +1,5 @@
 import { redirect } from 'next/navigation'
+import Link from 'next/link'
 import { getInvoiceDataFromJO } from '../actions'
 import { InvoiceForm } from '@/components/invoices/invoice-form'
 import { getCompanySetting } from '@/app/(main)/settings/company/actions'
@@ -23,9 +24,9 @@ export default async function NewInvoicePage({ searchParams }: NewInvoicePagePro
             Untuk membuat invoice, pilih Job Order yang sudah selesai dari halaman Job Orders,
             atau gunakan tombol &quot;Create Invoice&quot; di halaman Berita Acara / Surat Jalan.
           </p>
-          <a href="/job-orders" className="inline-flex items-center text-primary hover:underline font-medium">
+          <Link href="/job-orders" className="inline-flex items-center text-primary hover:underline font-medium">
             Lihat daftar Job Orders &rarr;
-          </a>
+          </Link>
         </div>
       </div>
     )

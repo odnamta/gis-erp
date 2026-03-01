@@ -23,6 +23,7 @@ const costItemSchema = z.object({
   category: z.string().min(1),
   description: z.string().min(1),
   estimated_amount: z.number().positive(),
+  vendor_id: z.string().uuid().optional().nullable(),
 })
 
 const pjoSchema = z.object({
@@ -225,6 +226,7 @@ export async function createPJO(data: PJOFormData): Promise<{ error?: string; id
       estimated_amount: item.estimated_amount,
       status: 'estimated',
       estimated_by: profile.id,
+      vendor_id: item.vendor_id || null,
     }))
 
     const { error: costError } = await supabase
@@ -439,6 +441,7 @@ export async function updatePJO(
             category: item.category,
             description: item.description,
             estimated_amount: preserveStatus ? undefined : item.estimated_amount,
+            vendor_id: item.vendor_id || null,
             updated_at: new Date().toISOString(),
           })
           .eq('id', item.id)
@@ -451,6 +454,7 @@ export async function updatePJO(
           estimated_amount: item.estimated_amount,
           status: 'estimated',
           estimated_by: profile.id,
+          vendor_id: item.vendor_id || null,
         })
       }
     }

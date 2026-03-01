@@ -56,7 +56,10 @@ export function PJOTable({ pjos, onDelete, canSeeRevenue = true }: PJOTableProps
                 </div>
               </div>
               <div className="text-sm text-muted-foreground">
-                {pjo.projects?.customers?.name || '-'}
+                {pjo.projects?.customers?.company_name || pjo.projects?.customers?.name || '-'}
+                {pjo.projects?.customers?.company_name && pjo.projects?.customers?.name && (
+                  <span className="block text-xs text-muted-foreground/70">{pjo.projects.customers.name}</span>
+                )}
               </div>
               <div className="flex items-center justify-between text-xs text-muted-foreground">
                 <span>{pjo.jo_date ? formatDate(pjo.jo_date) : '-'}</span>
@@ -121,7 +124,10 @@ export function PJOTable({ pjos, onDelete, canSeeRevenue = true }: PJOTableProps
                     href={`/customers/${pjo.projects.customers.id}`}
                     className="hover:underline"
                   >
-                    {pjo.projects.customers.name}
+                    <span>{pjo.projects.customers.company_name || pjo.projects.customers.name}</span>
+                    {pjo.projects.customers.company_name && (
+                      <span className="block text-xs text-muted-foreground">{pjo.projects.customers.name}</span>
+                    )}
                   </Link>
                 ) : (
                   '-'

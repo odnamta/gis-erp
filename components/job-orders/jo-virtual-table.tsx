@@ -46,7 +46,10 @@ export function JOVirtualTable({ jobOrders, userRole }: JOVirtualTableProps) {
       render: (jo) =>
         jo.customers ? (
           <Link href={`/customers/${jo.customers.id}`} className="hover:underline">
-            {jo.customers.name}
+            <span>{jo.customers.company_name || jo.customers.name}</span>
+            {jo.customers.company_name && (
+              <span className="block text-xs text-muted-foreground">{jo.customers.name}</span>
+            )}
           </Link>
         ) : (
           '-'
@@ -151,7 +154,10 @@ export function JOVirtualTable({ jobOrders, userRole }: JOVirtualTableProps) {
               <JOStatusBadge status={jo.status} />
             </div>
             <div className="text-sm text-muted-foreground">
-              {jo.customers?.name ?? '-'}
+              {jo.customers?.company_name || jo.customers?.name || '-'}
+              {jo.customers?.company_name && jo.customers?.name && (
+                <span className="block text-xs text-muted-foreground/70">{jo.customers.name}</span>
+              )}
             </div>
             <div className="flex items-center justify-between text-xs text-muted-foreground">
               <span>{date}</span>

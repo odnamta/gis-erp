@@ -3,9 +3,11 @@ import { notFound } from 'next/navigation'
 import { createClient } from '@/lib/supabase/server'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
+import { Badge } from '@/components/ui/badge'
 import { StatusBadge } from '@/components/ui/status-badge'
 import { AttachmentsSection } from '@/components/attachments'
-import { ArrowLeft, Plus, Building2, Mail, Phone, MapPin } from 'lucide-react'
+import { ArrowLeft, Plus, Building2, Mail, Phone, MapPin, Calendar, Cake } from 'lucide-react'
+import { formatDate } from '@/lib/utils/format'
 
 interface CustomerDetailPageProps {
   params: Promise<{ id: string }>
@@ -76,6 +78,53 @@ export default async function CustomerDetailPage({ params }: CustomerDetailPageP
                 <p className="font-medium">{customer.address || '-'}</p>
               </div>
             </div>
+            <div className="flex items-center gap-3">
+              <Calendar className="h-4 w-4 text-muted-foreground" />
+              <div>
+                <p className="text-sm text-muted-foreground">Tanggal Berdiri</p>
+                <p className="font-medium">
+                  {(customer as any).established_date
+                    ? formatDate((customer as any).established_date)
+                    : '-'}
+                </p>
+              </div>
+            </div>
+            {(() => {
+              const estDate = (customer as any).established_date
+              if (!estDate) return null
+              const today = new Date()
+              const established = new Date(estDate)
+              // Calculate next anniversary
+              const anniversaryThisYear = new Date(
+                today.getFullYear(),
+                established.getMonth(),
+                established.getDate()
+              )
+              const nextAnniversary =
+                anniversaryThisYear >= today
+                  ? anniversaryThisYear
+                  : new Date(
+                      today.getFullYear() + 1,
+                      established.getMonth(),
+                      established.getDate()
+                    )
+              const diffDays = Math.ceil(
+                (nextAnniversary.getTime() - today.getTime()) / (1000 * 60 * 60 * 24)
+              )
+              if (diffDays <= 30) {
+                return (
+                  <div className="flex items-center gap-2 rounded-lg border border-amber-200 bg-amber-50 p-3 dark:border-amber-800 dark:bg-amber-950">
+                    <Cake className="h-5 w-5 text-amber-600" />
+                    <span className="text-sm font-medium text-amber-700 dark:text-amber-400">
+                      {diffDays === 0
+                        ? 'Selamat Ulang Tahun Perusahaan hari ini!'
+                        : `Ulang Tahun Perusahaan dalam ${diffDays} hari!`}
+                    </span>
+                  </div>
+                )
+              }
+              return null
+            })()}
           </CardContent>
         </Card>
 
