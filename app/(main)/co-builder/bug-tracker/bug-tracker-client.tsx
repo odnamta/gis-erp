@@ -3,7 +3,6 @@
 import { useState } from 'react'
 import Link from 'next/link'
 import { Card, CardContent } from '@/components/ui/card'
-import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
 import {
   Select,
@@ -21,17 +20,22 @@ import {
   TableRow,
 } from '@/components/ui/table'
 import {
+  Sheet,
+  SheetContent,
+  SheetHeader,
+  SheetTitle,
+} from '@/components/ui/sheet'
+import { Badge } from '@/components/ui/badge'
+import {
   ArrowLeft,
   Bug,
   Frown,
   Lightbulb,
   ThumbsUp,
   HelpCircle,
-  Clock,
-  CheckCircle2,
-  XCircle,
-  AlertTriangle,
+  MessageSquare,
 } from 'lucide-react'
+import { SupportThread } from '@/components/support/support-thread'
 import type { CompetitionFeedback } from '../actions'
 
 const CATEGORY_CONFIG: Record<string, { label: string; icon: typeof Bug; color: string }> = {
@@ -59,10 +63,11 @@ const IMPACT_CONFIG: Record<string, { label: string; color: string }> = {
   critical: { label: 'Critical', color: 'bg-red-100 text-red-700' },
 }
 
-export function BugTrackerClient({ feedback }: { feedback: CompetitionFeedback[] }) {
+export function BugTrackerClient({ feedback, currentUserId }: { feedback: CompetitionFeedback[]; currentUserId: string }) {
   const [statusFilter, setStatusFilter] = useState('all')
   const [categoryFilter, setCategoryFilter] = useState('all')
   const [impactFilter, setImpactFilter] = useState('all')
+  const [selectedFeedback, setSelectedFeedback] = useState<CompetitionFeedback | null>(null)
 
   let filtered = feedback
   if (statusFilter !== 'all') filtered = filtered.filter(f => f.admin_status === statusFilter)
@@ -86,7 +91,7 @@ export function BugTrackerClient({ feedback }: { feedback: CompetitionFeedback[]
         <div>
           <h1 className="text-2xl font-bold">Bug Tracker</h1>
           <p className="text-sm text-muted-foreground">
-            Semua feedback dari tim Co-Builder
+            Semua feedback dari tim Co-Builder — klik baris untuk diskusi
           </p>
         </div>
       </div>
@@ -189,7 +194,11 @@ export function BugTrackerClient({ feedback }: { feedback: CompetitionFeedback[]
                   const CatIcon = cat.icon
 
                   return (
-                    <TableRow key={fb.id}>
+                    <TableRow
+                      key={fb.id}
+                      className="cursor-pointer hover:bg-muted/50"
+                      onClick={() => setSelectedFeedback(fb)}
+                    >
                       <TableCell>
                         <div className="flex items-center gap-1.5">
                           <CatIcon className={`h-4 w-4 ${cat.color}`} />
@@ -231,6 +240,106 @@ export function BugTrackerClient({ feedback }: { feedback: CompetitionFeedback[]
           </Table>
         </div>
       </Card>
+
+      {/* Detail Sheet with Support Thread */}
+      <Sheet open={!!selectedFeedback} onOpenChange={(open) => !open && setSelectedFeedback(null)}>
+        <SheetContent className="w-full sm:max-w-[540px] flex flex-col">
+          {selectedFeedback && (() => {
+            const cat = CATEGORY_CONFIG[selectedFeedback.category] || CATEGORY_CONFIG.question
+            const status = STATUS_CONFIG[selectedFeedback.admin_status] || STATUS_CONFIG.pending_review
+            const impact = IMPACT_CONFIG[selectedFeedback.impact_level] || IMPACT_CONFIG.pending
+            const CatIcon = cat.icon
+
+            return (
+              <>
+                <SheetHeader>
+                  <SheetTitle className="flex items-center gap-2 text-left">
+                    <CatIcon className={`h-5 w-5 shrink-0 ${cat.color}`} />
+                    <span className="truncate">{selectedFeedback.title}</span>
+                  </SheetTitle>
+                </SheetHeader>
+
+                <div className="flex-1 overflow-y-auto space-y-4 mt-4">
+                  {/* Metadata */}
+                  <div className="flex flex-wrap gap-2">
+                    <span className={`inline-flex items-center rounded-full px-2 py-0.5 text-xs font-medium ${status.color}`}>
+                      {status.label}
+                    </span>
+                    <span className={`inline-flex items-center rounded-full px-2 py-0.5 text-xs font-medium ${impact.color}`}>
+                      {impact.label}
+                    </span>
+                    <Badge variant="outline" className="text-xs">{selectedFeedback.effort_level}</Badge>
+                    <Badge variant="outline" className="text-xs">+{selectedFeedback.total_points} poin</Badge>
+                  </div>
+
+                  {/* Submitter & date */}
+                  <div className="text-sm text-muted-foreground">
+                    <span className="font-medium text-foreground">{selectedFeedback.user_name || 'Unknown'}</span>
+                    {selectedFeedback.user_role && (
+                      <span> ({selectedFeedback.user_role})</span>
+                    )}
+                    <span> &middot; {new Date(selectedFeedback.created_at).toLocaleDateString('id-ID', {
+                      day: 'numeric', month: 'long', year: 'numeric',
+                    })}</span>
+                  </div>
+
+                  {/* Description */}
+                  <div className="rounded-md bg-muted/50 p-3">
+                    <p className="text-sm whitespace-pre-wrap">{selectedFeedback.description}</p>
+                  </div>
+
+                  {/* Steps to reproduce */}
+                  {selectedFeedback.steps_to_reproduce && (
+                    <div>
+                      <h4 className="text-xs font-semibold text-muted-foreground mb-1">Langkah Reproduksi</h4>
+                      <p className="text-sm whitespace-pre-wrap">{selectedFeedback.steps_to_reproduce}</p>
+                    </div>
+                  )}
+
+                  {/* Suggestion */}
+                  {selectedFeedback.suggestion && (
+                    <div>
+                      <h4 className="text-xs font-semibold text-muted-foreground mb-1">Saran</h4>
+                      <p className="text-sm whitespace-pre-wrap">{selectedFeedback.suggestion}</p>
+                    </div>
+                  )}
+
+                  {/* Page URL */}
+                  {selectedFeedback.page_url && (
+                    <div className="text-xs text-muted-foreground">
+                      Halaman: <span className="font-mono">{selectedFeedback.page_url}</span>
+                    </div>
+                  )}
+
+                  {/* Screenshot */}
+                  {selectedFeedback.screenshot_url && (
+                    <div>
+                      <h4 className="text-xs font-semibold text-muted-foreground mb-1">Screenshot</h4>
+                      {/* eslint-disable-next-line @next/next/no-img-element */}
+                      <img
+                        src={selectedFeedback.screenshot_url}
+                        alt="Screenshot"
+                        className="rounded border max-h-[200px] object-contain"
+                      />
+                    </div>
+                  )}
+
+                  {/* Support Thread */}
+                  <div className="pt-2 border-t">
+                    <SupportThread
+                      entityType="competition_feedback"
+                      entityId={selectedFeedback.id}
+                      currentUserId={currentUserId}
+                      isAdmin={true}
+                      title="Diskusi dengan Pengguna"
+                    />
+                  </div>
+                </div>
+              </>
+            )
+          })()}
+        </SheetContent>
+      </Sheet>
     </div>
   )
 }

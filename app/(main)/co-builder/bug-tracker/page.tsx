@@ -9,5 +9,5 @@ export default async function BugTrackerPage() {
   if (!user) redirect('/login')
 
   const feedback = await getAllCompetitionFeedback()
-  return <BugTrackerClient feedback={feedback} />
+  return <BugTrackerClient feedback={feedback} currentUserId={user?.id || ''} />
 }

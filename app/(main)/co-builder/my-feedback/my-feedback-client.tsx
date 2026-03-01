@@ -18,6 +18,7 @@ import {
   AlertTriangle,
   MessageSquare,
 } from 'lucide-react'
+import { SupportThread } from '@/components/support/support-thread'
 import type { CompetitionFeedback } from '../actions'
 
 const CATEGORY_CONFIG: Record<string, { label: string; icon: typeof Bug; color: string }> = {
@@ -38,7 +39,7 @@ const STATUS_CONFIG: Record<string, { label: string; variant: 'default' | 'secon
   duplicate: { label: 'Duplikat', variant: 'outline', icon: XCircle },
 }
 
-export function MyFeedbackClient({ feedback }: { feedback: CompetitionFeedback[] }) {
+export function MyFeedbackClient({ feedback, currentUserId }: { feedback: CompetitionFeedback[]; currentUserId: string }) {
   const [filter, setFilter] = useState<string>('all')
 
   const filtered = filter === 'all' ? feedback : feedback.filter(f => f.category === filter)
@@ -140,13 +141,14 @@ export function MyFeedbackClient({ feedback }: { feedback: CompetitionFeedback[]
                         )}
                       </div>
 
-                      {/* Admin Response */}
-                      {fb.admin_response && (
-                        <div className="mt-3 rounded-md bg-blue-50 border border-blue-200 p-3 text-sm">
-                          <p className="font-medium text-blue-800 mb-1">Respon Admin:</p>
-                          <p className="text-blue-700">{fb.admin_response}</p>
-                        </div>
-                      )}
+                      {/* Support Thread */}
+                      <div className="mt-3">
+                        <SupportThread
+                          entityType="competition_feedback"
+                          entityId={fb.id}
+                          currentUserId={currentUserId}
+                        />
+                      </div>
                     </div>
 
                     {/* Points */}

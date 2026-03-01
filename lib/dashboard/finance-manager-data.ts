@@ -377,7 +377,7 @@ export async function getFinanceManagerMetrics(): Promise<FinanceManagerMetrics>
     }, 0)
     
     // Calculate Expenses MTD (sum of approved/paid BKK records this month)
-    const expensesMTDData = (expensesMTDResult.data || []) as { amount_requested?: number }[]
+    const expensesMTDData = (expensesMTDResult.data || []) as unknown as { amount_requested?: number }[]
     const expensesMTD = expensesMTDData.reduce((sum, bkk) => {
       return sum + (bkk.amount_requested || 0)
     }, 0)
@@ -411,13 +411,13 @@ export async function getFinanceManagerMetrics(): Promise<FinanceManagerMetrics>
     )
     
     // Calculate AP Outstanding (sum of pending disbursements)
-    const apOutstandingData = (apOutstandingResult.data || []) as { amount_requested?: number }[]
+    const apOutstandingData = (apOutstandingResult.data || []) as unknown as { amount_requested?: number }[]
     const apOutstanding = apOutstandingData.reduce((sum, bkk) => {
       return sum + (bkk.amount_requested || 0)
     }, 0)
 
     // Calculate AP Due This Week (approved BKK records from last 7 days)
-    const apDueThisWeekData = (apDueThisWeekResult.data || []) as { amount_requested?: number }[]
+    const apDueThisWeekData = (apDueThisWeekResult.data || []) as unknown as { amount_requested?: number }[]
     const apDueThisWeek = apDueThisWeekData.reduce((sum, bkk) => {
       return sum + (bkk.amount_requested || 0)
     }, 0)
@@ -430,7 +430,7 @@ export async function getFinanceManagerMetrics(): Promise<FinanceManagerMetrics>
     }
     
     // Calculate Pending Disbursement Approvals (count and total value)
-    const pendingDisbursementApprovalsData = (pendingDisbursementApprovalsResult.data || []) as { id: string; amount_requested?: number }[]
+    const pendingDisbursementApprovalsData = (pendingDisbursementApprovalsResult.data || []) as unknown as { id: string; amount_requested?: number }[]
     const pendingDisbursementApprovals: ApprovalQueueItem = {
       count: pendingDisbursementApprovalsData.length,
       totalValue: pendingDisbursementApprovalsData.reduce((sum, bkk) => sum + (bkk.amount_requested || 0), 0)
