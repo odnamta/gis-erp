@@ -17,6 +17,7 @@ import { getUserProfile } from '@/lib/permissions-server'
 import { getEnhancedOpsDashboardData } from '@/lib/ops-dashboard-enhanced-utils'
 import { getUserOnboardingProgress } from '@/lib/onboarding-actions'
 import { fetchCachedOwnerDashboardData } from '@/lib/dashboard-cache-actions'
+import { guardPage } from '@/lib/auth-utils'
 
 // Hutami's email - Marketing Manager who also manages Engineering
 const HUTAMI_EMAIL = 'hutamiarini@gama-group.co'
@@ -24,6 +25,7 @@ const HUTAMI_EMAIL = 'hutamiarini@gama-group.co'
 export default async function DashboardPage() {
   // Get user profile for role-based rendering
   const profile = await getUserProfile()
+  await guardPage(!!profile)
   const userRole = profile?.role || 'viewer'
   const userEmail = profile?.email || ''
   const userId = profile?.id || ''

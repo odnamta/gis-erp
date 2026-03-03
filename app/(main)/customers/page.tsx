@@ -1,7 +1,11 @@
 import { createClient } from '@/lib/supabase/server'
+import { getCurrentUserProfile, guardPage } from '@/lib/auth-utils'
+import { ExplorerReadOnlyBanner } from '@/components/layout/explorer-read-only-banner'
 import { CustomersClient } from './customers-client'
 
 export default async function CustomersPage() {
+  const profile = await getCurrentUserProfile()
+  const { explorerReadOnly } = await guardPage(!!profile)
   const supabase = await createClient()
 
   const [customersResult, projectCountResult, invoiceCountResult] = await Promise.all([
@@ -39,5 +43,10 @@ export default async function CustomersPage() {
     totalInvoices: invoiceCountResult.count || 0,
   }
 
-  return <CustomersClient customers={customersResult.data || []} stats={stats} />
+  return (
+    <>
+      {explorerReadOnly && <ExplorerReadOnlyBanner />}
+      <CustomersClient customers={customersResult.data || []} stats={stats} />
+    </>
+  )
 }

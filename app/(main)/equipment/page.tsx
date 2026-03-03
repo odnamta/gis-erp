@@ -1,11 +1,19 @@
 import { Suspense } from 'react'
+import { getCurrentUserProfile, guardPage } from '@/lib/auth-utils'
+import { ExplorerReadOnlyBanner } from '@/components/layout/explorer-read-only-banner'
 import { EquipmentClient } from './equipment-client'
 
-export default function EquipmentPage() {
+export default async function EquipmentPage() {
+  const profile = await getCurrentUserProfile()
+  const { explorerReadOnly } = await guardPage(!!profile)
+
   return (
-    <Suspense fallback={<EquipmentPageSkeleton />}>
-      <EquipmentClient />
-    </Suspense>
+    <>
+      {explorerReadOnly && <ExplorerReadOnlyBanner />}
+      <Suspense fallback={<EquipmentPageSkeleton />}>
+        <EquipmentClient />
+      </Suspense>
+    </>
   )
 }
 

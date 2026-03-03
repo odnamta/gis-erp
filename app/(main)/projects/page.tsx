@@ -1,4 +1,6 @@
 import { createClient } from '@/lib/supabase/server'
+import { getCurrentUserProfile, guardPage } from '@/lib/auth-utils'
+import { ExplorerReadOnlyBanner } from '@/components/layout/explorer-read-only-banner'
 import { ProjectsClient } from './projects-client'
 
 interface ProjectsPageProps {
@@ -6,6 +8,8 @@ interface ProjectsPageProps {
 }
 
 export default async function ProjectsPage({ searchParams }: ProjectsPageProps) {
+  const profile = await getCurrentUserProfile()
+  const { explorerReadOnly } = await guardPage(!!profile)
   const params = await searchParams
   const supabase = await createClient()
 
@@ -22,11 +26,14 @@ export default async function ProjectsPage({ searchParams }: ProjectsPageProps) 
     .order('name')
 
   return (
-    <ProjectsClient
-      projects={projects || []}
-      customers={customers || []}
-      openAddDialog={params.add === 'true'}
-      preselectedCustomerId={params.customer_id}
-    />
+    <>
+      {explorerReadOnly && <ExplorerReadOnlyBanner />}
+      <ProjectsClient
+        projects={projects || []}
+        customers={customers || []}
+        openAddDialog={params.add === 'true'}
+        preselectedCustomerId={params.customer_id}
+      />
+    </>
   )
 }
