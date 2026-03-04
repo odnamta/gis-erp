@@ -113,6 +113,7 @@ const SEGMENT_LABELS: Record<string, string> = {
   'skills': 'Skills',
   'my-attendance': 'My Attendance',
   'my-leave': 'My Leave',
+  'my-payroll': 'Slip Gaji',
   'request': 'Request',
 
   // Finance

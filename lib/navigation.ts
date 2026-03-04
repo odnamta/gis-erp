@@ -462,6 +462,10 @@ export const NAV_ITEMS: NavItem[] = [
         href: '/hr/attendance/holidays',
         roles: ['owner', 'director', 'hr'],
       },
+      {
+        title: 'Slip Gaji',
+        href: '/hr/my-payroll',
+      },
     ],
   },
   {

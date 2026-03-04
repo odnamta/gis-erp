@@ -74,7 +74,7 @@ async function getEmployeeSchedule(employeeScheduleId: string | null): Promise<W
 /**
  * Clock in for current user
  */
-export async function clockIn(): Promise<{
+export async function clockIn(location?: string): Promise<{
   success: boolean;
   record?: AttendanceRecord;
   error?: string;
@@ -126,6 +126,7 @@ export async function clockIn(): Promise<{
       employee_id: employee.id,
       attendance_date: today,
       clock_in: now.toISOString(),
+      clock_in_location: location || null,
       status,
       late_minutes: lateMinutes,
     }, {
@@ -148,7 +149,7 @@ export async function clockIn(): Promise<{
 /**
  * Clock out for current user
  */
-export async function clockOut(): Promise<{
+export async function clockOut(location?: string): Promise<{
   success: boolean;
   record?: AttendanceRecord;
   error?: string;
@@ -188,6 +189,7 @@ export async function clockOut(): Promise<{
     .from('attendance_records')
     .update({
       clock_out: now.toISOString(),
+      clock_out_location: location || null,
       updated_at: now.toISOString(),
     })
     .eq('id', existing.id)

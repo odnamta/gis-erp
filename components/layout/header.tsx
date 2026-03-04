@@ -3,7 +3,7 @@
 import { useState } from 'react'
 import { useRouter } from 'next/navigation'
 import Link from 'next/link'
-import { LogOut, Loader2, Settings, Clock, Calendar, User, Menu } from 'lucide-react'
+import { LogOut, Loader2, Settings, Clock, Calendar, User, Menu, Banknote } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import {
   DropdownMenu,
@@ -127,6 +127,12 @@ export function Header({ user }: HeaderProps) {
                 <Link href="/hr/my-leave" className="flex items-center">
                   <Calendar className="mr-2 h-4 w-4" />
                   My Leave
+                </Link>
+              </DropdownMenuItem>
+              <DropdownMenuItem asChild>
+                <Link href="/hr/my-payroll" className="flex items-center">
+                  <Banknote className="mr-2 h-4 w-4" />
+                  Slip Gaji
                 </Link>
               </DropdownMenuItem>
               <DropdownMenuSeparator />

@@ -4,7 +4,7 @@
  */
 
 // Entity types that can have attachments
-export type AttachmentEntityType = 'pjo' | 'jo' | 'invoice' | 'customer' | 'project' | 'pib' | 'peb' | 'quotation' | 'medical_checkup' | 'incident' | 'audit' | 'safety_permit';
+export type AttachmentEntityType = 'pjo' | 'jo' | 'invoice' | 'customer' | 'project' | 'pib' | 'peb' | 'quotation' | 'medical_checkup' | 'incident' | 'audit' | 'safety_permit' | 'leave_request';
 
 // Document attachment record from database
 export interface DocumentAttachment {

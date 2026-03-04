@@ -14,8 +14,11 @@ import {
   Plus,
   ArrowRight,
   Truck,
-  User
+  User,
+  ExternalLink,
+  Package
 } from 'lucide-react'
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 
 export const metadata = {
   title: 'Engineering Dashboard | Gama ERP',
@@ -147,6 +150,54 @@ export default async function EngineeringDashboardPage() {
           <ArrowRight className="h-4 w-4" />
         </Link>
       </div>
+
+      {/* Alat Bantu Eksternal (External Tools) */}
+      <Card>
+        <CardHeader>
+          <CardTitle className="text-lg">Alat Bantu Engineering</CardTitle>
+        </CardHeader>
+        <CardContent>
+          <div className="grid gap-4 md:grid-cols-2">
+            {/* Heavy Cargo — TODO: Ganti '#' dengan URL aplikasi yang sebenarnya */}
+            <a
+              href="#"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="flex items-center gap-4 rounded-lg border p-4 hover:bg-accent/50 transition-colors"
+            >
+              <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg bg-orange-100">
+                <Truck className="h-5 w-5 text-orange-600" />
+              </div>
+              <div className="min-w-0 flex-1">
+                <p className="font-medium text-sm">Heavy Cargo</p>
+                <p className="text-xs text-muted-foreground">
+                  Pengecekan manuver kendaraan berat
+                </p>
+              </div>
+              <ExternalLink className="h-4 w-4 shrink-0 text-muted-foreground" />
+            </a>
+
+            {/* Cargo Planner — TODO: Ganti '#' dengan URL aplikasi yang sebenarnya */}
+            <a
+              href="#"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="flex items-center gap-4 rounded-lg border p-4 hover:bg-accent/50 transition-colors"
+            >
+              <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg bg-blue-100">
+                <Package className="h-5 w-5 text-blue-600" />
+              </div>
+              <div className="min-w-0 flex-1">
+                <p className="font-medium text-sm">Cargo Planner</p>
+                <p className="text-xs text-muted-foreground">
+                  Perencanaan muatan dan kargo
+                </p>
+              </div>
+              <ExternalLink className="h-4 w-4 shrink-0 text-muted-foreground" />
+            </a>
+          </div>
+        </CardContent>
+      </Card>
 
       {/* Survey Overview */}
       <div>

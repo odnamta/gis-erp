@@ -18,6 +18,7 @@ import { activatePermit } from '@/lib/safety-permit-actions';
 import { formatDate } from '@/lib/utils/format';
 import { useToast } from '@/hooks/use-toast';
 import { AttachmentsSection } from '@/components/attachments';
+import { PDFButtons } from '@/components/pdf/pdf-buttons';
 
 interface PermitDetailClientProps {
   permit: SafetyPermit;
@@ -82,6 +83,13 @@ export function PermitDetailClient({ permit, readOnly }: PermitDetailClientProps
           </div>
         </div>
         <div className="flex gap-2">
+          <PDFButtons
+            documentType="permit"
+            documentId={permit.id}
+            documentNumber={permit.permitNumber}
+            size="sm"
+            variant="outline"
+          />
           {canActivate && (
             <Button onClick={handleActivate} disabled={loading === 'activate'}>
               {loading === 'activate' ? <Loader2 className="h-4 w-4 animate-spin mr-2" /> : <Play className="h-4 w-4 mr-2" />}
