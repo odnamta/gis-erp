@@ -132,11 +132,11 @@ export function JmpList({ jmps, customers, onFilterChange }: JmpListProps) {
                     </Badge>
                   </TableCell>
                   <TableCell>
-                    <Link href={`/engineering/jmp/${jmp.id}`}>
-                      <Button variant="ghost" size="icon">
+                    <Button variant="ghost" size="icon" asChild>
+                      <Link href={`/engineering/jmp/${jmp.id}`}>
                         <Eye className="h-4 w-4" />
-                      </Button>
-                    </Link>
+                      </Link>
+                    </Button>
                   </TableCell>
                 </TableRow>
               ))

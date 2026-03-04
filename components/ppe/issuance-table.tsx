@@ -39,7 +39,20 @@ import {
   AlertTriangle,
   Clock,
   HardHat,
+  Trash2,
 } from 'lucide-react';
+import { deleteIssuance } from '@/lib/ppe-actions';
+import { useToast } from '@/hooks/use-toast';
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from '@/components/ui/alert-dialog';
 
 interface IssuanceTableProps {
   issuances: PPEIssuance[];
@@ -49,8 +62,10 @@ interface IssuanceTableProps {
 
 export function IssuanceTable({ issuances, ppeTypes, employees }: IssuanceTableProps) {
   const router = useRouter();
+  const { toast } = useToast();
   const [showIssueForm, setShowIssueForm] = useState(false);
   const [returningIssuance, setReturningIssuance] = useState<PPEIssuance | null>(null);
+  const [deletingIssuance, setDeletingIssuance] = useState<PPEIssuance | null>(null);
 
   const getReplacementBadge = (issuance: PPEIssuance) => {
     if (!issuance.expected_replacement_date) return null;
@@ -186,6 +201,14 @@ export function IssuanceTable({ issuances, ppeTypes, employees }: IssuanceTableP
                             </DropdownMenuItem>
                           </>
                         )}
+                        <DropdownMenuSeparator />
+                        <DropdownMenuItem
+                          onClick={() => setDeletingIssuance(issuance)}
+                          className="text-destructive focus:text-destructive"
+                        >
+                          <Trash2 className="mr-2 h-4 w-4" />
+                          Hapus
+                        </DropdownMenuItem>
                       </DropdownMenuContent>
                     </DropdownMenu>
                   </TableCell>
@@ -210,6 +233,42 @@ export function IssuanceTable({ issuances, ppeTypes, employees }: IssuanceTableP
         onOpenChange={open => !open && setReturningIssuance(null)}
         onSuccess={() => setReturningIssuance(null)}
       />
+
+      <AlertDialog open={!!deletingIssuance} onOpenChange={(open) => !open && setDeletingIssuance(null)}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Hapus Catatan Pengeluaran PPE?</AlertDialogTitle>
+            <AlertDialogDescription>
+              Catatan pengeluaran PPE untuk{' '}
+              <strong>{deletingIssuance?.employee?.full_name}</strong> ({deletingIssuance?.ppe_type?.ppe_name})
+              akan dihapus permanen. Tindakan ini tidak dapat dibatalkan.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Batal</AlertDialogCancel>
+            <AlertDialogAction
+              className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+              onClick={async () => {
+                if (!deletingIssuance) return;
+                try {
+                  await deleteIssuance(deletingIssuance.id);
+                  toast({ title: 'Berhasil', description: 'Catatan pengeluaran PPE berhasil dihapus.' });
+                  setDeletingIssuance(null);
+                  router.refresh();
+                } catch (err) {
+                  toast({
+                    title: 'Gagal',
+                    description: err instanceof Error ? err.message : 'Gagal menghapus catatan PPE.',
+                    variant: 'destructive',
+                  });
+                }
+              }}
+            >
+              Hapus
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </div>
   );
 }

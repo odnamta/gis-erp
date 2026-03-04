@@ -147,15 +147,15 @@ export async function uploadScreenshot(
       return { success: false, error: 'Unauthorized' };
     }
 
-    // Convert data URL to blob
-    const base64Data = dataUrl.split(',')[1];
-    const mimeType = dataUrl.split(';')[0].split(':')[1];
-    const byteCharacters = atob(base64Data);
-    const byteNumbers = new Array(byteCharacters.length);
-    for (let i = 0; i < byteCharacters.length; i++) {
-      byteNumbers[i] = byteCharacters.charCodeAt(i);
+    // Convert data URL to buffer
+    const parts = dataUrl.split(',');
+    if (parts.length !== 2) {
+      return { success: false, error: 'Invalid screenshot data' };
     }
-    const byteArray = new Uint8Array(byteNumbers);
+    const base64Data = parts[1];
+    const mimeMatch = dataUrl.match(/^data:([^;]+);/);
+    const mimeType = mimeMatch?.[1] || 'image/png';
+    const byteArray = Buffer.from(base64Data, 'base64');
 
     // Generate unique filename
     const ext = mimeType.split('/')[1] || 'png';
@@ -170,7 +170,8 @@ export async function uploadScreenshot(
       });
 
     if (uploadError) {
-      return { success: false, error: 'Failed to upload screenshot' };
+      console.error('Screenshot upload error:', uploadError.message);
+      return { success: false, error: `Upload gagal: ${uploadError.message}` };
     }
 
     // Get public URL

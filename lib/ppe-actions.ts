@@ -746,6 +746,25 @@ export async function markPPEDamaged(id: string, notes: string): Promise<PPEIssu
 }
 
 
+export async function deleteIssuance(id: string): Promise<void> {
+  const profile = await getUserProfile();
+  if (!canAccessFeature(profile, 'hse.ppe.manage')) {
+    throw new Error('Tidak memiliki akses');
+  }
+
+  const supabase = await createClient();
+
+  const { error } = await supabase
+    .from('ppe_issuance')
+    .delete()
+    .eq('id', id);
+
+  if (error) throw new Error(`Failed to delete PPE issuance: ${error.message}`);
+
+  revalidatePath('/hse/ppe/issuance');
+  revalidatePath('/hse/ppe/compliance');
+}
+
 // ============================================
 // PPE Inspection Actions
 // ============================================
