@@ -7,6 +7,8 @@
 import { createClient } from '@/lib/supabase/server';
 import { revalidatePath } from 'next/cache';
 import { sanitizeSearchInput } from '@/lib/utils/sanitize';
+import { getUserProfile } from '@/lib/permissions-server';
+import { canAccessFeature } from '@/lib/permissions';
 import {
   TrainingCourse,
   TrainingRecord,
@@ -117,6 +119,11 @@ export async function getCourseById(id: string): Promise<TrainingCourse | null> 
  * Create a new training course
  */
 export async function createCourse(input: CreateCourseInput): Promise<TrainingCourse> {
+  const profile = await getUserProfile();
+  if (!canAccessFeature(profile, 'hse.training.manage')) {
+    throw new Error('Tidak memiliki akses untuk membuat kursus pelatihan');
+  }
+
   const validation = validateCourseInput(input);
   if (!validation.valid) {
     throw new Error(validation.error);
@@ -161,6 +168,11 @@ export async function createCourse(input: CreateCourseInput): Promise<TrainingCo
  * Update a training course
  */
 export async function updateCourse(id: string, input: UpdateCourseInput): Promise<TrainingCourse> {
+  const profile = await getUserProfile();
+  if (!canAccessFeature(profile, 'hse.training.manage')) {
+    throw new Error('Tidak memiliki akses untuk mengedit kursus pelatihan');
+  }
+
   const supabase = await createClient();
 
   const updateData: Record<string, unknown> = {};
@@ -298,6 +310,11 @@ export async function getEmployeeTrainingRecords(employeeId: string): Promise<Tr
  * Create a training record
  */
 export async function createTrainingRecord(input: CreateRecordInput): Promise<TrainingRecord> {
+  const profile = await getUserProfile();
+  if (!canAccessFeature(profile, 'hse.training.manage')) {
+    throw new Error('Tidak memiliki akses untuk membuat catatan pelatihan');
+  }
+
   const supabase = await createClient();
 
   // Get course for validation
@@ -349,7 +366,7 @@ export async function createTrainingRecord(input: CreateRecordInput): Promise<Tr
   const { data: { user } } = await supabase.auth.getUser();
 
   // Get user profile (FK references user_profiles.id, not auth UUID)
-  const { data: profile } = await supabase
+  const { data: userProfile } = await supabase
     .from('user_profiles')
     .select('id')
     .eq('user_id', user?.id || '')
@@ -374,7 +391,7 @@ export async function createTrainingRecord(input: CreateRecordInput): Promise<Tr
       valid_to: validTo,
       training_cost: input.trainingCost ?? null,
       notes: input.notes || null,
-      recorded_by: profile?.id || null,
+      recorded_by: userProfile?.id || null,
     })
     .select()
     .single();
@@ -395,6 +412,11 @@ export async function createTrainingRecord(input: CreateRecordInput): Promise<Tr
  * Update a training record
  */
 export async function updateTrainingRecord(id: string, input: UpdateRecordInput): Promise<TrainingRecord> {
+  const profile = await getUserProfile();
+  if (!canAccessFeature(profile, 'hse.training.manage')) {
+    throw new Error('Tidak memiliki akses untuk mengedit catatan pelatihan');
+  }
+
   const supabase = await createClient();
 
   const updateData: Record<string, unknown> = {
@@ -631,6 +653,11 @@ export async function getSessionById(id: string): Promise<TrainingSession | null
  * Create a training session
  */
 export async function createSession(input: CreateSessionInput): Promise<TrainingSession> {
+  const profile = await getUserProfile();
+  if (!canAccessFeature(profile, 'hse.training.manage')) {
+    throw new Error('Tidak memiliki akses untuk membuat sesi pelatihan');
+  }
+
   const validation = validateSessionInput(input);
   if (!validation.valid) {
     throw new Error(validation.error);
@@ -697,6 +724,11 @@ export async function createSession(input: CreateSessionInput): Promise<Training
  * Update a training session
  */
 export async function updateSession(id: string, input: UpdateSessionInput): Promise<TrainingSession> {
+  const profile = await getUserProfile();
+  if (!canAccessFeature(profile, 'hse.training.manage')) {
+    throw new Error('Tidak memiliki akses untuk mengedit sesi pelatihan');
+  }
+
   const supabase = await createClient();
 
   const updateData: Record<string, unknown> = {};
@@ -732,6 +764,11 @@ export async function updateSession(id: string, input: UpdateSessionInput): Prom
  * Complete a training session and auto-create records for attended participants
  */
 export async function completeSession(id: string): Promise<{ session: TrainingSession; recordsCreated: number }> {
+  const profile = await getUserProfile();
+  if (!canAccessFeature(profile, 'hse.training.manage')) {
+    throw new Error('Tidak memiliki akses untuk menyelesaikan sesi');
+  }
+
   const supabase = await createClient();
 
   // Get session with course info
@@ -839,6 +876,11 @@ export async function completeSession(id: string): Promise<{ session: TrainingSe
  * Cancel a training session
  */
 export async function cancelSession(id: string): Promise<TrainingSession> {
+  const profile = await getUserProfile();
+  if (!canAccessFeature(profile, 'hse.training.manage')) {
+    throw new Error('Tidak memiliki akses untuk membatalkan sesi');
+  }
+
   const supabase = await createClient();
 
   const { data, error } = await supabase
@@ -900,6 +942,11 @@ export async function getSessionParticipants(sessionId: string): Promise<Session
  * Add participant to session
  */
 export async function addParticipant(input: AddParticipantInput): Promise<SessionParticipant> {
+  const profile = await getUserProfile();
+  if (!canAccessFeature(profile, 'hse.training.manage')) {
+    throw new Error('Tidak memiliki akses untuk menambah peserta');
+  }
+
   const supabase = await createClient();
 
   // Check session exists and has capacity
@@ -942,6 +989,11 @@ export async function addParticipant(input: AddParticipantInput): Promise<Sessio
  * Remove participant from session
  */
 export async function removeParticipant(sessionId: string, employeeId: string): Promise<void> {
+  const profile = await getUserProfile();
+  if (!canAccessFeature(profile, 'hse.training.manage')) {
+    throw new Error('Tidak memiliki akses untuk menghapus peserta');
+  }
+
   const supabase = await createClient();
 
   const { error } = await supabase
@@ -965,6 +1017,11 @@ export async function updateAttendance(
   participantId: string,
   status: 'registered' | 'attended' | 'absent' | 'cancelled'
 ): Promise<SessionParticipant> {
+  const profile = await getUserProfile();
+  if (!canAccessFeature(profile, 'hse.training.manage')) {
+    throw new Error('Tidak memiliki akses untuk mengubah kehadiran');
+  }
+
   const supabase = await createClient();
 
   const { data, error } = await supabase
