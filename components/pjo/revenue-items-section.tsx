@@ -32,10 +32,11 @@ interface RevenueItemsSectionProps {
   pjoId: string
   items: PJORevenueItem[]
   isEditable: boolean
+  customerId?: string
   onRefresh?: () => void
 }
 
-export function RevenueItemsSection({ pjoId, items, isEditable, onRefresh }: RevenueItemsSectionProps) {
+export function RevenueItemsSection({ pjoId, items, isEditable, customerId, onRefresh }: RevenueItemsSectionProps) {
   const { toast } = useToast()
   const [formOpen, setFormOpen] = useState(false)
   const [editingItem, setEditingItem] = useState<PJORevenueItem | null>(null)
@@ -147,6 +148,7 @@ export function RevenueItemsSection({ pjoId, items, isEditable, onRefresh }: Rev
       <RevenueItemForm
         pjoId={pjoId}
         item={editingItem}
+        customerId={customerId}
         open={formOpen}
         onOpenChange={setFormOpen}
         onSuccess={onRefresh}

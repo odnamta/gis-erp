@@ -3,7 +3,7 @@
 import { useForm } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { z } from 'zod'
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
@@ -22,11 +22,15 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select'
-import { Loader2 } from 'lucide-react'
+import { Loader2, Tag } from 'lucide-react'
 import { PJORevenueItem } from '@/types'
 import { createRevenueItem, updateRevenueItem, RevenueItemFormData } from '@/app/(main)/proforma-jo/revenue-actions'
 import { useToast } from '@/hooks/use-toast'
 import { formatIDR } from '@/lib/pjo-utils'
+import { getActiveCustomerRates } from '@/lib/customer-rate-actions'
+import type { CustomerContractRate } from '@/types/customer-rate'
+import { UNIT_LABELS } from '@/types/vendor-rate'
+import { formatCurrency } from '@/lib/utils/format'
 
 const schema = z.object({
   description: z.string().min(1, 'Description is required'),
@@ -45,14 +49,17 @@ const unitOptions = [
 interface RevenueItemFormProps {
   pjoId: string
   item?: PJORevenueItem | null
+  customerId?: string
   open: boolean
   onOpenChange: (open: boolean) => void
   onSuccess?: () => void
 }
 
-export function RevenueItemForm({ pjoId, item, open, onOpenChange, onSuccess }: RevenueItemFormProps) {
+export function RevenueItemForm({ pjoId, item, customerId, open, onOpenChange, onSuccess }: RevenueItemFormProps) {
   const { toast } = useToast()
   const [isLoading, setIsLoading] = useState(false)
+  const [customerRates, setCustomerRates] = useState<CustomerContractRate[]>([])
+  const [isLoadingRates, setIsLoadingRates] = useState(false)
   const isEdit = !!item
 
   const {
@@ -73,6 +80,22 @@ export function RevenueItemForm({ pjoId, item, open, onOpenChange, onSuccess }: 
       notes: item?.notes || '',
     },
   })
+
+  // Fetch customer contract rates
+  useEffect(() => {
+    if (customerId) {
+      setIsLoadingRates(true)
+      getActiveCustomerRates(customerId)
+        .then((result) => {
+          if (result.data) {
+            setCustomerRates(result.data)
+          } else {
+            setCustomerRates([])
+          }
+        })
+        .finally(() => setIsLoadingRates(false))
+    }
+  }, [customerId])
 
   const quantity = watch('quantity') || 0
   const unitPrice = watch('unit_price') || 0
@@ -165,6 +188,52 @@ export function RevenueItemForm({ pjoId, item, open, onOpenChange, onSuccess }: 
               )}
             </div>
           </div>
+
+          {/* Customer Contract Rates */}
+          {customerId && customerRates.length > 0 && (
+            <div className="space-y-2">
+              <Label className="flex items-center gap-1.5">
+                <Tag className="h-3.5 w-3.5" />
+                Tarif Kontrak
+              </Label>
+              <div className="flex flex-wrap gap-2">
+                {customerRates.map((rate) => {
+                  const unitLabel = UNIT_LABELS[rate.unit] || rate.unit
+                  return (
+                    <button
+                      key={rate.id}
+                      type="button"
+                      className="inline-flex items-center gap-1.5 rounded-md border px-2.5 py-1 text-xs transition-colors hover:bg-accent hover:text-accent-foreground cursor-pointer"
+                      onClick={() => {
+                        setValue('unit_price', rate.base_price)
+                        setValue('source_type', 'contract')
+                        if (!watch('description') && rate.description) {
+                          setValue('description', rate.description)
+                        }
+                      }}
+                      title={`Klik untuk mengisi ${formatCurrency(rate.base_price)} sebagai harga satuan`}
+                    >
+                      <span className="font-medium">{formatCurrency(rate.base_price)}</span>
+                      <span className="text-muted-foreground">/ {unitLabel}</span>
+                      <span className="text-muted-foreground">- {rate.description}</span>
+                      {rate.route_pattern && (
+                        <span className="text-muted-foreground">({rate.route_pattern})</span>
+                      )}
+                    </button>
+                  )
+                })}
+              </div>
+              <p className="text-xs text-muted-foreground">
+                Klik tarif untuk mengisi harga
+              </p>
+            </div>
+          )}
+          {customerId && isLoadingRates && (
+            <div className="flex items-center gap-2 text-xs text-muted-foreground">
+              <Loader2 className="h-3 w-3 animate-spin" />
+              Memuat tarif kontrak...
+            </div>
+          )}
 
           <div className="space-y-2">
             <Label htmlFor="unit_price">Unit Price (IDR) *</Label>

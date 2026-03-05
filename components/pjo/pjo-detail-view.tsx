@@ -744,6 +744,7 @@ export function PJODetailView({ pjo, canApprove = true, userRole, userId }: PJOD
           pjoId={pjo.id}
           items={revenueItems}
           isEditable={isEditable}
+          customerId={pjo.projects?.customers?.id}
           onRefresh={loadItems}
         />
       )}

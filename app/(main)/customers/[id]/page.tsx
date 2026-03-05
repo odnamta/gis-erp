@@ -6,6 +6,7 @@ import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
 import { StatusBadge } from '@/components/ui/status-badge'
 import { AttachmentsSection } from '@/components/attachments'
+import { CustomerRatesSection } from '@/components/customers/customer-rates-section'
 import { ArrowLeft, Plus, Building2, Mail, Phone, MapPin, Calendar, Cake, FileText, Receipt, Briefcase, Clock } from 'lucide-react'
 import { formatDate, formatCurrency } from '@/lib/utils/format'
 
@@ -280,6 +281,9 @@ export default async function CustomerDetailPage({ params }: CustomerDetailPageP
           </CardContent>
         </Card>
       </div>
+
+      {/* Customer Contract Rates */}
+      <CustomerRatesSection customerId={customer.id} />
 
       {/* Attachments */}
       <AttachmentsSection
