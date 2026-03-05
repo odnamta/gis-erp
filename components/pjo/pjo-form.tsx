@@ -34,6 +34,9 @@ import { MarketClassificationDisplay } from './market-classification-display'
 import { PricingApproachSection } from './pricing-approach-section'
 import { useMarketClassification } from '@/hooks/use-market-classification'
 import { CargoSpecifications, RouteCharacteristics, TerrainType, PricingApproach, parseComplexityFactors } from '@/types/market-classification'
+import { CustomerInfoPanel } from './customer-info-panel'
+import { RouteHistoryPills } from './route-history-pills'
+import { JO_SUBCATEGORY_OPTIONS, SERVICE_SCOPE_SUBCATEGORIES } from '@/types/jo-category'
 
 const revenueItemSchema = z.object({
   id: z.string().optional(),
@@ -133,6 +136,7 @@ export function PJOForm({ projects, pjo, existingRevenueItems = [], existingCost
   const [revenueItemErrors, setRevenueItemErrors] = useState<Record<number, { description?: string; unit_price?: string }>>({})
   const [costItemErrors, setCostItemErrors] = useState<Record<number, { category?: string; description?: string; estimated_amount?: string }>>({})
   const [serviceScope, setServiceScope] = useState((pjo as any)?.service_scope || '')
+  const [joSubcategory, setJoSubcategory] = useState((pjo as any)?.jo_subcategory || '')
   const today = new Date().toISOString().split('T')[0]
   const calculatedTotalRevenue = revenueItems.reduce((sum, item) => sum + item.subtotal, 0)
   const calculatedTotalCost = costItems.reduce((sum, item) => sum + item.estimated_amount, 0)
@@ -355,6 +359,7 @@ export function PJOForm({ projects, pjo, existingRevenueItems = [], existingCost
         pricing_approach: pricingApproach,
         pricing_notes: pricingNotes || null,
         service_scope: (serviceScope || null) as any,
+        jo_subcategory: (joSubcategory || null) as any,
       }
 
       if (mode === 'create') {
@@ -422,6 +427,12 @@ export function PJOForm({ projects, pjo, existingRevenueItems = [], existingCost
             {errors.project_id && <p className="text-sm text-destructive">{errors.project_id.message}</p>}
             {selectedProject && <p className="text-sm text-muted-foreground">Customer: {selectedProject.customers?.name}</p>}
           </div>
+          {/* Customer Info Panel — auto-fills when project selected */}
+          {selectedProject?.customer_id && (
+            <div className="md:col-span-2">
+              <CustomerInfoPanel customerId={selectedProject.customer_id} />
+            </div>
+          )}
           <div className="space-y-2">
             <Label htmlFor="service_scope">Lingkup Layanan</Label>
             <Select value={serviceScope} onValueChange={(v) => setServiceScope(v)} disabled={isLoading}>
@@ -433,6 +444,20 @@ export function PJOForm({ projects, pjo, existingRevenueItems = [], existingCost
                 <SelectItem value="cargo_customs">Cargo + Customs</SelectItem>
                 <SelectItem value="full_service">Full Service</SelectItem>
                 <SelectItem value="other">Lainnya</SelectItem>
+              </SelectContent>
+            </Select>
+          </div>
+          <div className="space-y-2">
+            <Label htmlFor="jo_subcategory">Kategori JO</Label>
+            <Select value={joSubcategory} onValueChange={(v) => setJoSubcategory(v)} disabled={isLoading}>
+              <SelectTrigger><SelectValue placeholder="Pilih kategori JO" /></SelectTrigger>
+              <SelectContent>
+                {(serviceScope && SERVICE_SCOPE_SUBCATEGORIES[serviceScope]
+                  ? JO_SUBCATEGORY_OPTIONS.filter(o => SERVICE_SCOPE_SUBCATEGORIES[serviceScope].includes(o.value))
+                  : JO_SUBCATEGORY_OPTIONS
+                ).map((opt) => (
+                  <SelectItem key={opt.value} value={opt.value}>{opt.label}</SelectItem>
+                ))}
               </SelectContent>
             </Select>
           </div>
@@ -463,6 +488,28 @@ export function PJOForm({ projects, pjo, existingRevenueItems = [], existingCost
       <Card>
         <CardHeader><CardTitle>Logistics</CardTitle></CardHeader>
         <CardContent className="grid gap-4 md:grid-cols-2">
+          {/* Route History Pills — show previous routes for this customer */}
+          {selectedProject?.customer_id && (
+            <div className="md:col-span-2">
+              <RouteHistoryPills
+                customerId={selectedProject.customer_id}
+                onSelectRoute={(route) => {
+                  handlePOLChange(route.pol, route.pol_place_id ? {
+                    formattedAddress: route.pol,
+                    placeId: route.pol_place_id,
+                    lat: route.pol_lat ?? 0,
+                    lng: route.pol_lng ?? 0,
+                  } : undefined)
+                  handlePODChange(route.pod, route.pod_place_id ? {
+                    formattedAddress: route.pod,
+                    placeId: route.pod_place_id,
+                    lat: route.pod_lat ?? 0,
+                    lng: route.pod_lng ?? 0,
+                  } : undefined)
+                }}
+              />
+            </div>
+          )}
           <div className="space-y-2">
             <Label htmlFor="pol">Point of Loading (POL)</Label>
             <PlacesAutocomplete id="pol" value={polValue} onChange={handlePOLChange} placeholder="Origin location" disabled={isLoading} />

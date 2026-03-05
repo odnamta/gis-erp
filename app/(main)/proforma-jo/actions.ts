@@ -70,6 +70,7 @@ const pjoSchema = z.object({
   pricing_approach: z.enum(['standard', 'premium', 'negotiated', 'cost_plus']).optional().nullable(),
   pricing_notes: z.string().optional().nullable(),
   service_scope: z.enum(['cargo', 'customs', 'agency', 'cargo_customs', 'full_service', 'other']).optional().nullable(),
+  jo_subcategory: z.enum(['trucking', 'heavy_cargo', 'project_cargo', 'handling_warehouse', 'customs_clearance', 'agency_service', 'survey', 'escort']).optional().nullable(),
 })
 
 export type PJOFormData = z.infer<typeof pjoSchema>
@@ -187,6 +188,7 @@ export async function createPJO(data: PJOFormData): Promise<{ error?: string; id
       pricing_approach: data.pricing_approach ?? null,
       pricing_notes: data.pricing_notes ?? null,
       service_scope: data.service_scope ?? null,
+      jo_subcategory: data.jo_subcategory ?? null,
       // Engineering flag fields
       requires_engineering: requiresEngineering,
       engineering_status: requiresEngineering ? 'pending' : null,
@@ -354,6 +356,7 @@ export async function updatePJO(
       pricing_approach: data.pricing_approach ?? null,
       pricing_notes: data.pricing_notes ?? null,
       service_scope: data.service_scope ?? null,
+      jo_subcategory: data.jo_subcategory ?? null,
       ...engineeringUpdate,
       updated_at: new Date().toISOString(),
     })
@@ -735,6 +738,67 @@ export async function rejectPJO(id: string, reason: string): Promise<{ error?: s
 // ============================================
 
 import { calculateCostStatus } from '@/lib/pjo-utils'
+
+// ============================================
+// v0.14 - Customer Details & PJO History
+// ============================================
+
+export interface CustomerDetailsForPJO {
+  id: string
+  name: string
+  email: string
+  phone: string | null
+  address: string | null
+}
+
+export interface PJOHistoryItem {
+  id: string
+  pjo_number: string
+  commodity: string | null
+  pol: string | null
+  pod: string | null
+  total_revenue: number | null
+  status: string
+  jo_date: string | null
+  created_at: string | null
+}
+
+/**
+ * Get customer details + recent PJO history for a customer
+ * Used by PJO form to auto-display customer info when project is selected
+ */
+export async function getCustomerDetailsForPJO(customerId: string): Promise<{
+  customer: CustomerDetailsForPJO | null
+  recentPJOs: PJOHistoryItem[]
+  error?: string
+}> {
+  const supabase = await createClient()
+
+  // Fetch customer details and recent PJOs in parallel
+  const [customerResult, pjoResult] = await Promise.all([
+    supabase
+      .from('customers')
+      .select('id, name, email, phone, address')
+      .eq('id', customerId)
+      .single(),
+    supabase
+      .from('proforma_job_orders')
+      .select('id, pjo_number, commodity, pol, pod, total_revenue, status, jo_date, created_at')
+      .eq('customer_id', customerId)
+      .eq('is_active', true)
+      .order('created_at', { ascending: false })
+      .limit(5),
+  ])
+
+  if (customerResult.error) {
+    return { customer: null, recentPJOs: [], error: customerResult.error.message }
+  }
+
+  return {
+    customer: customerResult.data as CustomerDetailsForPJO,
+    recentPJOs: (pjoResult.data || []) as PJOHistoryItem[],
+  }
+}
 
 /**
  * Confirm a cost item with actual amount
