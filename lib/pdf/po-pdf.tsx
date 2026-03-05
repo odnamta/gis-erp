@@ -178,12 +178,11 @@ export function POPDF({ po, vendor, lineItems, approver, company }: POPDFProps) 
   return (
     <Document>
       <Page size="A4" style={styles.page}>
-        <PDFHeader company={company} />
-
-        <Text style={styles.title}>PURCHASE ORDER</Text>
-        <Text style={styles.subtitle}>
-          {po.po_number} — {STATUS_LABELS[po.status] || po.status}
-        </Text>
+        <PDFHeader
+          company={company}
+          documentTitle="PURCHASE ORDER"
+          documentNumber={po.po_number}
+        />
 
         {/* Info Section */}
         <View style={styles.infoSection}>

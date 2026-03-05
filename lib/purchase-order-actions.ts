@@ -133,7 +133,7 @@ export async function getPurchaseOrderById(id: string): Promise<PurchaseOrder | 
   return {
     ...po,
     vendor: vendor || null,
-    line_items: (lineItems || []) as POLineItem[],
+    line_items: (lineItems || []) as unknown as POLineItem[],
     approver,
   } as PurchaseOrder;
 }
