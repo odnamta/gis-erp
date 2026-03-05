@@ -250,3 +250,83 @@ export async function getRatesByServiceType(serviceType: string): Promise<{
 
   return { data: rates as unknown as VendorRate[] }
 }
+
+export interface VendorSuggestion {
+  vendor_id: string
+  vendor_name: string
+  is_preferred: boolean
+  rate_count: number
+  lowest_rate: number | null
+}
+
+/**
+ * Get suggested vendors for a cost category.
+ * Returns vendors that match the category's vendor type,
+ * sorted by preferred status and active rate count.
+ */
+export async function getVendorSuggestionsForCategory(
+  category: string
+): Promise<{ data: VendorSuggestion[]; error?: string }> {
+  const { mapCostCategoryToVendorType } = await import('@/lib/vendor-utils')
+  const vendorType = mapCostCategoryToVendorType(category)
+  if (!vendorType) {
+    return { data: [] }
+  }
+
+  const supabase = await createClient()
+  const today = new Date().toISOString().split('T')[0]
+
+  // Get active vendors of matching type
+  const { data: vendors, error: vendorError } = await supabase
+    .from('vendors')
+    .select('id, vendor_name, is_preferred')
+    .eq('vendor_type', vendorType)
+    .eq('is_active', true)
+    .order('is_preferred', { ascending: false })
+    .order('vendor_name')
+    .limit(8)
+
+  if (vendorError || !vendors?.length) {
+    return { data: [], error: vendorError?.message }
+  }
+
+  // Get active rate counts per vendor
+  const vendorIds = vendors.map(v => v.id)
+  const { data: rates } = await supabase
+    .from('vendor_rates' as any)
+    .select('vendor_id, base_price')
+    .in('vendor_id', vendorIds)
+    .eq('is_active', true)
+    .lte('effective_from', today)
+    .or(`effective_to.is.null,effective_to.gte.${today}`)
+
+  // Build rate stats per vendor
+  const rateStats = new Map<string, { count: number; lowest: number | null }>()
+  for (const rate of (rates || []) as unknown as { vendor_id: string; base_price: number }[]) {
+    const existing = rateStats.get(rate.vendor_id) || { count: 0, lowest: null }
+    existing.count++
+    if (existing.lowest === null || rate.base_price < existing.lowest) {
+      existing.lowest = rate.base_price
+    }
+    rateStats.set(rate.vendor_id, existing)
+  }
+
+  const suggestions = vendors.map(v => {
+    const stats = rateStats.get(v.id) || { count: 0, lowest: null }
+    return {
+      vendor_id: v.id,
+      vendor_name: v.vendor_name,
+      is_preferred: v.is_preferred ?? false,
+      rate_count: stats.count,
+      lowest_rate: stats.lowest,
+    }
+  })
+
+  // Sort: preferred first, then by rate count (vendors with rates first)
+  suggestions.sort((a, b) => {
+    if (a.is_preferred !== b.is_preferred) return a.is_preferred ? -1 : 1
+    return b.rate_count - a.rate_count
+  })
+
+  return { data: suggestions.slice(0, 5) }
+}

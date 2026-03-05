@@ -31,7 +31,8 @@ import { VendorSelector } from '@/components/vendors/vendor-selector'
 import { EquipmentSelector } from '@/components/vendors/equipment-selector'
 import { mapCostCategoryToVendorType } from '@/lib/vendor-utils'
 import { Vendor, VendorEquipment } from '@/types/vendors'
-import { getActiveVendorRates } from '@/lib/vendor-rate-actions'
+import { getActiveVendorRates, getVendorSuggestionsForCategory } from '@/lib/vendor-rate-actions'
+import type { VendorSuggestion } from '@/lib/vendor-rate-actions'
 import type { VendorRate } from '@/types/vendor-rate'
 import { SERVICE_TYPE_LABELS, UNIT_LABELS } from '@/types/vendor-rate'
 import { formatCurrency } from '@/lib/utils/format'
@@ -68,6 +69,8 @@ export function CostItemForm({ pjoId, item, open, onOpenChange, onSuccess }: Cos
   const [selectedEquipmentId, setSelectedEquipmentId] = useState<string | null>(item?.vendor_equipment_id || null)
   const [vendorRates, setVendorRates] = useState<VendorRate[]>([])
   const [isLoadingRates, setIsLoadingRates] = useState(false)
+  const [vendorSuggestions, setVendorSuggestions] = useState<VendorSuggestion[]>([])
+  const [isLoadingSuggestions, setIsLoadingSuggestions] = useState(false)
   const isEdit = !!item
 
   const {
@@ -92,7 +95,7 @@ export function CostItemForm({ pjoId, item, open, onOpenChange, onSuccess }: Cos
   const selectedCategory = watch('category')
   const vendorType = mapCostCategoryToVendorType(selectedCategory)
 
-  // Reset vendor and equipment when category changes
+  // Reset vendor and equipment when category changes, and fetch suggestions
   useEffect(() => {
     if (!isEdit) {
       setSelectedVendorId(null)
@@ -100,6 +103,11 @@ export function CostItemForm({ pjoId, item, open, onOpenChange, onSuccess }: Cos
       setValue('vendor_id', null)
       setValue('vendor_equipment_id', null)
     }
+    // Fetch vendor suggestions for this category
+    setIsLoadingSuggestions(true)
+    getVendorSuggestionsForCategory(selectedCategory)
+      .then(({ data }) => setVendorSuggestions(data))
+      .finally(() => setIsLoadingSuggestions(false))
   }, [selectedCategory, isEdit, setValue])
 
   // Fetch vendor rates when vendor changes
@@ -207,6 +215,43 @@ export function CostItemForm({ pjoId, item, open, onOpenChange, onSuccess }: Cos
               <p className="text-sm text-destructive">{errors.description.message}</p>
             )}
           </div>
+
+          {/* Vendor Suggestions — auto-populated by category */}
+          {!selectedVendorId && vendorSuggestions.length > 0 && (
+            <div className="space-y-1.5">
+              <Label className="text-xs text-muted-foreground">Vendor yang disarankan</Label>
+              <div className="flex flex-wrap gap-1.5">
+                {vendorSuggestions.map((suggestion) => (
+                  <button
+                    key={suggestion.vendor_id}
+                    type="button"
+                    className="inline-flex items-center gap-1.5 rounded-md border px-2.5 py-1 text-xs transition-colors hover:bg-accent hover:text-accent-foreground cursor-pointer"
+                    onClick={() => {
+                      setSelectedVendorId(suggestion.vendor_id)
+                      setValue('vendor_id', suggestion.vendor_id)
+                    }}
+                    title={`Pilih ${suggestion.vendor_name}${suggestion.lowest_rate ? ` — mulai ${formatCurrency(suggestion.lowest_rate)}` : ''}`}
+                  >
+                    {suggestion.is_preferred && (
+                      <span className="text-yellow-500">★</span>
+                    )}
+                    <span className="font-medium">{suggestion.vendor_name}</span>
+                    {suggestion.rate_count > 0 && (
+                      <span className="text-muted-foreground">
+                        ({suggestion.rate_count} tarif)
+                      </span>
+                    )}
+                  </button>
+                ))}
+              </div>
+            </div>
+          )}
+          {!selectedVendorId && isLoadingSuggestions && (
+            <div className="flex items-center gap-2 text-xs text-muted-foreground">
+              <Loader2 className="h-3 w-3 animate-spin" />
+              Mencari vendor...
+            </div>
+          )}
 
           {/* Vendor Selection */}
           <div className="space-y-2">
