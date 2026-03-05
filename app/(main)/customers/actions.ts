@@ -16,6 +16,7 @@ const customerSchema = z.object({
   phone: z.string().optional(),
   address: z.string().optional(),
   established_date: z.string().optional(),
+  payment_terms_days: z.string().optional(),
 })
 
 export type CustomerFormData = z.infer<typeof customerSchema>
@@ -40,6 +41,7 @@ export async function createCustomer(data: CustomerFormData): Promise<{ error?: 
     phone: data.phone || null,
     address: data.address || null,
     ...(data.established_date ? { established_date: data.established_date } : {}),
+    payment_terms_days: data.payment_terms_days ? parseInt(data.payment_terms_days, 10) : null,
   }
 
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -87,6 +89,7 @@ export async function updateCustomer(
     phone: data.phone || null,
     address: data.address || null,
     established_date: data.established_date || null,
+    payment_terms_days: data.payment_terms_days ? parseInt(data.payment_terms_days, 10) : null,
   }
 
   // eslint-disable-next-line @typescript-eslint/no-explicit-any

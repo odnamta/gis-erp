@@ -6,7 +6,7 @@ import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
 import { StatusBadge } from '@/components/ui/status-badge'
 import { AttachmentsSection } from '@/components/attachments'
-import { ArrowLeft, Plus, Building2, Mail, Phone, MapPin, Calendar, Cake, FileText, Receipt, Briefcase } from 'lucide-react'
+import { ArrowLeft, Plus, Building2, Mail, Phone, MapPin, Calendar, Cake, FileText, Receipt, Briefcase, Clock } from 'lucide-react'
 import { formatDate, formatCurrency } from '@/lib/utils/format'
 
 interface CustomerDetailPageProps {
@@ -94,6 +94,17 @@ export default async function CustomerDetailPage({ params }: CustomerDetailPageP
               <div>
                 <p className="text-sm text-muted-foreground">Address</p>
                 <p className="font-medium">{customer.address || '-'}</p>
+              </div>
+            </div>
+            <div className="flex items-center gap-3">
+              <Clock className="h-4 w-4 text-muted-foreground" />
+              <div>
+                <p className="text-sm text-muted-foreground">Termin Pembayaran</p>
+                <p className="font-medium">
+                  {(customer as Record<string, unknown>).payment_terms_days
+                    ? `${(customer as Record<string, unknown>).payment_terms_days} hari`
+                    : 'Default sistem'}
+                </p>
               </div>
             </div>
             <div className="flex items-center gap-3">

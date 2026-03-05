@@ -26,6 +26,38 @@ import { ActionResult } from '@/types/actions'
 const INVOICE_ALLOWED_ROLES = ['owner', 'director', 'sysadmin', 'finance_manager', 'finance', 'administration', 'marketing_manager'] as const
 
 /**
+ * Get payment terms days for a customer.
+ * Priority: customer.payment_terms_days > company_settings.default_payment_terms > DEFAULT_SETTINGS
+ */
+async function getPaymentTermsForCustomer(
+  supabase: Awaited<ReturnType<typeof createClient>>,
+  customerId: string
+): Promise<number> {
+  // Check customer-level payment terms first
+  const { data: customer } = await supabase
+    .from('customers')
+    .select('payment_terms_days')
+    .eq('id', customerId)
+    .single()
+
+  const customerTerms = (customer as Record<string, unknown> | null)?.payment_terms_days as number | null
+  if (customerTerms && customerTerms > 0) {
+    return customerTerms
+  }
+
+  // Fall back to company settings
+  const { data: paymentTermsSetting } = await supabase
+    .from('company_settings')
+    .select('value')
+    .eq('key', 'default_payment_terms')
+    .single()
+
+  return paymentTermsSetting?.value
+    ? parseInt(paymentTermsSetting.value, 10)
+    : DEFAULT_SETTINGS.default_payment_terms
+}
+
+/**
  * Generate the next sequential invoice number for the current year
  * Format: INV-YYYY-NNNN
  */
@@ -129,18 +161,9 @@ export async function getInvoiceDataFromJO(joId: string): Promise<ActionResult<I
 
   // Generate invoice number
   const invoiceNumber = await generateInvoiceNumber()
-  
-  // Get payment terms from company settings
-  const { data: paymentTermsSetting } = await supabase
-    .from('company_settings')
-    .select('value')
-    .eq('key', 'default_payment_terms')
-    .single()
-  
-  const paymentTerms = paymentTermsSetting?.value 
-    ? parseInt(paymentTermsSetting.value, 10) 
-    : DEFAULT_SETTINGS.default_payment_terms
-  
+
+  // Get payment terms (customer-level > company default)
+  const paymentTerms = await getPaymentTermsForCustomer(supabase, jo.customer_id)
   const dueDate = getDefaultDueDate(paymentTerms)
 
   return {
@@ -613,17 +636,8 @@ export async function generateSplitInvoice(
   // Generate invoice number
   const invoiceNumber = await generateInvoiceNumber()
 
-  // Get payment terms from company settings
-  const { data: paymentTermsSetting } = await supabase
-    .from('company_settings')
-    .select('value')
-    .eq('key', 'default_payment_terms')
-    .single()
-
-  const paymentTerms = paymentTermsSetting?.value
-    ? parseInt(paymentTermsSetting.value, 10)
-    : DEFAULT_SETTINGS.default_payment_terms
-
+  // Get payment terms (customer-level > company default)
+  const paymentTerms = await getPaymentTermsForCustomer(supabase, jo.customer_id)
   const dueDate = getDefaultDueDate(paymentTerms)
 
   // Determine entity_type from user role (profile already fetched in role check above)
@@ -795,17 +809,8 @@ export async function createDPInvoice(
   // Generate invoice number
   const invoiceNumber = await generateInvoiceNumber()
 
-  // Get payment terms
-  const { data: paymentTermsSetting } = await supabase
-    .from('company_settings')
-    .select('value')
-    .eq('key', 'default_payment_terms')
-    .single()
-
-  const paymentTerms = paymentTermsSetting?.value
-    ? parseInt(paymentTermsSetting.value, 10)
-    : DEFAULT_SETTINGS.default_payment_terms
-
+  // Get payment terms (customer-level > company default)
+  const paymentTerms = await getPaymentTermsForCustomer(supabase, customerId)
   const dueDate = getDefaultDueDate(paymentTerms)
   const entityType = profile.role === 'agency' ? 'gama_agency' : 'gama_main'
 

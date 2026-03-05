@@ -17,6 +17,7 @@ export const customerSchema = z.object({
   phone: z.string().optional(),
   address: z.string().optional(),
   established_date: z.string().optional(),
+  payment_terms_days: z.string().optional(),
 })
 
 export type CustomerFormData = z.infer<typeof customerSchema>
@@ -46,6 +47,9 @@ export function CustomerForm({ customer, onSubmit, isLoading }: CustomerFormProp
       phone: customer?.phone || '',
       address: customer?.address || '',
       established_date: (customer as any)?.established_date || '',
+      payment_terms_days: (customer as Record<string, unknown>)?.payment_terms_days
+        ? String((customer as Record<string, unknown>).payment_terms_days)
+        : '',
     },
   })
 
@@ -109,6 +113,22 @@ export function CustomerForm({ customer, onSubmit, isLoading }: CustomerFormProp
           placeholder="Customer address"
           disabled={isLoading}
         />
+      </div>
+
+      <div className="space-y-2">
+        <Label htmlFor="payment_terms_days">Termin Pembayaran (hari)</Label>
+        <Input
+          id="payment_terms_days"
+          type="number"
+          {...register('payment_terms_days')}
+          placeholder="Kosongkan untuk default sistem (30 hari)"
+          disabled={isLoading}
+          min={1}
+          max={365}
+        />
+        <p className="text-xs text-muted-foreground">
+          Jika diisi, due date invoice akan dihitung dari termin ini
+        </p>
       </div>
 
       <div className="space-y-2">
