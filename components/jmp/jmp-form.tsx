@@ -14,6 +14,7 @@ import {
   SelectValue,
 } from '@/components/ui/select';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Combobox } from '@/components/forms/combobox';
 import { useToast } from '@/hooks/use-toast';
 import { JmpFormData, JourneyManagementPlan } from '@/types/jmp';
 import { createJmp, updateJmp, createJmpFromSurvey } from '@/lib/jmp-actions';
@@ -156,21 +157,14 @@ export function JmpForm({ jmp, surveys, customers, employees }: JmpFormProps) {
             </div>
             <div>
               <Label htmlFor="customerId">Customer</Label>
-              <Select
+              <Combobox
+                options={customers.map((c) => ({ value: c.id, label: c.name }))}
                 value={formData.customerId || ''}
-                onValueChange={(value) => setFormData({ ...formData, customerId: value })}
-              >
-                <SelectTrigger>
-                  <SelectValue placeholder="Select customer" />
-                </SelectTrigger>
-                <SelectContent>
-                  {customers.map((customer) => (
-                    <SelectItem key={customer.id} value={customer.id}>
-                      {customer.name}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
+                onSelect={(v) => setFormData({ ...formData, customerId: v })}
+                placeholder="Pilih customer..."
+                searchPlaceholder="Cari customer..."
+                emptyText="Customer tidak ditemukan"
+              />
             </div>
             <div>
               <Label htmlFor="convoyCommanderId">Convoy Commander</Label>

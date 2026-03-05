@@ -14,6 +14,7 @@ import {
   SelectValue,
 } from '@/components/ui/select';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Combobox } from '@/components/forms/combobox';
 import { RouteSurvey, SurveyFormData } from '@/types/survey';
 import { createSurvey, updateSurvey } from '@/lib/survey-actions';
 import { Loader2, Package, Truck, MapPin, User } from 'lucide-react';
@@ -109,20 +110,14 @@ export function SurveyForm({
         <CardContent className="grid grid-cols-1 md:grid-cols-3 gap-4">
           <div className="space-y-2">
             <Label>Customer</Label>
-            <Select
-              value={formData.customerId || 'none'}
-              onValueChange={(v) => handleChange('customerId', v === 'none' ? '' : v)}
-            >
-              <SelectTrigger>
-                <SelectValue placeholder="Select customer" />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="none">No customer</SelectItem>
-                {customers.map((c) => (
-                  <SelectItem key={c.id} value={c.id}>{c.name}</SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
+            <Combobox
+              options={customers.map((c) => ({ value: c.id, label: c.name }))}
+              value={formData.customerId || ''}
+              onSelect={(v) => handleChange('customerId', v)}
+              placeholder="Pilih customer..."
+              searchPlaceholder="Cari customer..."
+              emptyText="Customer tidak ditemukan"
+            />
           </div>
           <div className="space-y-2">
             <Label>Quotation</Label>

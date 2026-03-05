@@ -4,9 +4,11 @@ import { useState } from 'react'
 import { useRouter } from 'next/navigation'
 import { Customer } from '@/types'
 import { Button } from '@/components/ui/button'
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { useToast } from '@/hooks/use-toast'
-import { Plus } from 'lucide-react'
+import { Plus, FolderOpen, CheckCircle2, Users } from 'lucide-react'
 import { ProjectTable, ProjectWithCustomer } from '@/components/projects/project-table'
+import { ProjectStats } from './page'
 import { ProjectDialog } from '@/components/projects/project-dialog'
 import { ProjectFormData } from '@/components/projects/project-form'
 import {
@@ -24,15 +26,17 @@ import { createProject, updateProject, deleteProject } from './actions'
 interface ProjectsClientProps {
   projects: ProjectWithCustomer[]
   customers: Customer[]
+  stats: ProjectStats
   openAddDialog?: boolean
   preselectedCustomerId?: string
 }
 
-export function ProjectsClient({ 
-  projects, 
-  customers, 
+export function ProjectsClient({
+  projects,
+  customers,
+  stats,
   openAddDialog = false,
-  preselectedCustomerId 
+  preselectedCustomerId
 }: ProjectsClientProps) {
   const router = useRouter()
   const { toast } = useToast()
@@ -132,6 +136,45 @@ export function ProjectsClient({
           <Plus className="mr-2 h-4 w-4" />
           Add Project
         </Button>
+      </div>
+
+      <div className="grid grid-cols-2 gap-3 md:grid-cols-4 md:gap-4">
+        <Card>
+          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+            <CardTitle className="text-xs sm:text-sm font-medium">Total Project</CardTitle>
+            <FolderOpen className="h-4 w-4 text-muted-foreground" />
+          </CardHeader>
+          <CardContent>
+            <div className="text-lg sm:text-2xl font-bold">{stats.total}</div>
+          </CardContent>
+        </Card>
+        <Card>
+          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+            <CardTitle className="text-xs sm:text-sm font-medium">Aktif</CardTitle>
+            <FolderOpen className="h-4 w-4 text-blue-500" />
+          </CardHeader>
+          <CardContent>
+            <div className="text-lg sm:text-2xl font-bold text-blue-600">{stats.active}</div>
+          </CardContent>
+        </Card>
+        <Card>
+          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+            <CardTitle className="text-xs sm:text-sm font-medium">Selesai</CardTitle>
+            <CheckCircle2 className="h-4 w-4 text-green-500" />
+          </CardHeader>
+          <CardContent>
+            <div className="text-lg sm:text-2xl font-bold text-green-600">{stats.completed}</div>
+          </CardContent>
+        </Card>
+        <Card>
+          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+            <CardTitle className="text-xs sm:text-sm font-medium">Customer</CardTitle>
+            <Users className="h-4 w-4 text-purple-500" />
+          </CardHeader>
+          <CardContent>
+            <div className="text-lg sm:text-2xl font-bold text-purple-600">{stats.customerCount}</div>
+          </CardContent>
+        </Card>
       </div>
 
       <ProjectTable
