@@ -14,6 +14,7 @@ import { ManagedSelect } from '@/components/ui/managed-select'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Loader2, FileQuestion, AlertCircle, Info } from 'lucide-react'
 import { cn } from '@/lib/utils'
+import { Combobox } from '@/components/forms/combobox'
 import { formatCurrency } from '@/lib/utils/format'
 import { createClient } from '@/lib/supabase/client'
 import { ProformaJobOrder, PJORevenueItem, PJOCostItem } from '@/types'
@@ -401,12 +402,23 @@ export function PJOForm({ projects, pjo, existingRevenueItems = [], existingCost
           </div>
           <div className="space-y-2">
             <Label htmlFor="project_id">Project *</Label>
-            <Select value={selectedProjectId} onValueChange={(v) => setValue('project_id', v)} disabled={isLoading || mode === 'edit'}>
-              <SelectTrigger><SelectValue placeholder="Select a project" /></SelectTrigger>
-              <SelectContent>
-                {projects.map((p) => <SelectItem key={p.id} value={p.id}>{p.name} ({p.customers?.name})</SelectItem>)}
-              </SelectContent>
-            </Select>
+            {mode === 'edit' ? (
+              <Select value={selectedProjectId} onValueChange={(v) => setValue('project_id', v)} disabled>
+                <SelectTrigger><SelectValue placeholder="Select a project" /></SelectTrigger>
+                <SelectContent>
+                  {projects.map((p) => <SelectItem key={p.id} value={p.id}>{p.name} ({p.customers?.name})</SelectItem>)}
+                </SelectContent>
+              </Select>
+            ) : (
+              <Combobox
+                options={projects.map((p) => ({ value: p.id, label: `${p.name} (${p.customers?.name || '-'})` }))}
+                value={selectedProjectId}
+                onSelect={(v) => setValue('project_id', v)}
+                placeholder="Pilih project..."
+                searchPlaceholder="Cari project atau customer..."
+                emptyText="Project tidak ditemukan"
+              />
+            )}
             {errors.project_id && <p className="text-sm text-destructive">{errors.project_id.message}</p>}
             {selectedProject && <p className="text-sm text-muted-foreground">Customer: {selectedProject.customers?.name}</p>}
           </div>
