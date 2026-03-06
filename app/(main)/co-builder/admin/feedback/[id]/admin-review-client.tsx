@@ -16,6 +16,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select'
+import { Switch } from '@/components/ui/switch'
 import {
   ArrowLeft,
   Bug,
@@ -26,6 +27,7 @@ import {
   Loader2,
   ExternalLink,
   Image as ImageIcon,
+  Bot,
 } from 'lucide-react'
 import { useToast } from '@/hooks/use-toast'
 import { SupportThread } from '@/components/support/support-thread'
@@ -50,12 +52,14 @@ export function AdminReviewClient({ feedback, currentUserId }: { feedback: Compe
     feedback.admin_status !== 'pending_review' ? feedback.admin_status : 'acknowledged'
   )
   const [adminResponse, setAdminResponse] = useState(feedback.admin_response || '')
+  const [isAiSuggestion, setIsAiSuggestion] = useState(feedback.is_ai_suggestion ?? false)
   const [isSubmitting, setIsSubmitting] = useState(false)
 
   const cat = CATEGORY_CONFIG[feedback.category] || CATEGORY_CONFIG.question
   const CatIcon = cat.icon
   const multiplierMap = { helpful: 1, important: 2, critical: 3 }
-  const previewPoints = feedback.base_points * multiplierMap[impactLevel]
+  const rawPoints = feedback.base_points * multiplierMap[impactLevel]
+  const previewPoints = isAiSuggestion ? Math.ceil(rawPoints * 0.5) : rawPoints
 
   async function handleSubmit() {
     if (!adminResponse.trim()) return
@@ -66,6 +70,7 @@ export function AdminReviewClient({ feedback, currentUserId }: { feedback: Compe
       impactLevel,
       adminStatus,
       adminResponse,
+      isAiSuggestion,
     })
 
     setIsSubmitting(false)
@@ -108,6 +113,7 @@ export function AdminReviewClient({ feedback, currentUserId }: { feedback: Compe
               <CatIcon className={`h-5 w-5 ${cat.color.split(' ')[0]}`} />
               <Badge variant="outline">{cat.label}</Badge>
               <Badge variant="secondary">{feedback.effort_level}</Badge>
+              {feedback.is_ai_suggestion && <Badge variant="outline" className="text-blue-600 border-blue-300 bg-blue-50"><Bot className="h-3 w-3 mr-1" />AI</Badge>}
             </div>
             <span className="text-sm text-muted-foreground">{createdDate}</span>
           </div>
@@ -210,6 +216,18 @@ export function AdminReviewClient({ feedback, currentUserId }: { feedback: Compe
             </Select>
           </div>
 
+          {/* AI Suggestion Toggle */}
+          <div className="flex items-center justify-between rounded-lg border p-3">
+            <div className="flex items-center gap-2">
+              <Bot className="h-4 w-4 text-blue-500" />
+              <div>
+                <Label className="text-sm font-medium">Saran AI</Label>
+                <p className="text-xs text-muted-foreground">Skor dikurangi 0.5x untuk saran terkait fitur AI</p>
+              </div>
+            </div>
+            <Switch checked={isAiSuggestion} onCheckedChange={setIsAiSuggestion} />
+          </div>
+
           {/* Response */}
           <div className="space-y-2">
             <Label>Respon Admin *</Label>
@@ -228,6 +246,9 @@ export function AdminReviewClient({ feedback, currentUserId }: { feedback: Compe
             <span className="font-bold text-orange-600">
               {adminStatus === 'duplicate' ? 0 : previewPoints} pts
             </span>
+            {isAiSuggestion && adminStatus !== 'duplicate' && (
+              <span className="text-blue-600"> (AI 0.5x, dari {rawPoints})</span>
+            )}
             {adminStatus === 'fixed' && <span className="text-orange-600"> + 5 bonus</span>}
             {adminStatus === 'implemented' && <span className="text-orange-600"> + 10 bonus</span>}
           </div>

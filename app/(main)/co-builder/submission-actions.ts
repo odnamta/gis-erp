@@ -59,6 +59,7 @@ export interface CompetitionFeedback {
   admin_response: string | null
   admin_status: string
   references_feedback_id: string | null
+  is_ai_suggestion: boolean
   is_active: boolean
   created_at: string
   updated_at: string
@@ -402,6 +403,7 @@ export async function reviewFeedback(data: {
   impactLevel: 'helpful' | 'important' | 'critical'
   adminStatus: string
   adminResponse: string
+  isAiSuggestion?: boolean
 }): Promise<{ success: boolean; error?: string }> {
   try {
     const profile = await getUserProfile()
@@ -424,6 +426,7 @@ export async function reviewFeedback(data: {
     if (!current) return { success: false, error: 'Feedback not found' }
 
     const fb = current as unknown as CompetitionFeedback
+    const isAI = data.isAiSuggestion ?? fb.is_ai_suggestion
 
     // Find existing feedback_reviewed event(s) for this feedback and account for them
     const { data: existingReviewEvents } = await supabase
@@ -435,10 +438,26 @@ export async function reviewFeedback(data: {
 
     const existingReviewPoints = (existingReviewEvents || []).reduce((sum: number, e: any) => sum + e.points, 0)
 
+    // Find existing AI adjustment events
+    const { data: existingAiEvents } = await supabase
+      .from(// eslint-disable-next-line @typescript-eslint/no-explicit-any
+    'point_events' as any)
+      .select('id, points')
+      .eq('reference_id', data.feedbackId)
+      .eq('event_type', 'ai_score_adjustment')
+
+    const existingAiAdjustment = (existingAiEvents || []).reduce((sum: number, e: any) => sum + e.points, 0)
+
     // New total based on base_points * multiplier
-    const newTotal = fb.base_points * multiplier
+    const rawTotal = fb.base_points * multiplier
+    // Apply 0.5x for AI suggestions
+    const newTotal = isAI ? Math.ceil(rawTotal * 0.5) : rawTotal
     // Diff accounts for the multiplier change from base, minus what was already awarded from previous reviews
-    const pointsDiff = (newTotal - fb.base_points) - existingReviewPoints
+    const pointsDiff = (rawTotal - fb.base_points) - existingReviewPoints
+
+    // AI adjustment: the difference between raw and reduced total, minus what was already adjusted
+    const newAiAdjustment = isAI ? -(rawTotal - newTotal) : 0
+    const aiAdjustmentDiff = newAiAdjustment - existingAiAdjustment
 
     // Update feedback
     await supabase
@@ -450,12 +469,13 @@ export async function reviewFeedback(data: {
         total_points: newTotal,
         admin_status: data.adminStatus,
         admin_response: data.adminResponse,
+        is_ai_suggestion: isAI,
         reviewed_at: new Date().toISOString(),
         updated_at: new Date().toISOString(),
       } as Record<string, unknown>)
       .eq('id', data.feedbackId)
 
-    // Create point event for the difference
+    // Create point event for the multiplier difference
     if (pointsDiff !== 0) {
       await supabase.from(// eslint-disable-next-line @typescript-eslint/no-explicit-any
     'point_events' as any).insert({
@@ -463,6 +483,18 @@ export async function reviewFeedback(data: {
         event_type: 'feedback_reviewed',
         points: pointsDiff,
         description: `Feedback dinilai ${data.impactLevel} (x${multiplier})`,
+        reference_id: data.feedbackId,
+      } as Record<string, unknown>)
+    }
+
+    // Create AI score adjustment if needed
+    if (aiAdjustmentDiff !== 0) {
+      await supabase.from(// eslint-disable-next-line @typescript-eslint/no-explicit-any
+    'point_events' as any).insert({
+        user_id: fb.user_id,
+        event_type: 'ai_score_adjustment',
+        points: aiAdjustmentDiff,
+        description: isAI ? 'Penyesuaian skor: saran AI (0.5x)' : 'Saran AI dicabut: skor dikembalikan',
         reference_id: data.feedbackId,
       } as Record<string, unknown>)
     }
