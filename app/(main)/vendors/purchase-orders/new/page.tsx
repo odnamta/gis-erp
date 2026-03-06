@@ -46,7 +46,7 @@ export default function NewPurchaseOrderPage() {
   const router = useRouter();
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  const [vendors, setVendors] = useState<{ id: string; name: string; contact_person: string | null }[]>([]);
+  const [vendors, setVendors] = useState<{ id: string; vendor_name: string; contact_person: string | null }[]>([]);
 
   const [formData, setFormData] = useState({
     vendor_id: '',
@@ -66,10 +66,10 @@ export default function NewPurchaseOrderPage() {
         const supabase = createClient();
         const { data } = await supabase
           .from('vendors' as never)
-          .select('id, name, contact_person')
+          .select('id, vendor_name, contact_person')
           .eq('is_active', true)
-          .order('name');
-        setVendors((data as { id: string; name: string; contact_person: string | null }[] | null) || []);
+          .order('vendor_name');
+        setVendors((data as { id: string; vendor_name: string; contact_person: string | null }[] | null) || []);
       } catch (err) {
         console.error('Failed to load vendors:', err);
       }
@@ -171,7 +171,7 @@ export default function NewPurchaseOrderPage() {
                   <SelectContent>
                     {vendors.map((v) => (
                       <SelectItem key={v.id} value={v.id}>
-                        {v.name}
+                        {v.vendor_name}
                       </SelectItem>
                     ))}
                   </SelectContent>

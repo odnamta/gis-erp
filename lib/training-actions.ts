@@ -584,10 +584,12 @@ export async function getSessions(filters?: SessionFilters): Promise<TrainingSes
 
   // Get participant counts
   const sessionIds = ((data || []) as unknown as TrainingSessionRow[]).map((s) => s.id);
-  const { data: participantCounts } = await supabase
-    .from('training_session_participants')
-    .select('session_id')
-    .in('session_id', sessionIds);
+  const participantCounts = sessionIds.length > 0
+    ? (await supabase
+        .from('training_session_participants')
+        .select('session_id')
+        .in('session_id', sessionIds)).data
+    : [];
 
   const countMap: Record<string, number> = {};
   (participantCounts || []).forEach((p: { session_id: string }) => {
