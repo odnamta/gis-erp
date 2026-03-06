@@ -9,6 +9,7 @@ import {
   calculateDaysOverdue,
   classifyOverdueSeverity,
 } from '@/lib/overdue-check-utils'
+import { formatCurrency } from '@/lib/utils/format'
 import type { OverdueSeverity } from '@/types/overdue-check'
 
 // =====================================================
@@ -159,7 +160,7 @@ export async function getNegativeMarginFlags(): Promise<InvoiceRedFlag[]> {
       joNumber: jo.jo_number,
       customerId: inv.customer_id,
       customerName,
-      message: `Margin negatif pada ${inv.invoice_number}: revenue ${formatRp(finalRevenue)} < cost ${formatRp(jo.final_cost)} (${marginPct.toFixed(1)}%)`,
+      message: `Margin negatif pada ${inv.invoice_number}: revenue ${formatCurrency(finalRevenue)} < cost ${formatCurrency(jo.final_cost)} (${marginPct.toFixed(1)}%)`,
       amount: finalRevenue - jo.final_cost,
       metadata: { finalRevenue, finalCost: jo.final_cost, marginPct },
     })
@@ -235,7 +236,7 @@ export async function getDuplicateSuspectFlags(): Promise<InvoiceRedFlag[]> {
         invoiceNumber: a.invoice_number,
         customerId: a.customer_id,
         customerName,
-        message: `Kemungkinan duplikat: ${a.invoice_number} & ${b.invoice_number} — customer sama, nominal sama (${formatRp(a.total_amount)}), selisih ${Math.round(daysDiff)} hari`,
+        message: `Kemungkinan duplikat: ${a.invoice_number} & ${b.invoice_number} — customer sama, nominal sama (${formatCurrency(a.total_amount)}), selisih ${Math.round(daysDiff)} hari`,
         amount: a.total_amount,
         metadata: {
           otherInvoiceId: b.id,
@@ -374,15 +375,3 @@ export async function getRedFlagCounts(): Promise<{
   }
 }
 
-// =====================================================
-// HELPERS
-// =====================================================
-
-function formatRp(amount: number): string {
-  return new Intl.NumberFormat('id-ID', {
-    style: 'currency',
-    currency: 'IDR',
-    minimumFractionDigits: 0,
-    maximumFractionDigits: 0,
-  }).format(amount)
-}

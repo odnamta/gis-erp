@@ -1,6 +1,7 @@
 'use server'
 
 import { createClient } from '@/lib/supabase/server'
+import { requireRole } from '@/lib/permissions-server'
 import type {
   ChartOfAccount,
   CreateChartOfAccountInput,
@@ -9,6 +10,9 @@ import type {
   JournalEntryLine,
   CreateJournalEntryInput,
 } from '@/types/accounting'
+
+// Roles allowed to manage GL entries
+const GL_WRITE_ROLES = ['owner', 'director', 'sysadmin', 'finance_manager', 'finance'] as const
 
 // =====================================================
 // Chart of Accounts
@@ -68,6 +72,7 @@ export async function getChartOfAccountById(
 export async function createChartOfAccount(
   input: CreateChartOfAccountInput
 ): Promise<{ id?: string; error?: string }> {
+  await requireRole([...GL_WRITE_ROLES])
   const supabase = await createClient()
 
   if (!input.account_code || !input.account_name || !input.account_type) {
@@ -104,6 +109,7 @@ export async function updateChartOfAccount(
   id: string,
   input: Partial<CreateChartOfAccountInput>
 ): Promise<{ error?: string }> {
+  await requireRole([...GL_WRITE_ROLES])
   const supabase = await createClient()
 
   const updateData: Record<string, unknown> = {
@@ -254,6 +260,7 @@ export async function getJournalEntryById(
 export async function createJournalEntry(
   input: CreateJournalEntryInput
 ): Promise<{ id?: string; error?: string }> {
+  await requireRole([...GL_WRITE_ROLES])
   const supabase = await createClient()
 
   // Validate lines
@@ -318,10 +325,10 @@ export async function createJournalEntry(
     .insert(lineInserts) as any)
 
   if (linesError) {
-    // Attempt to clean up the entry if lines failed
+    // Soft-delete the entry if lines failed (never hard delete)
     await (supabase
       .from('journal_entries' as any)
-      .delete()
+      .update({ status: 'cancelled', updated_at: new Date().toISOString() })
       .eq('id', entryId) as any)
     return { error: `Gagal menyimpan baris jurnal: ${linesError.message}` }
   }
@@ -335,6 +342,7 @@ export async function createJournalEntry(
 export async function postJournalEntry(
   id: string
 ): Promise<{ error?: string }> {
+  await requireRole([...GL_WRITE_ROLES])
   const supabase = await createClient()
 
   const {

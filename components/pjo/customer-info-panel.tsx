@@ -3,7 +3,7 @@
 import { useEffect, useState } from 'react'
 import { Card, CardContent } from '@/components/ui/card'
 import { Building2, Mail, Phone, MapPin, Clock } from 'lucide-react'
-import { formatDate, formatCurrencyShort } from '@/lib/utils/format'
+import { formatDate } from '@/lib/utils/format'
 import { getCustomerDetailsForPJO } from '@/app/(main)/proforma-jo/actions'
 import type { CustomerDetailsForPJO, PJOHistoryItem } from '@/app/(main)/proforma-jo/actions'
 import { cn } from '@/lib/utils'
@@ -83,10 +83,7 @@ export function CustomerInfoPanel({ customerId }: CustomerInfoPanelProps) {
                       <span className="font-mono">{pjo.pjo_number}</span>
                       <span className="text-blue-500">—</span>
                       <span className="truncate">{pjo.commodity || pjo.pol || '-'}</span>
-                      {pjo.total_revenue != null && pjo.total_revenue > 0 && (
-                        <span className="ml-auto font-medium">{formatCurrencyShort(pjo.total_revenue)}</span>
-                      )}
-                      <span className={cn('px-1.5 py-0.5 rounded text-[10px] font-medium', statusColors[pjo.status] || 'bg-gray-100 text-gray-700')}>
+                      <span className={cn('ml-auto px-1.5 py-0.5 rounded text-[10px] font-medium', statusColors[pjo.status] || 'bg-gray-100 text-gray-700')}>
                         {pjo.status.replace('_', ' ')}
                       </span>
                     </div>

@@ -13,6 +13,7 @@ import {
   calculateDaysOverdue,
   classifyOverdueSeverity,
 } from '@/lib/overdue-check-utils'
+import { formatCurrency } from '@/lib/utils/format'
 import type { Json } from '@/types/database'
 import type { AlertSeverity } from '@/types/alerts'
 
@@ -359,7 +360,7 @@ async function checkOverdueCritical(supabase: any): Promise<InvoiceAlertCheckRes
   return {
     ruleCode: '',
     triggered: true,
-    alertMessage: `${criticalInvoices.length} invoice overdue >60 hari (total ${formatRp(totalAmount)}). Tertua: ${topInvoices[0].invoiceNumber} (${topInvoices[0].daysOverdue} hari, ${topInvoices[0].customerName})`,
+    alertMessage: `${criticalInvoices.length} invoice overdue >60 hari (total ${formatCurrency(totalAmount)}). Tertua: ${topInvoices[0].invoiceNumber} (${topInvoices[0].daysOverdue} hari, ${topInvoices[0].customerName})`,
     currentValue: criticalInvoices.length,
     thresholdValue: 0,
     contextData: {
@@ -402,7 +403,7 @@ async function checkOverdueWarning(supabase: any): Promise<InvoiceAlertCheckResu
   return {
     ruleCode: '',
     triggered: true,
-    alertMessage: `${warningInvoices.length} invoice overdue 31-60 hari (total ${formatRp(totalAmount)})`,
+    alertMessage: `${warningInvoices.length} invoice overdue 31-60 hari (total ${formatCurrency(totalAmount)})`,
     currentValue: warningInvoices.length,
     thresholdValue: 0,
     contextData: {
@@ -462,7 +463,7 @@ async function checkNegativeMargin(supabase: any): Promise<InvoiceAlertCheckResu
   return {
     ruleCode: '',
     triggered: true,
-    alertMessage: `${negativeMarginItems.length} JO dengan margin negatif (total kerugian ${formatRp(Math.abs(totalLoss))})`,
+    alertMessage: `${negativeMarginItems.length} JO dengan margin negatif (total kerugian ${formatCurrency(Math.abs(totalLoss))})`,
     currentValue: negativeMarginItems.length,
     thresholdValue: 0,
     contextData: {
@@ -530,7 +531,7 @@ async function checkMissingBilling(supabase: any): Promise<InvoiceAlertCheckResu
   return {
     ruleCode: '',
     triggered: true,
-    alertMessage: `${missingBillingJOs.length} JO selesai >14 hari belum diinvoice (potensi revenue ${formatRp(totalRevenue)})`,
+    alertMessage: `${missingBillingJOs.length} JO selesai >14 hari belum diinvoice (potensi revenue ${formatCurrency(totalRevenue)})`,
     currentValue: missingBillingJOs.length,
     thresholdValue: 0,
     contextData: {
@@ -607,7 +608,7 @@ async function checkARConcentration(supabase: any): Promise<InvoiceAlertCheckRes
   return {
     ruleCode: '',
     triggered: true,
-    alertMessage: `Konsentrasi AR tinggi: ${top.customerName} memiliki ${top.pct}% dari total AR (${formatRp(top.outstanding)} dari ${formatRp(totalOutstanding)})`,
+    alertMessage: `Konsentrasi AR tinggi: ${top.customerName} memiliki ${top.pct}% dari total AR (${formatCurrency(top.outstanding)} dari ${formatCurrency(totalOutstanding)})`,
     currentValue: top.pct,
     thresholdValue: 50,
     contextData: {
@@ -666,15 +667,3 @@ async function createAlertFollowUpTask(
   }
 }
 
-// =====================================================
-// HELPERS
-// =====================================================
-
-function formatRp(amount: number): string {
-  return new Intl.NumberFormat('id-ID', {
-    style: 'currency',
-    currency: 'IDR',
-    minimumFractionDigits: 0,
-    maximumFractionDigits: 0,
-  }).format(amount)
-}

@@ -1,6 +1,8 @@
 'use server'
 
 import { createClient } from '@/lib/supabase/server'
+import { getUserProfile } from '@/lib/permissions-server'
+import { extractLocationKey } from '@/lib/utils/location'
 
 export interface HistoricalEstimation {
   avgRevenue: number
@@ -17,6 +19,7 @@ export interface HistoricalEstimation {
  * Uses ILIKE for fuzzy matching on the first meaningful part of the address.
  *
  * Returns averages for revenue, cost, margin, plus the count and last shipment date.
+ * Revenue/margin data is hidden for ops staff (returns cost-only estimation).
  */
 export async function getHistoricalEstimation(
   customerId: string,
@@ -29,6 +32,10 @@ export async function getHistoricalEstimation(
 
   try {
     const supabase = await createClient()
+
+    // Check user role — ops staff cannot see revenue data
+    const profile = await getUserProfile()
+    const isOps = profile?.role === 'ops'
 
     // Get all project IDs for this customer
     const { data: projects, error: projectError } = await supabase
@@ -89,9 +96,9 @@ export async function getHistoricalEstimation(
 
     return {
       data: {
-        avgRevenue: Math.round(avgRevenue),
+        avgRevenue: isOps ? 0 : Math.round(avgRevenue),
         avgCost: Math.round(avgCost),
-        avgMargin,
+        avgMargin: isOps ? 0 : avgMargin,
         shipmentCount: validPJOs.length,
         lastShipmentDate,
       },
@@ -99,20 +106,4 @@ export async function getHistoricalEstimation(
   } catch (error) {
     return { data: null, error: 'Gagal mengambil data estimasi historis' }
   }
-}
-
-/**
- * Extract the key part of a location string for fuzzy matching.
- * "Surabaya, Jawa Timur, Indonesia" -> "Surabaya"
- * "PT XYZ, Jl. Raya No. 1, Surabaya" -> "PT XYZ"
- */
-function extractLocationKey(location: string): string {
-  if (!location) return ''
-
-  const parts = location.split(',')
-  const key = parts[0].trim()
-
-  if (key.length < 3) return location.trim()
-
-  return key
 }

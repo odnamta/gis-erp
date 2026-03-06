@@ -1,6 +1,7 @@
 'use server'
 
 import { createClient } from '@/lib/supabase/server'
+import { getUserProfile } from '@/lib/permissions-server'
 
 // =====================================================
 // Types for Project Recap Report
@@ -81,6 +82,12 @@ export interface ProjectRecapSummary {
  * Get list of all active projects for the selector dropdown
  */
 export async function getProjectList(): Promise<ProjectRecapProject[]> {
+  // Only roles that can see revenue should access project recaps
+  const profile = await getUserProfile()
+  if (!profile || !profile.can_see_revenue) {
+    return []
+  }
+
   const supabase = await createClient()
 
   const { data, error } = await supabase
@@ -127,6 +134,12 @@ export async function getProjectList(): Promise<ProjectRecapProject[]> {
  * Get full project recap data for a specific project
  */
 export async function getProjectRecap(projectId: string): Promise<ProjectRecapSummary | null> {
+  // Only roles that can see revenue should access project recaps
+  const profile = await getUserProfile()
+  if (!profile || !profile.can_see_revenue) {
+    return null
+  }
+
   const supabase = await createClient()
 
   // 1. Fetch project details
