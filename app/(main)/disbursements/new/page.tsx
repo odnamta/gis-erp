@@ -19,8 +19,8 @@ export default async function NewDisbursementPage() {
     redirect('/disbursements');
   }
 
-  // Only finance/administration can create
-  const canCreate = profileHasRole(profile, ['owner', 'director', 'finance', 'administration'])
+  // Roles that can create BKK (aligned with workflow.bkk.create permission)
+  const canCreate = profileHasRole(profile, ['owner', 'director', 'marketing_manager', 'finance_manager', 'operations_manager', 'finance', 'administration'])
   if (!canCreate) {
     redirect('/disbursements')
   }
