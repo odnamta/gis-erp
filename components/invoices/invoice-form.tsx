@@ -1,6 +1,6 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { useRouter } from 'next/navigation'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
@@ -11,9 +11,11 @@ import { InvoiceLineItemRow } from './invoice-line-item-row'
 import { InvoiceFormData, InvoiceLineItemInput } from '@/types'
 import { calculateInvoiceTotals, VAT_RATE } from '@/lib/invoice-utils'
 import { formatIDR } from '@/lib/pjo-utils'
+import { formatCurrency, formatDate } from '@/lib/utils/format'
 import { createInvoice } from '@/app/(main)/invoices/actions'
+import { checkInvoiceDuplicates, InvoiceDuplicateResult } from '@/lib/duplicate-detection'
 import { useToast } from '@/hooks/use-toast'
-import { Plus, Save, Loader2 } from 'lucide-react'
+import { Plus, Save, Loader2, AlertTriangle, X } from 'lucide-react'
 
 interface InvoiceFormProps {
   initialData: InvoiceFormData & {
@@ -34,6 +36,34 @@ export function InvoiceForm({ initialData, vatRate = VAT_RATE }: InvoiceFormProp
   const [lineItems, setLineItems] = useState<InvoiceLineItemInput[]>(initialData.line_items)
 
   const { subtotal, vatAmount, grandTotal } = calculateInvoiceTotals(lineItems, vatRate)
+
+  // Invoice duplicate detection state
+  const [invoiceDuplicates, setInvoiceDuplicates] = useState<InvoiceDuplicateResult[]>([])
+  const [duplicatesDismissed, setDuplicatesDismissed] = useState(false)
+
+  // Debounced invoice duplicate check
+  useEffect(() => {
+    if (!initialData.customer_id || grandTotal <= 0 || !invoiceDate) {
+      setInvoiceDuplicates([])
+      return
+    }
+
+    setDuplicatesDismissed(false)
+    const timeout = setTimeout(async () => {
+      try {
+        const result = await checkInvoiceDuplicates(
+          initialData.customer_id,
+          grandTotal,
+          invoiceDate
+        )
+        setInvoiceDuplicates(result.duplicates)
+      } catch {
+        setInvoiceDuplicates([])
+      }
+    }, 500)
+
+    return () => clearTimeout(timeout)
+  }, [initialData.customer_id, grandTotal, invoiceDate])
 
   function handleLineItemChange(index: number, field: keyof InvoiceLineItemInput, value: string | number) {
     setLineItems((prev) => {
@@ -136,6 +166,49 @@ export function InvoiceForm({ initialData, vatRate = VAT_RATE }: InvoiceFormProp
           </div>
         </CardContent>
       </Card>
+
+      {/* Invoice Duplicate Detection Warning */}
+      {invoiceDuplicates.length > 0 && !duplicatesDismissed && (
+        <Card className="border-amber-300 bg-amber-50">
+          <CardContent className="pt-6">
+            <div className="flex items-start justify-between">
+              <div className="flex items-start gap-2">
+                <AlertTriangle className="h-5 w-5 text-amber-600 mt-0.5 shrink-0" />
+                <div>
+                  <p className="font-medium text-amber-800">
+                    Potensi duplikat terdeteksi ({invoiceDuplicates.length} invoice serupa)
+                  </p>
+                  <p className="text-sm text-amber-700 mt-1">
+                    Ditemukan invoice dengan customer, jumlah, dan tanggal yang mirip. Pastikan ini bukan duplikat.
+                  </p>
+                  <ul className="mt-2 space-y-1">
+                    {invoiceDuplicates.map(dup => (
+                      <li key={dup.id} className="text-sm text-amber-700 flex items-center gap-2">
+                        <span className="font-mono font-medium">{dup.invoice_number}</span>
+                        <span className="text-amber-600">|</span>
+                        <span>{formatCurrency(dup.total_amount)}</span>
+                        <span className="text-amber-600">|</span>
+                        <span>{formatDate(dup.invoice_date)}</span>
+                        <span className="text-xs px-1.5 py-0.5 rounded bg-amber-200 text-amber-800">
+                          {dup.status}
+                        </span>
+                      </li>
+                    ))}
+                  </ul>
+                </div>
+              </div>
+              <button
+                type="button"
+                onClick={() => setDuplicatesDismissed(true)}
+                className="text-amber-500 hover:text-amber-700 p-1"
+                aria-label="Tutup peringatan duplikat"
+              >
+                <X className="h-4 w-4" />
+              </button>
+            </div>
+          </CardContent>
+        </Card>
+      )}
 
       {/* Line Items */}
       <Card>

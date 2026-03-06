@@ -12,10 +12,10 @@ import { Textarea } from '@/components/ui/textarea'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
 import { ManagedSelect } from '@/components/ui/managed-select'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
-import { Loader2, FileQuestion, AlertCircle, Info } from 'lucide-react'
+import { Loader2, FileQuestion, AlertCircle, Info, AlertTriangle, TrendingUp, X } from 'lucide-react'
 import { cn } from '@/lib/utils'
 import { Combobox } from '@/components/forms/combobox'
-import { formatCurrency } from '@/lib/utils/format'
+import { formatCurrency, formatDate, formatPercent } from '@/lib/utils/format'
 import { createClient } from '@/lib/supabase/client'
 import { ProformaJobOrder, PJORevenueItem, PJOCostItem } from '@/types'
 import { ProjectWithCustomer } from '@/components/projects/project-table'
@@ -37,6 +37,8 @@ import { CargoSpecifications, RouteCharacteristics, TerrainType, PricingApproach
 import { CustomerInfoPanel } from './customer-info-panel'
 import { RouteHistoryPills } from './route-history-pills'
 import { JO_SUBCATEGORY_OPTIONS, SERVICE_SCOPE_SUBCATEGORIES } from '@/types/jo-category'
+import { checkPJODuplicates, PJODuplicateResult } from '@/lib/duplicate-detection'
+import { getHistoricalEstimation, HistoricalEstimation } from '@/lib/historical-estimation'
 
 const revenueItemSchema = z.object({
   id: z.string().optional(),
@@ -228,6 +230,72 @@ export function PJOForm({ projects, pjo, existingRevenueItems = [], existingCost
         setContractValue(data?.contract_value ?? null)
       })
   }, [selectedProjectId])
+
+  // Duplicate detection state
+  const [pjoDuplicates, setPjoDuplicates] = useState<PJODuplicateResult[]>([])
+  const [duplicatesDismissed, setDuplicatesDismissed] = useState(false)
+  const etdValue = watch('etd') || ''
+  const etaValue = watch('eta') || ''
+  const customerId = selectedProject?.customer_id || null
+
+  // Debounced PJO duplicate check
+  useEffect(() => {
+    if (!customerId || !polValue || !podValue) {
+      setPjoDuplicates([])
+      return
+    }
+
+    setDuplicatesDismissed(false)
+    const timeout = setTimeout(async () => {
+      try {
+        const result = await checkPJODuplicates(
+          customerId,
+          polValue,
+          podValue,
+          etdValue || null,
+          etaValue || null
+        )
+        // Filter out the current PJO if editing
+        const filtered = pjo
+          ? result.duplicates.filter(d => d.id !== pjo.id)
+          : result.duplicates
+        setPjoDuplicates(filtered)
+      } catch {
+        setPjoDuplicates([])
+      }
+    }, 500)
+
+    return () => clearTimeout(timeout)
+  }, [customerId, polValue, podValue, etdValue, etaValue, pjo])
+
+  // Historical estimation state
+  const [historicalEstimation, setHistoricalEstimation] = useState<HistoricalEstimation | null>(null)
+  const [estimationLoading, setEstimationLoading] = useState(false)
+
+  // Debounced historical estimation
+  useEffect(() => {
+    if (!customerId || !polValue || !podValue) {
+      setHistoricalEstimation(null)
+      return
+    }
+
+    setEstimationLoading(true)
+    const timeout = setTimeout(async () => {
+      try {
+        const result = await getHistoricalEstimation(customerId, polValue, podValue)
+        setHistoricalEstimation(result.data)
+      } catch {
+        setHistoricalEstimation(null)
+      } finally {
+        setEstimationLoading(false)
+      }
+    }, 500)
+
+    return () => {
+      clearTimeout(timeout)
+      setEstimationLoading(false)
+    }
+  }, [customerId, polValue, podValue])
 
 
   const handleRevenueItemsChange = useCallback((items: RevenueItemRow[]) => {
@@ -540,6 +608,102 @@ export function PJOForm({ projects, pjo, existingRevenueItems = [], existingCost
           </div>
         </CardContent>
       </Card>
+
+      {/* Duplicate Detection Warning */}
+      {pjoDuplicates.length > 0 && !duplicatesDismissed && (
+        <Card className="border-amber-300 bg-amber-50">
+          <CardContent className="pt-6">
+            <div className="flex items-start justify-between">
+              <div className="flex items-start gap-2">
+                <AlertTriangle className="h-5 w-5 text-amber-600 mt-0.5 shrink-0" />
+                <div>
+                  <p className="font-medium text-amber-800">
+                    Potensi duplikat terdeteksi ({pjoDuplicates.length} PJO serupa)
+                  </p>
+                  <p className="text-sm text-amber-700 mt-1">
+                    Ditemukan PJO dengan customer, rute, dan/atau tanggal yang mirip. Pastikan ini bukan duplikat.
+                  </p>
+                  <ul className="mt-2 space-y-1">
+                    {pjoDuplicates.map(dup => (
+                      <li key={dup.id} className="text-sm text-amber-700 flex items-center gap-2">
+                        <span className="font-mono font-medium">{dup.pjo_number}</span>
+                        <span className="text-amber-600">|</span>
+                        <span>{dup.pol || '-'} → {dup.pod || '-'}</span>
+                        {dup.etd && (
+                          <>
+                            <span className="text-amber-600">|</span>
+                            <span>{formatDate(dup.etd)}</span>
+                          </>
+                        )}
+                        <span className="text-xs px-1.5 py-0.5 rounded bg-amber-200 text-amber-800">
+                          {dup.status}
+                        </span>
+                      </li>
+                    ))}
+                  </ul>
+                </div>
+              </div>
+              <button
+                type="button"
+                onClick={() => setDuplicatesDismissed(true)}
+                className="text-amber-500 hover:text-amber-700 p-1"
+                aria-label="Tutup peringatan duplikat"
+              >
+                <X className="h-4 w-4" />
+              </button>
+            </div>
+          </CardContent>
+        </Card>
+      )}
+
+      {/* Historical Estimation Panel */}
+      {historicalEstimation && (
+        <Card className="border-blue-200 bg-blue-50">
+          <CardContent className="pt-6">
+            <div className="flex items-start gap-2">
+              <TrendingUp className="h-5 w-5 text-blue-600 mt-0.5 shrink-0" />
+              <div className="w-full">
+                <p className="font-medium text-blue-800">
+                  Estimasi berdasarkan {historicalEstimation.shipmentCount} pengiriman sebelumnya
+                </p>
+                <div className="grid grid-cols-2 md:grid-cols-4 gap-3 mt-3">
+                  <div>
+                    <p className="text-xs text-blue-600">Rata-rata Revenue</p>
+                    <p className="font-semibold text-blue-900">{formatCurrency(historicalEstimation.avgRevenue)}</p>
+                  </div>
+                  <div>
+                    <p className="text-xs text-blue-600">Rata-rata Biaya</p>
+                    <p className="font-semibold text-blue-900">{formatCurrency(historicalEstimation.avgCost)}</p>
+                  </div>
+                  <div>
+                    <p className="text-xs text-blue-600">Rata-rata Margin</p>
+                    <p className={cn(
+                      "font-semibold",
+                      historicalEstimation.avgMargin >= 0 ? "text-green-700" : "text-red-700"
+                    )}>
+                      {formatPercent(historicalEstimation.avgMargin)}
+                    </p>
+                  </div>
+                  <div>
+                    <p className="text-xs text-blue-600">Pengiriman Terakhir</p>
+                    <p className="font-semibold text-blue-900">{formatDate(historicalEstimation.lastShipmentDate)}</p>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </CardContent>
+        </Card>
+      )}
+      {estimationLoading && polValue && podValue && customerId && (
+        <Card className="border-blue-100 bg-blue-50/50">
+          <CardContent className="pt-6">
+            <div className="flex items-center gap-2 text-blue-600">
+              <Loader2 className="h-4 w-4 animate-spin" />
+              <span className="text-sm">Memuat estimasi historis...</span>
+            </div>
+          </CardContent>
+        </Card>
+      )}
 
       {/* Market Classification Section */}
       {isFromQuotation && (
