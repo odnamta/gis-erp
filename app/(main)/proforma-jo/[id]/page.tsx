@@ -65,6 +65,15 @@ export default async function PJODetailPage({ params }: PJODetailPageProps) {
     quotation,
   }
 
+  // Strip revenue/profit data from ops users to prevent client-side data leak
+  const isOps = userRole === 'ops'
+  const safePjo = isOps ? {
+    ...pjoWithQuotation,
+    total_revenue: 0,
+    total_revenue_calculated: 0,
+    total_expenses: 0,
+  } : pjoWithQuotation
+
   return (
     <div className="space-y-6">
       <div className="flex items-center gap-4">
@@ -76,7 +85,7 @@ export default async function PJODetailPage({ params }: PJODetailPageProps) {
         <span className="text-muted-foreground">Back to PJO List</span>
       </div>
 
-      <PJODetailView pjo={pjoWithQuotation} userRole={userRole} userId={userId} />
+      <PJODetailView pjo={safePjo} userRole={userRole} userId={userId} />
     </div>
   )
 }

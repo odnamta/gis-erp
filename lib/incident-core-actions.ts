@@ -484,7 +484,7 @@ export async function startInvestigation(
 ): Promise<{ success: boolean; error?: string }> {
   try {
     const profile = await getUserProfile();
-    if (!canAccessFeature(profile, 'hse.incidents.create')) {
+    if (!canAccessFeature(profile, 'hse.incidents.investigate')) {
       return { success: false, error: 'Tidak memiliki akses' };
     }
 
@@ -600,7 +600,7 @@ export async function completeInvestigation(
 ): Promise<{ success: boolean; error?: string }> {
   try {
     const profile = await getUserProfile();
-    if (!canAccessFeature(profile, 'hse.incidents.create')) {
+    if (!canAccessFeature(profile, 'hse.incidents.investigate')) {
       return { success: false, error: 'Tidak memiliki akses' };
     }
 
@@ -915,7 +915,7 @@ export async function closeIncident(
 ): Promise<{ success: boolean; error?: string }> {
   try {
     const profile = await getUserProfile();
-    if (!canAccessFeature(profile, 'hse.incidents.create')) {
+    if (!canAccessFeature(profile, 'hse.incidents.investigate')) {
       return { success: false, error: 'Tidak memiliki akses' };
     }
 

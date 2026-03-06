@@ -3,6 +3,7 @@
 import { createClient } from '@/lib/supabase/server'
 import { revalidatePath } from 'next/cache'
 import { getUserProfile } from '@/lib/permissions-server'
+import { canAccessFeature } from '@/lib/permissions'
 import { logActivity } from '@/lib/activity-logger'
 
 interface CreateDisbursementInput {
@@ -52,6 +53,9 @@ export async function createDisbursement(input: CreateDisbursementInput) {
     if (!profile) {
       return { data: null, error: 'Not authenticated' }
     }
+    if (!canAccessFeature(profile, 'bkk.create')) {
+      return { data: null, error: 'Tidak memiliki akses' }
+    }
     const entityType = profile.role === 'agency' ? 'gama_agency' : 'gama_main'
     const requestedBy = profile.id
 
@@ -96,6 +100,14 @@ export async function updateDisbursement(
   const supabase = await createClient()
 
   try {
+    const profile = await getUserProfile()
+    if (!profile) {
+      return { data: null, error: 'Not authenticated' }
+    }
+    if (!canAccessFeature(profile, 'bkk.create')) {
+      return { data: null, error: 'Tidak memiliki akses' }
+    }
+
     const { data, error } = await (supabase
       .from('bukti_kas_keluar' as any)
       .update({
@@ -150,6 +162,9 @@ export async function approveDisbursement(id: string, _userId?: string) {
     if (!profile) {
       return { data: null, error: 'Not authenticated' }
     }
+    if (!canAccessFeature(profile, 'bkk.approve')) {
+      return { data: null, error: 'Tidak memiliki akses' }
+    }
     const approvedBy = profile.id
 
     const { data, error } = await (supabase
@@ -189,6 +204,9 @@ export async function rejectDisbursement(id: string, _userId?: string, reason?: 
     if (!profile) {
       return { data: null, error: 'Not authenticated' }
     }
+    if (!canAccessFeature(profile, 'bkk.approve')) {
+      return { data: null, error: 'Tidak memiliki akses' }
+    }
 
     const { data, error } = await (supabase
       .from('bukti_kas_keluar' as any)
@@ -220,6 +238,9 @@ export async function releaseDisbursement(id: string, _userId?: string) {
     const profile = await getUserProfile()
     if (!profile) {
       return { data: null, error: 'Not authenticated' }
+    }
+    if (!canAccessFeature(profile, 'bkk.approve')) {
+      return { data: null, error: 'Tidak memiliki akses' }
     }
     const releasedBy = profile.id
 
@@ -259,6 +280,9 @@ export async function settleDisbursement(id: string, _userId?: string) {
     const profile = await getUserProfile()
     if (!profile) {
       return { data: null, error: 'Not authenticated' }
+    }
+    if (!canAccessFeature(profile, 'bkk.approve')) {
+      return { data: null, error: 'Tidak memiliki akses' }
     }
     const settledBy = profile.id
 

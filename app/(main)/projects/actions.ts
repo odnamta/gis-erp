@@ -3,6 +3,8 @@
 import { createClient } from '@/lib/supabase/server'
 import { revalidatePath } from 'next/cache'
 import { z } from 'zod'
+import { getUserProfile } from '@/lib/permissions-server'
+import { canAccessFeature } from '@/lib/permissions'
 
 const projectSchema = z.object({
   customer_id: z.string().min(1, 'Please select a customer'),
@@ -17,14 +19,17 @@ const projectSchema = z.object({
 export type ProjectFormData = z.infer<typeof projectSchema>
 
 export async function createProject(data: ProjectFormData): Promise<{ error?: string; id?: string }> {
+  const profile = await getUserProfile()
+  if (!canAccessFeature(profile, 'projects.crud')) {
+    return { error: 'Tidak memiliki akses' }
+  }
+
   const validation = projectSchema.safeParse(data)
   if (!validation.success) {
     return { error: validation.error.issues[0].message }
   }
 
   const supabase = await createClient()
-  const { data: { user } } = await supabase.auth.getUser()
-  if (!user) return { error: 'Not authenticated' }
 
   const { data: project, error } = await supabase.from('projects').insert({
     customer_id: data.customer_id,
@@ -47,6 +52,11 @@ export async function updateProject(
   id: string,
   data: ProjectFormData
 ): Promise<{ error?: string }> {
+  const profile = await getUserProfile()
+  if (!canAccessFeature(profile, 'projects.crud')) {
+    return { error: 'Tidak memiliki akses' }
+  }
+
   const validation = projectSchema.safeParse(data)
   if (!validation.success) {
     return { error: validation.error.issues[0].message }
@@ -74,6 +84,11 @@ export async function updateProject(
 }
 
 export async function deleteProject(id: string): Promise<{ error?: string }> {
+  const profile = await getUserProfile()
+  if (!canAccessFeature(profile, 'projects.crud')) {
+    return { error: 'Tidak memiliki akses' }
+  }
+
   const supabase = await createClient()
 
   // Check if project has active PJOs
@@ -129,14 +144,17 @@ export async function updateContractValue(
   id: string,
   data: { contract_value: number; contract_notes?: string }
 ): Promise<{ error?: string }> {
+  const profile = await getUserProfile()
+  if (!canAccessFeature(profile, 'projects.crud')) {
+    return { error: 'Tidak memiliki akses' }
+  }
+
   const validation = contractValueSchema.safeParse(data)
   if (!validation.success) {
     return { error: validation.error.issues[0].message }
   }
 
   const supabase = await createClient()
-  const { data: { user } } = await supabase.auth.getUser()
-  if (!user) return { error: 'Not authenticated' }
 
   const { error } = await (supabase.from('projects') as any)
     .update({
@@ -155,6 +173,11 @@ export async function updateContractValue(
 }
 
 export async function restoreProject(id: string): Promise<{ error?: string }> {
+  const profile = await getUserProfile()
+  if (!canAccessFeature(profile, 'projects.crud')) {
+    return { error: 'Tidak memiliki akses' }
+  }
+
   const supabase = await createClient()
 
   const { error } = await supabase

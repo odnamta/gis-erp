@@ -91,6 +91,11 @@ export async function getJobOrder(id: string): Promise<JobOrderWithRelations | n
 }
 
 export async function markCompleted(joId: string): Promise<{ error?: string }> {
+  const profile = await getUserProfile()
+  if (!canAccessFeature(profile, 'jo.edit')) {
+    return { error: 'Tidak memiliki akses' }
+  }
+
   const supabase = await createClient()
 
   const { data: jo, error: fetchError } = await supabase
@@ -151,6 +156,11 @@ export async function markCompleted(joId: string): Promise<{ error?: string }> {
 }
 
 export async function submitToFinance(joId: string): Promise<{ error?: string }> {
+  const profile = await getUserProfile()
+  if (!canAccessFeature(profile, 'jo.edit')) {
+    return { error: 'Tidak memiliki akses' }
+  }
+
   const supabase = await createClient()
 
   const { data: { user } } = await supabase.auth.getUser()
@@ -381,6 +391,11 @@ export async function updateJOCategory(
   joId: string,
   category: string
 ): Promise<{ error?: string }> {
+  const profile = await getUserProfile()
+  if (!canAccessFeature(profile, 'jo.edit')) {
+    return { error: 'Tidak memiliki akses' }
+  }
+
   const supabase = await createClient()
 
   const { data: { user } } = await supabase.auth.getUser()
@@ -431,6 +446,11 @@ export async function requestJORevision(
   joId: string,
   notes: string
 ): Promise<{ error?: string }> {
+  const profile = await getUserProfile()
+  if (!canAccessFeature(profile, 'jo.edit')) {
+    return { error: 'Tidak memiliki akses' }
+  }
+
   const supabase = await createClient()
 
   const { data: { user } } = await supabase.auth.getUser()

@@ -10,6 +10,14 @@ vi.mock('next/cache', () => ({
   revalidatePath: vi.fn(),
 }));
 
+vi.mock('@/lib/permissions-server', () => ({
+  getUserProfile: vi.fn(() => Promise.resolve({ role: 'owner', roles: ['owner'], is_active: true })),
+}));
+
+vi.mock('@/lib/permissions', () => ({
+  canAccessFeature: vi.fn(() => true),
+}));
+
 import {
   VALID_INTEGRATION_TYPES,
   VALID_PROVIDERS,

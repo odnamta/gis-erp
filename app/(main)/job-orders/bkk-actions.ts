@@ -22,6 +22,8 @@ import {
 } from '@/lib/bkk-utils'
 import { trackBKKCreation } from '@/lib/onboarding-tracker'
 import { profileHasRole } from '@/lib/auth-utils'
+import { getUserProfile } from '@/lib/permissions-server'
+import { canAccessFeature } from '@/lib/permissions'
 
 /**
  * Generate a unique BKK number for the current year
@@ -55,6 +57,11 @@ export async function generateBKKNumberAction(): Promise<string> {
 export async function createBKK(
   input: CreateBKKInput
 ): Promise<{ id?: string; error?: string }> {
+  const profile = await getUserProfile()
+  if (!canAccessFeature(profile, 'bkk.create')) {
+    return { error: 'Tidak memiliki akses' }
+  }
+
   const supabase = await createClient()
   
   // Validate input
@@ -74,7 +81,7 @@ export async function createBKK(
   }
   
   // Get user profile
-  const { data: profile } = await supabase
+  const { data: userProfile } = await supabase
     .from('user_profiles')
     .select('id')
     .eq('user_id', user.id)
@@ -87,12 +94,12 @@ export async function createBKK(
       .select('status')
       .eq('id', input.pjo_cost_item_id)
       .single()
-    
+
     if (costItem && (costItem.status === 'confirmed' || costItem.status === 'exceeded')) {
       return { error: 'Cannot create BKK for a closed cost item' }
     }
   }
-  
+
   // Generate BKK number
   let bkkNumber: string
   try {
@@ -100,7 +107,7 @@ export async function createBKK(
   } catch {
     return { error: 'Failed to generate BKK number' }
   }
-  
+
   // Create BKK with initial status 'pending'
   const { data, error } = await supabase
     .from('bukti_kas_keluar')
@@ -115,7 +122,7 @@ export async function createBKK(
       notes: input.notes || null,
       vendor_id: input.vendor_id || null,
       status: 'pending',
-      requested_by: profile?.id || null,
+      requested_by: userProfile?.id || null,
       requested_at: new Date().toISOString()
     })
     .select('id')

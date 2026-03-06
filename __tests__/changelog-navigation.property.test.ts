@@ -7,8 +7,16 @@
  * Validates: Requirements 5.2
  */
 
-import { describe, it, expect } from 'vitest';
+import { describe, it, expect, vi } from 'vitest';
 import * as fc from 'fast-check';
+
+vi.mock('@/lib/permissions-server', () => ({
+  getUserProfile: vi.fn(() => Promise.resolve({ role: 'owner', roles: ['owner'], is_active: true })),
+}));
+
+vi.mock('@/lib/permissions', () => ({
+  canAccessFeature: vi.fn(() => true),
+}));
 import { NAV_ITEMS, filterNavItems } from '@/lib/navigation';
 import type { UserRole } from '@/types/permissions';
 
@@ -54,7 +62,7 @@ describe('Feature: v0.82-changelog-feature, Property 7: Navigation Visibility', 
         
         // Help menu should be visible for all roles
         expect(helpItem).toBeDefined();
-        expect(helpItem?.href).toBe('/help');
+        expect(helpItem?.href).toBe('/help/tours');
       }),
       { numRuns: 100 }
     );
