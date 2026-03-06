@@ -19,14 +19,16 @@ import { PaymentsSection } from '@/components/payments'
 import { canRecordPayment } from '@/lib/payment-utils'
 import { PDFButtons } from '@/components/pdf/pdf-buttons'
 import { BGSection } from '@/components/invoices/bg-section'
+import { RevenueReconciliationCard, type ReconciliationData } from '@/components/invoices/revenue-reconciliation-card'
 
 interface InvoiceDetailViewProps {
   invoice: InvoiceWithRelations
   userRole?: string
   userId?: string
+  reconciliation?: ReconciliationData | null
 }
 
-export function InvoiceDetailView({ invoice, userRole = 'viewer', userId }: InvoiceDetailViewProps) {
+export function InvoiceDetailView({ invoice, userRole = 'viewer', userId, reconciliation }: InvoiceDetailViewProps) {
   const router = useRouter()
   const { toast } = useToast()
   const [isLoading, setIsLoading] = useState(false)
@@ -239,6 +241,11 @@ export function InvoiceDetailView({ invoice, userRole = 'viewer', userId }: Invo
           </div>
         </CardContent>
       </Card>
+
+      {/* Revenue Reconciliation */}
+      {reconciliation !== undefined && (
+        <RevenueReconciliationCard data={reconciliation ?? null} />
+      )}
 
       {/* Payments Section */}
       {showPaymentSection && (

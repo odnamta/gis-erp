@@ -3,6 +3,7 @@
 import { createClient } from '@/lib/supabase/server'
 import { getOrFetch, generateCacheKey } from '@/lib/dashboard-cache'
 import { groupInvoicesByAging, type ARAgingData } from '@/lib/finance-dashboard-utils'
+import { getRedFlagCounts } from '@/lib/invoice-red-flags'
 
 // Supporting interfaces for approval queue items
 export interface ApprovalQueueItem {
@@ -98,6 +99,27 @@ export interface FinanceManagerMetrics {
   recentInvoices: RecentInvoice[]
   recentPayments: RecentPayment[]
   recentPJOApprovals: RecentPJOApproval[]
+
+  // NEW: Red Flag Counts (Phase 2C)
+  redFlagCounts: {
+    overdueCount: number
+    negativeMarginCount: number
+    duplicateSuspectCount: number
+    missingInvoiceCount: number
+    totalFlags: number
+  }
+
+  // NEW: Customer Aging Summary (Phase 2C-4)
+  customerAging: CustomerAgingSummaryData[]
+}
+
+// Customer-level aging data
+export interface CustomerAgingSummaryData {
+  customerId: string
+  customerName: string
+  totalOutstanding: number
+  invoiceCount: number
+  oldestDaysOverdue: number
 }
 
 const CACHE_TTL = 5 * 60 * 1000 // 5 minutes
@@ -474,6 +496,51 @@ export async function getFinanceManagerMetrics(): Promise<FinanceManagerMetrics>
     // Calculate JOs Pending Invoice (completed or submitted_to_finance)
     const josPendingInvoice = josPendingInvoiceResult.count || 0
     
+    // Fetch Red Flag Counts (Phase 2C)
+    const redFlagCounts = await getRedFlagCounts()
+
+    // Fetch Customer Aging Summary (Phase 2C-4)
+    const customerAgingQuery = await supabase
+      .from('invoices')
+      .select('customer_id, total_amount, amount_paid, due_date, customers(id, name)')
+      .in('status', ['sent', 'overdue', 'partial'])
+
+    const customerAgingMap = new Map<string, {
+      customerId: string
+      customerName: string
+      totalOutstanding: number
+      invoiceCount: number
+      oldestDaysOverdue: number
+    }>()
+
+    for (const inv of (customerAgingQuery.data || [])) {
+      const customerId = inv.customer_id || 'unknown'
+      const customerName = (inv.customers as { id: string; name: string } | null)?.name || 'Unknown'
+      const outstanding = (inv.total_amount || 0) - (inv.amount_paid || 0)
+      const daysOverdue = inv.due_date
+        ? Math.max(0, Math.floor((now.getTime() - new Date(inv.due_date).getTime()) / (1000 * 60 * 60 * 24)))
+        : 0
+
+      const existing = customerAgingMap.get(customerId)
+      if (existing) {
+        existing.totalOutstanding += outstanding
+        existing.invoiceCount += 1
+        existing.oldestDaysOverdue = Math.max(existing.oldestDaysOverdue, daysOverdue)
+      } else {
+        customerAgingMap.set(customerId, {
+          customerId,
+          customerName,
+          totalOutstanding: outstanding,
+          invoiceCount: 1,
+          oldestDaysOverdue: daysOverdue,
+        })
+      }
+    }
+
+    const customerAging: CustomerAgingSummaryData[] = Array.from(customerAgingMap.values())
+      .filter(c => c.totalOutstanding > 0)
+      .sort((a, b) => b.totalOutstanding - a.totalOutstanding)
+
     // Calculate Admin Pipeline
     const adminPipeline: AdminPipelineData = {
       draftPJOs: draftPJOsResult.count || 0,
@@ -527,6 +594,12 @@ export async function getFinanceManagerMetrics(): Promise<FinanceManagerMetrics>
       recentInvoices,
       recentPayments,
       recentPJOApprovals,
+
+      // NEW: Red Flag Counts (Phase 2C)
+      redFlagCounts,
+
+      // NEW: Customer Aging Summary (Phase 2C-4)
+      customerAging,
     }
   }, CACHE_TTL)
 }

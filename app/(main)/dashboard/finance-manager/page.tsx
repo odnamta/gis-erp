@@ -4,6 +4,7 @@ import { profileHasRole } from '@/lib/auth-utils'
 import { getFinanceManagerMetrics } from '@/lib/dashboard/finance-manager-data'
 import { formatCurrencyIDRCompact } from '@/lib/utils/format'
 import { format } from 'date-fns'
+import { ARAgingChart } from '@/components/finance/ar-aging-chart'
 
 export default async function FinanceManagerDashboardPage() {
   const supabase = await createClient()
@@ -172,7 +173,7 @@ export default async function FinanceManagerDashboardPage() {
         </div>
       </div>
 
-      {/* AR Enhancement Section - Task 3.3 */}
+      {/* AR Enhancement Section - Task 3.3 + Phase 2C-4 */}
       <div className="grid gap-6 md:grid-cols-2">
         <div className="rounded-lg border p-4">
           <h3 className="font-semibold text-red-700 mb-3">AR Overdue</h3>
@@ -193,50 +194,60 @@ export default async function FinanceManagerDashboardPage() {
             </div>
           </div>
         </div>
-        
-        {/* AR Aging Breakdown - Task 3.3 */}
+
+        {/* AR Aging Visual Funnel - Phase 2C-4 */}
         <div className="rounded-lg border p-4">
           <h3 className="font-semibold mb-3">AR Aging Breakdown</h3>
-          <div className="space-y-3">
-            <div className="flex justify-between items-center">
-              <span className="text-sm">0-30 days (Current)</span>
-              <div className="text-right">
-                <span className="font-semibold">{metrics.arAging.current.count} inv</span>
-                <span className="text-muted-foreground ml-2">
-                  {formatCurrencyIDRCompact(metrics.arAging.current.amount)}
-                </span>
-              </div>
-            </div>
-            <div className="flex justify-between items-center">
-              <span className="text-sm">31-60 days</span>
-              <div className="text-right">
-                <span className="font-semibold">{metrics.arAging.days31to60.count} inv</span>
-                <span className="text-muted-foreground ml-2">
-                  {formatCurrencyIDRCompact(metrics.arAging.days31to60.amount)}
-                </span>
-              </div>
-            </div>
-            <div className="flex justify-between items-center text-orange-600">
-              <span className="text-sm font-medium">61-90 days</span>
-              <div className="text-right">
-                <span className="font-semibold">{metrics.arAging.days61to90.count} inv</span>
-                <span className="ml-2">
-                  {formatCurrencyIDRCompact(metrics.arAging.days61to90.amount)}
-                </span>
-              </div>
-            </div>
-            <div className="flex justify-between items-center text-red-600">
-              <span className="text-sm font-medium">90+ days</span>
-              <div className="text-right">
-                <span className="font-semibold">{metrics.arAging.over90.count} inv</span>
-                <span className="ml-2">
-                  {formatCurrencyIDRCompact(metrics.arAging.over90.amount)}
-                </span>
-              </div>
-            </div>
-          </div>
+          <ARAgingChart
+            agingData={{
+              current: metrics.arAging.current,
+              days31to60: metrics.arAging.days31to60,
+              days61to90: metrics.arAging.days61to90,
+              over90: metrics.arAging.over90,
+            }}
+            customerAging={metrics.customerAging.map(c => ({
+              customerId: c.customerId,
+              customerName: c.customerName,
+              totalOutstanding: c.totalOutstanding,
+              invoiceCount: c.invoiceCount,
+              oldestDaysOverdue: c.oldestDaysOverdue,
+            }))}
+          />
         </div>
       </div>
+
+      {/* Invoice Red Flags Section - Phase 2C */}
+      {metrics.redFlagCounts.totalFlags > 0 && (
+        <div className="rounded-lg border border-red-200 p-4 bg-red-50/50">
+          <h3 className="font-semibold text-red-700 mb-3">Invoice Red Flags</h3>
+          <div className="grid gap-3 grid-cols-2 md:grid-cols-4">
+            {metrics.redFlagCounts.overdueCount > 0 && (
+              <div className="rounded-lg border border-red-200 p-3 bg-white">
+                <p className="text-xs text-muted-foreground">Overdue</p>
+                <div className="text-xl font-bold text-red-600">{metrics.redFlagCounts.overdueCount}</div>
+              </div>
+            )}
+            {metrics.redFlagCounts.negativeMarginCount > 0 && (
+              <div className="rounded-lg border border-orange-200 p-3 bg-white">
+                <p className="text-xs text-muted-foreground">Margin Negatif</p>
+                <div className="text-xl font-bold text-orange-600">{metrics.redFlagCounts.negativeMarginCount}</div>
+              </div>
+            )}
+            {metrics.redFlagCounts.duplicateSuspectCount > 0 && (
+              <div className="rounded-lg border border-yellow-200 p-3 bg-white">
+                <p className="text-xs text-muted-foreground">Duplikat</p>
+                <div className="text-xl font-bold text-yellow-600">{metrics.redFlagCounts.duplicateSuspectCount}</div>
+              </div>
+            )}
+            {metrics.redFlagCounts.missingInvoiceCount > 0 && (
+              <div className="rounded-lg border border-purple-200 p-3 bg-white">
+                <p className="text-xs text-muted-foreground">Belum Diinvoice</p>
+                <div className="text-xl font-bold text-purple-600">{metrics.redFlagCounts.missingInvoiceCount}</div>
+              </div>
+            )}
+          </div>
+        </div>
+      )}
 
       {/* Approval Queue Section - Task 3.5 */}
       <div className="grid gap-4 md:grid-cols-2">

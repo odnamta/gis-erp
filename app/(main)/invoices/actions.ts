@@ -131,7 +131,7 @@ export async function getInvoiceDataFromJO(joId: string): Promise<ActionResult<I
 
   // Fetch revenue items from the linked PJO
   let lineItems: InvoiceFormData['line_items'] = []
-  
+
   if (jo.pjo_id) {
     const { data: revenueItems, error: revenueError } = await supabase
       .from('pjo_revenue_items')
@@ -140,12 +140,33 @@ export async function getInvoiceDataFromJO(joId: string): Promise<ActionResult<I
       .order('created_at', { ascending: true })
 
     if (!revenueError && revenueItems) {
-      lineItems = revenueItems.map((item) => ({
-        description: item.description,
-        quantity: item.quantity,
-        unit: item.unit,
-        unit_price: item.unit_price,
-      }))
+      lineItems = revenueItems.map((item) => {
+        // Cast to access source_type field (may not be in generated types)
+        const itemAny = item as Record<string, unknown>
+        const sourceType = itemAny.source_type as string | null
+        const routePattern = itemAny.route_pattern as string | null
+        const notes = itemAny.notes as string | null
+
+        // Enhance description with contract rate metadata when source_type is 'contract'
+        let description = item.description
+        if (sourceType === 'contract') {
+          const parts: string[] = [item.description]
+          if (routePattern) {
+            parts.push(`Rute: ${routePattern}`)
+          }
+          if (notes) {
+            parts.push(notes)
+          }
+          description = parts.join(' - ')
+        }
+
+        return {
+          description,
+          quantity: item.quantity,
+          unit: item.unit,
+          unit_price: item.unit_price,
+        }
+      })
     }
   }
 
@@ -962,4 +983,55 @@ export async function getInvoiceStats(): Promise<InvoiceStats> {
   }
 
   return stats
+}
+
+/**
+ * Get revenue vs invoice reconciliation data for a specific JO.
+ * Compares JO final_revenue against SUM(invoices.total_amount) WHERE jo_id = ?.
+ */
+export async function getRevenueReconciliation(joId: string): Promise<{
+  joId: string
+  joNumber: string
+  finalRevenue: number
+  totalInvoiced: number
+  invoiceCount: number
+  discrepancy: number
+  discrepancyPct: number
+} | null> {
+  const supabase = await createClient()
+
+  // Fetch JO final_revenue
+  const { data: jo, error: joError } = await supabase
+    .from('job_orders')
+    .select('id, jo_number, final_revenue')
+    .eq('id', joId)
+    .single()
+
+  if (joError || !jo) return null
+
+  const finalRevenue = jo.final_revenue || 0
+
+  // Fetch sum of all invoices for this JO (excluding cancelled)
+  const { data: invoices, error: invError } = await supabase
+    .from('invoices')
+    .select('total_amount')
+    .eq('jo_id', joId)
+    .neq('status', 'cancelled')
+
+  if (invError) return null
+
+  const invoiceRecords = invoices || []
+  const totalInvoiced = invoiceRecords.reduce((sum, inv) => sum + (inv.total_amount || 0), 0)
+  const discrepancy = finalRevenue - totalInvoiced
+  const discrepancyPct = finalRevenue > 0 ? (discrepancy / finalRevenue) * 100 : 0
+
+  return {
+    joId: jo.id,
+    joNumber: jo.jo_number,
+    finalRevenue,
+    totalInvoiced,
+    invoiceCount: invoiceRecords.length,
+    discrepancy,
+    discrepancyPct,
+  }
 }

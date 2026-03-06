@@ -16,6 +16,7 @@ export type ManagerWidgetType =
   | 'jo_status'
   | 'bkk_pending'
   | 'invoice_aging'
+  | 'invoice_red_flags'
   | 'employee_attendance'
   | 'training_compliance'
   | 'incident_summary'
@@ -44,6 +45,7 @@ export const DEPARTMENT_WIDGETS: Record<DepartmentScope, ManagerWidgetType[]> = 
   finance: [
     'bkk_pending',
     'invoice_aging',
+    'invoice_red_flags',
     'department_kpis',
     'team_activity',
   ],
@@ -123,6 +125,11 @@ export const WIDGET_CONFIG: Record<ManagerWidgetType, {
   invoice_aging: {
     title: 'Invoice Aging',
     description: 'Outstanding invoices by age',
+    size: 'medium',
+  },
+  invoice_red_flags: {
+    title: 'Invoice Red Flags',
+    description: 'Overdue, margin negatif, duplikat, dan invoice belum dibuat',
     size: 'medium',
   },
   employee_attendance: {

@@ -1,5 +1,5 @@
 import { notFound } from 'next/navigation'
-import { getInvoice } from '../actions'
+import { getInvoice, getRevenueReconciliation } from '../actions'
 import { InvoiceDetailView } from '@/components/invoices/invoice-detail-view'
 import { createClient } from '@/lib/supabase/server'
 
@@ -19,18 +19,29 @@ export default async function InvoiceDetailPage({ params }: InvoiceDetailPagePro
   const supabase = await createClient()
   const { data: { user } } = await supabase.auth.getUser()
   let userRole = 'viewer'
-  
+
   if (user) {
     const { data: profile } = await supabase
       .from('user_profiles')
       .select('role')
       .eq('user_id', user.id)
       .single()
-    
+
     if (profile) {
       userRole = profile.role
     }
   }
 
-  return <InvoiceDetailView invoice={invoice} userRole={userRole} />
+  // Fetch revenue reconciliation data if linked to a JO
+  const reconciliation = invoice.jo_id
+    ? await getRevenueReconciliation(invoice.jo_id)
+    : null
+
+  return (
+    <InvoiceDetailView
+      invoice={invoice}
+      userRole={userRole}
+      reconciliation={reconciliation}
+    />
+  )
 }
