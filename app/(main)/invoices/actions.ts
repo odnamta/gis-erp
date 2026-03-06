@@ -986,6 +986,36 @@ export async function getInvoiceStats(): Promise<InvoiceStats> {
 }
 
 /**
+ * Get job orders that can be invoiced (for dropdown on new invoice page)
+ */
+export async function getInvoiceableJobOrders(): Promise<{ id: string; jo_number: string; customer_name: string; description: string | null }[]> {
+  const profile = await getUserProfile()
+  if (!profile || !profileHasRole(profile, [...INVOICE_ALLOWED_ROLES])) {
+    return []
+  }
+
+  const supabase = await createClient()
+
+  const { data, error } = await supabase
+    .from('job_orders')
+    .select('id, jo_number, description, customers(name)')
+    .in('status', ['submitted_to_finance', 'completed', 'invoiced'])
+    .order('created_at', { ascending: false })
+    .limit(100)
+
+  if (error) {
+    return []
+  }
+
+  return (data || []).map((jo) => ({
+    id: jo.id,
+    jo_number: jo.jo_number,
+    customer_name: (jo.customers as { name: string } | null)?.name || 'Unknown',
+    description: jo.description,
+  }))
+}
+
+/**
  * Get revenue vs invoice reconciliation data for a specific JO.
  * Compares JO final_revenue against SUM(invoices.total_amount) WHERE jo_id = ?.
  */
