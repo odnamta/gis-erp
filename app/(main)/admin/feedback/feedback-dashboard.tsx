@@ -42,12 +42,18 @@ import type {
   FeedbackFilters,
 } from '@/types/feedback';
 import { FeedbackDetailSheet } from './feedback-detail-sheet';
+import type { PaginatedFeedback } from '@/types/feedback';
 
-export function FeedbackDashboard() {
+interface FeedbackDashboardProps {
+  initialSummary?: FeedbackSummary | null;
+  initialFeedback?: PaginatedFeedback | null;
+}
+
+export function FeedbackDashboard({ initialSummary, initialFeedback }: FeedbackDashboardProps) {
   const { toast } = useToast();
-  const [summary, setSummary] = useState<FeedbackSummary | null>(null);
-  const [items, setItems] = useState<FeedbackListItem[]>([]);
-  const [loading, setLoading] = useState(true);
+  const [summary, setSummary] = useState<FeedbackSummary | null>(initialSummary ?? null);
+  const [items, setItems] = useState<FeedbackListItem[]>(initialFeedback?.items ?? []);
+  const [loading, setLoading] = useState(!initialFeedback);
   const [selectedFeedback, setSelectedFeedback] = useState<FeedbackListItem | null>(null);
   const [copied, setCopied] = useState(false);
 
@@ -57,9 +63,12 @@ export function FeedbackDashboard() {
 
   // Pagination
   const [page, setPage] = useState(1);
-  const [totalPages, setTotalPages] = useState(1);
-  const [total, setTotal] = useState(0);
+  const [totalPages, setTotalPages] = useState(initialFeedback?.totalPages ?? 1);
+  const [total, setTotal] = useState(initialFeedback?.total ?? 0);
   const pageSize = 20;
+
+  // Track whether we've applied any filters/pagination (skip refetch on mount)
+  const [hasUserInteracted, setHasUserInteracted] = useState(false);
 
   const loadData = useCallback(async () => {
     setLoading(true);
@@ -85,15 +94,18 @@ export function FeedbackDashboard() {
   }, [filters, searchTerm, page]);
 
   useEffect(() => {
+    // Skip the initial fetch — we already have server-side data
+    if (!hasUserInteracted) return;
     loadData();
-  }, [loadData]);
+  }, [loadData, hasUserInteracted]);
 
   const handleSearch = () => {
+    setHasUserInteracted(true);
     setPage(1);
-    loadData();
   };
 
   const handleFilterChange = (key: keyof FeedbackFilters, value: string | undefined) => {
+    setHasUserInteracted(true);
     setFilters((prev) => ({
       ...prev,
       [key]: value === 'all' ? undefined : value,
@@ -102,6 +114,7 @@ export function FeedbackDashboard() {
   };
 
   const clearFilters = () => {
+    setHasUserInteracted(true);
     setFilters({});
     setSearchTerm('');
     setPage(1);
@@ -412,7 +425,7 @@ export function FeedbackDashboard() {
                     <Button
                       variant="outline"
                       size="sm"
-                      onClick={() => setPage((p) => Math.max(1, p - 1))}
+                      onClick={() => { setHasUserInteracted(true); setPage((p) => Math.max(1, p - 1)); }}
                       disabled={page === 1}
                     >
                       Previous
@@ -420,7 +433,7 @@ export function FeedbackDashboard() {
                     <Button
                       variant="outline"
                       size="sm"
-                      onClick={() => setPage((p) => Math.min(totalPages, p + 1))}
+                      onClick={() => { setHasUserInteracted(true); setPage((p) => Math.min(totalPages, p + 1)); }}
                       disabled={page === totalPages}
                     >
                       Next
@@ -437,7 +450,7 @@ export function FeedbackDashboard() {
       <FeedbackDetailSheet
         feedback={selectedFeedback}
         onClose={() => setSelectedFeedback(null)}
-        onUpdate={loadData}
+        onUpdate={() => { setHasUserInteracted(true); loadData(); }}
       />
     </div>
   );
