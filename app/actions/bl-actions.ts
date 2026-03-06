@@ -234,7 +234,7 @@ export async function getBillOfLading(id: string): Promise<BillOfLading | null> 
 
     if (error) throw error;
     return data ? mapBLRowToModel(data as unknown as BillOfLadingRow) : null;
-  } catch (error) {
+  } catch {
     return null;
   }
 }
@@ -287,7 +287,7 @@ export async function getBillsOfLading(filters?: BLFilters): Promise<BillOfLadin
 
     if (error) throw error;
     return (data || []).map((row: BillOfLadingRow) => mapBLRowToModel(row));
-  } catch (error) {
+  } catch {
     return [];
   }
 }
@@ -543,7 +543,7 @@ export async function getBLStats(): Promise<BLStats> {
     }
 
     return stats;
-  } catch (error) {
+  } catch {
     return {
       total: 0,
       draft: 0,

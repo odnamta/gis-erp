@@ -1,6 +1,5 @@
 import { Suspense } from 'react'
 import Link from 'next/link'
-import { redirect } from 'next/navigation'
 import { Button } from '@/components/ui/button'
 import { PEBSummaryCards, PEBList, PEBFiltersComponent } from '@/components/peb'
 import { getPEBDocuments, getPEBStatistics, getCustomsOffices } from '@/lib/peb-actions'

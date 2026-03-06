@@ -48,7 +48,7 @@ export default function CoursesPage() {
       }
       const data = await getCourses(filters);
       setCourses(data);
-    } catch (error) {
+    } catch {
     } finally {
       setLoading(false);
     }

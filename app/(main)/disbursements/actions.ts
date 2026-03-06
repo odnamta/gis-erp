@@ -124,7 +124,7 @@ export async function updateDisbursement(
     revalidatePath('/disbursements')
     revalidatePath(`/disbursements/${id}`)
     return { data, error: null }
-  } catch (error) {
+  } catch {
     return { data: null, error: 'Gagal mengupdate disbursement' }
   }
 }
@@ -149,7 +149,7 @@ export async function submitForApproval(id: string) {
     revalidatePath('/disbursements')
     revalidatePath(`/disbursements/${id}`)
     return { data, error: null }
-  } catch (error) {
+  } catch {
     return { data: null, error: 'Gagal submit untuk approval' }
   }
 }
@@ -191,7 +191,7 @@ export async function approveDisbursement(id: string, _userId?: string) {
     revalidatePath('/disbursements')
     revalidatePath(`/disbursements/${id}`)
     return { data, error: null }
-  } catch (error) {
+  } catch {
     return { data: null, error: 'Gagal meng-approve disbursement' }
   }
 }
@@ -226,7 +226,7 @@ export async function rejectDisbursement(id: string, _userId?: string, reason?: 
     revalidatePath('/disbursements')
     revalidatePath(`/disbursements/${id}`)
     return { data, error: null }
-  } catch (error) {
+  } catch {
     return { data: null, error: 'Gagal menolak disbursement' }
   }
 }
@@ -268,7 +268,7 @@ export async function releaseDisbursement(id: string, _userId?: string) {
     revalidatePath('/disbursements')
     revalidatePath(`/disbursements/${id}`)
     return { data, error: null }
-  } catch (error) {
+  } catch {
     return { data: null, error: 'Gagal melepas dana disbursement' }
   }
 }
@@ -305,7 +305,7 @@ export async function settleDisbursement(id: string, _userId?: string) {
     revalidatePath('/disbursements')
     revalidatePath(`/disbursements/${id}`)
     return { data, error: null }
-  } catch (error) {
+  } catch {
     return { data: null, error: 'Gagal menyelesaikan disbursement' }
   }
 }
@@ -325,7 +325,7 @@ export async function deleteDisbursement(id: string) {
 
     revalidatePath('/disbursements')
     return { error: null }
-  } catch (error) {
+  } catch {
     return { error: 'Gagal menghapus disbursement' }
   }
 }

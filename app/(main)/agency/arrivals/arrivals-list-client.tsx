@@ -79,7 +79,7 @@ export function ArrivalsListClient({
     try {
       const results = await getArrivalNotices(filters);
       setArrivals(results);
-    } catch (error) {
+    } catch {
       toast({
         title: 'Error',
         description: 'Failed to search arrival notices',
@@ -107,7 +107,7 @@ export function ArrivalsListClient({
     try {
       const results = await getArrivalNotices(clearedFilters);
       setArrivals(results);
-    } catch (error) {
+    } catch {
     } finally {
       setIsLoading(false);
     }
@@ -130,7 +130,7 @@ export function ArrivalsListClient({
           variant: 'destructive',
         });
       }
-    } catch (error) {
+    } catch {
       toast({
         title: 'Error',
         description: 'Failed to notify consignee',

@@ -71,7 +71,7 @@ export function ShippingRatesClient() {
       if (linesResult.success && linesResult.data) {
         setShippingLines(linesResult.data);
       }
-    } catch (error) {
+    } catch {
       toast({
         title: 'Error',
         description: 'Failed to load data',
@@ -128,7 +128,7 @@ export function ShippingRatesClient() {
           description: result.error || 'No rates found for this route',
         });
       }
-    } catch (error) {
+    } catch {
       toast({
         title: 'Error',
         description: 'Failed to search rates',

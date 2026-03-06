@@ -221,7 +221,7 @@ export async function getShippingInstruction(id: string): Promise<ShippingInstru
 
     if (error) throw error;
     return data ? mapSIRowToModel(data as ShippingInstructionRow) : null;
-  } catch (error) {
+  } catch {
     return null;
   }
 }
@@ -270,7 +270,7 @@ export async function getShippingInstructions(filters?: SIFilters): Promise<Ship
 
     if (error) throw error;
     return (data || []).map((row: ShippingInstructionRow) => mapSIRowToModel(row));
-  } catch (error) {
+  } catch {
     return [];
   }
 }
@@ -644,7 +644,7 @@ export async function getSIStats(): Promise<SIStats> {
     }
 
     return stats;
-  } catch (error) {
+  } catch {
     return {
       total: 0,
       draft: 0,

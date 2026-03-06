@@ -66,7 +66,7 @@ export default function AIInsightsPage() {
       if (historyData.length > 0) {
         setLastQueryId(historyData[0].id);
       }
-    } catch (error) {
+    } catch {
       setResponse({
         responseType: 'error',
         responseText: 'An unexpected error occurred. Please try again.',

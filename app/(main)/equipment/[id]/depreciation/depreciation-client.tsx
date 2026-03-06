@@ -85,7 +85,7 @@ export function DepreciationClient({ assetId }: DepreciationClientProps) {
       if (historyResult.success && historyResult.data) {
         setHistory(historyResult.data);
       }
-    } catch (error) {
+    } catch {
       toast.error('Failed to load depreciation data');
     } finally {
       setLoading(false);

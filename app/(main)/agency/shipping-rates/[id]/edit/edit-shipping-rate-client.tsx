@@ -52,7 +52,7 @@ export function EditShippingRateClient({ id }: EditShippingRateClientProps) {
       if (portsResult.success && portsResult.data) {
         setPorts(portsResult.data);
       }
-    } catch (error) {
+    } catch {
       toast({
         title: 'Error',
         description: 'Failed to load data',
@@ -84,7 +84,7 @@ export function EditShippingRateClient({ id }: EditShippingRateClientProps) {
           variant: 'destructive',
         });
       }
-    } catch (error) {
+    } catch {
       toast({
         title: 'Error',
         description: 'Failed to update shipping rate',

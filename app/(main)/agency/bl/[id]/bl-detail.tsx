@@ -112,7 +112,7 @@ export function BLDetail({ bl }: BLDetailProps) {
       } else {
         toast.error(result.error || `Failed to ${action} B/L`);
       }
-    } catch (error) {
+    } catch {
       toast.error(`Failed to ${action} B/L`);
     } finally {
       setIsLoading(false);
@@ -129,7 +129,7 @@ export function BLDetail({ bl }: BLDetailProps) {
       } else {
         toast.error(result.error || 'Failed to delete B/L');
       }
-    } catch (error) {
+    } catch {
       toast.error('Failed to delete B/L');
     } finally {
       setIsLoading(false);

@@ -58,7 +58,7 @@ export default function AssessmentsPage() {
         superseded: countsData.superseded || 0,
         total: countsData.total || 0,
       });
-    } catch (error) {
+    } catch {
     } finally {
       setLoading(false);
     }

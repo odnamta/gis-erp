@@ -71,7 +71,7 @@ export function ShippingRatesManageClient() {
       if (linesResult.success && linesResult.data) {
         setShippingLines(linesResult.data);
       }
-    } catch (error) {
+    } catch {
       toast({
         title: 'Error',
         description: 'Failed to load shipping rates',

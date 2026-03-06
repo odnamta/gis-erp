@@ -64,7 +64,7 @@ export function NewBookingClient({
 
       toast.success('Booking created and submitted successfully');
       router.push(`/agency/bookings/${bookingId}`);
-    } catch (error) {
+    } catch {
       toast.error('Failed to create booking');
     } finally {
       setIsLoading(false);
@@ -99,7 +99,7 @@ export function NewBookingClient({
 
       toast.success('Draft saved successfully');
       router.push(`/agency/bookings/${bookingId}`);
-    } catch (error) {
+    } catch {
       toast.error('Failed to save draft');
     } finally {
       setIsLoading(false);

@@ -67,7 +67,7 @@ export async function getShippingRates(): Promise<ActionResult<ShippingRate[]>> 
 
     const rates: ShippingRate[] = (data || []).map(mapDbToShippingRate);
     return { success: true, data: rates };
-  } catch (error) {
+  } catch {
     return { success: false, error: 'Failed to fetch shipping rates' };
   }
 }
@@ -90,7 +90,7 @@ export async function getShippingRateById(id: string): Promise<ActionResult<Ship
     if (!data) return { success: false, error: 'Shipping rate not found' };
 
     return { success: true, data: mapDbToShippingRate(data) };
-  } catch (error) {
+  } catch {
     return { success: false, error: 'Failed to fetch shipping rate' };
   }
 }
@@ -132,7 +132,7 @@ export async function searchShippingRates(
 
     const rates: ShippingRate[] = (data || []).map(mapDbToShippingRate);
     return { success: true, data: rates };
-  } catch (error) {
+  } catch {
     return { success: false, error: 'Failed to search shipping rates' };
   }
 }
@@ -158,7 +158,7 @@ export async function findBestRate(
     const alternatives = rates.slice(1, 4); // Up to 3 alternatives
 
     return { success: true, data: { best, alternatives } };
-  } catch (error) {
+  } catch {
     return { success: false, error: 'Failed to find best rate' };
   }
 }
@@ -199,7 +199,7 @@ export async function createShippingRate(formData: ShippingRateFormData): Promis
 
     revalidatePath('/agency/shipping-rates');
     return { success: true, data: mapDbToShippingRate(data) };
-  } catch (error) {
+  } catch {
     return { success: false, error: 'Failed to create shipping rate' };
   }
 }
@@ -240,7 +240,7 @@ export async function updateShippingRate(id: string, formData: ShippingRateFormD
 
     revalidatePath('/agency/shipping-rates');
     return { success: true, data: mapDbToShippingRate(data) };
-  } catch (error) {
+  } catch {
     return { success: false, error: 'Failed to update shipping rate' };
   }
 }
@@ -258,7 +258,7 @@ export async function deleteShippingRate(id: string): Promise<ActionResult<void>
 
     revalidatePath('/agency/shipping-rates');
     return { success: true };
-  } catch (error) {
+  } catch {
     return { success: false, error: 'Failed to delete shipping rate' };
   }
 }

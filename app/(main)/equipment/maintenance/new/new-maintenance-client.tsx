@@ -33,7 +33,7 @@ export function NewMaintenanceClient() {
       ])
       setAssets(assetsData)
       setMaintenanceTypes(typesData)
-    } catch (error) {
+    } catch {
     } finally {
       setIsLoading(false)
     }

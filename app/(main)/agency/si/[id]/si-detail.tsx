@@ -128,7 +128,7 @@ export function SIDetail({ si, availableBLs }: SIDetailProps) {
       } else {
         toast.error(result.error || `Failed to ${action} SI`);
       }
-    } catch (error) {
+    } catch {
       toast.error(`Failed to ${action} SI`);
     } finally {
       setIsLoading(false);
@@ -151,7 +151,7 @@ export function SIDetail({ si, availableBLs }: SIDetailProps) {
       } else {
         toast.error(result.error || 'Failed to confirm SI');
       }
-    } catch (error) {
+    } catch {
       toast.error('Failed to confirm SI');
     } finally {
       setIsLoading(false);
@@ -168,7 +168,7 @@ export function SIDetail({ si, availableBLs }: SIDetailProps) {
       } else {
         toast.error(result.error || 'Failed to delete SI');
       }
-    } catch (error) {
+    } catch {
       toast.error('Failed to delete SI');
     } finally {
       setIsLoading(false);

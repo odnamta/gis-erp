@@ -724,7 +724,7 @@ export async function rejectPJO(id: string, reason: string): Promise<{ error?: s
       'rejected',
       reason
     )
-  } catch (e) {
+  } catch {
   }
 
   revalidatePath('/proforma-jo')
@@ -902,7 +902,7 @@ export async function confirmCostItem(
           }
         )
       }
-    } catch (e) {
+    } catch {
     }
   }
 

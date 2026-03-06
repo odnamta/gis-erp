@@ -30,7 +30,7 @@ export function NewManifestClient({ availableBLs }: NewManifestClientProps) {
 
       toast.success('Cargo Manifest created successfully');
       router.push(`/agency/manifests/${result.data.id}`);
-    } catch (error) {
+    } catch {
       toast.error('Failed to create Cargo Manifest');
     } finally {
       setIsLoading(false);
@@ -49,7 +49,7 @@ export function NewManifestClient({ availableBLs }: NewManifestClientProps) {
 
       toast.success('Draft saved successfully');
       router.push(`/agency/manifests/${result.data.id}`);
-    } catch (error) {
+    } catch {
       toast.error('Failed to save draft');
     } finally {
       setIsLoading(false);

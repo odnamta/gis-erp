@@ -5,7 +5,6 @@ import { Button } from '@/components/ui/button';
 import { getSurvey, getCustomers, getQuotations, getProjects, getEmployees } from '@/lib/survey-actions';
 import { SurveyForm } from '@/components/surveys/survey-form';
 import { getCurrentUserProfile, guardPage } from '@/lib/auth-utils';
-import { ExplorerReadOnlyBanner } from '@/components/layout/explorer-read-only-banner';
 
 interface EditSurveyPageProps {
   params: Promise<{ id: string }>;

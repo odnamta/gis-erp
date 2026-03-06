@@ -190,7 +190,7 @@ export function RetentionClient({
           variant: 'destructive',
         })
       }
-    } catch (error) {
+    } catch {
       toast({
         title: 'Error',
         description: 'An unexpected error occurred',
@@ -235,7 +235,7 @@ export function RetentionClient({
           variant: 'destructive',
         })
       }
-    } catch (error) {
+    } catch {
       toast({
         title: 'Error',
         description: 'An unexpected error occurred during archival',

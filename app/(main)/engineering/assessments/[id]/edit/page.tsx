@@ -8,7 +8,6 @@ import { Button } from '@/components/ui/button';
 import { AssessmentForm } from '@/components/assessments/assessment-form';
 import { getAssessment, getAssessmentTypes } from '@/lib/assessment-actions';
 import { getCurrentUserProfile, guardPage } from '@/lib/auth-utils';
-import { ExplorerReadOnlyBanner } from '@/components/layout/explorer-read-only-banner';
 
 interface EditAssessmentPageProps {
   params: Promise<{ id: string }>;

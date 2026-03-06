@@ -81,7 +81,7 @@ export async function getVendorInvoices(
     );
 
     return { success: true, data: invoices };
-  } catch (error) {
+  } catch {
     return { success: false, error: 'Failed to fetch vendor invoices' };
   }
 }
@@ -133,7 +133,7 @@ export async function getVendorInvoicesByBooking(
     );
 
     return { success: true, data: result };
-  } catch (error) {
+  } catch {
     return { success: false, error: 'Failed to fetch vendor invoices for booking' };
   }
 }
@@ -168,7 +168,7 @@ export async function getVendorInvoiceById(
     }
 
     return { success: true, data: transformVendorInvoiceRow(data as unknown as AgencyVendorInvoiceRow) };
-  } catch (error) {
+  } catch {
     return { success: false, error: 'Failed to fetch vendor invoice' };
   }
 }
@@ -240,7 +240,7 @@ export async function createVendorInvoice(
     revalidatePath('/agency/reports/payables');
     
     return { success: true, data: transformVendorInvoiceRow(data as unknown as AgencyVendorInvoiceRow) };
-  } catch (error) {
+  } catch {
     return { success: false, error: 'Failed to create vendor invoice' };
   }
 }
@@ -344,7 +344,7 @@ export async function updateVendorInvoice(
     revalidatePath('/agency/reports/payables');
 
     return { success: true, data: transformVendorInvoiceRow(data as unknown as AgencyVendorInvoiceRow) };
-  } catch (error) {
+  } catch {
     return { success: false, error: 'Failed to update vendor invoice' };
   }
 }
@@ -381,7 +381,7 @@ export async function deleteVendorInvoice(id: string): Promise<ActionResult<void
     revalidatePath('/agency/reports/payables');
 
     return { success: true };
-  } catch (error) {
+  } catch {
     return { success: false, error: 'Failed to delete vendor invoice' };
   }
 }
@@ -455,7 +455,7 @@ export async function updateVendorInvoicePayment(
     revalidatePath('/agency/reports/payables');
 
     return { success: true, data: transformVendorInvoiceRow(data as unknown as AgencyVendorInvoiceRow) };
-  } catch (error) {
+  } catch {
     return { success: false, error: 'Failed to update payment' };
   }
 }
@@ -524,7 +524,7 @@ export async function linkCostsToInvoice(
     revalidatePath('/agency/reports/payables');
 
     return { success: true, data: transformVendorInvoiceRow(data as unknown as AgencyVendorInvoiceRow) };
-  } catch (error) {
+  } catch {
     return { success: false, error: 'Failed to link costs to invoice' };
   }
 }
@@ -574,7 +574,7 @@ export async function unlinkCostsFromInvoice(
     revalidatePath('/agency/reports/payables');
 
     return { success: true, data: transformVendorInvoiceRow(data as unknown as AgencyVendorInvoiceRow) };
-  } catch (error) {
+  } catch {
     return { success: false, error: 'Failed to unlink costs from invoice' };
   }
 }
@@ -605,7 +605,7 @@ export async function getVendorInvoicesByVendor(
     );
 
     return { success: true, data: invoices };
-  } catch (error) {
+  } catch {
     return { success: false, error: 'Failed to fetch vendor invoices' };
   }
 }
@@ -636,7 +636,7 @@ export async function getOverdueVendorInvoices(): Promise<ActionResult<AgencyVen
     );
 
     return { success: true, data: invoices };
-  } catch (error) {
+  } catch {
     return { success: false, error: 'Failed to fetch overdue invoices' };
   }
 }

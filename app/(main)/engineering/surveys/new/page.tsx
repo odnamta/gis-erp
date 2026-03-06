@@ -4,7 +4,6 @@ import { Button } from '@/components/ui/button';
 import Link from 'next/link';
 import { ArrowLeft } from 'lucide-react';
 import { getCurrentUserProfile, guardPage } from '@/lib/auth-utils';
-import { ExplorerReadOnlyBanner } from '@/components/layout/explorer-read-only-banner';
 
 export const dynamic = 'force-dynamic';
 

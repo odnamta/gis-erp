@@ -52,7 +52,7 @@ export async function getTimesheets(
 
   // Fetch submitter names
   const submitterIds = [...new Set((data as any[]).map((d: any) => d.submitted_by).filter(Boolean))];
-  let profileMap = new Map<string, any>();
+  const profileMap = new Map<string, any>();
   if (submitterIds.length > 0) {
     const { data: profiles } = await supabase
       .from('user_profiles')

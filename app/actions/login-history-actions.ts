@@ -145,7 +145,7 @@ export async function getLoginHistory(
     };
     
     return { success: true, data: result };
-  } catch (error) {
+  } catch {
     return { success: false, error: 'Failed to fetch login history' };
   }
 }
@@ -185,7 +185,7 @@ export async function getUserSessionStats(
     const stats = calculateSessionStatistics(userId, entries);
     
     return { success: true, data: stats };
-  } catch (error) {
+  } catch {
     return { success: false, error: 'Failed to fetch session statistics' };
   }
 }
@@ -221,7 +221,7 @@ export async function recordLogin(
     if (error) throw error;
     
     return { success: true, data: data as unknown as LoginHistoryEntry };
-  } catch (error) {
+  } catch {
     return { success: false, error: 'Failed to record login' };
   }
 }
@@ -276,7 +276,7 @@ export async function recordLogout(
     if (error) throw error;
     
     return { success: true, data: data as unknown as LoginHistoryEntry };
-  } catch (error) {
+  } catch {
     return { success: false, error: 'Failed to record logout' };
   }
 }
@@ -313,7 +313,7 @@ export async function recordFailedLogin(
     if (error) throw error;
     
     return { success: true, data: data as unknown as LoginHistoryEntry };
-  } catch (error) {
+  } catch {
     return { success: false, error: 'Failed to record failed login' };
   }
 }
@@ -378,7 +378,7 @@ export async function exportLoginHistory(
     const csv = exportToCsv(entries);
     
     return { success: true, data: csv };
-  } catch (error) {
+  } catch {
     return { success: false, error: 'Failed to export login history' };
   }
 }
@@ -445,7 +445,7 @@ export async function getLoginHistoryFilterOptions(): Promise<ActionResult<{
         operatingSystems: operatingSystems as string[],
       },
     };
-  } catch (error) {
+  } catch {
     return { success: false, error: 'Failed to fetch filter options' };
   }
 }
@@ -472,7 +472,7 @@ export async function getActiveSessions(): Promise<ActionResult<LoginHistoryEntr
     if (error) throw error;
     
     return { success: true, data: (data ?? []) as unknown as LoginHistoryEntry[] };
-  } catch (error) {
+  } catch {
     return { success: false, error: 'Failed to fetch active sessions' };
   }
 }
@@ -506,7 +506,7 @@ export async function getRecentFailedLogins(
     if (error) throw error;
     
     return { success: true, data: (data ?? []) as unknown as LoginHistoryEntry[] };
-  } catch (error) {
+  } catch {
     return { success: false, error: 'Failed to fetch recent failed logins' };
   }
 }
@@ -570,7 +570,7 @@ export async function getLoginHistorySummary(
         averageSessionDuration,
       },
     };
-  } catch (error) {
+  } catch {
     return { success: false, error: 'Failed to fetch login history summary' };
   }
 }

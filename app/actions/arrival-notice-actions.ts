@@ -197,7 +197,7 @@ export async function getArrivalNotice(id: string): Promise<ArrivalNotice | null
 
     if (error) throw error;
     return data ? mapArrivalNoticeRowToModel(data as unknown as ArrivalNoticeRow) : null;
-  } catch (error) {
+  } catch {
     return null;
   }
 }
@@ -252,7 +252,7 @@ export async function getArrivalNotices(filters?: {
 
     if (error) throw error;
     return (data || []).map((row: ArrivalNoticeRow) => mapArrivalNoticeRowToModel(row));
-  } catch (error) {
+  } catch {
     return [];
   }
 }
@@ -553,7 +553,7 @@ export async function getPendingArrivals(): Promise<ArrivalNotice[]> {
 
     if (error) throw error;
     return (data || []).map((row: ArrivalNoticeRow) => mapArrivalNoticeRowToModel(row));
-  } catch (error) {
+  } catch {
     return [];
   }
 }

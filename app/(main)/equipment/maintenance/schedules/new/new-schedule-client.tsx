@@ -29,7 +29,7 @@ export function NewScheduleClient() {
       ])
       setAssets(assetsData)
       setMaintenanceTypes(typesData)
-    } catch (error) {
+    } catch {
     } finally {
       setIsLoading(false)
     }

@@ -106,7 +106,7 @@ export function ApproveDialog({
           variant: 'destructive',
         })
       }
-    } catch (error) {
+    } catch {
       toast({
         title: 'Error',
         description: 'An unexpected error occurred',
@@ -245,7 +245,7 @@ export function RejectDialog({
           variant: 'destructive',
         })
       }
-    } catch (error) {
+    } catch {
       toast({
         title: 'Error',
         description: 'An unexpected error occurred',

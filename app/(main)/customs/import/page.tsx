@@ -1,6 +1,5 @@
 import { Suspense } from 'react'
 import Link from 'next/link'
-import { redirect } from 'next/navigation'
 import { Button } from '@/components/ui/button'
 import { PIBSummaryCards, PIBList, PIBFiltersComponent } from '@/components/pib'
 import { getPIBDocuments, getPIBStatistics, getCustomsOffices } from '@/lib/pib-actions'

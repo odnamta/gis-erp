@@ -195,7 +195,7 @@ export async function convertToJobOrder(pjoId: string): Promise<{ error?: string
     const result = await updateVendorInvoiceJOReference(pjoId, newJO.id)
     if (result.error) {
     }
-  } catch (e) {
+  } catch {
   }
 
   // Allocate overhead to the new Job Order
@@ -204,7 +204,7 @@ export async function convertToJobOrder(pjoId: string): Promise<{ error?: string
     const overheadResult = await allocateJobOverhead(newJO.id)
     if (overheadResult.error) {
     }
-  } catch (e) {
+  } catch {
   }
 
   // Send notification for new JO created
@@ -222,7 +222,7 @@ export async function convertToJobOrder(pjoId: string): Promise<{ error?: string
       customer_name: customer?.name,
       status: 'active',
     })
-  } catch (e) {
+  } catch {
   }
 
   revalidatePath('/proforma-jo')

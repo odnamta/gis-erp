@@ -146,7 +146,7 @@ export async function getStorageStats(): Promise<ActionResult<AuditStorageStats>
     };
     
     return { success: true, data: stats };
-  } catch (error) {
+  } catch {
     return { success: false, error: 'Failed to fetch storage statistics' };
   }
 }
@@ -208,7 +208,7 @@ async function getTableStats(
       oldest_entry: oldestEntry,
       newest_entry: newestEntry,
     };
-  } catch (error) {
+  } catch {
     return {
       count: 0,
       size_bytes: 0,
@@ -237,7 +237,7 @@ export async function getLogTypeStorageStats(
     const stats = await getTableStats(supabase, tableName, timestampColumn);
     
     return { success: true, data: stats };
-  } catch (error) {
+  } catch {
     return { success: false, error: `Failed to fetch storage statistics for ${logType}` };
   }
 }
@@ -303,7 +303,7 @@ export async function getRetentionConfig(): Promise<ActionResult<RetentionConfig
           lastCleanupAt = (config.last_cleanup_at as string) ?? null;
           nextCleanupAt = (config.next_cleanup_at as string) ?? null;
         }
-      } catch (parseError) {
+      } catch {
       }
     }
     
@@ -317,7 +317,7 @@ export async function getRetentionConfig(): Promise<ActionResult<RetentionConfig
     };
     
     return { success: true, data: config };
-  } catch (error) {
+  } catch {
     return { success: false, error: 'Failed to fetch retention configuration' };
   }
 }
@@ -391,7 +391,7 @@ export async function updateRetentionConfig(
     if (error) throw error;
     
     return { success: true, data: newConfig };
-  } catch (error) {
+  } catch {
     return { success: false, error: 'Failed to update retention configuration' };
   }
 }
@@ -537,7 +537,7 @@ export async function archiveLogs(
           },
           status: 'success',
         });
-    } catch (auditError) {
+    } catch {
     }
     
     const result: ArchiveResult = {
@@ -650,7 +650,7 @@ export async function archiveLogsBasedOnRetention(): Promise<ActionResult<{
         data_access_logs: dataAccessResult.data || { success: false, records_archived: 0, records_deleted: 0, archive_path: null },
       },
     };
-  } catch (error) {
+  } catch {
     return { success: false, error: 'Failed to archive logs based on retention' };
   }
 }
@@ -740,7 +740,7 @@ export async function getArchivePreview(): Promise<ActionResult<{
         },
       },
     };
-  } catch (error) {
+  } catch {
     return { success: false, error: 'Failed to get archive preview' };
   }
 }
@@ -775,7 +775,7 @@ export async function getArchiveHistory(
     }
     
     return { success: true, data: (data ?? []) as unknown as ArchiveRecord[] };
-  } catch (error) {
+  } catch {
     // Return empty array instead of error for missing table
     return { success: true, data: [] };
   }
@@ -832,7 +832,7 @@ export async function getRetentionSummary(): Promise<ActionResult<{
         preview: previewResult.data,
       },
     };
-  } catch (error) {
+  } catch {
     return { success: false, error: 'Failed to get retention summary' };
   }
 }

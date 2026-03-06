@@ -85,7 +85,7 @@ export function ServiceProvidersClient() {
         setServiceProviders(result.data);
         setStats(calculateServiceProviderStats(result.data));
       }
-    } catch (error) {
+    } catch {
       toast({
         title: 'Error',
         description: 'Failed to load service providers',

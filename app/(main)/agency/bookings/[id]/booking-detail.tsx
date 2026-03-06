@@ -108,7 +108,7 @@ export function BookingDetail({
       } else {
         toast.error(result.error || 'Failed to update status');
       }
-    } catch (error) {
+    } catch {
       toast.error('Failed to update status');
     } finally {
       setIsLoading(false);
@@ -126,7 +126,7 @@ export function BookingDetail({
       } else {
         toast.error(result.error || 'Failed to request amendment');
       }
-    } catch (error) {
+    } catch {
       toast.error('Failed to request amendment');
     } finally {
       setIsLoading(false);

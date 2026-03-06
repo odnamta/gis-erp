@@ -4,7 +4,6 @@ import { getShippingLines } from '@/app/actions/shipping-line-actions';
 import { getBookings, getBooking } from '@/app/actions/booking-actions';
 import { Loader2 } from 'lucide-react';
 import { getCurrentUserProfile, guardPage } from '@/lib/auth-utils';
-import { ExplorerReadOnlyBanner } from '@/components/layout/explorer-read-only-banner';
 
 export const dynamic = 'force-dynamic';
 

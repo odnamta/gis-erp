@@ -28,7 +28,7 @@ export async function loadCompanySettings(): Promise<{
     
     const settings = rowsToSettings(data || []);
     return { success: true, data: settings };
-  } catch (err) {
+  } catch {
     return { success: false, error: 'Failed to load settings' };
   }
 }
@@ -99,7 +99,7 @@ export async function saveCompanySettings(
     
     revalidatePath('/settings/company');
     return { success: true };
-  } catch (err) {
+  } catch {
     return { success: false, error: 'Failed to save settings' };
   }
 }
@@ -176,7 +176,7 @@ export async function uploadCompanyLogo(
     
     revalidatePath('/settings/company');
     return { success: true, url: publicUrl };
-  } catch (err) {
+  } catch {
     return { success: false, error: 'Failed to upload logo' };
   }
 }

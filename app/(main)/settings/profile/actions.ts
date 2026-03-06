@@ -37,7 +37,7 @@ export async function updateProfile(data: UpdateProfileData) {
     revalidatePath('/', 'layout')
 
     return { success: true }
-  } catch (error) {
+  } catch {
     return { success: false, error: 'An unexpected error occurred' }
   }
 }

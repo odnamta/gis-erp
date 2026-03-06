@@ -47,7 +47,7 @@ export default function DrawingsPage() {
       ]);
       setCategories(categoriesData);
       setProjects(projectsData);
-    } catch (error) {
+    } catch {
     }
   };
 
@@ -66,7 +66,7 @@ export default function DrawingsPage() {
     try {
       const data = await getDrawings(filters);
       setDrawings(data);
-    } catch (error) {
+    } catch {
     } finally {
       setLoading(false);
     }

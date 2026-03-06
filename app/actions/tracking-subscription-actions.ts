@@ -302,7 +302,7 @@ export async function getUserSubscriptions(userId?: string): Promise<TrackingSub
 
     if (error) throw error;
     return (data || []).map((row: TrackingSubscriptionRow) => rowToSubscription(row));
-  } catch (error) {
+  } catch {
     return [];
   }
 }
@@ -328,7 +328,7 @@ export async function getSubscription(id: string): Promise<TrackingSubscription 
 
     if (error) throw error;
     return data ? rowToSubscription(data as unknown as TrackingSubscriptionRow) : null;
-  } catch (error) {
+  } catch {
     return null;
   }
 }
@@ -359,7 +359,7 @@ export async function getSubscriptionsByReference(
 
     if (error) throw error;
     return (data || []).map((row: TrackingSubscriptionRow) => rowToSubscription(row));
-  } catch (error) {
+  } catch {
     return [];
   }
 }

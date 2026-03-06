@@ -7,7 +7,6 @@ import { Button } from '@/components/ui/button';
 import { AssessmentForm } from '@/components/assessments/assessment-form';
 import { getAssessmentTypes } from '@/lib/assessment-actions';
 import { getCurrentUserProfile, guardPage } from '@/lib/auth-utils';
-import { ExplorerReadOnlyBanner } from '@/components/layout/explorer-read-only-banner';
 
 export default async function NewAssessmentPage() {
 

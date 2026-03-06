@@ -48,7 +48,7 @@ export function ApproveRejectDialog({
       } else {
         toast.error(result.error || 'Failed to approve request');
       }
-    } catch (error) {
+    } catch {
       toast.error('An error occurred');
     } finally {
       setIsSubmitting(false);
@@ -71,7 +71,7 @@ export function ApproveRejectDialog({
       } else {
         toast.error(result.error || 'Failed to reject request');
       }
-    } catch (error) {
+    } catch {
       toast.error('An error occurred');
     } finally {
       setIsSubmitting(false);

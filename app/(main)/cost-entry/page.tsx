@@ -1,5 +1,4 @@
 import type { ComponentProps } from 'react'
-import { redirect } from 'next/navigation'
 import { getUserProfile } from '@/lib/permissions-server'
 import { guardPage, profileHasRole } from '@/lib/auth-utils'
 import { createClient } from '@/lib/supabase/server'

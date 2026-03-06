@@ -32,7 +32,7 @@ export default function TransmittalDetailPage({ params }: TransmittalDetailPageP
         return;
       }
       setTransmittal(data);
-    } catch (error) {
+    } catch {
       router.push('/engineering/drawings/transmittals');
     } finally {
       setLoading(false);

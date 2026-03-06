@@ -6,7 +6,6 @@ import { getResourceById } from '@/lib/resource-scheduling-actions'
 import { createClient } from '@/lib/supabase/server'
 import { ChevronLeft } from 'lucide-react'
 import { getCurrentUserProfile, guardPage } from '@/lib/auth-utils';
-import { ExplorerReadOnlyBanner } from '@/components/layout/explorer-read-only-banner';
 
 export const dynamic = 'force-dynamic'
 

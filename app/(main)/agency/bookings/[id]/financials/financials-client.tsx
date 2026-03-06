@@ -130,7 +130,7 @@ export function FinancialsClient({
           toast.error(result.error || 'Failed to add cost');
         }
       }
-    } catch (error) {
+    } catch {
       toast.error('Failed to save cost');
     } finally {
       setIsLoading(false);
@@ -149,7 +149,7 @@ export function FinancialsClient({
       } else {
         toast.error(result.error || 'Failed to delete cost');
       }
-    } catch (error) {
+    } catch {
       toast.error('Failed to delete cost');
     } finally {
       setIsLoading(false);
@@ -166,7 +166,7 @@ export function FinancialsClient({
       } else {
         toast.error(result.error || 'Failed to update payment status');
       }
-    } catch (error) {
+    } catch {
       toast.error('Failed to update payment status');
     } finally {
       setIsLoading(false);
@@ -208,7 +208,7 @@ export function FinancialsClient({
           toast.error(result.error || 'Failed to add revenue');
         }
       }
-    } catch (error) {
+    } catch {
       toast.error('Failed to save revenue');
     } finally {
       setIsLoading(false);
@@ -227,7 +227,7 @@ export function FinancialsClient({
       } else {
         toast.error(result.error || 'Failed to delete revenue');
       }
-    } catch (error) {
+    } catch {
       toast.error('Failed to delete revenue');
     } finally {
       setIsLoading(false);
@@ -244,7 +244,7 @@ export function FinancialsClient({
       } else {
         toast.error(result.error || 'Failed to update billing status');
       }
-    } catch (error) {
+    } catch {
       toast.error('Failed to update billing status');
     } finally {
       setIsLoading(false);
@@ -261,7 +261,7 @@ export function FinancialsClient({
       } else {
         toast.error(result.error || 'Failed to update billing status');
       }
-    } catch (error) {
+    } catch {
       toast.error('Failed to update billing status');
     } finally {
       setIsLoading(false);
@@ -282,7 +282,7 @@ export function FinancialsClient({
       } else {
         toast.error(result.error || 'Failed to delete vendor invoice');
       }
-    } catch (error) {
+    } catch {
       toast.error('Failed to delete vendor invoice');
     } finally {
       setIsLoading(false);
@@ -311,7 +311,7 @@ export function FinancialsClient({
       } else {
         toast.error(result.error || 'Failed to record payment');
       }
-    } catch (error) {
+    } catch {
       toast.error('Failed to record payment');
     } finally {
       setIsLoading(false);

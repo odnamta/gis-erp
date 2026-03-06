@@ -37,7 +37,7 @@ export async function getPortAgents(): Promise<ActionResult<PortAgent[]>> {
 
     const agents: PortAgent[] = (data || []).map(mapDbToPortAgent);
     return { success: true, data: agents };
-  } catch (error) {
+  } catch {
     return { success: false, error: 'Failed to fetch port agents' };
   }
 }
@@ -55,7 +55,7 @@ export async function getPortAgentById(id: string): Promise<ActionResult<PortAge
     if (!data) return { success: false, error: 'Port agent not found' };
 
     return { success: true, data: mapDbToPortAgent(data) };
-  } catch (error) {
+  } catch {
     return { success: false, error: 'Failed to fetch port agent' };
   }
 }
@@ -85,7 +85,7 @@ export async function getPortAgentsByPort(portCode: string): Promise<ActionResul
 
     const agents: PortAgent[] = (data || []).map(mapDbToPortAgent);
     return { success: true, data: agents };
-  } catch (error) {
+  } catch {
     return { success: false, error: 'Failed to fetch port agents' };
   }
 }
@@ -130,7 +130,7 @@ export async function createPortAgent(formData: PortAgentFormData): Promise<Acti
 
     revalidatePath('/agency/port-agents');
     return { success: true, data: mapDbToPortAgent(data) };
-  } catch (error) {
+  } catch {
     return { success: false, error: 'Failed to create port agent' };
   }
 }
@@ -165,7 +165,7 @@ export async function updatePortAgent(id: string, formData: PortAgentFormData): 
     revalidatePath('/agency/port-agents');
     revalidatePath(`/agency/port-agents/${id}`);
     return { success: true, data: mapDbToPortAgent(data) };
-  } catch (error) {
+  } catch {
     return { success: false, error: 'Failed to update port agent' };
   }
 }
@@ -183,7 +183,7 @@ export async function deletePortAgent(id: string): Promise<ActionResult<void>> {
 
     revalidatePath('/agency/port-agents');
     return { success: true };
-  } catch (error) {
+  } catch {
     return { success: false, error: 'Failed to delete port agent' };
   }
 }
@@ -245,7 +245,7 @@ export async function submitAgentRating(
 
     revalidatePath(`/agency/port-agents/${agentId}`);
     return { success: true };
-  } catch (error) {
+  } catch {
     return { success: false, error: 'Failed to submit rating' };
   }
 }

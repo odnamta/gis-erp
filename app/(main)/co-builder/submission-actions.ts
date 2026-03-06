@@ -271,7 +271,7 @@ export async function submitCompetitionFeedback(data: {
 
     revalidatePath('/co-builder')
     return { success: true, points: totalEarned, bonuses }
-  } catch (error) {
+  } catch {
     return { success: false, error: 'Terjadi kesalahan' }
   }
 }
@@ -558,7 +558,7 @@ export async function reviewFeedback(data: {
     revalidatePath('/co-builder/admin')
     revalidatePath('/co-builder/bug-tracker')
     return { success: true }
-  } catch (error) {
+  } catch {
     return { success: false, error: 'Terjadi kesalahan' }
   }
 }
@@ -598,7 +598,7 @@ export async function uploadCompetitionScreenshot(
       .getPublicUrl(path)
 
     return { url: urlData.publicUrl }
-  } catch (error) {
+  } catch {
     return { url: null, error: 'Terjadi kesalahan' }
   }
 }

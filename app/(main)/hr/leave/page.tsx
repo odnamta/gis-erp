@@ -52,7 +52,7 @@ export default function LeaveRequestsPage() {
         }
       }
       setBalancesMap(balances);
-    } catch (error) {
+    } catch {
     } finally {
       setIsLoading(false);
     }

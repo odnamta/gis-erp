@@ -112,7 +112,7 @@ export async function initializeEngineeringReview(
       assigned_to: assignedTo,
       complexity_score: complexityScore,
     })
-  } catch (e) {
+  } catch {
   }
 
   revalidatePath(`/proforma-jo/${pjoId}`)
@@ -387,7 +387,7 @@ export async function completeEngineeringReview(
         completed_by: user.id,
         created_by: pjo.created_by,
       })
-    } catch (e) {
+    } catch {
     }
   }
 
@@ -484,7 +484,7 @@ export async function waiveEngineeringReview(
       waived_by: user.id,
       waived_reason: reason.trim(),
     })
-  } catch (e) {
+  } catch {
   }
 
   revalidatePath(`/proforma-jo/${pjoId}`)

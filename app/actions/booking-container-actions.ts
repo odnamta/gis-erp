@@ -155,7 +155,7 @@ export async function getBookingContainers(bookingId: string): Promise<BookingCo
 
     if (error) throw error;
     return (data || []).map(rowToContainer);
-  } catch (error) {
+  } catch {
     return [];
   }
 }

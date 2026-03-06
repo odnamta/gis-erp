@@ -295,7 +295,7 @@ export async function isMaintenanceModeAction(): Promise<ActionResult<boolean>> 
     const supabase = await createClient() as AnySupabaseClient;
     const value = await getConfigValueInternal<boolean>(supabase, 'maintenance_mode', false);
     return { success: true, data: value === true };
-  } catch (error) {
+  } catch {
     return { success: true, data: false };
   }
 }
@@ -397,7 +397,7 @@ export async function isFeatureEnabledAction(
     
     // No user context, use random
     return { success: true, data: Math.random() * 100 < flag.rolloutPercentage };
-  } catch (error) {
+  } catch {
     return { success: true, data: false };
   }
 }

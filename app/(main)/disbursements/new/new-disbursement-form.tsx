@@ -113,7 +113,7 @@ export function NewDisbursementForm({ vendors, jobOrders, userId }: NewDisbursem
 
       toast.success('Disbursement berhasil dibuat')
       router.push(`/disbursements/${result.data?.id}`)
-    } catch (error) {
+    } catch {
       toast.error('Gagal membuat disbursement')
     } finally {
       setIsSubmitting(false)

@@ -122,7 +122,7 @@ export function AuditLogsClient({
           variant: 'destructive',
         })
       }
-    } catch (error) {
+    } catch {
       toast({
         title: 'Export Failed',
         description: 'An unexpected error occurred',
@@ -147,7 +147,7 @@ export function AuditLogsClient({
           variant: 'destructive',
         })
       }
-    } catch (error) {
+    } catch {
     } finally {
       setIsLoadingStats(false)
     }

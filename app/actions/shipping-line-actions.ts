@@ -36,7 +36,7 @@ export async function getShippingLines(): Promise<ActionResult<ShippingLine[]>> 
 
     const lines: ShippingLine[] = (data || []).map(mapDbToShippingLine);
     return { success: true, data: lines };
-  } catch (error) {
+  } catch {
     return { success: false, error: 'Failed to fetch shipping lines' };
   }
 }
@@ -54,7 +54,7 @@ export async function getShippingLineById(id: string): Promise<ActionResult<Ship
     if (!data) return { success: false, error: 'Shipping line not found' };
 
     return { success: true, data: mapDbToShippingLine(data) };
-  } catch (error) {
+  } catch {
     return { success: false, error: 'Failed to fetch shipping line' };
   }
 }
@@ -88,7 +88,7 @@ export async function createShippingLine(formData: ShippingLineFormData): Promis
 
     revalidatePath('/agency/shipping-lines');
     return { success: true, data: mapDbToShippingLine(data) };
-  } catch (error) {
+  } catch {
     return { success: false, error: 'Failed to create shipping line' };
   }
 }
@@ -124,7 +124,7 @@ export async function updateShippingLine(id: string, formData: ShippingLineFormD
     revalidatePath('/agency/shipping-lines');
     revalidatePath(`/agency/shipping-lines/${id}`);
     return { success: true, data: mapDbToShippingLine(data) };
-  } catch (error) {
+  } catch {
     return { success: false, error: 'Failed to update shipping line' };
   }
 }
@@ -143,7 +143,7 @@ export async function deleteShippingLine(id: string): Promise<ActionResult<void>
 
     revalidatePath('/agency/shipping-lines');
     return { success: true };
-  } catch (error) {
+  } catch {
     return { success: false, error: 'Failed to delete shipping line' };
   }
 }
@@ -172,7 +172,7 @@ export async function toggleShippingLinePreferred(id: string): Promise<ActionRes
 
     revalidatePath('/agency/shipping-lines');
     return { success: true, data: mapDbToShippingLine(data) };
-  } catch (error) {
+  } catch {
     return { success: false, error: 'Failed to toggle preferred status' };
   }
 }

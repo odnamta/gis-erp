@@ -214,7 +214,7 @@ export async function getCargoManifest(id: string): Promise<CargoManifest | null
 
     if (error) throw error;
     return data ? mapManifestRowToModel(data as CargoManifestRow) : null;
-  } catch (error) {
+  } catch {
     return null;
   }
 }
@@ -259,7 +259,7 @@ export async function getCargoManifests(filters?: ManifestFilters): Promise<Carg
 
     if (error) throw error;
     return (data || []).map((row: CargoManifestRow) => mapManifestRowToModel(row));
-  } catch (error) {
+  } catch {
     return [];
   }
 }
@@ -597,7 +597,7 @@ export async function getCargoManifestWithBLs(id: string): Promise<CargoManifest
     }
 
     return mappedManifest;
-  } catch (error) {
+  } catch {
     return null;
   }
 }

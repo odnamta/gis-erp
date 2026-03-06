@@ -49,7 +49,7 @@ export function ShippingLinesClient() {
         setShippingLines(result.data);
         setStats(calculateShippingLineStats(result.data));
       }
-    } catch (error) {
+    } catch {
       toast({
         title: 'Error',
         description: 'Failed to load shipping lines',

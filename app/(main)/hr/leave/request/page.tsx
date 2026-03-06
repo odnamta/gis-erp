@@ -47,7 +47,7 @@ export default function LeaveRequestPage() {
         setBalances(balancesData);
         setEmployees(employeesData);
         setHolidays(holidaysData);
-      } catch (error) {
+      } catch {
       } finally {
         setIsLoading(false);
       }

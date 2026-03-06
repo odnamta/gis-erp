@@ -140,7 +140,7 @@ export function DocumentGeneratorDialog({
       } else {
         toast.error(result.error || 'Failed to generate document');
       }
-    } catch (error) {
+    } catch {
       toast.error('An error occurred');
     } finally {
       setLoading(false);

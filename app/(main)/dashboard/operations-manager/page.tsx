@@ -34,7 +34,7 @@ export default async function OperationsManagerDashboardPage() {
   try {
     if (dashboardResult.status === 'rejected') throw dashboardResult.reason
     data = dashboardResult.value
-  } catch (error) {
+  } catch {
     // Return fallback UI on error
     return (
       <div className="space-y-6">

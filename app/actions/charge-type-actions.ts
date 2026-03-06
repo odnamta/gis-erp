@@ -80,7 +80,7 @@ export async function getChargeTypes(
     );
 
     return { success: true, data: chargeTypes };
-  } catch (error) {
+  } catch {
     return { success: false, error: 'Failed to fetch charge types' };
   }
 }
@@ -120,7 +120,7 @@ export async function getAllChargeTypes(
     );
 
     return { success: true, data: chargeTypes };
-  } catch (error) {
+  } catch {
     return { success: false, error: 'Failed to fetch charge types' };
   }
 }
@@ -156,7 +156,7 @@ export async function getChargeTypeById(
     }
 
     return { success: true, data: transformChargeTypeRow(data as AgencyChargeTypeRow) };
-  } catch (error) {
+  } catch {
     return { success: false, error: 'Failed to fetch charge type' };
   }
 }
@@ -232,7 +232,7 @@ export async function createChargeType(
 
     revalidatePath('/agency/charge-types');
     return { success: true, data: transformChargeTypeRow(data as AgencyChargeTypeRow) };
-  } catch (error) {
+  } catch {
     return { success: false, error: 'Failed to create charge type' };
   }
 }
@@ -322,7 +322,7 @@ export async function updateChargeType(
 
     revalidatePath('/agency/charge-types');
     return { success: true, data: transformChargeTypeRow(data as AgencyChargeTypeRow) };
-  } catch (error) {
+  } catch {
     return { success: false, error: 'Failed to update charge type' };
   }
 }
@@ -366,7 +366,7 @@ export async function deleteChargeType(id: string): Promise<ActionResult<void>> 
 
     revalidatePath('/agency/charge-types');
     return { success: true };
-  } catch (error) {
+  } catch {
     return { success: false, error: 'Failed to delete charge type' };
   }
 }
@@ -401,7 +401,7 @@ export async function restoreChargeType(id: string): Promise<ActionResult<Agency
 
     revalidatePath('/agency/charge-types');
     return { success: true, data: transformChargeTypeRow(data as AgencyChargeTypeRow) };
-  } catch (error) {
+  } catch {
     return { success: false, error: 'Failed to restore charge type' };
   }
 }
@@ -438,7 +438,7 @@ export async function reorderChargeTypes(orderedIds: string[]): Promise<ActionRe
 
     revalidatePath('/agency/charge-types');
     return { success: true };
-  } catch (error) {
+  } catch {
     return { success: false, error: 'Failed to reorder charge types' };
   }
 }

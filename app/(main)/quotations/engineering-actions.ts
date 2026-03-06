@@ -111,7 +111,7 @@ export async function initializeQuotationEngineeringReview(
       assigned_to: assignedTo,
       complexity_score: complexityScore,
     })
-  } catch (e) {
+  } catch {
   }
 
   revalidatePath(`/quotations/${quotationId}`)
@@ -348,7 +348,7 @@ export async function completeQuotationEngineeringReview(
         overall_risk_level: data.overall_risk_level,
         created_by: quotation.created_by,
       })
-    } catch (e) {
+    } catch {
     }
   }
 

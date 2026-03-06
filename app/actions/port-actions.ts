@@ -27,7 +27,7 @@ export async function getPorts(): Promise<ActionResult<Port[]>> {
 
     const ports: Port[] = (data || []).map(mapDbToPort);
     return { success: true, data: ports };
-  } catch (error) {
+  } catch {
     return { success: false, error: 'Failed to fetch ports' };
   }
 }
@@ -45,7 +45,7 @@ export async function getPortByCode(portCode: string): Promise<ActionResult<Port
     if (!data) return { success: false, error: 'Port not found' };
 
     return { success: true, data: mapDbToPort(data) };
-  } catch (error) {
+  } catch {
     return { success: false, error: 'Failed to fetch port' };
   }
 }
@@ -64,7 +64,7 @@ export async function getPortsByCountry(countryCode: string): Promise<ActionResu
 
     const ports: Port[] = (data || []).map(mapDbToPort);
     return { success: true, data: ports };
-  } catch (error) {
+  } catch {
     return { success: false, error: 'Failed to fetch ports' };
   }
 }

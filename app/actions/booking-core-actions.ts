@@ -337,7 +337,7 @@ export async function getBooking(id: string): Promise<FreightBooking | null> {
 
     if (error) throw error;
     return data ? rowToBooking(data) : null;
-  } catch (error) {
+  } catch {
     return null;
   }
 }
@@ -403,7 +403,7 @@ export async function getBookings(filters?: BookingFilters): Promise<FreightBook
 
     if (error) throw error;
     return (data || []).map(rowToBooking);
-  } catch (error) {
+  } catch {
     return [];
   }
 }
@@ -745,7 +745,7 @@ export async function getStatusHistory(bookingId: string): Promise<BookingStatus
 
     if (error) throw error;
     return (data || []).map(rowToStatusHistory);
-  } catch (error) {
+  } catch {
     return [];
   }
 }
@@ -802,7 +802,7 @@ export async function getBookingStats(): Promise<BookingStats> {
       completedCount: counts.completed,
       cancelledCount: counts.cancelled,
     };
-  } catch (error) {
+  } catch {
     return {
       totalBookings: 0,
       draftCount: 0,

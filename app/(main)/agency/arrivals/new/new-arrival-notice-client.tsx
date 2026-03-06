@@ -34,7 +34,7 @@ export function NewArrivalNoticeClient({
 
       toast.success('Arrival Notice created successfully');
       router.push(`/agency/arrivals/${result.data.id}`);
-    } catch (error) {
+    } catch {
       toast.error('Failed to create Arrival Notice');
     } finally {
       setIsLoading(false);
@@ -53,7 +53,7 @@ export function NewArrivalNoticeClient({
 
       toast.success('Draft saved successfully');
       router.push(`/agency/arrivals/${result.data.id}`);
-    } catch (error) {
+    } catch {
       toast.error('Failed to save draft');
     } finally {
       setIsLoading(false);

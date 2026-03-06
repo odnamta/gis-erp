@@ -132,7 +132,7 @@ export async function submitRoleRequest(
         roles: [...ADMIN_ROLES],
       }
     )
-  } catch (notificationError) {
+  } catch {
     // Log but don't fail the request
   }
   

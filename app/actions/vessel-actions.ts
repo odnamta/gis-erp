@@ -322,7 +322,7 @@ export async function getVessel(id: string): Promise<Vessel | null> {
 
     if (error) throw error;
     return data ? rowToVessel(data as VesselRow) : null;
-  } catch (error) {
+  } catch {
     return null;
   }
 }
@@ -376,7 +376,7 @@ export async function getVessels(filters?: VesselFilters): Promise<Vessel[]> {
 
     if (error) throw error;
     return (data || []).map((row: VesselRow) => rowToVessel(row));
-  } catch (error) {
+  } catch {
     return [];
   }
 }
@@ -661,7 +661,7 @@ export async function getSchedule(id: string): Promise<VesselSchedule | null> {
 
     if (error) throw error;
     return data ? rowToSchedule(data as VesselScheduleRow) : null;
-  } catch (error) {
+  } catch {
     return null;
   }
 }
@@ -723,7 +723,7 @@ export async function getSchedules(filters?: ScheduleFilters): Promise<VesselSch
 
     if (error) throw error;
     return (data || []).map((row: VesselScheduleRow) => rowToSchedule(row));
-  } catch (error) {
+  } catch {
     return [];
   }
 }
@@ -768,7 +768,7 @@ export async function getUpcomingArrivals(filters?: ArrivalFilters): Promise<Upc
 
     if (error) throw error;
     return (data || []).map((row: UpcomingArrivalRow) => rowToUpcomingArrival(row));
-  } catch (error) {
+  } catch {
     return [];
   }
 }

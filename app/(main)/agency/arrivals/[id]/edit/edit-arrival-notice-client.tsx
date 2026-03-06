@@ -54,7 +54,7 @@ export function EditArrivalNoticeClient({
 
       toast.success('Arrival Notice updated successfully');
       router.push(`/agency/arrivals/${notice.id}`);
-    } catch (error) {
+    } catch {
       toast.error('Failed to update Arrival Notice');
     } finally {
       setIsLoading(false);

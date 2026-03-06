@@ -42,7 +42,7 @@ export default function NewSchedulePage() {
         if (portsResult.success && portsResult.data) {
           setPorts(portsResult.data);
         }
-      } catch (error) {
+      } catch {
         toast({
           title: 'Error',
           description: 'Failed to load vessels and ports',
@@ -72,7 +72,7 @@ export default function NewSchedulePage() {
           variant: 'destructive',
         });
       }
-    } catch (error) {
+    } catch {
       toast({
         title: 'Error',
         description: 'An unexpected error occurred',

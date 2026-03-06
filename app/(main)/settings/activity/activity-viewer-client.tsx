@@ -58,7 +58,7 @@ export function ActivityViewerClient({ users: initialUsers }: ActivityViewerClie
       if (data.users && data.users.length > 0) {
         setUsers(data.users);
       }
-    } catch (error) {
+    } catch {
     } finally {
       setLoading(false);
     }

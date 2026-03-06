@@ -59,7 +59,7 @@ export async function getMyUserSessions(): Promise<{
     }
     
     return { success: true, data: result.data }
-  } catch (error) {
+  } catch {
     return { success: false, error: 'Failed to fetch sessions' }
   }
 }
@@ -98,7 +98,7 @@ export async function getUserSessions(
     }
     
     return { success: true, data: result.data }
-  } catch (error) {
+  } catch {
     return { success: false, error: 'Failed to fetch sessions' }
   }
 }
@@ -149,7 +149,7 @@ export async function terminateSession(
     }
     
     return { success: true }
-  } catch (error) {
+  } catch {
     return { success: false, error: 'Failed to terminate session' }
   }
 }
@@ -189,7 +189,7 @@ export async function terminateAllUserSessions(
     }
     
     return { success: true, terminatedCount: result.terminatedCount }
-  } catch (error) {
+  } catch {
     return { success: false, error: 'Failed to terminate sessions' }
   }
 }
@@ -236,7 +236,7 @@ export async function terminateOtherSessions(): Promise<{
     }
     
     return { success: true, terminatedCount: result.terminatedCount }
-  } catch (error) {
+  } catch {
     return { success: false, error: 'Failed to terminate sessions' }
   }
 }
@@ -276,7 +276,7 @@ export async function getMySessionCount(): Promise<{
     }
     
     return { success: true, count: result.count }
-  } catch (error) {
+  } catch {
     return { success: false, error: 'Failed to count sessions' }
   }
 }
@@ -321,7 +321,7 @@ export async function getMySessionStats(): Promise<{
     }
     
     return { success: true, data: result.data || undefined }
-  } catch (error) {
+  } catch {
     return { success: false, error: 'Failed to fetch statistics' }
   }
 }
@@ -368,7 +368,7 @@ export async function getUserSessionStats(
     }
     
     return { success: true, data: result.data || undefined }
-  } catch (error) {
+  } catch {
     return { success: false, error: 'Failed to fetch statistics' }
   }
 }

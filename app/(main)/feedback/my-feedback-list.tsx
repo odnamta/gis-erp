@@ -35,7 +35,7 @@ export function MyFeedbackList() {
       if (result.success && result.data) {
         setItems(result.data);
       }
-    } catch (error) {
+    } catch {
     } finally {
       setLoading(false);
     }

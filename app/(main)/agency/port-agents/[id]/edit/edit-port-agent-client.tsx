@@ -36,7 +36,7 @@ export function EditPortAgentClient({ portAgent, ports }: EditPortAgentClientPro
           variant: 'destructive',
         });
       }
-    } catch (error) {
+    } catch {
       toast({
         title: 'Error',
         description: 'An unexpected error occurred',

@@ -123,7 +123,7 @@ export function PayablesClient({
       if (result.success && result.data) {
         setInvoices(result.data);
       }
-    } catch (error) {
+    } catch {
     } finally {
       setIsLoading(false);
     }
@@ -153,7 +153,7 @@ export function PayablesClient({
       if (result.success && result.data) {
         setInvoices(result.data);
       }
-    } catch (error) {
+    } catch {
     } finally {
       setIsLoading(false);
     }
@@ -265,7 +265,7 @@ export function PayablesClient({
           variant: 'destructive',
         });
       }
-    } catch (error) {
+    } catch {
       toast({
         title: 'Error',
         description: 'Failed to record payment',

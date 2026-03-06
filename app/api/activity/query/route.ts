@@ -121,7 +121,7 @@ export async function GET(request: NextRequest) {
       dailyActiveUsers,
       users,
     });
-  } catch (error) {
+  } catch {
     return NextResponse.json({ error: 'Internal error' }, { status: 500 });
   }
 }

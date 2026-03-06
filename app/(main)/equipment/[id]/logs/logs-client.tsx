@@ -56,7 +56,7 @@ export function LogsClient() {
       if (logsResult.success && logsResult.data) {
         setLogs(logsResult.data);
       }
-    } catch (error) {
+    } catch {
       toast.error('Failed to load data');
     } finally {
       setIsLoading(false);

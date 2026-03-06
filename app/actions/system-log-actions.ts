@@ -254,7 +254,7 @@ export async function getLogsByRequestId(
     if (error) throw error;
     
     return { success: true, data: (data || []) as SystemLogEntry[] };
-  } catch (error) {
+  } catch {
     return { success: false, error: 'Failed to fetch logs by request ID' };
   }
 }
@@ -283,7 +283,7 @@ export async function getRecentErrors(
     if (error) throw error;
     
     return { success: true, data: (data || []) as SystemLogEntry[] };
-  } catch (error) {
+  } catch {
     return { success: false, error: 'Failed to fetch recent errors' };
   }
 }
@@ -314,7 +314,7 @@ export async function getLogsAtOrAboveLevel(
       .map(([level]) => level);
     
     return getSystemLogs({ level: includedLevels }, pagination);
-  } catch (error) {
+  } catch {
     return { success: false, error: 'Failed to fetch logs' };
   }
 }
@@ -404,7 +404,7 @@ export async function exportSystemLogs(
     const csv = [headers.join(','), ...rows].join('\n');
     
     return { success: true, data: csv };
-  } catch (error) {
+  } catch {
     return { success: false, error: 'Failed to export system logs' };
   }
 }
@@ -456,7 +456,7 @@ export async function getSystemLogFilterOptions(): Promise<ActionResult<{
         levels,
       },
     };
-  } catch (error) {
+  } catch {
     return { success: false, error: 'Failed to fetch filter options' };
   }
 }
@@ -491,7 +491,7 @@ export async function getSystemLogById(
     }
     
     return { success: true, data: data as SystemLogEntry };
-  } catch (error) {
+  } catch {
     return { success: false, error: 'Failed to fetch system log' };
   }
 }

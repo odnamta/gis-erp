@@ -51,7 +51,7 @@ export function MyFeedbackDetailSheet({ feedback, onClose, onUpdate }: MyFeedbac
       if (result.success && result.data) {
         setComments(result.data);
       }
-    } catch (error) {
+    } catch {
     } finally {
       setLoadingComments(false);
     }

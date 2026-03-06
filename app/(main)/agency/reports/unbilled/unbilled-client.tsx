@@ -92,7 +92,7 @@ export function UnbilledRevenueClient({
       if (result.success && result.data) {
         setUnbilledRevenue(result.data);
       }
-    } catch (error) {
+    } catch {
     } finally {
       setIsLoading(false);
     }
@@ -116,7 +116,7 @@ export function UnbilledRevenueClient({
       if (result.success && result.data) {
         setUnbilledRevenue(result.data);
       }
-    } catch (error) {
+    } catch {
     } finally {
       setIsLoading(false);
     }

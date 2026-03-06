@@ -3,7 +3,6 @@ import { getPortAgentById } from '@/app/actions/port-agent-actions';
 import { getPorts } from '@/app/actions/port-actions';
 import { EditPortAgentClient } from './edit-port-agent-client';
 import { getCurrentUserProfile, guardPage } from '@/lib/auth-utils';
-import { ExplorerReadOnlyBanner } from '@/components/layout/explorer-read-only-banner';
 
 interface EditPortAgentPageProps {
   params: Promise<{ id: string }>;

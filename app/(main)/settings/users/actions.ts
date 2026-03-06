@@ -39,7 +39,7 @@ export async function getPendingRoleRequests(): Promise<RoleRequestWithUser[]> {
     
     // Cast to RoleRequestWithUser[] - the query returns the exact fields we need
     return (data ?? []) as unknown as RoleRequestWithUser[]
-  } catch (error) {
+  } catch {
     return []
   }
 }
@@ -170,7 +170,7 @@ export async function approveRoleRequest(
     try {
       const { syncUserMetadataFromProfile } = await import('@/lib/supabase/sync-user-metadata')
       await syncUserMetadataFromProfile(request.user_id)
-    } catch (e) {
+    } catch {
       // Don't fail the operation if metadata sync fails
     }
     

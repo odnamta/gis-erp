@@ -86,7 +86,7 @@ export function MaintenanceClient() {
       const currentYear = new Date().getFullYear()
       const costData = await getMaintenanceCostSummary(currentYear)
       setCostSummary(costData)
-    } catch (error) {
+    } catch {
     } finally {
       setIsLoading(false)
     }
@@ -96,7 +96,7 @@ export function MaintenanceClient() {
     try {
       const records = await getMaintenanceHistory(historyFilters)
       setHistoryRecords(records)
-    } catch (error) {
+    } catch {
     }
   }
 
@@ -191,7 +191,7 @@ export function MaintenanceClient() {
           variant: 'destructive',
         })
       }
-    } catch (error) {
+    } catch {
       toast({
         title: 'Error',
         description: 'Gagal menghapus jadwal',

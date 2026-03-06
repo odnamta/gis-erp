@@ -135,7 +135,7 @@ export function EditBookingClient({
 
       toast.success('Booking updated and submitted successfully');
       router.push(`/agency/bookings/${booking.id}`);
-    } catch (error) {
+    } catch {
       toast.error('Failed to update booking');
     } finally {
       setIsLoading(false);
@@ -157,7 +157,7 @@ export function EditBookingClient({
 
       toast.success('Draft saved successfully');
       router.push(`/agency/bookings/${booking.id}`);
-    } catch (error) {
+    } catch {
       toast.error('Failed to save draft');
     } finally {
       setIsLoading(false);

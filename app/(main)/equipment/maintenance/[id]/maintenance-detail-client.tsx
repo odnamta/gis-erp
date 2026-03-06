@@ -44,7 +44,7 @@ export function MaintenanceDetailClient({ recordId }: MaintenanceDetailClientPro
       } else {
         setError('Maintenance record not found')
       }
-    } catch (err) {
+    } catch {
       setError('Failed to load maintenance record')
     } finally {
       setIsLoading(false)

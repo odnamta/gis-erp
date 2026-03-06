@@ -87,7 +87,7 @@ export function EquipmentClient({ jobOrderId }: EquipmentClientProps) {
       if (summaryResult.success && summaryResult.data) {
         setSummary(summaryResult.data);
       }
-    } catch (error) {
+    } catch {
       toast.error('Gagal memuat data equipment');
     } finally {
       setLoading(false);

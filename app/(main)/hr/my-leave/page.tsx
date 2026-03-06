@@ -45,7 +45,7 @@ export default function MyLeavePage() {
       setRequests(requestsData);
       setBalances(balancesData);
       setLeaveTypes(typesData);
-    } catch (error) {
+    } catch {
     } finally {
       setIsLoading(false);
     }

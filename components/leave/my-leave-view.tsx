@@ -67,7 +67,7 @@ export function MyLeaveView({
       } else {
         toast.error(result.error || 'Failed to cancel request');
       }
-    } catch (error) {
+    } catch {
       toast.error('An error occurred');
     } finally {
       setIsCancelling(false);

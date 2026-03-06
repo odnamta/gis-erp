@@ -88,7 +88,7 @@ export function ProfitabilityClient({
       if (result.success && result.data) {
         setProfitability(result.data);
       }
-    } catch (error) {
+    } catch {
     } finally {
       setIsLoading(false);
     }
@@ -115,7 +115,7 @@ export function ProfitabilityClient({
       if (result.success && result.data) {
         setProfitability(result.data);
       }
-    } catch (error) {
+    } catch {
     } finally {
       setIsLoading(false);
     }

@@ -196,7 +196,7 @@ export async function completeScenario(data: {
     revalidatePath('/co-builder')
     revalidatePath('/co-builder/scenarios')
     return { success: true, points: pointsEarned }
-  } catch (error) {
+  } catch {
     return { success: false, error: 'Terjadi kesalahan' }
   }
 }

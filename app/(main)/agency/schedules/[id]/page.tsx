@@ -3,7 +3,6 @@ import { notFound } from 'next/navigation';
 import { getSchedule, getVessel } from '@/app/actions/vessel-tracking-actions';
 import { ScheduleDetail } from './schedule-detail';
 import { getCurrentUserProfile, guardPage } from '@/lib/auth-utils';
-import { ExplorerReadOnlyBanner } from '@/components/layout/explorer-read-only-banner';
 
 interface ScheduleDetailPageProps {
   params: Promise<{ id: string }>;
@@ -18,7 +17,7 @@ interface ScheduleDetailPageProps {
 export default async function ScheduleDetailPage({ params }: ScheduleDetailPageProps) {
 
   const profile = await getCurrentUserProfile();
-  const { explorerReadOnly } = await guardPage(!!profile);
+  await guardPage(!!profile);
   const { id } = await params;
   
   const schedule = await getSchedule(id);

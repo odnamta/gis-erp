@@ -350,7 +350,7 @@ export async function getAllFeedback(
         hasPrevious: page > 1,
       },
     };
-  } catch (err) {
+  } catch {
     return { success: false, error: 'An unexpected error occurred' };
   }
 }
@@ -411,7 +411,7 @@ export async function getFeedbackSummary(): Promise<FeedbackActionResult<Feedbac
         resolvedThisWeekCount: resolvedResult.count || 0,
       },
     };
-  } catch (err) {
+  } catch {
     return { success: false, error: 'An unexpected error occurred' };
   }
 }
@@ -492,7 +492,7 @@ export async function updateFeedbackStatus(
     revalidatePath('/admin/feedback');
 
     return { success: true };
-  } catch (err) {
+  } catch {
     return { success: false, error: 'An unexpected error occurred' };
   }
 }
@@ -557,7 +557,7 @@ export async function assignFeedback(
     revalidatePath('/admin/feedback');
 
     return { success: true };
-  } catch (err) {
+  } catch {
     return { success: false, error: 'An unexpected error occurred' };
   }
 }
@@ -599,7 +599,7 @@ export async function markAsDuplicate(
     revalidatePath('/admin/feedback');
 
     return { success: true };
-  } catch (err) {
+  } catch {
     return { success: false, error: 'An unexpected error occurred' };
   }
 }
@@ -670,7 +670,7 @@ export async function addFeedbackComment(
     revalidatePath('/admin/feedback');
 
     return { success: true, data: data as unknown as FeedbackComment };
-  } catch (err) {
+  } catch {
     return { success: false, error: 'An unexpected error occurred' };
   }
 }
@@ -717,7 +717,7 @@ export async function getFeedbackComments(
     }
 
     return { success: true, data: data as unknown as FeedbackComment[] };
-  } catch (err) {
+  } catch {
     return { success: false, error: 'An unexpected error occurred' };
   }
 }
@@ -760,7 +760,7 @@ export async function getFeedbackById(
     }
 
     return { success: true, data: data as unknown as FeedbackSubmission };
-  } catch (err) {
+  } catch {
     return { success: false, error: 'An unexpected error occurred' };
   }
 }
@@ -806,7 +806,7 @@ export async function getFeedbackHistory(
       changed_at: string;
       notes: string | null;
     }> };
-  } catch (err) {
+  } catch {
     return { success: false, error: 'An unexpected error occurred' };
   }
 }

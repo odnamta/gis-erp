@@ -53,7 +53,7 @@ export async function syncSingleUserMetadata(userId: string): Promise<SyncResult
     })
     
     return result
-  } catch (error) {
+  } catch {
     return { success: false, error: 'Failed to sync metadata' }
   }
 }
@@ -107,7 +107,7 @@ export async function syncAllUsersMetadata(): Promise<SyncResult> {
     }
     
     return { success: true, synced, failed }
-  } catch (error) {
+  } catch {
     return { success: false, error: 'Failed to sync metadata' }
   }
 }

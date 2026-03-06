@@ -78,7 +78,7 @@ export function FeedbackDashboard() {
         setTotalPages(feedbackResult.data.totalPages);
         setTotal(feedbackResult.data.total);
       }
-    } catch (error) {
+    } catch {
     } finally {
       setLoading(false);
     }

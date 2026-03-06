@@ -51,7 +51,7 @@ export function BLListClient({
     try {
       const results = await getBillsOfLading(filters);
       setBLs(results);
-    } catch (error) {
+    } catch {
     } finally {
       setIsLoading(false);
     }
@@ -75,7 +75,7 @@ export function BLListClient({
     try {
       const results = await getBillsOfLading(clearedFilters);
       setBLs(results);
-    } catch (error) {
+    } catch {
     } finally {
       setIsLoading(false);
     }

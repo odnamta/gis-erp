@@ -46,7 +46,7 @@ export async function getUserPreferences(): Promise<ActionResult<UserPreferences
 
     const preferences = mergePreferencesWithDefaults(profile?.preferences as Partial<UserPreferences>)
     return { success: true, data: preferences }
-  } catch (error) {
+  } catch {
     return { success: false, error: 'An unexpected error occurred' }
   }
 }
@@ -91,7 +91,7 @@ export async function saveUserPreferences(
 
     revalidatePath('/settings')
     return { success: true }
-  } catch (error) {
+  } catch {
     return { success: false, error: 'An unexpected error occurred' }
   }
 }
@@ -125,7 +125,7 @@ export async function resetPreferencesToDefaults(): Promise<ActionResult> {
 
     revalidatePath('/settings')
     return { success: true }
-  } catch (error) {
+  } catch {
     return { success: false, error: 'An unexpected error occurred' }
   }
 }
@@ -182,7 +182,7 @@ export async function getNotificationTypesWithPreferences(): Promise<
     )
 
     return { success: true, data: typesWithPrefs }
-  } catch (error) {
+  } catch {
     return { success: false, error: 'An unexpected error occurred' }
   }
 }
@@ -251,7 +251,7 @@ export async function saveNotificationTypePreference(
     }
 
     return { success: true }
-  } catch (error) {
+  } catch {
     return { success: false, error: 'An unexpected error occurred' }
   }
 }

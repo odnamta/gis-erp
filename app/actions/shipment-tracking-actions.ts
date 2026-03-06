@@ -179,7 +179,7 @@ export async function getPositionHistory(vesselId: string, limit: number = 100):
 
     if (error) throw error;
     return (data || []).map((row: VesselPositionRow) => rowToPosition(row));
-  } catch (error) {
+  } catch {
     return [];
   }
 }
@@ -344,7 +344,7 @@ export async function getTrackingEvents(params?: TrackingSearchParams): Promise<
     // Transform and ensure chronological order
     const events = (data || []).map((row: ShipmentTrackingRow) => rowToTracking(row));
     return sortTrackingEventsByTimestamp(events);
-  } catch (error) {
+  } catch {
     return [];
   }
 }
@@ -516,7 +516,7 @@ export async function searchTracking(query: string): Promise<TrackingSearchResul
       events: sortTrackingEventsByTimestamp(events),
       vessel: vesselInfo,
     };
-  } catch (error) {
+  } catch {
     return null;
   }
 }
@@ -546,7 +546,7 @@ export async function getTrackingEvent(id: string): Promise<ShipmentTracking | n
 
     if (error) throw error;
     return data ? rowToTracking(data as ShipmentTrackingRow) : null;
-  } catch (error) {
+  } catch {
     return null;
   }
 }

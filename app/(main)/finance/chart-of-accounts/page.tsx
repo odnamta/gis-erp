@@ -2,7 +2,6 @@ import { Metadata } from 'next'
 import { getChartOfAccounts } from '@/lib/gl-actions'
 import { getCurrentUserProfile, guardPage } from '@/lib/auth-utils'
 import { profileHasRole } from '@/lib/auth-utils'
-import { ExplorerReadOnlyBanner } from '@/components/layout/explorer-read-only-banner'
 import { ChartOfAccountsClient } from './coa-client'
 
 export const metadata: Metadata = {

@@ -10,7 +10,6 @@ import {
   getEmployeesForSelection,
 } from '@/lib/jmp-actions';
 import { getCurrentUserProfile, guardPage } from '@/lib/auth-utils';
-import { ExplorerReadOnlyBanner } from '@/components/layout/explorer-read-only-banner';
 
 export const dynamic = 'force-dynamic';
 

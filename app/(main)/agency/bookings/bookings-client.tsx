@@ -52,7 +52,7 @@ export function BookingsClient({
     try {
       const results = await getBookings(filters);
       setBookings(results);
-    } catch (error) {
+    } catch {
     } finally {
       setIsLoading(false);
     }
@@ -76,7 +76,7 @@ export function BookingsClient({
     try {
       const results = await getBookings(clearedFilters);
       setBookings(results);
-    } catch (error) {
+    } catch {
     } finally {
       setIsLoading(false);
     }

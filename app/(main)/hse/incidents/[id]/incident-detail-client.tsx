@@ -47,7 +47,7 @@ export function IncidentDetailClient({
   incident: initialIncident,
   history,
   employees,
-  explorerReadOnly,
+  explorerReadOnly: _explorerReadOnly,
 }: IncidentDetailClientProps) {
   const router = useRouter();
   const { toast } = useToast();

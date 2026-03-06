@@ -43,7 +43,7 @@ export function EditScheduleClient({ schedule, vessels, ports }: EditScheduleCli
           variant: 'destructive',
         });
       }
-    } catch (error) {
+    } catch {
       toast({
         title: 'Error',
         description: 'An unexpected error occurred',

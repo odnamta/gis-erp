@@ -72,7 +72,7 @@ export default function TrackingPage() {
     try {
       const data = await getUserSubscriptions();
       setSubscriptions(data);
-    } catch (error) {
+    } catch {
     } finally {
       setIsLoadingSubscriptions(false);
     }

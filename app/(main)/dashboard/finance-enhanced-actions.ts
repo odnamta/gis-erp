@@ -354,7 +354,7 @@ export async function refreshFinanceDashboard(): Promise<{ success: boolean; err
     revalidatePath('/dashboard')
 
     return { success: true }
-  } catch (err) {
+  } catch {
     return { success: true } // Don't fail the main request
   }
 }

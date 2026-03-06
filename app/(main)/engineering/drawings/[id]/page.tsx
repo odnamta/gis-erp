@@ -32,7 +32,7 @@ export default function DrawingDetailPage({ params }: DrawingDetailPageProps) {
         return;
       }
       setDrawing(data);
-    } catch (error) {
+    } catch {
       router.push('/engineering/drawings');
     } finally {
       setLoading(false);

@@ -36,7 +36,7 @@ export async function getServiceProviders(): Promise<ActionResult<ServiceProvide
 
     const providers: ServiceProvider[] = (data || []).map(mapDbToServiceProvider);
     return { success: true, data: providers };
-  } catch (error) {
+  } catch {
     return { success: false, error: 'Failed to fetch service providers' };
   }
 }
@@ -54,7 +54,7 @@ export async function getServiceProviderById(id: string): Promise<ActionResult<S
     if (!data) return { success: false, error: 'Service provider not found' };
 
     return { success: true, data: mapDbToServiceProvider(data) };
-  } catch (error) {
+  } catch {
     return { success: false, error: 'Failed to fetch service provider' };
   }
 }
@@ -74,7 +74,7 @@ export async function getServiceProvidersByType(providerType: string): Promise<A
 
     const providers: ServiceProvider[] = (data || []).map(mapDbToServiceProvider);
     return { success: true, data: providers };
-  } catch (error) {
+  } catch {
     return { success: false, error: 'Failed to fetch service providers' };
   }
 }
@@ -106,7 +106,7 @@ export async function createServiceProvider(formData: ServiceProviderFormData): 
 
     revalidatePath('/agency/service-providers');
     return { success: true, data: mapDbToServiceProvider(data) };
-  } catch (error) {
+  } catch {
     return { success: false, error: 'Failed to create service provider' };
   }
 }
@@ -141,7 +141,7 @@ export async function updateServiceProvider(id: string, formData: ServiceProvide
     revalidatePath('/agency/service-providers');
     revalidatePath(`/agency/service-providers/${id}`);
     return { success: true, data: mapDbToServiceProvider(data) };
-  } catch (error) {
+  } catch {
     return { success: false, error: 'Failed to update service provider' };
   }
 }
@@ -159,7 +159,7 @@ export async function deleteServiceProvider(id: string): Promise<ActionResult<vo
 
     revalidatePath('/agency/service-providers');
     return { success: true };
-  } catch (error) {
+  } catch {
     return { success: false, error: 'Failed to delete service provider' };
   }
 }

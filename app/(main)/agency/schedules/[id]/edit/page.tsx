@@ -3,7 +3,6 @@ import { getSchedule, getVessels } from '@/app/actions/vessel-tracking-actions';
 import { getPorts } from '@/app/actions/port-actions';
 import { EditScheduleClient } from './edit-schedule-client';
 import { getCurrentUserProfile, guardPage } from '@/lib/auth-utils';
-import { ExplorerReadOnlyBanner } from '@/components/layout/explorer-read-only-banner';
 
 interface EditSchedulePageProps {
   params: Promise<{ id: string }>;

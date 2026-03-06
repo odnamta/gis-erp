@@ -3,7 +3,6 @@ import { getVessel } from '@/app/actions/vessel-tracking-actions';
 import { getShippingLines } from '@/app/actions/shipping-line-actions';
 import { EditVesselClient } from './edit-vessel-client';
 import { getCurrentUserProfile, guardPage } from '@/lib/auth-utils';
-import { ExplorerReadOnlyBanner } from '@/components/layout/explorer-read-only-banner';
 
 interface EditVesselPageProps {
   params: Promise<{ id: string }>;

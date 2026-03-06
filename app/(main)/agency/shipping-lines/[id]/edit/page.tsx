@@ -2,7 +2,6 @@ import { notFound } from 'next/navigation';
 import { getShippingLineById } from '@/app/actions/shipping-line-actions';
 import { EditShippingLineClient } from './edit-shipping-line-client';
 import { getCurrentUserProfile, guardPage } from '@/lib/auth-utils';
-import { ExplorerReadOnlyBanner } from '@/components/layout/explorer-read-only-banner';
 
 interface EditShippingLinePageProps {
   params: Promise<{ id: string }>;

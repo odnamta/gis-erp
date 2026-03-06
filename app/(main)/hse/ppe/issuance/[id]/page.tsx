@@ -41,7 +41,7 @@ export default function IssuanceDetailPage() {
     try {
       const data = await getPPEIssuanceById(params.id as string);
       setIssuance(data);
-    } catch (error) {
+    } catch {
     } finally {
       setLoading(false);
     }

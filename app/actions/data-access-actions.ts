@@ -148,7 +148,7 @@ export async function getDataAccessLogs(
     };
     
     return { success: true, data: result };
-  } catch (error) {
+  } catch {
     return { success: false, error: 'Failed to fetch data access logs' };
   }
 }
@@ -198,7 +198,7 @@ export async function logDataExport(
     if (error) throw error;
     
     return { success: true, data: data as unknown as DataAccessLogEntry };
-  } catch (error) {
+  } catch {
     return { success: false, error: 'Failed to log data export' };
   }
 }
@@ -237,7 +237,7 @@ export async function logDataAccess(
     if (error) throw error;
     
     return { success: true, data: data as unknown as DataAccessLogEntry };
-  } catch (error) {
+  } catch {
     return { success: false, error: 'Failed to log data access' };
   }
 }
@@ -286,7 +286,7 @@ export async function getDataAccessStats(
     const stats = calculateDataAccessStats(logs);
     
     return { success: true, data: stats };
-  } catch (error) {
+  } catch {
     return { success: false, error: 'Failed to fetch data access statistics' };
   }
 }
@@ -356,7 +356,7 @@ export async function exportDataAccessLogs(
     const csv = exportToCsv(entries);
     
     return { success: true, data: csv };
-  } catch (error) {
+  } catch {
     return { success: false, error: 'Failed to export data access logs' };
   }
 }
@@ -422,7 +422,7 @@ export async function getDataAccessFilterOptions(): Promise<ActionResult<{
         fileFormats: fileFormats as string[],
       },
     };
-  } catch (error) {
+  } catch {
     return { success: false, error: 'Failed to fetch filter options' };
   }
 }
@@ -451,7 +451,7 @@ export async function getUserDataAccessLogs(
     if (error) throw error;
     
     return { success: true, data: (data ?? []) as unknown as DataAccessLogEntry[] };
-  } catch (error) {
+  } catch {
     return { success: false, error: 'Failed to fetch user data access logs' };
   }
 }
@@ -482,7 +482,7 @@ export async function getEntityDataAccessLogs(
     if (error) throw error;
     
     return { success: true, data: (data ?? []) as unknown as DataAccessLogEntry[] };
-  } catch (error) {
+  } catch {
     return { success: false, error: 'Failed to fetch entity data access logs' };
   }
 }
@@ -511,7 +511,7 @@ export async function getRecentExports(
     if (error) throw error;
     
     return { success: true, data: (data ?? []) as unknown as DataAccessLogEntry[] };
-  } catch (error) {
+  } catch {
     return { success: false, error: 'Failed to fetch recent exports' };
   }
 }
@@ -570,7 +570,7 @@ export async function getDataAccessSummary(
         topDataTypes,
       },
     };
-  } catch (error) {
+  } catch {
     return { success: false, error: 'Failed to fetch data access summary' };
   }
 }

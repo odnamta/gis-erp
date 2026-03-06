@@ -63,7 +63,7 @@ export async function blockIP(
     }
     
     return { success: true, data: result.data || undefined }
-  } catch (error) {
+  } catch {
     return { success: false, error: 'Failed to block IP address' }
   }
 }
@@ -101,7 +101,7 @@ export async function unblockIP(
     }
     
     return { success: true }
-  } catch (error) {
+  } catch {
     return { success: false, error: 'Failed to unblock IP address' }
   }
 }
@@ -139,7 +139,7 @@ export async function unblockIPByBlockId(
     }
     
     return { success: true }
-  } catch (error) {
+  } catch {
     return { success: false, error: 'Failed to unblock IP address' }
   }
 }
@@ -178,7 +178,7 @@ export async function getBlockedIPs(
     }
     
     return { success: true, data: result.data }
-  } catch (error) {
+  } catch {
     return { success: false, error: 'Failed to fetch blocked IPs' }
   }
 }
@@ -224,7 +224,7 @@ export async function getIPBlockStats(): Promise<{
     }
     
     return { success: true, data: result.data || undefined }
-  } catch (error) {
+  } catch {
     return { success: false, error: 'Failed to fetch statistics' }
   }
 }
@@ -255,7 +255,7 @@ export async function checkIPBlocked(
       blocked: !!result.data,
       blockInfo: result.data || undefined,
     }
-  } catch (error) {
+  } catch {
     return { success: false, error: 'Failed to check IP status' }
   }
 }

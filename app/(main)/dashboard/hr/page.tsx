@@ -2,7 +2,6 @@ import { redirect } from 'next/navigation'
 import Link from 'next/link'
 import { createClient } from '@/lib/supabase/server'
 import { guardPage, profileHasRole } from '@/lib/auth-utils'
-import { ExplorerReadOnlyBanner } from '@/components/layout/explorer-read-only-banner'
 import { getHrDashboardMetrics } from '@/lib/dashboard/hr-data'
 import { formatCurrency, formatNumber } from '@/lib/utils/format'
 import { 

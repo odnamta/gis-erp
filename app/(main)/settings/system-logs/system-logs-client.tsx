@@ -118,7 +118,7 @@ export function SystemLogsClient({
           variant: 'destructive',
         })
       }
-    } catch (error) {
+    } catch {
       toast({
         title: 'Export Failed',
         description: 'An unexpected error occurred',
@@ -143,7 +143,7 @@ export function SystemLogsClient({
           variant: 'destructive',
         })
       }
-    } catch (error) {
+    } catch {
     } finally {
       setIsLoadingStats(false)
     }

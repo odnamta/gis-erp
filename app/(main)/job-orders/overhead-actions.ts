@@ -129,7 +129,7 @@ export async function allocateJobOverhead(
 
     revalidatePath(`/job-orders/${joId}`);
     return { totalOverhead, error: null };
-  } catch (err) {
+  } catch {
     return { totalOverhead: 0, error: 'Failed to allocate overhead' };
   }
 }
@@ -164,7 +164,7 @@ export async function getJobOverheadBreakdown(
     const total = allocations.reduce((sum, a) => sum + Number(a.allocated_amount), 0);
 
     return { allocations, total, error: null };
-  } catch (err) {
+  } catch {
     return { allocations: [], total: 0, error: 'Failed to fetch overhead breakdown' };
   }
 }
@@ -227,7 +227,7 @@ export async function batchRecalculateOverhead(
 
     revalidatePath('/job-orders');
     return { count, error: errors.length > 0 ? `${errors.length} jobs failed` : null };
-  } catch (err) {
+  } catch {
     return { count: 0, error: 'Failed to batch recalculate overhead' };
   }
 }
@@ -277,7 +277,7 @@ export async function getJobProfitability(joId: string): Promise<{
       },
       error: null,
     };
-  } catch (err) {
+  } catch {
     return { data: null, error: 'Failed to fetch profitability data' };
   }
 }

@@ -91,7 +91,7 @@ export async function getShipmentRevenue(
     });
 
     return { success: true, data: revenue };
-  } catch (error) {
+  } catch {
     return { success: false, error: 'Failed to fetch shipment revenue' };
   }
 }
@@ -160,7 +160,7 @@ export async function getShipmentRevenueById(
     }
 
     return { success: true, data: revenue };
-  } catch (error) {
+  } catch {
     return { success: false, error: 'Failed to fetch shipment revenue' };
   }
 }
@@ -221,7 +221,7 @@ export async function createShipmentRevenue(
     }
     
     return { success: true, data: transformRevenueRow(data as ShipmentRevenueRow) };
-  } catch (error) {
+  } catch {
     return { success: false, error: 'Failed to create shipment revenue' };
   }
 }
@@ -326,7 +326,7 @@ export async function updateShipmentRevenue(
     }
 
     return { success: true, data: transformRevenueRow(data as ShipmentRevenueRow) };
-  } catch (error) {
+  } catch {
     return { success: false, error: 'Failed to update shipment revenue' };
   }
 }
@@ -374,7 +374,7 @@ export async function deleteShipmentRevenue(id: string): Promise<ActionResult<vo
     }
 
     return { success: true };
-  } catch (error) {
+  } catch {
     return { success: false, error: 'Failed to delete shipment revenue' };
   }
 }
@@ -450,7 +450,7 @@ export async function updateRevenueBillingStatus(
     }
 
     return { success: true, data: transformRevenueRow(data as ShipmentRevenueRow) };
-  } catch (error) {
+  } catch {
     return { success: false, error: 'Failed to update billing status' };
   }
 }
@@ -512,7 +512,7 @@ export async function getShipmentRevenueByInvoice(
     });
 
     return { success: true, data: revenue };
-  } catch (error) {
+  } catch {
     return { success: false, error: 'Failed to fetch revenue by invoice' };
   }
 }
@@ -575,7 +575,7 @@ export async function getUnbilledRevenueByBooking(
     });
 
     return { success: true, data: revenue };
-  } catch (error) {
+  } catch {
     return { success: false, error: 'Failed to fetch unbilled revenue' };
   }
 }
@@ -637,7 +637,7 @@ export async function bulkUpdateRevenueBillingStatus(
     }
 
     return { success: true, data: { updatedCount: data?.length || 0 } };
-  } catch (error) {
+  } catch {
     return { success: false, error: 'Failed to update billing status' };
   }
 }

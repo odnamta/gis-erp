@@ -85,7 +85,7 @@ export async function lookupRates(params: RateLookupParams): Promise<ShippingRat
       originPort: row.origin_port as unknown as Port,
       destinationPort: row.destination_port as unknown as Port,
     })) as unknown as ShippingRate[];
-  } catch (error) {
+  } catch {
     return [];
   }
 }

@@ -171,7 +171,7 @@ export function ArrivalNoticeDetail({ notice }: ArrivalNoticeDetailProps) {
       } else {
         toast.error(result.error || 'Failed to update status');
       }
-    } catch (error) {
+    } catch {
       toast.error('Failed to update status');
     } finally {
       setIsLoading(false);
@@ -188,7 +188,7 @@ export function ArrivalNoticeDetail({ notice }: ArrivalNoticeDetailProps) {
       } else {
         toast.error(result.error || 'Failed to delete Arrival Notice');
       }
-    } catch (error) {
+    } catch {
       toast.error('Failed to delete Arrival Notice');
     } finally {
       setIsLoading(false);

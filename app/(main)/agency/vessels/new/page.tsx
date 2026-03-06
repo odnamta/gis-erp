@@ -36,7 +36,7 @@ export default function NewVesselPage() {
         if (result.success && result.data) {
           setShippingLines(result.data);
         }
-      } catch (error) {
+      } catch {
       } finally {
         setLoadingShippingLines(false);
       }
@@ -61,7 +61,7 @@ export default function NewVesselPage() {
           variant: 'destructive',
         });
       }
-    } catch (error) {
+    } catch {
       toast({
         title: 'Error',
         description: 'An unexpected error occurred',

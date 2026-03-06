@@ -61,7 +61,7 @@ export function FeedbackDetailSheet({ feedback, onClose, onUpdate }: FeedbackDet
       if (result.success && result.data) {
         setComments(result.data);
       }
-    } catch (error) {
+    } catch {
     } finally {
       setLoadingComments(false);
     }

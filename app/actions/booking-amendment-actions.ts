@@ -205,7 +205,7 @@ export async function getBookingAmendments(bookingId: string): Promise<BookingAm
 
     if (error) throw error;
     return (data || []).map(rowToAmendment);
-  } catch (error) {
+  } catch {
     return [];
   }
 }

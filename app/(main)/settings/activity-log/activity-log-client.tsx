@@ -100,7 +100,7 @@ export function ActivityLogClient({
     try {
       const allLogs = await getActivityLogsForExport(filters)
       exportToCsv(allLogs)
-    } catch (error) {
+    } catch {
     } finally {
       setIsExporting(false)
     }

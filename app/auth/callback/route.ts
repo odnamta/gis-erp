@@ -57,7 +57,7 @@ export async function GET(request: Request) {
       if (user && isNewUser) {
         try {
           await initializeOnboardingForUser(user.id, profile.role)
-        } catch (e) {
+        } catch {
         }
       }
 
@@ -100,7 +100,7 @@ export async function GET(request: Request) {
             },
             'first_login'
           )
-        } catch (e) {
+        } catch {
         }
       }
     }

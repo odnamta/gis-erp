@@ -37,7 +37,7 @@ export async function getOverheadCategories(): Promise<{
     }
 
     return { data: data as OverheadCategory[], error: null };
-  } catch (err) {
+  } catch {
     return { data: null, error: 'Failed to fetch overhead categories' };
   }
 }
@@ -74,7 +74,7 @@ export async function updateOverheadCategoryRate(
 
     revalidatePath('/finance/settings/overhead');
     return { success: true, error: null };
-  } catch (err) {
+  } catch {
     return { success: false, error: 'Failed to update rate' };
   }
 }
@@ -105,7 +105,7 @@ export async function toggleOverheadCategoryActive(
 
     revalidatePath('/finance/settings/overhead');
     return { success: true, error: null };
-  } catch (err) {
+  } catch {
     return { success: false, error: 'Failed to toggle category status' };
   }
 }
@@ -175,7 +175,7 @@ export async function createOverheadCategory(
 
     revalidatePath('/finance/settings/overhead');
     return { data: data as OverheadCategory, error: null };
-  } catch (err) {
+  } catch {
     return { data: null, error: 'Failed to create category' };
   }
 }
@@ -222,7 +222,7 @@ export async function updateOverheadCategory(
 
     revalidatePath('/finance/settings/overhead');
     return { success: true, error: null };
-  } catch (err) {
+  } catch {
     return { success: false, error: 'Failed to update category' };
   }
 }
@@ -252,7 +252,7 @@ export async function deleteOverheadCategory(
 
     revalidatePath('/finance/settings/overhead');
     return { success: true, error: null };
-  } catch (err) {
+  } catch {
     return { success: false, error: 'Failed to delete category' };
   }
 }
@@ -279,7 +279,7 @@ export async function getTotalOverheadRate(): Promise<{
 
     const totalRate = data?.reduce((sum, cat) => sum + (Number(cat.default_rate) || 0), 0) || 0;
     return { rate: totalRate, error: null };
-  } catch (err) {
+  } catch {
     return { rate: 0, error: 'Failed to calculate total rate' };
   }
 }

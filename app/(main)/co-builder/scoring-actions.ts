@@ -489,7 +489,7 @@ export async function submitTop5(data: {
 
     revalidatePath('/co-builder')
     return { success: true, points: 30 }
-  } catch (error) {
+  } catch {
     return { success: false, error: 'Terjadi kesalahan' }
   }
 }

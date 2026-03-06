@@ -5,7 +5,6 @@ import { DrawingForm } from '@/components/drawings/drawing-form'
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert'
 import { Button } from '@/components/ui/button'
 import { getCurrentUserProfile, guardPage } from '@/lib/auth-utils';
-import { ExplorerReadOnlyBanner } from '@/components/layout/explorer-read-only-banner';
 
 export default async function NewDrawingPage() {
 

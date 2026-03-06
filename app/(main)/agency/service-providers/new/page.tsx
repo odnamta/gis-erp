@@ -37,7 +37,7 @@ export default function NewServiceProviderPage() {
           variant: 'destructive',
         });
       }
-    } catch (error) {
+    } catch {
       toast({
         title: 'Error',
         description: 'An unexpected error occurred',

@@ -121,7 +121,7 @@ export function LeaveRequestForm({
       } else {
         toast.error(result.error || 'Failed to submit leave request');
       }
-    } catch (error) {
+    } catch {
       toast.error('An error occurred while submitting the request');
     } finally {
       setIsSubmitting(false);

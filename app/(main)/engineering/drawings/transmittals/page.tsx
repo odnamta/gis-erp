@@ -24,7 +24,7 @@ export default function TransmittalsPage() {
     try {
       const data = await getTransmittals();
       setTransmittals(data);
-    } catch (error) {
+    } catch {
     } finally {
       setLoading(false);
     }

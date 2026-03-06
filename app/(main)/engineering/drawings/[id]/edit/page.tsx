@@ -38,7 +38,7 @@ export default function EditDrawingPage({ params }: EditDrawingPageProps) {
         return;
       }
       setDrawing(data);
-    } catch (error) {
+    } catch {
       router.push('/engineering/drawings');
     } finally {
       setLoading(false);

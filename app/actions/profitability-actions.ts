@@ -132,7 +132,7 @@ export async function getBookingFinancialSummary(
     };
 
     return { success: true, data: summary };
-  } catch (error) {
+  } catch {
     return { success: false, error: 'Failed to fetch booking financial summary' };
   }
 }
@@ -198,7 +198,7 @@ export async function getShipmentProfitability(
     }
 
     return { success: true, data: profitability };
-  } catch (error) {
+  } catch {
     return { success: false, error: 'Failed to fetch shipment profitability' };
   }
 }
@@ -328,7 +328,7 @@ export async function getUnbilledRevenue(
     const result = Array.from(groupedMap.values());
 
     return { success: true, data: result };
-  } catch (error) {
+  } catch {
     return { success: false, error: 'Failed to fetch unbilled revenue' };
   }
 }

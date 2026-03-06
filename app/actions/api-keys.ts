@@ -84,7 +84,7 @@ export async function createAPIKey(
       key: result.data?.key,
       keyData: result.data?.keyData,
     }
-  } catch (error) {
+  } catch {
     return { success: false, error: 'Failed to create API key' }
   }
 }
@@ -134,7 +134,7 @@ export async function revokeAPIKey(
     }
     
     return { success: true }
-  } catch (error) {
+  } catch {
     return { success: false, error: 'Failed to revoke API key' }
   }
 }
@@ -172,7 +172,7 @@ export async function getMyAPIKeys(
     }
     
     return { success: true, data: result.data }
-  } catch (error) {
+  } catch {
     return { success: false, error: 'Failed to fetch API keys' }
   }
 }
@@ -214,7 +214,7 @@ export async function getAPIKeys(
     }
     
     return { success: true, data: result.data }
-  } catch (error) {
+  } catch {
     return { success: false, error: 'Failed to fetch API keys' }
   }
 }
@@ -253,7 +253,7 @@ export async function updateAPIKeyPermissions(
     }
     
     return { success: true, data: result.data || undefined }
-  } catch (error) {
+  } catch {
     return { success: false, error: 'Failed to update permissions' }
   }
 }
@@ -292,7 +292,7 @@ export async function updateAPIKeyRateLimit(
     }
     
     return { success: true, data: result.data || undefined }
-  } catch (error) {
+  } catch {
     return { success: false, error: 'Failed to update rate limit' }
   }
 }
@@ -351,7 +351,7 @@ export async function getAPIKeyStats(
     }
     
     return { success: true, data: result.data || undefined }
-  } catch (error) {
+  } catch {
     return { success: false, error: 'Failed to fetch statistics' }
   }
 }

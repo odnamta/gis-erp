@@ -2,7 +2,6 @@ import { redirect } from 'next/navigation'
 import { isExplorerMode } from '@/lib/auth-utils'
 import { TransmittalForm } from '@/components/drawings/transmittal-form'
 import { getCurrentUserProfile, guardPage } from '@/lib/auth-utils';
-import { ExplorerReadOnlyBanner } from '@/components/layout/explorer-read-only-banner';
 
 export default async function NewTransmittalPage() {
 

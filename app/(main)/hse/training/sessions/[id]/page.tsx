@@ -82,7 +82,7 @@ export default function SessionDetailPage() {
         .eq('status', 'active')
         .order('full_name');
       setEmployees(employeesData || []);
-    } catch (error) {
+    } catch {
       toast.error('Gagal memuat data sesi');
     } finally {
       setLoading(false);

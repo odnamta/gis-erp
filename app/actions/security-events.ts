@@ -101,7 +101,7 @@ export async function getSecurityEvents(
         totalPages: Math.ceil(total / pagination.pageSize),
       },
     }
-  } catch (error) {
+  } catch {
     return { success: false, error: 'Failed to fetch security events' }
   }
 }
@@ -143,7 +143,7 @@ export async function getSecurityEventById(
     }
     
     return { success: true, data: result.data }
-  } catch (error) {
+  } catch {
     return { success: false, error: 'Failed to fetch security event' }
   }
 }
@@ -182,7 +182,7 @@ export async function markEventInvestigated(
     }
     
     return { success: true, data: result.data || undefined }
-  } catch (error) {
+  } catch {
     return { success: false, error: 'Failed to mark event as investigated' }
   }
 }
@@ -231,7 +231,7 @@ export async function getSecurityEventStats(
     }
     
     return { success: true, data: result.data || undefined }
-  } catch (error) {
+  } catch {
     return { success: false, error: 'Failed to fetch statistics' }
   }
 }

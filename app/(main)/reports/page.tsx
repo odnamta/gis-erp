@@ -63,7 +63,7 @@ export default function ReportsPage() {
           setDbReports(reports)
           setUseDbConfig(true)
         }
-      } catch (error) {
+      } catch {
       } finally {
         setLoading(false)
       }

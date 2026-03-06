@@ -1,7 +1,6 @@
 import { Suspense } from 'react';
 import { EditShippingRateClient } from './edit-shipping-rate-client';
 import { getCurrentUserProfile, guardPage } from '@/lib/auth-utils';
-import { ExplorerReadOnlyBanner } from '@/components/layout/explorer-read-only-banner';
 
 interface EditShippingRatePageProps {
   params: Promise<{ id: string }>;

@@ -100,7 +100,7 @@ export function TemplateForm({ template }: TemplateFormProps) {
       } else {
         toast.error(result.error || 'Failed to save template');
       }
-    } catch (error) {
+    } catch {
       toast.error('An error occurred');
     } finally {
       setLoading(false);

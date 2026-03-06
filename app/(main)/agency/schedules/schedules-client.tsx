@@ -99,7 +99,7 @@ export function SchedulesClient() {
       setUpcomingArrivals(arrivalsData);
       setVessels(vesselsData);
       setStats(calculateScheduleStats(schedulesData));
-    } catch (error) {
+    } catch {
       toast({
         title: 'Error',
         description: 'Failed to load schedules',

@@ -47,7 +47,7 @@ export function SIListClient({
     try {
       const results = await getShippingInstructions(filters);
       setSIs(results);
-    } catch (error) {
+    } catch {
     } finally {
       setIsLoading(false);
     }
@@ -71,7 +71,7 @@ export function SIListClient({
     try {
       const results = await getShippingInstructions(clearedFilters);
       setSIs(results);
-    } catch (error) {
+    } catch {
     } finally {
       setIsLoading(false);
     }

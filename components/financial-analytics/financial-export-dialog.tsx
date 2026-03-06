@@ -56,7 +56,7 @@ export function FinancialExportDialog({ year, month }: FinancialExportDialogProp
           description: result.error || 'An error occurred while exporting.',
         });
       }
-    } catch (error) {
+    } catch {
       toast.error('Export failed', {
         description: 'An unexpected error occurred.',
       });

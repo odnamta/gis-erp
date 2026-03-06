@@ -101,7 +101,7 @@ export function ExecutiveDashboardClient({
       setRevenueTrend(revenue);
       setProfitTrend(profit);
       setLayout(userLayout);
-    } catch (error) {
+    } catch {
     } finally {
       setLoading(false);
       setRefreshing(false);
