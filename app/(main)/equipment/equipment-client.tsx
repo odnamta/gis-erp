@@ -162,9 +162,9 @@ export function EquipmentClient() {
     router.replace(newUrl, { scroll: false })
   }, [filters, router])
 
-  const handleFilterChange = (newFilters: AssetFilterState) => {
+  const handleFilterChange = useCallback((newFilters: AssetFilterState) => {
     setFilters(newFilters)
-  }
+  }, [])
 
   return (
     <div className="space-y-6">

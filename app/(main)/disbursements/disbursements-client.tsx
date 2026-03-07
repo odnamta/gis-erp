@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useMemo, useRef, useDeferredValue } from 'react'
+import { useState, useMemo, useCallback, useRef, useDeferredValue } from 'react'
 import { useRouter } from 'next/navigation'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
@@ -122,7 +122,7 @@ export function DisbursementsClient({ initialData, userRole, serverStats }: Disb
     return { total, pending, approved, settled, count: filteredData.length }
   }, [filteredData])
 
-  const handleExport = () => {
+  const handleExport = useCallback(() => {
     const headers = ['No. BKK', 'Tanggal', 'Job Order', 'Keperluan', 'Jumlah', 'Status']
     const rows = filteredData.map((bkk) => [
       bkk.bkk_number,
@@ -141,7 +141,11 @@ export function DisbursementsClient({ initialData, userRole, serverStats }: Disb
     a.download = `disbursements-${new Date().toISOString().split('T')[0]}.csv`
     a.click()
     URL.revokeObjectURL(url)
-  }
+  }, [filteredData])
+
+  const handleRowClick = useCallback((id: string) => {
+    router.push(`/disbursements/${id}`)
+  }, [router])
 
   return (
     <div className="space-y-6">
@@ -301,7 +305,7 @@ export function DisbursementsClient({ initialData, userRole, serverStats }: Disb
         </div>
       ) : (
         /* Desktop table view — virtualized */
-        <VirtualizedBKKTable data={filteredData} onRowClick={(id) => router.push(`/disbursements/${id}`)} />
+        <VirtualizedBKKTable data={filteredData} onRowClick={handleRowClick} />
       )}
     </div>
   )

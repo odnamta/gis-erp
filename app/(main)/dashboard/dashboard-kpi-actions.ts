@@ -98,7 +98,7 @@ export async function fetchDashboardKPIs(): Promise<DashboardKPIs> {
       .from('invoices')
       .select('total_amount')
       .in('status', ['sent', 'overdue'])
-      .limit(1000)
+      .limit(500)
   ])
 
   const outstandingAR = outstandingARResult.data?.reduce(
@@ -300,6 +300,7 @@ export async function fetchFinanceDashboardData(): Promise<FinanceDashboardData>
     { data: paymentsData },
     { data: pendingBKKsData },
   ] = await Promise.all([
+    // Invoices: no date filter (aging needs all unpaid)
     supabase
       .from('invoices')
       .select(`
@@ -314,24 +315,27 @@ export async function fetchFinanceDashboardData(): Promise<FinanceDashboardData>
         customers(name)
       `)
       .order('due_date', { ascending: true })
-      .limit(1000),
+      .limit(500),
 
+    // PJOs: lightweight query (3 columns, no joins)
     supabase
       .from('proforma_job_orders')
       .select('status, total_revenue_calculated, is_active')
       .eq('is_active', true)
-      .limit(1000),
+      .limit(500),
 
+    // JOs: lightweight query (3 columns, no joins)
     supabase
       .from('job_orders')
       .select('final_revenue, completed_at, status')
-      .limit(1000),
+      .limit(500),
 
     supabase
       .from('payments')
       .select('amount, payment_date')
-      .limit(1000),
+      .limit(500),
 
+    // Pending BKKs: already status-filtered
     supabase
       .from('bukti_kas_keluar')
       .select(`
@@ -353,7 +357,7 @@ export async function fetchFinanceDashboardData(): Promise<FinanceDashboardData>
       `)
       .eq('status', 'pending')
       .order('requested_at', { ascending: true })
-      .limit(1000),
+      .limit(100),
   ])
 
   const invoices = (invoicesData || []).map(inv => ({
@@ -402,4 +406,120 @@ export async function fetchFinanceDashboardData(): Promise<FinanceDashboardData>
     pendingBKKs: (pendingBKKsData || []) as BKKWithRelations[],
   }
   }) // end getOrFetch
+}
+
+// =====================================================
+// Materialized View Actions
+// =====================================================
+
+/**
+ * Monthly revenue trend from mv_monthly_revenue
+ * Pre-computed from completed job_orders — faster than querying invoices
+ */
+export interface MVMonthlyRevenue {
+  month: string
+  totalRevenue: number
+  totalCost: number
+  totalProfit: number
+  jobCount: number
+}
+
+export async function fetchMVMonthlyRevenueTrend(
+  months: number = 6
+): Promise<MVMonthlyRevenue[]> {
+  const supabase = await createClient()
+
+  const cutoff = new Date()
+  cutoff.setMonth(cutoff.getMonth() - months)
+  const cutoffStr = cutoff.toISOString()
+
+  const { data, error } = await supabase
+    .from('mv_monthly_revenue')
+    .select('month, total_revenue, total_cost, total_profit, job_count')
+    .gte('month', cutoffStr)
+    .not('month', 'is', null)
+
+  if (error || !data) return []
+
+  // Aggregate across all customers per month
+  const byMonth = new Map<string, MVMonthlyRevenue>()
+
+  for (const row of data) {
+    if (!row.month) continue
+    const monthKey = row.month
+    const existing = byMonth.get(monthKey)
+    if (existing) {
+      existing.totalRevenue += Number(row.total_revenue || 0)
+      existing.totalCost += Number(row.total_cost || 0)
+      existing.totalProfit += Number(row.total_profit || 0)
+      existing.jobCount += Number(row.job_count || 0)
+    } else {
+      byMonth.set(monthKey, {
+        month: monthKey,
+        totalRevenue: Number(row.total_revenue || 0),
+        totalCost: Number(row.total_cost || 0),
+        totalProfit: Number(row.total_profit || 0),
+        jobCount: Number(row.job_count || 0),
+      })
+    }
+  }
+
+  return Array.from(byMonth.values()).sort(
+    (a, b) => new Date(a.month).getTime() - new Date(b.month).getTime()
+  )
+}
+
+/**
+ * Customer summary from mv_customer_summary
+ * Pre-computed: total jobs, revenue, outstanding AR per customer
+ */
+export interface MVCustomerSummary {
+  customerId: string
+  customerName: string
+  totalJobs: number
+  completedJobs: number
+  totalRevenue: number
+  totalCost: number
+  totalProfit: number
+  outstandingAR: number
+  lastJobDate: string | null
+}
+
+export async function fetchMVCustomerSummaries(
+  limit: number = 50
+): Promise<MVCustomerSummary[]> {
+  const supabase = await createClient()
+
+  const { data, error } = await supabase
+    .from('mv_customer_summary')
+    .select('*')
+    .order('total_revenue', { ascending: false })
+    .limit(limit)
+
+  if (error || !data) return []
+
+  return data.map(row => ({
+    customerId: row.customer_id || '',
+    customerName: row.customer_name || 'Unknown',
+    totalJobs: Number(row.total_jobs || 0),
+    completedJobs: Number(row.completed_jobs || 0),
+    totalRevenue: Number(row.total_revenue || 0),
+    totalCost: Number(row.total_cost || 0),
+    totalProfit: Number(row.total_profit || 0),
+    outstandingAR: Number(row.outstanding_ar || 0),
+    lastJobDate: row.last_job_date || null,
+  }))
+}
+
+/**
+ * Refresh all materialized views
+ * Call after significant data changes or on a schedule
+ */
+export async function refreshMaterializedViews(): Promise<{ success: boolean }> {
+  const supabase = await createClient()
+
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const { error } = await (supabase.rpc as any)('refresh_materialized_views')
+
+  return { success: !error }
 }

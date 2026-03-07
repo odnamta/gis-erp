@@ -1,49 +1,24 @@
 'use client'
 
-import { useEffect, useState } from 'react'
 import Link from 'next/link'
 import { Clock, History } from 'lucide-react'
 import { Badge } from '@/components/ui/badge'
-import { getRecentReports } from '@/lib/reports/report-execution-service'
-import { RecentReport } from '@/types/reports'
 import { formatDistanceToNow } from 'date-fns'
 
-interface RecentReportsBarProps {
-  userId: string
-  limit?: number
+interface RecentReportItem {
+  report_code: string
+  report_name: string
+  href: string
+  executed_at: string
 }
 
-export function RecentReportsBar({ userId, limit = 5 }: RecentReportsBarProps) {
-  const [recentReports, setRecentReports] = useState<RecentReport[]>([])
-  const [loading, setLoading] = useState(true)
+interface RecentReportsBarProps {
+  /** Server-fetched recent reports data */
+  initialData: RecentReportItem[]
+}
 
-  useEffect(() => {
-    async function fetchRecentReports() {
-      try {
-        const reports = await getRecentReports(userId, limit)
-        setRecentReports(reports)
-      } catch (error) {
-        console.error('Failed to fetch recent reports:', error)
-      } finally {
-        setLoading(false)
-      }
-    }
-
-    if (userId) {
-      fetchRecentReports()
-    }
-  }, [userId, limit])
-
-  if (loading) {
-    return (
-      <div className="flex items-center gap-2 text-sm text-muted-foreground">
-        <History className="h-4 w-4" />
-        <span>Loading recent reports...</span>
-      </div>
-    )
-  }
-
-  if (recentReports.length === 0) {
+export function RecentReportsBar({ initialData }: RecentReportsBarProps) {
+  if (initialData.length === 0) {
     return (
       <div className="flex items-center gap-2 text-sm text-muted-foreground">
         <History className="h-4 w-4" />
@@ -59,7 +34,7 @@ export function RecentReportsBar({ userId, limit = 5 }: RecentReportsBarProps) {
         <span>Recent:</span>
       </div>
       <div className="flex items-center gap-2 flex-wrap">
-        {recentReports.map((report) => (
+        {initialData.map((report) => (
           <Link key={`${report.report_code}-${report.executed_at}`} href={report.href}>
             <Badge
               variant="secondary"

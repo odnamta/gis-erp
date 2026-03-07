@@ -40,9 +40,10 @@ interface ReportsPageClientProps {
   dbReports: Record<ReportCategoryDB, ReportConfigurationDB[]> | null
   staticReports: Record<ReportCategory, ReportConfig[]> | null
   userId?: string
+  recentReports?: { report_code: string; report_name: string; href: string; executed_at: string }[]
 }
 
-export function ReportsPageClient({ dbReports, staticReports, userId }: ReportsPageClientProps) {
+export function ReportsPageClient({ dbReports, staticReports, userId, recentReports }: ReportsPageClientProps) {
   const [searchQuery, setSearchQuery] = useState('')
 
   // DB-driven reports (filtered by search)
@@ -82,7 +83,9 @@ export function ReportsPageClient({ dbReports, staticReports, userId }: ReportsP
             onChange={setSearchQuery}
             placeholder="Search reports..."
           />
-          {userId && <RecentReportsBar userId={userId} limit={5} />}
+          {recentReports && recentReports.length > 0 && (
+            <RecentReportsBar initialData={recentReports} />
+          )}
         </div>
 
         {nonEmptyCategories.length === 0 ? (

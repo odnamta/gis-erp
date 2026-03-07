@@ -116,10 +116,17 @@ export async function getFinanceDashboardEnhancedData(): Promise<FinanceDashboar
     : { data: [] }
   const joMap = new Map((joData || []).map(jo => [jo.id, jo.jo_number]))
 
-  // Fetch invoices for revenue trend (last 6 months)
+  // Try mv_monthly_revenue first (pre-computed, faster)
   const sixMonthsAgo = new Date(currentDate)
   sixMonthsAgo.setMonth(sixMonthsAgo.getMonth() - 6)
-  
+
+  const { data: mvTrendData } = await supabase
+    .from('mv_monthly_revenue')
+    .select('month, total_revenue')
+    .gte('month', sixMonthsAgo.toISOString())
+    .not('month', 'is', null)
+
+  // Fallback: fetch invoices for revenue trend (last 6 months)
   const { data: trendInvoices } = await supabase
     .from('invoices')
     .select('invoice_date, total_amount, amount_paid, status')
@@ -178,18 +185,53 @@ export async function getFinanceDashboardEnhancedData(): Promise<FinanceDashboar
     5
   )
 
-  // Calculate revenue trend
-  const revenueTrend = getRevenueTrend(
-    (trendInvoices || [])
-      .filter(inv => inv.invoice_date)
-      .map(inv => ({
-        invoice_date: inv.invoice_date!,
-        total_amount: Number(inv.total_amount),
-        amount_paid: inv.amount_paid ? Number(inv.amount_paid) : null,
-        status: inv.status || 'draft',
-      })),
-    currentDate
-  )
+  // Calculate revenue trend — use MV data if available, fallback to invoice-based
+  let revenueTrend: MonthlyRevenueData[]
+
+  if (mvTrendData && mvTrendData.length > 0) {
+    // Aggregate MV data by month (MV has per-customer rows)
+    const mvByMonth = new Map<string, number>()
+    for (const row of mvTrendData) {
+      if (!row.month) continue
+      const monthKey = row.month.substring(0, 7) // YYYY-MM
+      mvByMonth.set(monthKey, (mvByMonth.get(monthKey) || 0) + Number(row.total_revenue || 0))
+    }
+
+    // Get collected amounts from invoices (MV doesn't track payments)
+    const collectedByMonth = new Map<string, number>()
+    for (const inv of (trendInvoices || [])) {
+      if (!inv.invoice_date || inv.status === 'cancelled') continue
+      const monthKey = inv.invoice_date.substring(0, 7)
+      collectedByMonth.set(
+        monthKey,
+        (collectedByMonth.get(monthKey) || 0) + Number(inv.amount_paid || 0)
+      )
+    }
+
+    // Merge: revenue from MV, collected from invoices
+    const allMonths = new Set([...mvByMonth.keys(), ...collectedByMonth.keys()])
+    revenueTrend = Array.from(allMonths)
+      .sort()
+      .slice(-6)
+      .map(month => ({
+        month,
+        revenue: mvByMonth.get(month) || 0,
+        collected: collectedByMonth.get(month) || 0,
+      }))
+  } else {
+    // Fallback: invoice-based calculation
+    revenueTrend = getRevenueTrend(
+      (trendInvoices || [])
+        .filter(inv => inv.invoice_date)
+        .map(inv => ({
+          invoice_date: inv.invoice_date!,
+          total_amount: Number(inv.total_amount),
+          amount_paid: inv.amount_paid ? Number(inv.amount_paid) : null,
+          status: inv.status || 'draft',
+        })),
+      currentDate
+    )
+  }
 
   // Build summary from materialized view or calculate fresh
   const summary: FinanceDashboardSummary = summaryData
@@ -346,9 +388,9 @@ export async function refreshFinanceDashboard(): Promise<{ success: boolean; err
   const supabase = await createClient()
 
   try {
-    // Call the refresh function using raw SQL
-    // Note: This function may not exist yet
-    await supabase.rpc('refresh_finance_dashboard' as 'global_search')
+    // Refresh materialized views (mv_monthly_revenue, mv_customer_summary)
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    await (supabase.rpc as any)('refresh_materialized_views')
 
     // Revalidate the dashboard page
     revalidatePath('/dashboard')

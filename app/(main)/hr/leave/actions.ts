@@ -658,34 +658,37 @@ async function markAttendanceAsLeave(
     .eq('id', leaveTypeId)
     .single();
   
-  // Get all dates in range
+  // Build batch of attendance records for all working days in range
   const start = new Date(startDate);
   const end = new Date(endDate);
   const current = new Date(start);
-  
+  const records: { employee_id: string; attendance_date: string; status: string; notes: string }[] = [];
+
   while (current <= end) {
     const dayOfWeek = current.getDay();
     // Skip weekends
     if (dayOfWeek !== 0 && dayOfWeek !== 6) {
-      const dateStr = current.toISOString().split('T')[0];
-      
-      // Upsert attendance record
-      const { error: upsertError } = await supabase
-        .from('attendance_records')
-        .upsert({
-          employee_id: employeeId,
-          attendance_date: dateStr,
-          status: 'leave',
-          notes: leaveType?.type_name || 'Leave',
-        }, {
-          onConflict: 'employee_id,attendance_date',
-        });
-
-      if (upsertError) {
-        console.error('[Leave] markAttendanceAsLeave upsert failed for date', dateStr, ':', upsertError);
-      }
+      records.push({
+        employee_id: employeeId,
+        attendance_date: current.toISOString().split('T')[0],
+        status: 'leave',
+        notes: leaveType?.type_name || 'Leave',
+      });
     }
     current.setDate(current.getDate() + 1);
+  }
+
+  // Single batch upsert instead of N individual queries
+  if (records.length > 0) {
+    const { error: upsertError } = await supabase
+      .from('attendance_records')
+      .upsert(records, {
+        onConflict: 'employee_id,attendance_date',
+      });
+
+    if (upsertError) {
+      console.error('[Leave] markAttendanceAsLeave batch upsert failed:', upsertError);
+    }
   }
 }
 

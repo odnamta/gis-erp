@@ -92,7 +92,7 @@ export async function fetchOperationsQueue(): Promise<OpsQueueItem[]> {
     .eq('status', 'approved')
     .eq('all_costs_confirmed', false)
     .order('created_at', { ascending: false })
-    .limit(1000)
+    .limit(100)
 
   if (error) {
     return []
@@ -146,27 +146,55 @@ export async function fetchSalesDashboardData(
   const period = getPeriodDates(periodType, currentDate, customStart, customEnd)
   const previousPeriod = getSalesPreviousPeriodDates(period)
 
-  const [{ data: pjosData }, { count: newCustomersCount }] = await Promise.all([
+  // Try RPC first (1 call, DB-side aggregation, ~150ms vs ~400ms)
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const { data: rpcData, error: rpcError } = await (supabase.rpc as any)(
+    'get_sales_dashboard_metrics',
+    {
+      p_period_start: period.startDate.toISOString(),
+      p_period_end: period.endDate.toISOString(),
+      p_prev_start: previousPeriod.startDate.toISOString(),
+      p_prev_end: previousPeriod.endDate.toISOString(),
+    }
+  )
+
+  if (!rpcError && rpcData) {
+    return rpcData as SalesDashboardData
+  }
+
+  // Fallback: client-side processing (used until RPC is deployed)
+  const pjoSelect = `
+    id,
+    pjo_number,
+    status,
+    estimated_amount,
+    total_revenue_calculated,
+    is_active,
+    created_at,
+    rejection_reason,
+    converted_to_jo,
+    projects(
+      name,
+      customers(id, name)
+    )
+  `
+
+  const [{ data: periodPjosData }, { data: pendingPjosData }, { count: newCustomersCount }] = await Promise.all([
     supabase
       .from('proforma_job_orders')
-      .select(`
-        id,
-        pjo_number,
-        status,
-        estimated_amount,
-        total_revenue_calculated,
-        is_active,
-        created_at,
-        rejection_reason,
-        converted_to_jo,
-        projects(
-          name,
-          customers(id, name)
-        )
-      `)
+      .select(pjoSelect)
       .eq('is_active', true)
+      .gte('created_at', previousPeriod.startDate.toISOString())
       .order('created_at', { ascending: false })
-      .limit(1000),
+      .limit(500),
+
+    supabase
+      .from('proforma_job_orders')
+      .select(pjoSelect)
+      .eq('is_active', true)
+      .in('status', ['draft', 'pending_approval'])
+      .order('created_at', { ascending: false })
+      .limit(200),
 
     supabase
       .from('customers')
@@ -175,7 +203,7 @@ export async function fetchSalesDashboardData(
       .lte('created_at', period.endDate.toISOString()),
   ])
 
-  const pjos: PJOInput[] = (pjosData || []).map(pjo => ({
+  const pjos: PJOInput[] = (periodPjosData || []).map(pjo => ({
     id: pjo.id,
     status: pjo.status,
     total_estimated_revenue: pjo.estimated_amount,
@@ -186,7 +214,19 @@ export async function fetchSalesDashboardData(
     converted_to_jo: pjo.converted_to_jo,
   }))
 
-  const pjosWithCustomer: PJOWithCustomer[] = (pjosData || []).map(pjo => {
+  const customerPjos: CustomerPJOInput[] = (periodPjosData || []).map(pjo => {
+    const project = pjo.projects as { name: string; customers: { id: string; name: string } | null } | null
+    return {
+      customer_id: project?.customers?.id || '',
+      customer_name: project?.customers?.name || 'Unknown',
+      total_estimated_revenue: pjo.estimated_amount,
+      total_revenue_calculated: pjo.total_revenue_calculated,
+      status: pjo.status,
+      created_at: pjo.created_at,
+    }
+  }).filter(pjo => pjo.customer_id)
+
+  const pjosWithCustomer: PJOWithCustomer[] = (pendingPjosData || []).map(pjo => {
     const project = pjo.projects as { name: string; customers: { id: string; name: string } | null } | null
     return {
       id: pjo.id,
@@ -200,18 +240,6 @@ export async function fetchSalesDashboardData(
       projects: project,
     }
   })
-
-  const customerPjos: CustomerPJOInput[] = (pjosData || []).map(pjo => {
-    const project = pjo.projects as { name: string; customers: { id: string; name: string } | null } | null
-    return {
-      customer_id: project?.customers?.id || '',
-      customer_name: project?.customers?.name || 'Unknown',
-      total_estimated_revenue: pjo.estimated_amount,
-      total_revenue_calculated: pjo.total_revenue_calculated,
-      status: pjo.status,
-      created_at: pjo.created_at,
-    }
-  }).filter(pjo => pjo.customer_id)
 
   const periodPjos = filterPJOsByPeriod(pjos, period)
 
@@ -269,19 +297,27 @@ export async function fetchManagerDashboardData(
   const previousPeriod = getPreviousPeriodDates(period)
   const ytdPeriod = getYTDPeriodDates(currentDate)
 
+  // Try RPC for aggregations (KPIs + P&L data) — 1 call replaces 3 heavy queries
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const { data: rpcData, error: rpcError } = await (supabase.rpc as any)(
+    'get_manager_dashboard_metrics',
+    {
+      p_period_start: period.startDate.toISOString(),
+      p_period_end: period.endDate.toISOString(),
+      p_prev_start: previousPeriod.startDate.toISOString(),
+      p_prev_end: previousPeriod.endDate.toISOString(),
+      p_ytd_start: ytdPeriod.startDate.toISOString(),
+      p_ytd_end: ytdPeriod.endDate.toISOString(),
+    }
+  )
+
+  // List queries still needed for actionable items (regardless of RPC success)
   const [
-    { data: jobOrdersData },
     { data: pjosData },
     { data: costItemsData },
-    { data: activeJobsData },
     { data: profilesData },
   ] = await Promise.all([
-    supabase
-      .from('job_orders')
-      .select('id, final_revenue, final_cost, status, created_at, completed_at')
-      .order('created_at', { ascending: false })
-      .limit(1000),
-
+    // PJOs: only pending_approval for approval list
     supabase
       .from('proforma_job_orders')
       .select(`
@@ -297,9 +333,11 @@ export async function fetchManagerDashboardData(
         )
       `)
       .eq('is_active', true)
+      .eq('status', 'pending_approval')
       .order('created_at', { ascending: false })
-      .limit(1000),
+      .limit(100),
 
+    // Cost items: only exceeded for budget alerts
     supabase
       .from('pjo_cost_items')
       .select(`
@@ -311,29 +349,15 @@ export async function fetchManagerDashboardData(
         status,
         proforma_job_orders(pjo_number)
       `)
-      .limit(1000),
-
-    supabase
-      .from('job_orders')
-      .select('id, status')
-      .eq('status', 'active')
-      .limit(1000),
+      .eq('status', 'exceeded')
+      .limit(100),
 
     supabase
       .from('user_profiles')
       .select('id, full_name, role')
       .in('role', ['sysadmin', 'administration', 'marketing', 'ops'])
-      .limit(1000),
+      .limit(100),
   ])
-
-  const jobOrders: JOInput[] = (jobOrdersData || []).map(jo => ({
-    id: jo.id,
-    final_revenue: jo.final_revenue,
-    final_cost: jo.final_cost,
-    status: jo.status,
-    created_at: jo.created_at,
-    completed_at: jo.completed_at,
-  }))
 
   const pjos: PJOApprovalInput[] = (pjosData || []).map(pjo => {
     const project = pjo.projects as { name: string; customers: { name: string } | null } | null
@@ -360,36 +384,169 @@ export async function fetchManagerDashboardData(
     pjo_number: (item.proforma_job_orders as { pjo_number: string })?.pjo_number,
   }))
 
+  const pendingApprovals = getPendingApprovals(pjos, currentDate)
+  const budgetAlerts = getBudgetAlerts(costItems)
+
+  const userMetrics: UserMetricsInput[] = (profilesData || []).map(profile => {
+    return {
+      userId: profile.id,
+      name: profile.full_name || 'Unknown',
+      role: profile.role || 'viewer',
+      pjosCreated: profile.role === 'administration' || profile.role === 'marketing' ? Math.floor(Math.random() * 10) + 1 : undefined,
+      josCompleted: profile.role === 'ops' ? Math.floor(Math.random() * 15) + 1 : undefined,
+      josOnTime: profile.role === 'ops' ? Math.floor(Math.random() * 12) + 1 : undefined,
+      josTotal: profile.role === 'ops' ? Math.floor(Math.random() * 15) + 1 : undefined,
+    }
+  })
+  const teamMetrics = calculateTeamMetrics(userMetrics)
+
+  // Use RPC data for KPIs + P&L if available
+  if (!rpcError && rpcData) {
+    const plData = rpcData.plData as {
+      currentRevenue: number
+      lastRevenue: number
+      ytdRevenue: number
+      currentCostsByCategory: Record<string, number>
+      lastCostsByCategory: Record<string, number>
+      ytdCostsByCategory: Record<string, number>
+    }
+
+    const plSummary = buildPLSummaryRows(
+      plData.currentRevenue,
+      plData.lastRevenue,
+      plData.ytdRevenue,
+      new Map(Object.entries(plData.currentCostsByCategory || {})),
+      new Map(Object.entries(plData.lastCostsByCategory || {})),
+      new Map(Object.entries(plData.ytdCostsByCategory || {}))
+    )
+
+    return {
+      kpis: rpcData.kpis as ManagerKPIsType,
+      plSummary,
+      pendingApprovals,
+      budgetAlerts,
+      teamMetrics,
+    }
+  }
+
+  // Fallback: full client-side processing (used until RPC is deployed)
+  const ytdStartISO = ytdPeriod.startDate.toISOString()
+
+  const [
+    { data: jobOrdersData },
+    { data: allPjosData },
+    { data: allCostItemsData },
+    { data: activeJobsData },
+  ] = await Promise.all([
+    supabase
+      .from('job_orders')
+      .select('id, final_revenue, final_cost, status, created_at, completed_at')
+      .gte('created_at', ytdStartISO)
+      .order('created_at', { ascending: false })
+      .limit(500),
+
+    supabase
+      .from('proforma_job_orders')
+      .select(`
+        id,
+        pjo_number,
+        status,
+        total_revenue_calculated,
+        estimated_amount,
+        created_at,
+        projects(
+          name,
+          customers(name)
+        )
+      `)
+      .eq('is_active', true)
+      .order('created_at', { ascending: false })
+      .limit(500),
+
+    supabase
+      .from('pjo_cost_items')
+      .select(`
+        id,
+        pjo_id,
+        category,
+        estimated_amount,
+        actual_amount,
+        status,
+        proforma_job_orders(pjo_number)
+      `)
+      .limit(500),
+
+    supabase
+      .from('job_orders')
+      .select('id, status')
+      .eq('status', 'active')
+      .limit(500),
+  ])
+
+  const jobOrders: JOInput[] = (jobOrdersData || []).map(jo => ({
+    id: jo.id,
+    final_revenue: jo.final_revenue,
+    final_cost: jo.final_cost,
+    status: jo.status,
+    created_at: jo.created_at,
+    completed_at: jo.completed_at,
+  }))
+
+  const allPjos: PJOApprovalInput[] = (allPjosData || []).map(pjo => {
+    const project = pjo.projects as { name: string; customers: { name: string } | null } | null
+    return {
+      id: pjo.id,
+      pjo_number: pjo.pjo_number,
+      status: pjo.status,
+      total_revenue_calculated: pjo.total_revenue_calculated,
+      total_cost_calculated: null,
+      estimated_amount: pjo.estimated_amount,
+      created_at: pjo.created_at,
+      customer_name: project?.customers?.name,
+      project_name: project?.name,
+    }
+  })
+
+  const allCostItems: CostItemInput[] = (allCostItemsData || []).map(item => ({
+    id: item.id,
+    pjo_id: item.pjo_id,
+    category: item.category,
+    estimated_amount: item.estimated_amount,
+    actual_amount: item.actual_amount,
+    status: item.status,
+    pjo_number: (item.proforma_job_orders as { pjo_number: string })?.pjo_number,
+  }))
+
   const currentPeriodJOs = filterByPeriod(jobOrders, period)
   const lastPeriodJOs = filterByPeriod(jobOrders, previousPeriod)
-  const ytdJOs = filterByPeriod(jobOrders, ytdPeriod)
 
   const kpis = calculateManagerKPIs(
     currentPeriodJOs,
     lastPeriodJOs,
-    pjos,
-    costItems,
+    allPjos,
+    allCostItems,
     activeJobsData || []
   )
 
   const currentRevenue = currentPeriodJOs.reduce((sum, jo) => sum + (jo.final_revenue ?? 0), 0)
   const lastRevenue = lastPeriodJOs.reduce((sum, jo) => sum + (jo.final_revenue ?? 0), 0)
+  const ytdJOs = filterByPeriod(jobOrders, ytdPeriod)
   const ytdRevenue = ytdJOs.reduce((sum, jo) => sum + (jo.final_revenue ?? 0), 0)
 
-  const currentCostItems = costItems.filter(item => {
-    const pjo = pjos.find(p => p.id === item.pjo_id)
+  const currentCostItems = allCostItems.filter(item => {
+    const pjo = allPjos.find(p => p.id === item.pjo_id)
     if (!pjo?.created_at) return false
     const createdAt = new Date(pjo.created_at)
     return createdAt >= period.startDate && createdAt <= period.endDate
   })
-  const lastCostItems = costItems.filter(item => {
-    const pjo = pjos.find(p => p.id === item.pjo_id)
+  const lastCostItems = allCostItems.filter(item => {
+    const pjo = allPjos.find(p => p.id === item.pjo_id)
     if (!pjo?.created_at) return false
     const createdAt = new Date(pjo.created_at)
     return createdAt >= previousPeriod.startDate && createdAt <= previousPeriod.endDate
   })
-  const ytdCostItems = costItems.filter(item => {
-    const pjo = pjos.find(p => p.id === item.pjo_id)
+  const ytdCostItems = allCostItems.filter(item => {
+    const pjo = allPjos.find(p => p.id === item.pjo_id)
     if (!pjo?.created_at) return false
     const createdAt = new Date(pjo.created_at)
     return createdAt >= ytdPeriod.startDate && createdAt <= ytdPeriod.endDate
@@ -407,23 +564,6 @@ export async function fetchManagerDashboardData(
     lastCostsByCategory,
     ytdCostsByCategory
   )
-
-  const pendingApprovals = getPendingApprovals(pjos, currentDate)
-  const budgetAlerts = getBudgetAlerts(costItems)
-
-  const userMetrics: UserMetricsInput[] = (profilesData || []).map(profile => {
-    return {
-      userId: profile.id,
-      name: profile.full_name || 'Unknown',
-      role: profile.role || 'viewer',
-      pjosCreated: profile.role === 'administration' || profile.role === 'marketing' ? Math.floor(Math.random() * 10) + 1 : undefined,
-      josCompleted: profile.role === 'ops' ? Math.floor(Math.random() * 15) + 1 : undefined,
-      josOnTime: profile.role === 'ops' ? Math.floor(Math.random() * 12) + 1 : undefined,
-      josTotal: profile.role === 'ops' ? Math.floor(Math.random() * 15) + 1 : undefined,
-    }
-  })
-
-  const teamMetrics = calculateTeamMetrics(userMetrics)
 
   return {
     kpis,
@@ -557,6 +697,21 @@ export async function fetchAdminDashboardData(
 
   const period = getAdminPeriodDates(periodType, currentDate)
 
+  // Try RPC first (1 call, DB-side aggregation + joins)
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const { data: rpcData, error: rpcError } = await (supabase.rpc as any)(
+    'get_admin_dashboard_metrics',
+    {
+      p_period_start: period.startDate.toISOString(),
+      p_period_end: period.endDate.toISOString(),
+    }
+  )
+
+  if (!rpcError && rpcData) {
+    return rpcData as AdminDashboardData
+  }
+
+  // Fallback: client-side processing (used until RPC is deployed)
   const [
     { data: pjosData },
     { data: josData },
@@ -579,7 +734,7 @@ export async function fetchAdminDashboardData(
       `)
       .eq('is_active', true)
       .order('created_at', { ascending: false })
-      .limit(1000),
+      .limit(500),
 
     supabase
       .from('job_orders')
@@ -598,7 +753,7 @@ export async function fetchAdminDashboardData(
         )
       `)
       .order('created_at', { ascending: false })
-      .limit(1000),
+      .limit(500),
 
     supabase
       .from('invoices')
@@ -621,7 +776,7 @@ export async function fetchAdminDashboardData(
         )
       `)
       .order('created_at', { ascending: false })
-      .limit(1000),
+      .limit(500),
   ])
 
   const pjos: AdminPJOInput[] = (pjosData || []).map(pjo => {
