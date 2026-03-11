@@ -1,17 +1,31 @@
 // Workflow Types - Maker-Checker-Approver Pattern
-// Re-exported from @gama/erp-core with GIS-specific workflow definitions
+// Inlined from @gama/erp-core/workflow/types (core pkg not available on Vercel)
 
 import { UserRole } from './permissions'
 
-// Re-export core types
-export type {
-  WorkflowStatus,
-  WorkflowAction,
-  WorkflowTransition,
-  WorkflowHistoryEntry,
-} from '@gama/erp-core/workflow/types'
+export type WorkflowStatus = 'draft' | 'pending_check' | 'checked' | 'approved' | 'rejected'
+export type WorkflowAction = 'submit' | 'check' | 'approve' | 'reject'
 
-import type { WorkflowTransition, WorkflowStatus, WorkflowAction } from '@gama/erp-core/workflow/types'
+export interface WorkflowTransition {
+  from: WorkflowStatus
+  to: WorkflowStatus
+  allowedRoles: UserRole[]
+  action: WorkflowAction
+}
+
+export interface WorkflowHistoryEntry {
+  id: string
+  documentId: string
+  documentType: string
+  action: WorkflowAction
+  fromStatus: WorkflowStatus
+  toStatus: WorkflowStatus
+  userId: string
+  userName: string
+  userRole: UserRole
+  comment?: string
+  createdAt: string
+}
 
 // =====================================================
 // GIS-SPECIFIC WORKFLOW DEFINITIONS
