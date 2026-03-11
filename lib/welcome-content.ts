@@ -176,7 +176,7 @@ export const WELCOME_CONTENT: Record<UserRole, WelcomeContent> = {
     quickActions: [
       { label: 'Customs Dashboard', href: '/dashboard/customs', description: 'Lihat status kepabeanan' },
       { label: 'PIB', href: '/customs/pib', description: 'Kelola dokumen impor' },
-      { label: 'PEB', href: '/customs/peb', description: 'Kelola dokumen ekspor' },
+      { label: 'PEB', href: '/customs/export', description: 'Kelola dokumen ekspor' },
     ],
   },
 }

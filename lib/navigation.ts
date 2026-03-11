@@ -135,7 +135,7 @@ export const NAV_ITEMS: NavItem[] = [
     title: 'Vendors',
     href: '/vendors',
     icon: Building2,
-    roles: ['owner', 'director', 'finance_manager', 'operations_manager', 'administration', 'finance', 'ops'],
+    roles: ['owner', 'director', 'marketing_manager', 'finance_manager', 'operations_manager', 'administration', 'finance', 'marketing', 'ops'],
     children: [
       {
         title: 'Daftar Vendor',
@@ -389,7 +389,7 @@ export const NAV_ITEMS: NavItem[] = [
     title: 'Customs',
     href: '/customs/import',
     icon: Package,
-    roles: ['owner', 'director', 'sysadmin', 'customs'],
+    roles: ['owner', 'director', 'sysadmin', 'marketing_manager', 'finance_manager', 'operations_manager', 'ops', 'finance', 'administration', 'customs', 'marketing'],
     children: [
       {
         title: 'Import Documents (PIB)',
