@@ -128,6 +128,17 @@ export const NAV_ITEMS: NavItem[] = [
     href: '/disbursements',
     icon: Wallet,
     roles: ['owner', 'director', 'finance_manager', 'operations_manager', 'administration', 'finance'],
+    children: [
+      {
+        title: 'Semua BKK',
+        href: '/disbursements',
+      },
+      {
+        title: 'Kasbon / Advance',
+        href: '/finance/advance-requests',
+        roles: ['owner', 'director', 'finance_manager', 'operations_manager', 'administration', 'finance'],
+      },
+    ],
   },
   {
     title: 'Vendors',
@@ -505,6 +516,11 @@ export const NAV_ITEMS: NavItem[] = [
       {
         title: 'Reimbursement',
         href: '/hr/reimbursements',
+      },
+      {
+        title: 'Surat Tugas',
+        href: '/hr/task-assignments',
+        roles: ['owner', 'director', 'marketing_manager', 'finance_manager', 'operations_manager', 'hr', 'administration'],
       },
       {
         title: 'Slip Gaji',

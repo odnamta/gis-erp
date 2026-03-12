@@ -250,31 +250,45 @@ export async function deleteQuotation(id: string): Promise<ActionResult> {
     // Verify quotation is in draft status before allowing deletion
     const { data: existing, error: fetchError } = await supabase
       .from('quotations')
-      .select('status')
+      .select('status, is_active')
       .eq('id', id)
       .single()
 
     if (fetchError || !existing) {
-      return { success: false, error: 'Quotation not found' }
+      return { success: false, error: 'Quotation tidak ditemukan' }
+    }
+
+    if (!existing.is_active) {
+      return { success: false, error: 'Quotation sudah dihapus sebelumnya' }
     }
 
     if (existing.status !== 'draft') {
-      return { success: false, error: 'Only draft quotations can be deleted' }
+      return { success: false, error: 'Hanya quotation draft yang bisa dihapus' }
     }
 
-    const { error } = await supabase
+    // Soft delete — use .select() to verify the row was actually updated (RLS may block silently)
+    const { data: updated, error } = await supabase
       .from('quotations')
       .update({ is_active: false })
       .eq('id', id)
+      .select('id')
 
     if (error) {
-      return { success: false, error: error.message }
+      console.error('[deleteQuotation] Update error:', error.message, error.code)
+      return { success: false, error: `Gagal menghapus: ${error.message}` }
+    }
+
+    if (!updated || updated.length === 0) {
+      console.error('[deleteQuotation] Update returned 0 rows — likely RLS blocked. User:', profile?.user_id, 'Role:', profile?.role)
+      return { success: false, error: 'Gagal menghapus quotation. Hubungi admin jika masalah berlanjut.' }
     }
 
     revalidatePath('/quotations')
+    revalidatePath(`/quotations/${id}`)
     return { success: true }
-  } catch {
-    return { success: false, error: 'Failed to delete quotation' }
+  } catch (err) {
+    console.error('[deleteQuotation] Unexpected error:', err)
+    return { success: false, error: 'Terjadi kesalahan saat menghapus quotation' }
   }
 }
 

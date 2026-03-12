@@ -391,6 +391,11 @@ const FEATURE_PERMISSION_MAP: Record<FeatureKey, (profile: UserProfile) => boole
   'vendors.po.create': (p) => ['owner', 'director', 'operations_manager', 'administration', 'finance'].includes(p.role),
   'vendors.po.approve': (p) => ['owner', 'director', 'finance_manager'].includes(p.role),
   'vendors.po.receive': (p) => ['owner', 'director', 'operations_manager', 'ops', 'administration'].includes(p.role),
+  'hr.task_assignments.view': (p) => ['owner', 'director', 'marketing_manager', 'finance_manager', 'operations_manager', 'hr', 'administration'].includes(p.role),
+  'hr.task_assignments.create': (p) => ['owner', 'director', 'marketing_manager', 'finance_manager', 'operations_manager', 'hr', 'administration'].includes(p.role),
+  'hr.task_assignments.approve': (p) => ['owner', 'director'].includes(p.role),
+  'finance.advance_requests.view': (p) => ['owner', 'director', 'finance_manager', 'operations_manager', 'administration', 'finance'].includes(p.role),
+  'finance.advance_requests.create': (p) => ['owner', 'director', 'finance_manager', 'operations_manager', 'administration', 'finance'].includes(p.role),
 }
 
 export function canAccessFeature(profile: UserProfile | null, feature: FeatureKey): boolean {

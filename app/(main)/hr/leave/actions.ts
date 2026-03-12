@@ -17,6 +17,8 @@ import { calculateWorkingDays, validateLeaveRequest, calculateCarryOver } from '
 import { getCurrentEmployeeId as getEmployeeId, getCurrentProfileId } from '@/lib/auth-helpers';
 import { getUserProfile } from '@/lib/permissions-server';
 import { canAccessFeature } from '@/lib/permissions';
+import { sendEmail } from '@/lib/email';
+import { leaveApprovedTemplate, leaveRejectedTemplate } from '@/lib/email-templates';
 
 // =====================================================
 // Leave Types
@@ -444,27 +446,49 @@ export async function approveLeaveRequest(
       request.leave_type_id
     );
     
-    // Notify employee
+    // Notify employee (in-app + email)
     const { data: employee } = await supabase
       .from('employees')
-      .select('user_id')
+      .select('user_id, full_name, email')
       .eq('id', request.employee_id)
       .single();
-    
+
     if (employee?.user_id) {
       await supabase.from('notifications').insert({
         user_id: employee.user_id,
-        title: 'Leave Approved',
-        message: `Your leave request from ${request.start_date} to ${request.end_date} has been approved.`,
+        title: 'Cuti Disetujui',
+        message: `Pengajuan cuti Anda dari ${request.start_date} sampai ${request.end_date} telah disetujui.`,
         type: 'info',
         entity_type: 'leave_request',
         entity_id: requestId,
       });
     }
-    
+
+    // Send email notification (non-blocking)
+    const employeeEmail = employee?.email || (employee?.user_id ? (await supabase.from('user_profiles').select('email').eq('user_id', employee.user_id).single()).data?.email : null);
+    if (employeeEmail) {
+      const { data: leaveType } = await supabase
+        .from('leave_types')
+        .select('type_name')
+        .eq('id', request.leave_type_id)
+        .single();
+
+      const emailData = leaveApprovedTemplate({
+        employeeName: employee?.full_name || 'Karyawan',
+        leaveTypeName: (leaveType as { type_name: string } | null)?.type_name || 'Cuti',
+        startDate: request.start_date,
+        endDate: request.end_date,
+        totalDays: request.total_days,
+        approverName: profile?.full_name || 'Manager',
+      });
+      sendEmail({ to: employeeEmail, ...emailData }).catch((err) =>
+        console.error('[Leave] Email notification failed:', err)
+      );
+    }
+
     revalidatePath('/hr/leave');
     revalidatePath('/hr/my-leave');
-    
+
     return { success: true };
   } catch (error) {
     console.error('[Leave] approveLeaveRequest error:', error);
@@ -542,27 +566,50 @@ export async function rejectLeaveRequest(
       if (balanceError) throw balanceError;
     }
     
-    // Notify employee
+    // Notify employee (in-app + email)
     const { data: employee } = await supabase
       .from('employees')
-      .select('user_id')
+      .select('user_id, full_name, email')
       .eq('id', request.employee_id)
       .single();
-    
+
     if (employee?.user_id) {
       await supabase.from('notifications').insert({
         user_id: employee.user_id,
-        title: 'Leave Rejected',
-        message: `Your leave request has been rejected. Reason: ${reason}`,
+        title: 'Cuti Ditolak',
+        message: `Pengajuan cuti Anda ditolak. Alasan: ${reason}`,
         type: 'warning',
         entity_type: 'leave_request',
         entity_id: requestId,
       });
     }
-    
+
+    // Send email notification (non-blocking)
+    const employeeEmail = employee?.email || (employee?.user_id ? (await supabase.from('user_profiles').select('email').eq('user_id', employee.user_id).single()).data?.email : null);
+    if (employeeEmail) {
+      const { data: leaveType } = await supabase
+        .from('leave_types')
+        .select('type_name')
+        .eq('id', request.leave_type_id)
+        .single();
+
+      const emailData = leaveRejectedTemplate({
+        employeeName: employee?.full_name || 'Karyawan',
+        leaveTypeName: (leaveType as { type_name: string } | null)?.type_name || 'Cuti',
+        startDate: request.start_date,
+        endDate: request.end_date,
+        totalDays: request.total_days,
+        approverName: profile?.full_name || 'Manager',
+        rejectionReason: reason,
+      });
+      sendEmail({ to: employeeEmail, ...emailData }).catch((err) =>
+        console.error('[Leave] Rejection email failed:', err)
+      );
+    }
+
     revalidatePath('/hr/leave');
     revalidatePath('/hr/my-leave');
-    
+
     return { success: true };
   } catch (error) {
     console.error('[Leave] rejectLeaveRequest error:', error);

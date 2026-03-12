@@ -17,7 +17,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Combobox } from '@/components/forms/combobox';
 import { RouteSurvey, SurveyFormData, SurveyType } from '@/types/survey';
 import { createSurvey, updateSurvey } from '@/lib/survey-actions';
-import { Loader2, Package, Truck, MapPin, User } from 'lucide-react';
+import { Loader2, Package, Truck, MapPin, User, Anchor, Search } from 'lucide-react';
 import { toast } from 'sonner';
 
 interface SurveyFormProps {
@@ -184,17 +184,19 @@ export function SurveyForm({
         <CardHeader>
           <CardTitle className="flex items-center gap-2">
             <Package className="h-5 w-5" />
-            Cargo Details
+            {formData.surveyType === 'site_inspection' ? 'Deskripsi Pekerjaan' : 'Detail Cargo'}
           </CardTitle>
         </CardHeader>
         <CardContent className="space-y-4">
           <div className="space-y-2">
-            <Label htmlFor="cargoDescription">Cargo Description *</Label>
+            <Label htmlFor="cargoDescription">
+              {formData.surveyType === 'site_inspection' ? 'Deskripsi Pekerjaan / Inspeksi *' : 'Deskripsi Cargo *'}
+            </Label>
             <Textarea
               id="cargoDescription"
               value={formData.cargoDescription}
               onChange={(e) => handleChange('cargoDescription', e.target.value)}
-              placeholder="Describe the cargo..."
+              placeholder={formData.surveyType === 'site_inspection' ? 'Jelaskan pekerjaan atau tujuan inspeksi...' : 'Deskripsi cargo yang akan diangkut...'}
               required
             />
           </div>
@@ -247,182 +249,192 @@ export function SurveyForm({
         </CardContent>
       </Card>
 
-      {/* Transport Configuration */}
-      <Card>
-        <CardHeader>
-          <CardTitle className="flex items-center gap-2">
-            <Truck className="h-5 w-5" />
-            Transport Configuration
-          </CardTitle>
-        </CardHeader>
-        <CardContent className="space-y-4">
-          <div className="space-y-2">
-            <Label htmlFor="transportConfig">Configuration Description</Label>
-            <Textarea
-              id="transportConfig"
-              value={formData.transportConfig}
-              onChange={(e) => handleChange('transportConfig', e.target.value)}
-              placeholder="Describe the transport configuration..."
-            />
-          </div>
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+      {/* Transport Configuration — only for standard_route and jetty_port */}
+      {formData.surveyType !== 'site_inspection' && (
+        <Card>
+          <CardHeader>
+            <CardTitle className="flex items-center gap-2">
+              <Truck className="h-5 w-5" />
+              Konfigurasi Transportasi
+            </CardTitle>
+          </CardHeader>
+          <CardContent className="space-y-4">
             <div className="space-y-2">
-              <Label htmlFor="totalLengthM">Total Length (m)</Label>
-              <Input
-                id="totalLengthM"
-                type="number"
-                step="0.01"
-                min="0"
-                value={formData.totalLengthM ?? ''}
-                onChange={(e) => handleNumberChange('totalLengthM', e.target.value)}
+              <Label htmlFor="transportConfig">Deskripsi Konfigurasi</Label>
+              <Textarea
+                id="transportConfig"
+                value={formData.transportConfig}
+                onChange={(e) => handleChange('transportConfig', e.target.value)}
+                placeholder="Deskripsi konfigurasi transportasi..."
               />
             </div>
-            <div className="space-y-2">
-              <Label htmlFor="totalWidthM">Total Width (m)</Label>
-              <Input
-                id="totalWidthM"
-                type="number"
-                step="0.01"
-                min="0"
-                value={formData.totalWidthM ?? ''}
-                onChange={(e) => handleNumberChange('totalWidthM', e.target.value)}
-              />
-            </div>
-            <div className="space-y-2">
-              <Label htmlFor="totalHeightM">Total Height (m)</Label>
-              <Input
-                id="totalHeightM"
-                type="number"
-                step="0.01"
-                min="0"
-                value={formData.totalHeightM ?? ''}
-                onChange={(e) => handleNumberChange('totalHeightM', e.target.value)}
-              />
-            </div>
-            <div className="space-y-2">
-              <Label htmlFor="totalWeightTons">Total Weight (tons)</Label>
-              <Input
-                id="totalWeightTons"
-                type="number"
-                step="0.01"
-                min="0"
-                value={formData.totalWeightTons ?? ''}
-                onChange={(e) => handleNumberChange('totalWeightTons', e.target.value)}
-              />
-            </div>
-          </div>
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-            <div className="space-y-2">
-              <Label htmlFor="axleConfiguration">Axle Configuration</Label>
-              <Input
-                id="axleConfiguration"
-                value={formData.axleConfiguration}
-                onChange={(e) => handleChange('axleConfiguration', e.target.value)}
-                placeholder="e.g., 12 axle modular"
-              />
-            </div>
-            <div className="space-y-2">
-              <Label htmlFor="groundClearanceM">Ground Clearance (m)</Label>
-              <Input
-                id="groundClearanceM"
-                type="number"
-                step="0.01"
-                min="0"
-                value={formData.groundClearanceM ?? ''}
-                onChange={(e) => handleNumberChange('groundClearanceM', e.target.value)}
-              />
-            </div>
-            <div className="space-y-2">
-              <Label htmlFor="turningRadiusM">Turning Radius (m)</Label>
-              <Input
-                id="turningRadiusM"
-                type="number"
-                step="0.01"
-                min="0"
-                value={formData.turningRadiusM ?? ''}
-                onChange={(e) => handleNumberChange('turningRadiusM', e.target.value)}
-              />
-            </div>
-          </div>
-        </CardContent>
-      </Card>
-
-      {/* Route */}
-      <Card>
-        <CardHeader>
-          <CardTitle className="flex items-center gap-2">
-            <MapPin className="h-5 w-5" />
-            Route
-          </CardTitle>
-        </CardHeader>
-        <CardContent className="space-y-4">
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-            {/* Origin */}
-            <div className="space-y-4">
-              <h4 className="font-medium">Origin</h4>
+            <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
               <div className="space-y-2">
-                <Label htmlFor="originLocation">Location Name *</Label>
+                <Label htmlFor="totalLengthM">Panjang Total (m)</Label>
+                <Input id="totalLengthM" type="number" step="0.01" min="0" value={formData.totalLengthM ?? ''} onChange={(e) => handleNumberChange('totalLengthM', e.target.value)} />
+              </div>
+              <div className="space-y-2">
+                <Label htmlFor="totalWidthM">Lebar Total (m)</Label>
+                <Input id="totalWidthM" type="number" step="0.01" min="0" value={formData.totalWidthM ?? ''} onChange={(e) => handleNumberChange('totalWidthM', e.target.value)} />
+              </div>
+              <div className="space-y-2">
+                <Label htmlFor="totalHeightM">Tinggi Total (m)</Label>
+                <Input id="totalHeightM" type="number" step="0.01" min="0" value={formData.totalHeightM ?? ''} onChange={(e) => handleNumberChange('totalHeightM', e.target.value)} />
+              </div>
+              <div className="space-y-2">
+                <Label htmlFor="totalWeightTons">Berat Total (ton)</Label>
+                <Input id="totalWeightTons" type="number" step="0.01" min="0" value={formData.totalWeightTons ?? ''} onChange={(e) => handleNumberChange('totalWeightTons', e.target.value)} />
+              </div>
+            </div>
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+              <div className="space-y-2">
+                <Label htmlFor="axleConfiguration">Konfigurasi Axle</Label>
+                <Input id="axleConfiguration" value={formData.axleConfiguration} onChange={(e) => handleChange('axleConfiguration', e.target.value)} placeholder="cth. 12 axle modular" />
+              </div>
+              <div className="space-y-2">
+                <Label htmlFor="groundClearanceM">Ground Clearance (m)</Label>
+                <Input id="groundClearanceM" type="number" step="0.01" min="0" value={formData.groundClearanceM ?? ''} onChange={(e) => handleNumberChange('groundClearanceM', e.target.value)} />
+              </div>
+              <div className="space-y-2">
+                <Label htmlFor="turningRadiusM">Turning Radius (m)</Label>
+                <Input id="turningRadiusM" type="number" step="0.01" min="0" value={formData.turningRadiusM ?? ''} onChange={(e) => handleNumberChange('turningRadiusM', e.target.value)} />
+              </div>
+            </div>
+          </CardContent>
+        </Card>
+      )}
+
+      {/* Location / Route — varies by survey type */}
+      <Card>
+        <CardHeader>
+          <CardTitle className="flex items-center gap-2">
+            {formData.surveyType === 'jetty_port' ? (
+              <><Anchor className="h-5 w-5" /> Lokasi Pelabuhan</>
+            ) : formData.surveyType === 'site_inspection' ? (
+              <><Search className="h-5 w-5" /> Lokasi Inspeksi</>
+            ) : (
+              <><MapPin className="h-5 w-5" /> Rute</>
+            )}
+          </CardTitle>
+        </CardHeader>
+        <CardContent className="space-y-4">
+          {formData.surveyType === 'jetty_port' ? (
+            /* Jetty/Port: Single location — the port itself */
+            <div className="space-y-4">
+              <div className="space-y-2">
+                <Label htmlFor="originLocation">Nama Pelabuhan / Jetty *</Label>
                 <Input
                   id="originLocation"
                   value={formData.originLocation}
                   onChange={(e) => handleChange('originLocation', e.target.value)}
-                  placeholder="e.g., Tanjung Perak Port"
+                  placeholder="cth. Pelabuhan Tanjung Perak, Jetty PLTU Paiton"
                   required
                 />
               </div>
               <div className="space-y-2">
-                <Label htmlFor="originAddress">Address</Label>
+                <Label htmlFor="originAddress">Alamat Pelabuhan</Label>
                 <Textarea
                   id="originAddress"
                   value={formData.originAddress}
                   onChange={(e) => handleChange('originAddress', e.target.value)}
-                  placeholder="Full address..."
+                  placeholder="Alamat lengkap pelabuhan..."
                 />
               </div>
               <div className="space-y-2">
-                <Label htmlFor="originCoordinates">Coordinates</Label>
+                <Label htmlFor="originCoordinates">Koordinat</Label>
                 <Input
                   id="originCoordinates"
                   value={formData.originCoordinates}
                   onChange={(e) => handleChange('originCoordinates', e.target.value)}
-                  placeholder="e.g., -7.2575, 112.7521"
+                  placeholder="cth. -7.2575, 112.7521"
                 />
               </div>
-            </div>
-
-            {/* Destination */}
-            <div className="space-y-4">
-              <h4 className="font-medium">Destination</h4>
               <div className="space-y-2">
-                <Label htmlFor="destinationLocation">Location Name *</Label>
+                <Label htmlFor="destinationLocation">Info Dermaga / Berth</Label>
                 <Input
                   id="destinationLocation"
                   value={formData.destinationLocation}
                   onChange={(e) => handleChange('destinationLocation', e.target.value)}
-                  placeholder="e.g., Industrial Estate Gresik"
-                  required
+                  placeholder="cth. Dermaga 5, Berth B3"
                 />
               </div>
               <div className="space-y-2">
-                <Label htmlFor="destinationAddress">Address</Label>
+                <Label htmlFor="destinationAddress">Catatan Akses & Kedalaman</Label>
                 <Textarea
                   id="destinationAddress"
                   value={formData.destinationAddress}
                   onChange={(e) => handleChange('destinationAddress', e.target.value)}
-                  placeholder="Full address..."
-                />
-              </div>
-              <div className="space-y-2">
-                <Label htmlFor="destinationCoordinates">Coordinates</Label>
-                <Input
-                  id="destinationCoordinates"
-                  value={formData.destinationCoordinates}
-                  onChange={(e) => handleChange('destinationCoordinates', e.target.value)}
-                  placeholder="e.g., -7.1631, 112.6513"
+                  placeholder="Draft kedalaman, lebar dermaga, kapasitas crane, batasan akses..."
                 />
               </div>
             </div>
-          </div>
+          ) : formData.surveyType === 'site_inspection' ? (
+            /* Site Inspection: Single location */
+            <div className="space-y-4">
+              <div className="space-y-2">
+                <Label htmlFor="originLocation">Nama Lokasi Inspeksi *</Label>
+                <Input
+                  id="originLocation"
+                  value={formData.originLocation}
+                  onChange={(e) => handleChange('originLocation', e.target.value)}
+                  placeholder="cth. Site PLTU Paiton, Area Fabrikasi PT XYZ"
+                  required
+                />
+              </div>
+              <div className="space-y-2">
+                <Label htmlFor="originAddress">Alamat Lokasi</Label>
+                <Textarea
+                  id="originAddress"
+                  value={formData.originAddress}
+                  onChange={(e) => handleChange('originAddress', e.target.value)}
+                  placeholder="Alamat lengkap lokasi inspeksi..."
+                />
+              </div>
+              <div className="space-y-2">
+                <Label htmlFor="originCoordinates">Koordinat</Label>
+                <Input
+                  id="originCoordinates"
+                  value={formData.originCoordinates}
+                  onChange={(e) => handleChange('originCoordinates', e.target.value)}
+                  placeholder="cth. -7.2575, 112.7521"
+                />
+              </div>
+            </div>
+          ) : (
+            /* Standard Route: Origin + Destination */
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+              <div className="space-y-4">
+                <h4 className="font-medium">Asal (Origin)</h4>
+                <div className="space-y-2">
+                  <Label htmlFor="originLocation">Nama Lokasi *</Label>
+                  <Input id="originLocation" value={formData.originLocation} onChange={(e) => handleChange('originLocation', e.target.value)} placeholder="cth. Pelabuhan Tanjung Perak" required />
+                </div>
+                <div className="space-y-2">
+                  <Label htmlFor="originAddress">Alamat</Label>
+                  <Textarea id="originAddress" value={formData.originAddress} onChange={(e) => handleChange('originAddress', e.target.value)} placeholder="Alamat lengkap..." />
+                </div>
+                <div className="space-y-2">
+                  <Label htmlFor="originCoordinates">Koordinat</Label>
+                  <Input id="originCoordinates" value={formData.originCoordinates} onChange={(e) => handleChange('originCoordinates', e.target.value)} placeholder="cth. -7.2575, 112.7521" />
+                </div>
+              </div>
+              <div className="space-y-4">
+                <h4 className="font-medium">Tujuan (Destination)</h4>
+                <div className="space-y-2">
+                  <Label htmlFor="destinationLocation">Nama Lokasi *</Label>
+                  <Input id="destinationLocation" value={formData.destinationLocation} onChange={(e) => handleChange('destinationLocation', e.target.value)} placeholder="cth. Industrial Estate Gresik" required />
+                </div>
+                <div className="space-y-2">
+                  <Label htmlFor="destinationAddress">Alamat</Label>
+                  <Textarea id="destinationAddress" value={formData.destinationAddress} onChange={(e) => handleChange('destinationAddress', e.target.value)} placeholder="Alamat lengkap..." />
+                </div>
+                <div className="space-y-2">
+                  <Label htmlFor="destinationCoordinates">Koordinat</Label>
+                  <Input id="destinationCoordinates" value={formData.destinationCoordinates} onChange={(e) => handleChange('destinationCoordinates', e.target.value)} placeholder="cth. -7.1631, 112.6513" />
+                </div>
+              </div>
+            </div>
+          )}
         </CardContent>
       </Card>
 

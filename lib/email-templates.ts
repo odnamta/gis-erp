@@ -5,7 +5,7 @@
  * Professional tone with warmth appropriate for internal communications.
  */
 
-import { formatCurrency } from '@/lib/utils/format'
+import { formatCurrency, formatDate } from '@/lib/utils/format'
 
 // ============================================================================
 // Shared Layout
@@ -274,4 +274,107 @@ export function weeklyArAgingSummaryTemplate(data: ArAgingSummaryData): {
   `
 
   return { subject, html: wrapInLayout('Laporan AR Aging Mingguan', body) }
+}
+
+// ============================================================================
+// Leave Approval Notification
+// ============================================================================
+
+interface LeaveNotificationData {
+  employeeName: string
+  leaveTypeName: string
+  startDate: string
+  endDate: string
+  totalDays: number
+  approverName: string
+}
+
+export function leaveApprovedTemplate(data: LeaveNotificationData): {
+  subject: string
+  html: string
+} {
+  const subject = `[Cuti Disetujui] ${data.leaveTypeName} - ${formatDate(data.startDate)} s/d ${formatDate(data.endDate)}`
+
+  const body = `
+    <p style="margin:0 0 16px; color:#374151; font-size:15px; line-height:1.6;">
+      Halo ${data.employeeName},
+    </p>
+    <p style="margin:0 0 24px; color:#374151; font-size:15px; line-height:1.6;">
+      Pengajuan cuti Anda telah <strong style="color:#16a34a;">disetujui</strong>. Berikut detailnya:
+    </p>
+    <table width="100%" cellpadding="12" cellspacing="0" style="background-color:#f0fdf4; border-radius:6px; border: 1px solid #bbf7d0; margin-bottom:24px;">
+      <tr>
+        <td style="color:#6b7280; font-size:13px; border-bottom: 1px solid #d1fae5;">Jenis Cuti</td>
+        <td style="color:#111827; font-size:14px; font-weight:600; border-bottom: 1px solid #d1fae5;">${data.leaveTypeName}</td>
+      </tr>
+      <tr>
+        <td style="color:#6b7280; font-size:13px; border-bottom: 1px solid #d1fae5;">Tanggal Mulai</td>
+        <td style="color:#111827; font-size:14px; border-bottom: 1px solid #d1fae5;">${formatDate(data.startDate)}</td>
+      </tr>
+      <tr>
+        <td style="color:#6b7280; font-size:13px; border-bottom: 1px solid #d1fae5;">Tanggal Selesai</td>
+        <td style="color:#111827; font-size:14px; border-bottom: 1px solid #d1fae5;">${formatDate(data.endDate)}</td>
+      </tr>
+      <tr>
+        <td style="color:#6b7280; font-size:13px; border-bottom: 1px solid #d1fae5;">Jumlah Hari</td>
+        <td style="color:#111827; font-size:14px; font-weight:600; border-bottom: 1px solid #d1fae5;">${data.totalDays} hari</td>
+      </tr>
+      <tr>
+        <td style="color:#6b7280; font-size:13px;">Disetujui Oleh</td>
+        <td style="color:#111827; font-size:14px; font-weight:600;">${data.approverName}</td>
+      </tr>
+    </table>
+    <p style="margin:0; color:#6b7280; font-size:13px;">
+      Selamat beristirahat dan sampai jumpa kembali!
+    </p>
+  `
+
+  return { subject, html: wrapInLayout('Cuti Disetujui', body) }
+}
+
+// ============================================================================
+// Leave Rejection Notification
+// ============================================================================
+
+interface LeaveRejectionData extends LeaveNotificationData {
+  rejectionReason: string
+}
+
+export function leaveRejectedTemplate(data: LeaveRejectionData): {
+  subject: string
+  html: string
+} {
+  const subject = `[Cuti Ditolak] ${data.leaveTypeName} - ${formatDate(data.startDate)} s/d ${formatDate(data.endDate)}`
+
+  const body = `
+    <p style="margin:0 0 16px; color:#374151; font-size:15px; line-height:1.6;">
+      Halo ${data.employeeName},
+    </p>
+    <p style="margin:0 0 24px; color:#374151; font-size:15px; line-height:1.6;">
+      Mohon maaf, pengajuan cuti Anda <strong style="color:#dc2626;">tidak disetujui</strong>. Berikut detailnya:
+    </p>
+    <table width="100%" cellpadding="12" cellspacing="0" style="background-color:#fef2f2; border-radius:6px; border: 1px solid #fecaca; margin-bottom:24px;">
+      <tr>
+        <td style="color:#6b7280; font-size:13px; border-bottom: 1px solid #fecaca;">Jenis Cuti</td>
+        <td style="color:#111827; font-size:14px; font-weight:600; border-bottom: 1px solid #fecaca;">${data.leaveTypeName}</td>
+      </tr>
+      <tr>
+        <td style="color:#6b7280; font-size:13px; border-bottom: 1px solid #fecaca;">Tanggal</td>
+        <td style="color:#111827; font-size:14px; border-bottom: 1px solid #fecaca;">${formatDate(data.startDate)} - ${formatDate(data.endDate)} (${data.totalDays} hari)</td>
+      </tr>
+      <tr>
+        <td style="color:#6b7280; font-size:13px; border-bottom: 1px solid #fecaca;">Ditinjau Oleh</td>
+        <td style="color:#111827; font-size:14px; border-bottom: 1px solid #fecaca;">${data.approverName}</td>
+      </tr>
+      <tr>
+        <td style="color:#6b7280; font-size:13px;">Alasan Penolakan</td>
+        <td style="color:#dc2626; font-size:14px; font-weight:600;">${data.rejectionReason}</td>
+      </tr>
+    </table>
+    <p style="margin:0 0 8px; color:#374151; font-size:15px; line-height:1.6;">
+      Silakan hubungi atasan Anda jika membutuhkan penjelasan lebih lanjut atau ingin mengajukan ulang dengan tanggal yang berbeda.
+    </p>
+  `
+
+  return { subject, html: wrapInLayout('Cuti Ditolak', body) }
 }

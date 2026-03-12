@@ -223,13 +223,14 @@ export function QuotationDetailView({ quotation, userRole, userId }: QuotationDe
   }
 
   async function handleDelete() {
+    if (isDeleting) return
     setIsDeleting(true)
     try {
       const result = await deleteQuotation(quotation.id)
-      if (result.error) {
-        toast({ title: 'Error', description: result.error, variant: 'destructive' })
+      if (!result.success || result.error) {
+        toast({ title: 'Gagal Menghapus', description: result.error || 'Terjadi kesalahan', variant: 'destructive' })
       } else {
-        toast({ title: 'Success', description: 'Quotation berhasil dihapus' })
+        toast({ title: 'Berhasil', description: 'Quotation berhasil dihapus' })
         router.push('/quotations')
       }
     } catch (err) {

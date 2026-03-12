@@ -305,6 +305,11 @@ export type FeatureKey =
   | 'vendors.po.create'
   | 'vendors.po.approve'
   | 'vendors.po.receive'
+  | 'hr.task_assignments.view'
+  | 'hr.task_assignments.create'
+  | 'hr.task_assignments.approve'
+  | 'finance.advance_requests.view'
+  | 'finance.advance_requests.create'
 
 export interface PermissionContextType {
   profile: UserProfile | null
