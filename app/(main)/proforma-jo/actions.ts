@@ -168,6 +168,7 @@ export async function createPJO(data: PJOFormData): Promise<{ error?: string; id
       total_expenses: data.total_expenses,
       profit: profit,
       notes: data.notes || null,
+      entity_type: 'gama_main',
       status: 'draft',
       created_by: profile.id,
       is_active: true,
