@@ -40,7 +40,7 @@ export default function SessionsPage() {
 
   useEffect(() => {
     loadSessions();
-  }, [status]);
+  }, [status]); // eslint-disable-line react-hooks/exhaustive-deps
 
   const loadSessions = async () => {
     setLoading(true);

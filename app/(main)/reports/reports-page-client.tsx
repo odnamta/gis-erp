@@ -43,7 +43,7 @@ interface ReportsPageClientProps {
   recentReports?: { report_code: string; report_name: string; href: string; executed_at: string }[]
 }
 
-export function ReportsPageClient({ dbReports, staticReports, userId, recentReports }: ReportsPageClientProps) {
+export function ReportsPageClient({ dbReports, staticReports, userId: _userId, recentReports }: ReportsPageClientProps) {
   const [searchQuery, setSearchQuery] = useState('')
 
   // DB-driven reports (filtered by search)

@@ -5,7 +5,6 @@
  */
 
 import {
-  DocumentTemplate,
   DocumentType,
   CreateTemplateInput,
   UpdateTemplateInput,

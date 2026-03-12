@@ -3,7 +3,7 @@ import Link from 'next/link'
 import { createClient } from '@/lib/supabase/server'
 import { profileHasRole } from '@/lib/auth-utils'
 import { getHseDashboardMetrics } from '@/lib/dashboard/hse-data'
-import { formatDate, formatNumber, formatPercent } from '@/lib/utils/format'
+import { formatNumber, formatPercent } from '@/lib/utils/format'
 import { 
   Shield, 
   AlertTriangle, 
@@ -11,7 +11,6 @@ import {
   GraduationCap, 
   HardHat,
   Clock, 
-  CheckCircle, 
   XCircle,
   Plus,
   ArrowRight,
@@ -129,7 +128,7 @@ export default async function HseDashboardPage() {
 
   // Check access: hse role or executive roles
   const allowedRoles = ['hse', 'owner', 'director', 'operations_manager']
-  if (!profileHasRole(profile as any, allowedRoles)) {
+  if (!profileHasRole(profile as any, allowedRoles)) { // eslint-disable-line @typescript-eslint/no-explicit-any
     redirect('/dashboard')
   }
 

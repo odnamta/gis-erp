@@ -119,7 +119,7 @@ export async function getSurvey(id: string): Promise<{ success: boolean; data?: 
     }
 
     return { success: true, data: rowToSurvey(survey as RouteSurveyRow) };
-  } catch (error) {
+  } catch (_error) {
     return { success: false, error: 'Failed to get survey' };
   }
 }
@@ -171,7 +171,7 @@ export async function getSurveyWithRelations(id: string): Promise<{ success: boo
         checklist: checklist?.map(c => rowToChecklistItem(c as SurveyChecklistItemRow)) ?? [],
       },
     };
-  } catch (error) {
+  } catch (_error) {
     return { success: false, error: 'Failed to get survey' };
   }
 }
@@ -195,7 +195,7 @@ export async function getSurveys(): Promise<{ success: boolean; data?: RouteSurv
     }
 
     return { success: true, data: surveys.map(s => rowToSurvey(s as RouteSurveyRow)) };
-  } catch (error) {
+  } catch (_error) {
     return { success: false, error: 'Failed to get surveys' };
   }
 }
@@ -257,7 +257,7 @@ export async function updateSurvey(
     revalidatePath('/engineering/surveys');
     revalidatePath(`/engineering/surveys/${id}`);
     return { success: true, data: rowToSurvey(survey as RouteSurveyRow) };
-  } catch (error) {
+  } catch (_error) {
     return { success: false, error: 'Failed to update survey' };
   }
 }
@@ -282,7 +282,7 @@ export async function deleteSurvey(id: string): Promise<{ success: boolean; erro
 
     revalidatePath('/engineering/surveys');
     return { success: true };
-  } catch (error) {
+  } catch (_error) {
     return { success: false, error: 'Failed to delete survey' };
   }
 }
@@ -329,7 +329,7 @@ export async function scheduleSurvey(
     revalidatePath('/engineering/surveys');
     revalidatePath(`/engineering/surveys/${id}`);
     return { success: true };
-  } catch (error) {
+  } catch (_error) {
     return { success: false, error: 'Failed to schedule survey' };
   }
 }
@@ -358,7 +358,7 @@ export async function startSurvey(id: string): Promise<{ success: boolean; error
     revalidatePath('/engineering/surveys');
     revalidatePath(`/engineering/surveys/${id}`);
     return { success: true };
-  } catch (error) {
+  } catch (_error) {
     return { success: false, error: 'Failed to start survey' };
   }
 }
@@ -410,7 +410,7 @@ export async function completeSurvey(
     revalidatePath('/engineering/surveys');
     revalidatePath(`/engineering/surveys/${id}`);
     return { success: true };
-  } catch (error) {
+  } catch (_error) {
     return { success: false, error: 'Failed to complete survey' };
   }
 }
@@ -439,7 +439,7 @@ export async function cancelSurvey(id: string): Promise<{ success: boolean; erro
     revalidatePath('/engineering/surveys');
     revalidatePath(`/engineering/surveys/${id}`);
     return { success: true };
-  } catch (error) {
+  } catch (_error) {
     return { success: false, error: 'Failed to cancel survey' };
   }
 }
@@ -477,7 +477,7 @@ export async function updateSurveyStatus(
     revalidatePath('/engineering/surveys');
     revalidatePath(`/engineering/surveys/${id}`);
     return { success: true };
-  } catch (error) {
+  } catch (_error) {
     return { success: false, error: 'Failed to update survey status' };
   }
 }
@@ -552,7 +552,7 @@ export async function createWaypoint(
 
     revalidatePath(`/engineering/surveys/${surveyId}`);
     return { success: true, data: rowToWaypoint(waypoint as RouteWaypointRow) };
-  } catch (error) {
+  } catch (_error) {
     return { success: false, error: 'Failed to create waypoint' };
   }
 }
@@ -607,7 +607,7 @@ export async function updateWaypoint(
 
     revalidatePath(`/engineering/surveys/${waypoint.survey_id}`);
     return { success: true, data: rowToWaypoint(waypoint as RouteWaypointRow) };
-  } catch (error) {
+  } catch (_error) {
     return { success: false, error: 'Failed to update waypoint' };
   }
 }
@@ -661,7 +661,7 @@ export async function deleteWaypoint(id: string): Promise<{ success: boolean; er
 
     revalidatePath(`/engineering/surveys/${waypoint.survey_id}`);
     return { success: true };
-  } catch (error) {
+  } catch (_error) {
     return { success: false, error: 'Failed to delete waypoint' };
   }
 }
@@ -681,7 +681,7 @@ export async function getWaypoints(surveyId: string): Promise<{ success: boolean
     }
 
     return { success: true, data: waypoints.map(w => rowToWaypoint(w as RouteWaypointRow)) };
-  } catch (error) {
+  } catch (_error) {
     return { success: false, error: 'Failed to get waypoints' };
   }
 }
@@ -731,7 +731,7 @@ export async function initializeSurveyChecklist(surveyId: string): Promise<{ suc
     }
 
     return { success: true };
-  } catch (error) {
+  } catch (_error) {
     return { success: false, error: 'Failed to initialize checklist' };
   }
 }
@@ -770,7 +770,7 @@ export async function updateChecklistItem(
 
     revalidatePath(`/engineering/surveys/${item.survey_id}`);
     return { success: true, data: rowToChecklistItem(item as SurveyChecklistItemRow) };
-  } catch (error) {
+  } catch (_error) {
     return { success: false, error: 'Failed to update checklist item' };
   }
 }
@@ -790,7 +790,7 @@ export async function getChecklist(surveyId: string): Promise<{ success: boolean
     }
 
     return { success: true, data: checklist.map(c => rowToChecklistItem(c as SurveyChecklistItemRow)) };
-  } catch (error) {
+  } catch (_error) {
     return { success: false, error: 'Failed to get checklist' };
   }
 }
@@ -813,7 +813,7 @@ export async function getEmployees(): Promise<{ success: boolean; data?: { id: s
     }
 
     return { success: true, data: employees };
-  } catch (error) {
+  } catch (_error) {
     return { success: false, error: 'Failed to get employees' };
   }
 }
@@ -833,7 +833,7 @@ export async function getCustomers(): Promise<{ success: boolean; data?: { id: s
     }
 
     return { success: true, data: customers };
-  } catch (error) {
+  } catch (_error) {
     return { success: false, error: 'Failed to get customers' };
   }
 }
@@ -852,7 +852,7 @@ export async function getQuotations(): Promise<{ success: boolean; data?: { id: 
     }
 
     return { success: true, data: quotations };
-  } catch (error) {
+  } catch (_error) {
     return { success: false, error: 'Failed to get quotations' };
   }
 }
@@ -871,7 +871,7 @@ export async function getProjects(): Promise<{ success: boolean; data?: { id: st
     }
 
     return { success: true, data: projects };
-  } catch (error) {
+  } catch (_error) {
     return { success: false, error: 'Failed to get projects' };
   }
 }

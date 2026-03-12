@@ -86,7 +86,7 @@ export function DocumentsTab({ assessment, canEdit }: DocumentsTabProps) {
 
     try {
       // In a real implementation, upload to Supabase Storage
-      const newDocument: DocumentAttachment = {
+      const _newDocument: DocumentAttachment = {
         id: crypto.randomUUID(),
         name: selectedFile.name,
         url: URL.createObjectURL(selectedFile), // Placeholder
@@ -111,7 +111,7 @@ export function DocumentsTab({ assessment, canEdit }: DocumentsTabProps) {
     setLoading(true);
 
     try {
-      const updatedDocuments = documents.filter((d) => d.id !== deleteId);
+      const _updatedDocuments = documents.filter((d) => d.id !== deleteId);
       // Update assessment with new documents array
       setDeleteId(null);
       router.refresh();

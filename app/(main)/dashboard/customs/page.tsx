@@ -9,8 +9,7 @@ import {
   FileInput, 
   FileOutput,
   Clock, 
-  CheckCircle, 
-  XCircle,
+  CheckCircle,
   Plus,
   ArrowRight,
   AlertTriangle,
@@ -110,7 +109,7 @@ export default async function CustomsDashboardPage() {
 
   // Check access: customs role or executive roles
   const allowedRoles = ['customs', 'owner', 'director', 'finance_manager']
-  if (!profileHasRole(profile as any, allowedRoles)) {
+  if (!profileHasRole(profile as any, allowedRoles)) { // eslint-disable-line @typescript-eslint/no-explicit-any
     redirect('/dashboard')
   }
 

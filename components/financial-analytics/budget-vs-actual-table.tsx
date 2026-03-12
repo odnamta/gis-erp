@@ -9,8 +9,7 @@ import {
   TableRow,
 } from '@/components/ui/table';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Badge } from '@/components/ui/badge';
-import { BudgetVsActualItem, BudgetCategory } from '@/types/financial-analytics';
+import { BudgetVsActualItem } from '@/types/financial-analytics';
 import {
   formatCurrencyIDR,
   formatPercentage,

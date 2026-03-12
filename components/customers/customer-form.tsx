@@ -30,8 +30,8 @@ interface CustomerFormProps {
 }
 
 export function CustomerForm({ customer, onSubmit, isLoading }: CustomerFormProps) {
-  const existingDate = (customer as any)?.established_date
-    ? new Date((customer as any).established_date)
+  const existingDate = (customer as any)?.established_date // eslint-disable-line @typescript-eslint/no-explicit-any
+    ? new Date((customer as any).established_date) // eslint-disable-line @typescript-eslint/no-explicit-any
     : undefined
   const [establishedDate, setEstablishedDate] = useState<Date | undefined>(existingDate)
 
@@ -47,7 +47,7 @@ export function CustomerForm({ customer, onSubmit, isLoading }: CustomerFormProp
       email: customer?.email || '',
       phone: customer?.phone || '',
       address: customer?.address || '',
-      established_date: (customer as any)?.established_date || '',
+      established_date: (customer as any)?.established_date || '', // eslint-disable-line @typescript-eslint/no-explicit-any
       payment_terms_days: (customer as Record<string, unknown>)?.payment_terms_days
         ? String((customer as Record<string, unknown>).payment_terms_days)
         : '',

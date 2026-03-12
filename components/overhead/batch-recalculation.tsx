@@ -65,7 +65,7 @@ export function BatchRecalculation() {
           description: `Successfully recalculated overhead for ${result.count} job(s).`,
         });
       }
-    } catch (err) {
+    } catch (_err) {
       toast({
         title: 'Error',
         description: 'Failed to recalculate overhead.',

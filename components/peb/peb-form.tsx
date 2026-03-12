@@ -116,7 +116,7 @@ export function PEBForm({
 
       toast.success(initialData?.id ? 'PEB updated successfully' : 'PEB created successfully')
       router.push(`/customs/export/${result.data?.id}`)
-    } catch (error) {
+    } catch (_error) {
       toast.error('An error occurred')
     } finally {
       setIsSubmitting(false)

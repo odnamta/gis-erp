@@ -35,7 +35,7 @@ export async function notifyDocumentSubmittedForReview(
       },
       { roles: ['owner', 'director', 'sysadmin', 'operations_manager', 'hse'] }
     );
-  } catch (error) {
+  } catch (_error) {
   }
 }
 
@@ -73,7 +73,7 @@ export async function notifyDocumentApproved(
         },
       });
     }
-  } catch (error) {
+  } catch (_error) {
   }
 }
 
@@ -112,7 +112,7 @@ export async function notifyExpiringDocuments(
       },
       { roles: ['owner', 'director', 'sysadmin', 'operations_manager', 'hse'] }
     );
-  } catch (error) {
+  } catch (_error) {
   }
 }
 
@@ -145,7 +145,7 @@ export async function notifyPermitRequested(
       },
       { roles: ['owner', 'director', 'sysadmin', 'operations_manager', 'hse'] }
     );
-  } catch (error) {
+  } catch (_error) {
   }
 }
 
@@ -182,7 +182,7 @@ export async function notifyPermitApproved(
         },
       });
     }
-  } catch (error) {
+  } catch (_error) {
   }
 }
 
@@ -214,6 +214,6 @@ export async function notifyPermitActivated(
       },
       { roles: ['owner', 'admin', 'manager', 'ops'] }
     );
-  } catch (error) {
+  } catch (_error) {
   }
 }

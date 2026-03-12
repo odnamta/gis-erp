@@ -7,7 +7,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Progress } from '@/components/ui/progress';
-import { RefreshCw, Phone, MapPin, Clock, AlertTriangle } from 'lucide-react';
+import { RefreshCw, Phone, MapPin, AlertTriangle } from 'lucide-react';
 import { JmpWithRelations } from '@/types/jmp';
 import { getActiveJourneys } from '@/lib/jmp-actions';
 import { calculateJourneyProgress } from '@/lib/jmp-utils';

@@ -61,7 +61,7 @@ export function AssignmentList({
       await updateAssignmentStatus(id, status)
       toast.success('Status updated')
       router.refresh()
-    } catch (error) {
+    } catch (_error) {
       toast.error('Failed to update status')
     } finally {
       setLoading(null)
@@ -76,7 +76,7 @@ export function AssignmentList({
       await deleteAssignment(id)
       toast.success('Assignment deleted')
       router.refresh()
-    } catch (error) {
+    } catch (_error) {
       toast.error('Failed to delete assignment')
     } finally {
       setLoading(null)

@@ -33,7 +33,7 @@ export async function archiveNotification(
 
     revalidatePath('/notifications')
     return { success: true }
-  } catch (err) {
+  } catch (_err) {
     return { success: false, error: 'Failed to archive notification' }
   }
 }
@@ -71,7 +71,7 @@ export async function archiveAllNotifications(
 
     revalidatePath('/notifications')
     return { success: true, count: data?.length || 0 }
-  } catch (err) {
+  } catch (_err) {
     return { success: false, count: 0, error: 'Failed to archive notifications' }
   }
 }
@@ -141,7 +141,7 @@ export async function getNotificationsWithFilters(
       notifications: (data || []) as EnhancedNotification[],
       total: count || 0,
     }
-  } catch (err) {
+  } catch (_err) {
     return { notifications: [], total: 0, error: 'Failed to fetch notifications' }
   }
 }
@@ -222,7 +222,7 @@ export async function executeQuickAction(
       default:
         return { success: false, error: 'Unknown action' }
     }
-  } catch (err) {
+  } catch (_err) {
     return { success: false, error: 'Failed to execute action' }
   }
 }
@@ -249,7 +249,7 @@ export async function markNotificationAsRead(
     }
 
     return { success: true }
-  } catch (err) {
+  } catch (_err) {
     return { success: false, error: 'Failed to mark notification as read' }
   }
 }
@@ -280,7 +280,7 @@ export async function markAllNotificationsAsRead(
 
     revalidatePath('/notifications')
     return { success: true, count: data?.length || 0 }
-  } catch (err) {
+  } catch (_err) {
     return { success: false, count: 0, error: 'Failed to mark all as read' }
   }
 }
@@ -307,7 +307,7 @@ export async function getUnreadNotificationCount(
     }
 
     return { count: count || 0 }
-  } catch (err) {
+  } catch (_err) {
     return { count: 0, error: 'Failed to get unread count' }
   }
 }
@@ -334,7 +334,7 @@ export async function updateNotificationCategory(
     }
 
     return { success: true }
-  } catch (err) {
+  } catch (_err) {
     return { success: false, error: 'Failed to update category' }
   }
 }

@@ -291,7 +291,7 @@ export function transformInvoiceFromAccurate(
   customerId: string,
   joId: string
 ): Partial<GamaInvoice> {
-  const lineItems: GamaInvoiceLineItem[] = accurateInvoice.detailItem.map((item, index) => ({
+  const lineItems: GamaInvoiceLineItem[] = accurateInvoice.detailItem.map((item, _index) => ({
     id: '', // Will be generated on insert
     description: item.itemName,
     quantity: item.quantity,

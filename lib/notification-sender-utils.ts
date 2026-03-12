@@ -6,11 +6,9 @@ import type {
   NotificationWorkflowPreference,
   NotificationChannel,
   RenderedNotification,
-  SendNotificationInput,
   SendNotificationResult,
   NotificationEventType,
 } from '@/types/notification-workflows';
-import { DEFAULT_PREFERENCE } from '@/types/notification-workflows';
 import { renderTemplate, getTemplateSupportedChannels } from './notification-template-utils';
 import { 
   getEnabledChannels, 

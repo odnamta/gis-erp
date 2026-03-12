@@ -747,7 +747,7 @@ export async function handleTaskFailure(
   
   // Note: In production, this would send a notification to super_admin
   // For now, we log the notification data that would be sent
-  const notificationData = {
+  const _notificationData = {
     template_code: 'TASK_EXECUTION_FAILED',
     recipient_role: 'director',
     data: {

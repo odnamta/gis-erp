@@ -156,7 +156,7 @@ export async function updateContractValue(
 
   const supabase = await createClient()
 
-  const { error } = await (supabase.from('projects') as any)
+  const { error } = await (supabase.from('projects') as any) // eslint-disable-line @typescript-eslint/no-explicit-any
     .update({
       contract_value: data.contract_value,
       contract_notes: data.contract_notes || null,

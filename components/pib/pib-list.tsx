@@ -1,7 +1,7 @@
 'use client'
 
 import Link from 'next/link'
-import { PIBDocumentWithRelations, PIBStatus } from '@/types/pib'
+import { PIBDocumentWithRelations } from '@/types/pib'
 import { Button } from '@/components/ui/button'
 import {
   Table,

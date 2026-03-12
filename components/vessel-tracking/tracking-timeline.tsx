@@ -15,7 +15,6 @@ import {
   ArrowRight,
   Ship,
   MapPin,
-  Calendar,
   CheckCircle2,
   Circle,
   Clock,
@@ -132,9 +131,9 @@ interface TimelineEventProps {
 
 function TimelineEvent({
   event,
-  isFirst,
+  isFirst: _isFirst,
   isLast,
-  formatDateTime,
+  formatDateTime: _formatDateTime,
   formatDate,
   formatTime,
 }: TimelineEventProps) {
@@ -271,7 +270,7 @@ export function CompactTimeline({ events, maxEvents = 5, className }: CompactTim
           +{hiddenCount} earlier events
         </p>
       )}
-      {displayEvents.map((event, index) => (
+      {displayEvents.map((event, _index) => (
         <div
           key={event.id}
           className="flex items-center gap-2 text-sm"

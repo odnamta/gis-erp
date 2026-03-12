@@ -265,7 +265,7 @@ export async function submitCompetitionFeedback(data: {
 
     // Refresh leaderboard
     try {
-      await supabase.rpc('refresh_leaderboard' as any)
+      await supabase.rpc('refresh_leaderboard' as any) // eslint-disable-line @typescript-eslint/no-explicit-any
     } catch {
       // Non-critical
     }
@@ -437,7 +437,7 @@ export async function reviewFeedback(data: {
       .eq('reference_id', data.feedbackId)
       .eq('event_type', 'feedback_reviewed')
 
-    const existingReviewPoints = (existingReviewEvents || []).reduce((sum: number, e: any) => sum + e.points, 0)
+    const existingReviewPoints = (existingReviewEvents || []).reduce((sum: number, e: any) => sum + e.points, 0) // eslint-disable-line @typescript-eslint/no-explicit-any
 
     // Find existing AI adjustment events
     const { data: existingAiEvents } = await supabase
@@ -447,7 +447,7 @@ export async function reviewFeedback(data: {
       .eq('reference_id', data.feedbackId)
       .eq('event_type', 'ai_score_adjustment')
 
-    const existingAiAdjustment = (existingAiEvents || []).reduce((sum: number, e: any) => sum + e.points, 0)
+    const existingAiAdjustment = (existingAiEvents || []).reduce((sum: number, e: any) => sum + e.points, 0) // eslint-disable-line @typescript-eslint/no-explicit-any
 
     // New total based on base_points * multiplier
     const rawTotal = fb.base_points * multiplier
@@ -545,7 +545,7 @@ export async function reviewFeedback(data: {
         .select('id, points, event_type')
         .eq('reference_id', data.feedbackId)
 
-      const events = (linkedEvents || []).filter((e: any) => e.event_type !== 'duplicate_reversal') as unknown as { id: string; points: number; event_type: string }[]
+      const events = (linkedEvents || []).filter((e: any) => e.event_type !== 'duplicate_reversal') as unknown as { id: string; points: number; event_type: string }[] // eslint-disable-line @typescript-eslint/no-explicit-any
       const totalToReverse = events.reduce((sum, e) => sum + e.points, 0)
 
       if (totalToReverse !== 0) {
@@ -567,7 +567,7 @@ export async function reviewFeedback(data: {
     }
 
     // Refresh leaderboard
-    try { await supabase.rpc('refresh_leaderboard' as any) } catch { /* non-critical */ }
+    try { await supabase.rpc('refresh_leaderboard' as any) } catch { /* non-critical */ } // eslint-disable-line @typescript-eslint/no-explicit-any
 
     revalidatePath('/co-builder')
     revalidatePath('/co-builder/admin')

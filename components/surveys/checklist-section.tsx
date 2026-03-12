@@ -41,7 +41,7 @@ const STATUS_CONFIG: Record<ChecklistStatus, { icon: React.ReactNode; color: str
   fail: { icon: <XCircle className="h-4 w-4" />, color: 'bg-red-100 text-red-800', label: 'Fail' },
 };
 
-export function ChecklistSection({ surveyId, checklist, editable = false }: ChecklistSectionProps) {
+export function ChecklistSection({ surveyId: _surveyId, checklist, editable = false }: ChecklistSectionProps) {
   const router = useRouter();
   const [editingItems, setEditingItems] = useState<Record<string, { status: ChecklistStatus; notes: string }>>({});
   const [saving, setSaving] = useState<string | null>(null);

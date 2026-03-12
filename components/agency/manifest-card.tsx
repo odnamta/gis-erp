@@ -7,7 +7,6 @@ import { CargoManifest, MANIFEST_TYPE_LABELS } from '@/types/agency';
 import { 
   Ship, 
   MapPin, 
-  Package, 
   Eye, 
   Edit, 
   Calendar, 

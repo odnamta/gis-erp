@@ -47,7 +47,7 @@ import {
   CHANNEL_LABELS,
   STATUS_LABELS,
 } from '@/types/notification-workflows'
-import { getRecentLogs, getStatusColor } from '@/lib/notification-log-utils'
+import { getRecentLogs } from '@/lib/notification-log-utils'
 import { format } from 'date-fns'
 import Link from 'next/link'
 
@@ -108,9 +108,9 @@ const StatusBadge = ({ status }: { status: NotificationStatus }) => {
 }
 
 export function NotificationLogViewer({
-  entityType,
-  entityId,
-  userId,
+  entityType: _entityType,
+  entityId: _entityId,
+  userId: _userId,
   pageSize = 20,
 }: NotificationLogViewerProps) {
   const [logs, setLogs] = useState<NotificationLogEntry[]>([])

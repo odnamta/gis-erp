@@ -4,12 +4,10 @@ import { useState, useEffect } from 'react';
 import Link from 'next/link';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { Badge } from '@/components/ui/badge';
-import { JobCostSummary } from './job-cost-summary';
 import { CostBreakdownChart } from './cost-breakdown-chart';
 import { getJobCustomsCosts, getFeesByJob } from '@/lib/fee-actions';
 import { aggregateFeesByCategory, formatFeeAmount } from '@/lib/fee-utils';
-import { JobCustomsCostSummary, CustomsFeeWithRelations, FeeCategory } from '@/types/customs-fees';
+import { JobCustomsCostSummary, CustomsFeeWithRelations } from '@/types/customs-fees';
 import { Receipt, ExternalLink, Loader2 } from 'lucide-react';
 
 interface JobCustomsSectionProps {

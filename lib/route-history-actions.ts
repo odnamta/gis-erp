@@ -25,7 +25,7 @@ export async function getCustomerRouteHistory(
   const supabase = await createClient()
 
   // Use raw SQL for DISTINCT ON + COUNT aggregation
-  const { data, error } = await supabase.rpc('get_customer_route_history' as any, {
+  const { data, error } = await supabase.rpc('get_customer_route_history' as any, { // eslint-disable-line @typescript-eslint/no-explicit-any
     p_customer_id: customerId,
   })
 

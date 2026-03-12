@@ -18,7 +18,7 @@ import { Loader2, BookOpen, AlertCircle } from 'lucide-react';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 
 export function TourLauncherPage() {
-  const router = useRouter();
+  const _router = useRouter();
   const { start: startTour, isLoading: isTourLoading } = useTourContext();
   
   const [tours, setTours] = useState<TourWithProgress[]>([]);

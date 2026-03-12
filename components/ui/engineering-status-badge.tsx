@@ -11,7 +11,6 @@ import {
   ASSESSMENT_STATUS_LABELS,
 } from '@/types/engineering'
 import {
-  AlertTriangle,
   CheckCircle2,
   Clock,
   Loader2,

@@ -90,7 +90,7 @@ export function ArrivalNoticeForm({
   const [calculatedFreeTimeExpiry, setCalculatedFreeTimeExpiry] = useState<string | null>(null);
 
   // Get initial B/L data
-  const selectedBL = bl || billsOfLading.find(b => b.id === initialData?.blId);
+  const _selectedBL = bl || billsOfLading.find(b => b.id === initialData?.blId);
 
   const {
     register,

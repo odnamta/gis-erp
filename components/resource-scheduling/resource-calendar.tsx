@@ -1,7 +1,7 @@
 'use client'
 
 import { useState, useEffect } from 'react'
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
+import { Card, CardContent, CardHeader } from '@/components/ui/card'
 import { Skeleton } from '@/components/ui/skeleton'
 import { CalendarHeader } from './calendar-header'
 import { CalendarCell } from './calendar-cell'
@@ -14,7 +14,7 @@ import {
   ResourceType,
 } from '@/types/resource-scheduling'
 import { getCalendarData } from '@/lib/resource-scheduling-actions'
-import { format, startOfWeek, endOfWeek, startOfMonth, endOfMonth, addDays } from 'date-fns'
+import { format, startOfWeek, endOfWeek, startOfMonth, endOfMonth } from 'date-fns'
 import Link from 'next/link'
 
 interface ResourceCalendarProps {
@@ -35,7 +35,7 @@ export function ResourceCalendar({ initialData }: ResourceCalendarProps) {
 
   useEffect(() => {
     loadCalendarData()
-  }, [currentDate, viewMode, resourceTypeFilter])
+  }, [currentDate, viewMode, resourceTypeFilter]) // eslint-disable-line react-hooks/exhaustive-deps
 
   const loadCalendarData = async () => {
     setLoading(true)

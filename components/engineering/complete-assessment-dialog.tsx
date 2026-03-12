@@ -40,7 +40,7 @@ interface CompleteAssessmentDialogProps {
 export function CompleteAssessmentDialog({
   open,
   onOpenChange,
-  assessmentId,
+  assessmentId: _assessmentId,
   assessmentType,
   onComplete,
 }: CompleteAssessmentDialogProps) {

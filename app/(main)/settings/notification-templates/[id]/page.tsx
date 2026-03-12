@@ -5,7 +5,6 @@ import { useRouter } from 'next/navigation'
 import {
   NotificationTemplate,
   EVENT_TYPE_LABELS,
-  CHANNEL_LABELS,
 } from '@/types/notification-workflows'
 import {
   getNotificationTemplate,
@@ -58,7 +57,7 @@ export default function NotificationTemplateDetailPage({ params }: PageProps) {
 
   useEffect(() => {
     loadTemplate()
-  }, [id])
+  }, [id]) // eslint-disable-line react-hooks/exhaustive-deps
 
   const loadTemplate = async () => {
     setIsLoading(true)

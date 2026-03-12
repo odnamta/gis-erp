@@ -8,15 +8,12 @@ import {
   Settings, 
   Users, 
   Activity, 
-  Clock, 
   UserPlus, 
-  FileText, 
   Eye, 
   LogIn, 
   Shield,
   UserCheck,
   CalendarDays,
-  TrendingUp,
   Zap
 } from 'lucide-react'
 
@@ -93,7 +90,7 @@ export default async function SysadminDashboardPage() {
 
   // Check access: sysadmin, owner, director roles only
   const allowedRoles = ['sysadmin', 'owner', 'director']
-  if (!profileHasRole(profile as any, allowedRoles)) {
+  if (!profileHasRole(profile as any, allowedRoles)) { // eslint-disable-line @typescript-eslint/no-explicit-any
     redirect('/dashboard')
   }
 

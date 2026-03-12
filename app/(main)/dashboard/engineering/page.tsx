@@ -99,7 +99,7 @@ export default async function EngineeringDashboardPage() {
   }
 
   // Check access: engineer, hse, or manager with engineering scope
-  const hasAccess = profileHasRole(profile as any, ['engineer', 'hse', 'owner', 'director', 'marketing_manager', 'marketing', 'operations_manager'])
+  const hasAccess = profileHasRole(profile as any, ['engineer', 'hse', 'owner', 'director', 'marketing_manager', 'marketing', 'operations_manager']) // eslint-disable-line @typescript-eslint/no-explicit-any
 
   // guardPage: allows native permission or explorer mode bypass
   await guardPage(hasAccess, '/dashboard')

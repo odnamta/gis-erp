@@ -79,7 +79,7 @@ export function WaypointForm({
       } else {
         toast.error(result.error || 'Failed to save waypoint');
       }
-    } catch (error) {
+    } catch (_error) {
       toast.error('An error occurred');
     } finally {
       setLoading(false);

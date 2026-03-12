@@ -32,7 +32,7 @@ export default async function SystemLogsPage() {
     .single()
   
   // Only admin and owner can access system logs
-  const isAuthorized = profile && profileHasRole(profile as any, ['sysadmin', 'director', 'owner', 'marketing_manager', 'finance_manager', 'operations_manager'])
+  const isAuthorized = profile && profileHasRole(profile as any, ['sysadmin', 'director', 'owner', 'marketing_manager', 'finance_manager', 'operations_manager']) // eslint-disable-line @typescript-eslint/no-explicit-any
   if (!isAuthorized) {
     redirect('/dashboard')
   }

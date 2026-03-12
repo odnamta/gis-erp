@@ -17,7 +17,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Combobox } from '@/components/forms/combobox';
 import { useToast } from '@/hooks/use-toast';
 import { JmpFormData, JourneyManagementPlan } from '@/types/jmp';
-import { createJmp, updateJmp, createJmpFromSurvey } from '@/lib/jmp-actions';
+import { createJmp, updateJmp } from '@/lib/jmp-actions';
 import { Loader2 } from 'lucide-react';
 
 interface JmpFormProps {

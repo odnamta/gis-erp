@@ -45,7 +45,7 @@ import { createDPInvoice, getDPInvoicesForPJO } from '@/app/(main)/invoices/acti
 import type { InvoiceWithRelations } from '@/types'
 import { AttachmentsSection } from '@/components/attachments'
 import { MarketTypeBadge } from '@/components/ui/market-type-badge'
-import { MarketType, PricingApproach, TerrainType, ComplexityFactor } from '@/types/market-classification'
+import { MarketType, ComplexityFactor } from '@/types/market-classification'
 import { Progress } from '@/components/ui/progress'
 import { Skeleton } from '@/components/ui/skeleton'
 import { AlertTriangle } from 'lucide-react'
@@ -514,6 +514,7 @@ export function PJODetailView({ pjo, canApprove = true, userRole, userId }: PJOD
           </div>
           <div>
             <Label className="text-muted-foreground">Lingkup Layanan</Label>
+            {/* eslint-disable-next-line @typescript-eslint/no-explicit-any */}
             <p className="font-medium">{SERVICE_SCOPE_LABELS[(pjo as any).service_scope] || '-'}</p>
           </div>
           <div>

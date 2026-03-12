@@ -212,6 +212,7 @@ export function FeedbackDetailSheet({ feedback, onClose, onUpdate }: FeedbackDet
                     rel="noopener noreferrer"
                     className="relative group w-20 h-20 rounded-md overflow-hidden border"
                   >
+                    {/* eslint-disable-next-line @next/next/no-img-element */}
                     <img
                       src={screenshot.url}
                       alt={`Screenshot ${index + 1}`}

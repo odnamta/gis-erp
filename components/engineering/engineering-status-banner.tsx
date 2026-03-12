@@ -7,12 +7,10 @@ import { formatDate } from '@/lib/pjo-utils'
 import {
   EngineeringStatus,
   ComplexityFactor,
-  ENGINEERING_STATUS_LABELS,
 } from '@/types/engineering'
 import {
   AlertTriangle,
   CheckCircle2,
-  Clock,
   HardHat,
   Shield,
   UserPlus,

@@ -28,7 +28,7 @@ interface AssetsDashboardClientProps {
   metrics: AssetsDashboardMetrics
 }
 
-export function AssetsDashboardClient({ userRole, metrics }: AssetsDashboardClientProps) {
+export function AssetsDashboardClient({ userRole: _userRole, metrics }: AssetsDashboardClientProps) {
   const router = useRouter()
 
   const getStatusColor = (status: string) => {

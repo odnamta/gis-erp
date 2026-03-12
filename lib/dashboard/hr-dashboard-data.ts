@@ -136,7 +136,7 @@ export async function getHRDashboardMetrics(): Promise<HRDashboardMetrics> {
     // Calculate upcoming birthdays
     const todayMonth = today.getMonth() + 1
     const todayDate = today.getDate()
-    const nextWeekDate = startOfNextWeek.getDate()
+    const _nextWeekDate = startOfNextWeek.getDate()
 
     const upcomingBirthdays = (upcomingBirthdaysResult.data || []).filter(emp => {
       if (!emp.date_of_birth) return false

@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect } from 'react';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
@@ -104,7 +104,7 @@ export function CostForm({
     formState: { errors },
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
   } = useForm<CostFormValues>({
-    resolver: zodResolver(costFormSchema) as any,
+    resolver: zodResolver(costFormSchema) as any, // eslint-disable-line @typescript-eslint/no-explicit-any
     defaultValues: {
       chargeTypeId: cost?.chargeTypeId || '',
       description: cost?.description || '',

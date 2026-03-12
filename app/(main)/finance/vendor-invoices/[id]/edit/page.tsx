@@ -2,7 +2,6 @@ import { Metadata } from 'next'
 import { createClient } from '@/lib/supabase/server'
 import { redirect, notFound } from 'next/navigation'
 import { VendorInvoiceForm } from '@/components/vendor-invoices'
-import { canEditVendorInvoices } from '@/lib/vendor-invoice-utils'
 import { getVendorInvoiceById } from '@/app/(main)/finance/vendor-invoices/actions'
 import { getCurrentUserProfile, guardPage } from '@/lib/auth-utils';
 

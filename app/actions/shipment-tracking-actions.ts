@@ -372,7 +372,7 @@ export async function searchTracking(query: string): Promise<TrackingSearchResul
     // Booking numbers: typically start with BK- or similar prefix
 
     let searchType: 'bl' | 'booking' | 'container' = 'container';
-    let referenceId: string | null = null;
+    let _referenceId: string | null = null;
     let booking = null;
     let bl = null;
     let events: ShipmentTracking[] = [];
@@ -416,7 +416,7 @@ export async function searchTracking(query: string): Promise<TrackingSearchResul
 
       if (!blError && blData) {
         searchType = 'bl';
-        referenceId = blData.id;
+        _referenceId = blData.id;
         bl = blData;
 
         // Get booking info if linked
@@ -452,7 +452,7 @@ export async function searchTracking(query: string): Promise<TrackingSearchResul
 
         if (!bookingError && bookingData) {
           searchType = 'booking';
-          referenceId = bookingData.id;
+          _referenceId = bookingData.id;
           booking = bookingData;
 
           // Get tracking events for this booking

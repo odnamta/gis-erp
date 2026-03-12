@@ -41,7 +41,7 @@ interface SystemLogsClientProps {
 
 export function SystemLogsClient({
   initialData,
-  filterOptions,
+  filterOptions: _filterOptions,
   currentUser,
 }: SystemLogsClientProps) {
   const { toast } = useToast()

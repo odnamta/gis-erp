@@ -68,7 +68,7 @@ export function DrawingForm({ drawing, mode }: DrawingFormProps) {
 
   useEffect(() => {
     loadFormData();
-  }, []);
+  }, []); // eslint-disable-line react-hooks/exhaustive-deps
 
   useEffect(() => {
     if (formData.project_id) {

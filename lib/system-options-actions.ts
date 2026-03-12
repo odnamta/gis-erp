@@ -19,7 +19,7 @@ export interface SystemOption {
 export async function getSystemOptions(category: string): Promise<{ data?: SystemOption[]; error?: string }> {
   const supabase = await createClient()
 
-  const result = await supabase.from('system_options' as any)
+  const result = await supabase.from('system_options' as any) // eslint-disable-line @typescript-eslint/no-explicit-any
     .select('id, category, value, label, display_order, is_active')
     .eq('category', category)
     .eq('is_active', true)
@@ -50,16 +50,16 @@ export async function addSystemOption(input: {
   if (!user) return { success: false, error: 'Not authenticated' }
 
   // Get max display_order for the category
-  const maxResult = await supabase.from('system_options' as any)
+  const maxResult = await supabase.from('system_options' as any) // eslint-disable-line @typescript-eslint/no-explicit-any
     .select('display_order')
     .eq('category', input.category)
     .order('display_order', { ascending: false })
     .limit(1)
     .single()
 
-  const nextOrder = ((maxResult.data as any)?.display_order ?? -1) + 1
+  const nextOrder = ((maxResult.data as any)?.display_order ?? -1) + 1 // eslint-disable-line @typescript-eslint/no-explicit-any
 
-  const insertResult = await supabase.from('system_options' as any)
+  const insertResult = await supabase.from('system_options' as any) // eslint-disable-line @typescript-eslint/no-explicit-any
     .insert({
       category: input.category,
       value: input.value,
@@ -92,7 +92,7 @@ export async function deactivateSystemOption(id: string): Promise<{ success: boo
 
   const supabase = await createClient()
 
-  const result = await supabase.from('system_options' as any)
+  const result = await supabase.from('system_options' as any) // eslint-disable-line @typescript-eslint/no-explicit-any
     .update({ is_active: false, updated_at: new Date().toISOString() })
     .eq('id', id)
 

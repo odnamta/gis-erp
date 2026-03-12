@@ -99,7 +99,7 @@ export async function submitRoleRequest(
       requested_department: data.requestedDepartment,
       reason: data.reason || null,
       status: 'pending',
-    } as any)
+    } as any) // eslint-disable-line @typescript-eslint/no-explicit-any
   
   if (insertResult.error) {
     return {

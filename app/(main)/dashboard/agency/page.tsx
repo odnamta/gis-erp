@@ -53,7 +53,7 @@ export default async function AgencyDashboardPage() {
 
   // Only agency role (or owner/director) can access
   const allowedRoles = ['agency', 'owner', 'director']
-  if (!profileHasRole(profile as any, allowedRoles)) {
+  if (!profileHasRole(profile as any, allowedRoles)) { // eslint-disable-line @typescript-eslint/no-explicit-any
     redirect('/dashboard')
   }
 

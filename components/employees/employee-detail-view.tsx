@@ -53,6 +53,7 @@ export function EmployeeDetailView({ employee, canViewSalary = false }: Employee
           <div className="flex items-start gap-6">
             <div className="h-20 w-20 rounded-full bg-muted flex items-center justify-center">
               {employee.photo_url ? (
+                /* eslint-disable-next-line @next/next/no-img-element */
                 <img
                   src={employee.photo_url}
                   alt={employee.full_name}

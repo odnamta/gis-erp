@@ -8,7 +8,6 @@ import { PPEReplacementDue, PPEInventory, EmployeeComplianceSummary } from '@/ty
 import { formatPPEDate } from '@/lib/ppe-utils';
 import {
   AlertTriangle,
-  Clock,
   Package,
   Users,
   ArrowRight,

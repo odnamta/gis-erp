@@ -9,7 +9,6 @@ import {
   PEBStatusHistory,
   PEBStatus,
   PEBStatusUpdateData,
-  PEB_STATUS_LABELS,
 } from '@/types/peb'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
@@ -90,7 +89,7 @@ export function PEBDetailView({ peb, permissions }: PEBDetailViewProps) {
   const { toast } = useToast()
   const [items, setItems] = useState<PEBItem[]>([])
   const [history, setHistory] = useState<PEBStatusHistory[]>([])
-  const [isLoading, setIsLoading] = useState(true)
+  const [_isLoading, setIsLoading] = useState(true)
   const [statusDialogOpen, setStatusDialogOpen] = useState(false)
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false)
   const [isDeleting, setIsDeleting] = useState(false)
@@ -120,7 +119,7 @@ export function PEBDetailView({ peb, permissions }: PEBDetailViewProps) {
 
   useEffect(() => {
     loadData()
-  }, [peb.id])
+  }, [peb.id]) // eslint-disable-line react-hooks/exhaustive-deps
 
   const handleStatusUpdate = async (newStatus: PEBStatus, data?: PEBStatusUpdateData) => {
     const result = await updatePEBStatus(peb.id, newStatus, data)

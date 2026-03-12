@@ -1,7 +1,7 @@
 'use client'
 
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
-import { TrendingUp, TrendingDown, Target, Users, FileText, DollarSign } from 'lucide-react'
+import { TrendingUp, TrendingDown, Users, FileText, DollarSign } from 'lucide-react'
 import { cn } from '@/lib/utils'
 import { formatCurrencyShort } from '@/lib/utils/format'
 import { type SalesKPIs } from '@/lib/sales-dashboard-utils'

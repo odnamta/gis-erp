@@ -180,7 +180,7 @@ export async function getDirectorDashboardMetrics(): Promise<DirectorDashboardMe
       
       // Pending BKK Approvals
       supabase
-        .from('bukti_kas_keluar' as any)
+        .from('bukti_kas_keluar' as any) // eslint-disable-line @typescript-eslint/no-explicit-any
         .select('id', { count: 'exact', head: true })
         .in('status', ['pending_check', 'pending_approval']),
       

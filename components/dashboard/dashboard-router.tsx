@@ -41,7 +41,7 @@ function getHomepageForRole(role: string, customHomepage?: string | null): strin
 
 export function DashboardRouter({ userRole, customHomepage }: DashboardRouterProps) {
   const router = useRouter()
-  const [isRedirecting, setIsRedirecting] = useState(true)
+  const [isRedirecting, _setIsRedirecting] = useState(true)
 
   useEffect(() => {
     const redirect = async () => {

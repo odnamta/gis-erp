@@ -120,7 +120,7 @@ export function MilestoneSteps({ progress, className }: MilestoneStepsProps) {
         {TRACKING_EVENT_TYPES.map((milestone, index) => {
           const isCompleted = progress.completedMilestones.includes(milestone);
           const isCurrent = progress.currentMilestone === milestone;
-          const isPending = progress.pendingMilestones.includes(milestone);
+          const _isPending = progress.pendingMilestones.includes(milestone);
 
           return (
             <div key={milestone} className="flex items-center">

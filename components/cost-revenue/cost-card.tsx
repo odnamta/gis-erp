@@ -25,7 +25,7 @@ import {
   CreditCard,
   CheckCircle,
 } from 'lucide-react';
-import { formatDate, formatCurrency as formatCurrencyUtil } from '@/lib/utils/format';
+import { formatDate } from '@/lib/utils/format';
 
 interface CostCardProps {
   cost: ShipmentCost;

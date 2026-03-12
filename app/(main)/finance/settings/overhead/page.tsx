@@ -5,7 +5,6 @@ import { createClient } from '@/lib/supabase/server';
 import { profileHasRole } from '@/lib/auth-utils';
 import { OverheadSettingsForm } from '@/components/overhead/overhead-settings-form';
 import { getOverheadCategories, getTotalOverheadRate } from './actions';
-import type { OverheadCategory } from '@/types/overhead';
 
 export const metadata = {
   title: 'Overhead Settings | Gama ERP',
@@ -29,7 +28,7 @@ export default async function OverheadSettingsPage() {
     .single();
 
   const allowedRoles = ['owner', 'admin', 'manager', 'finance'];
-  if (!profileHasRole(profile as any, allowedRoles)) {
+  if (!profileHasRole(profile as any, allowedRoles)) { // eslint-disable-line @typescript-eslint/no-explicit-any
     redirect('/dashboard?error=unauthorized');
   }
 

@@ -46,7 +46,7 @@ export async function logAudit(
     }
     
     return { success: true }
-  } catch (err) {
+  } catch (_err) {
     return { success: false, error: 'Failed to create audit log' }
   }
 }

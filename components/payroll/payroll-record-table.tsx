@@ -10,7 +10,7 @@ import {
   TableRow,
 } from '@/components/ui/table';
 import { Button } from '@/components/ui/button';
-import { FileText, Eye, CheckCircle } from 'lucide-react';
+import { FileText, Eye } from 'lucide-react';
 import { PayrollRecord } from '@/types/payroll';
 import { PayrollStatusBadge } from './payroll-status-badge';
 import { PayrollRecordDetail } from './payroll-record-detail';
@@ -36,7 +36,7 @@ export function PayrollRecordTable({ records, periodStatus }: PayrollRecordTable
       } else {
         toast.error(result.error || 'Failed to generate salary slip');
       }
-    } catch (error) {
+    } catch (_error) {
       toast.error('An error occurred');
     } finally {
       setGeneratingSlip(null);

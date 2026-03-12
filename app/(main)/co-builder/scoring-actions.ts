@@ -485,7 +485,7 @@ export async function submitTop5(data: {
       description: 'Top 5 Perubahan submitted!',
     } as Record<string, unknown>)
 
-    try { await supabase.rpc('refresh_leaderboard' as any) } catch { /* non-critical */ }
+    try { await supabase.rpc('refresh_leaderboard' as any) } catch { /* non-critical */ } // eslint-disable-line @typescript-eslint/no-explicit-any
 
     revalidatePath('/co-builder')
     return { success: true, points: 30 }

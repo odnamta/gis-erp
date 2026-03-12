@@ -41,7 +41,7 @@ export function MyFeedbackDetailSheet({ feedback, onClose, onUpdate }: MyFeedbac
     if (feedback) {
       loadComments();
     }
-  }, [feedback]);
+  }, [feedback]); // eslint-disable-line react-hooks/exhaustive-deps
 
   const loadComments = async () => {
     if (!feedback) return;
@@ -122,6 +122,7 @@ export function MyFeedbackDetailSheet({ feedback, onClose, onUpdate }: MyFeedbac
                     rel="noopener noreferrer"
                     className="relative group w-20 h-20 rounded-md overflow-hidden border"
                   >
+                    {/* eslint-disable-next-line @next/next/no-img-element */}
                     <img
                       src={screenshot.url}
                       alt={`Screenshot ${index + 1}`}

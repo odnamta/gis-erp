@@ -10,7 +10,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { OnboardingProgressBar } from '@/components/onboarding/onboarding-progress-bar';
 import { OnboardingCategorySection } from '@/components/onboarding/onboarding-category-section';
-import { skipOnboarding, getUserOnboardingProgress } from '@/lib/onboarding-actions';
+import { skipOnboarding } from '@/lib/onboarding-actions';
 import { UserOnboardingData, ONBOARDING_CATEGORIES } from '@/types/onboarding';
 import { Target, ArrowLeft, SkipForward, Loader2 } from 'lucide-react';
 
@@ -26,7 +26,7 @@ export function OnboardingPageClient({
   initialData,
 }: OnboardingPageClientProps) {
   const router = useRouter();
-  const [data, setData] = useState(initialData);
+  const [data, _setData] = useState(initialData);
   const [isPending, startTransition] = useTransition();
 
   const handleSkip = () => {

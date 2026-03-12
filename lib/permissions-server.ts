@@ -2,7 +2,7 @@
 
 import { createClient } from '@/lib/supabase/server'
 import { UserProfile, UserPermissions, UserRole, DepartmentScope, FeatureKey } from '@/types/permissions'
-import { DEFAULT_PERMISSIONS, OWNER_EMAIL, isOwnerEmail, getAssignableRoles, getInheritedRoles, canAccessFeature } from '@/lib/permissions'
+import { DEFAULT_PERMISSIONS, isOwnerEmail, canAccessFeature } from '@/lib/permissions'
 
 /**
  * Get the current user's profile from the database
@@ -333,7 +333,7 @@ export async function ensureUserProfile(): Promise<UserProfile | null> {
     try {
       const { initializeOnboardingForUser } = await import('@/lib/onboarding-actions')
       await initializeOnboardingForUser(user.id, linkedProfile.role)
-    } catch (e) {
+    } catch (_e) {
       // Don't fail the profile linking if onboarding initialization fails
     }
 
@@ -571,7 +571,7 @@ export async function updateUserRole(
   try {
     const { syncUserMetadataFromProfile } = await import('@/lib/supabase/sync-user-metadata')
     await syncUserMetadataFromProfile(targetUserId)
-  } catch (e) {
+  } catch (_e) {
     // Don't fail the operation if metadata sync fails
   }
 
@@ -589,7 +589,7 @@ export async function updateUserRole(
   try {
     const { invalidateOwnerDashboardCache } = await import('@/lib/dashboard-cache-actions')
     await invalidateOwnerDashboardCache()
-  } catch (e) {
+  } catch (_e) {
   }
 
   // Send notification for role change
@@ -613,7 +613,7 @@ export async function updateUserRole(
         'role_changed'
       )
     }
-  } catch (e) {
+  } catch (_e) {
   }
 
   return { success: true }
@@ -704,7 +704,7 @@ export async function createPreregisteredUser(
   try {
     const { invalidateOwnerDashboardCache } = await import('@/lib/dashboard-cache-actions')
     await invalidateOwnerDashboardCache()
-  } catch (e) {
+  } catch (_e) {
   }
 
   return { success: true, profile: data as unknown as UserProfile }
@@ -768,7 +768,7 @@ export async function toggleUserActive(
     try {
       const { syncUserMetadataFromProfile } = await import('@/lib/supabase/sync-user-metadata')
       await syncUserMetadataFromProfile(targetProfile.user_id)
-    } catch (e) {
+    } catch (_e) {
       // Don't fail the operation if metadata sync fails
     }
   }
@@ -787,7 +787,7 @@ export async function toggleUserActive(
   try {
     const { invalidateOwnerDashboardCache } = await import('@/lib/dashboard-cache-actions')
     await invalidateOwnerDashboardCache()
-  } catch (e) {
+  } catch (_e) {
   }
 
   // Send notification for deactivation
@@ -802,7 +802,7 @@ export async function toggleUserActive(
         },
         'deactivated'
       )
-    } catch (e) {
+    } catch (_e) {
     }
   }
 

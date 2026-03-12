@@ -24,7 +24,6 @@ import {
   CustomsOffice,
   ImportType,
   TransportMode,
-  TRANSPORT_MODES,
 } from '@/types/pib'
 import { createPIBDocument, updatePIBDocument } from '@/lib/pib-actions'
 import { calculateCIFValue, formatCurrency } from '@/lib/pib-utils'

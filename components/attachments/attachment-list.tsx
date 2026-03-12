@@ -26,8 +26,8 @@ import type { AttachmentListProps, DocumentAttachment } from '@/types/attachment
 import { PreviewModal } from './preview-modal';
 
 export function AttachmentList({
-  entityType,
-  entityId,
+  entityType: _entityType,
+  entityId: _entityId,
   attachments,
   onDelete,
   isLoading = false,

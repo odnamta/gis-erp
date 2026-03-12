@@ -1,9 +1,7 @@
 import { redirect } from 'next/navigation'
 import { getAssetCategories, getAssetLocations } from '@/lib/asset-actions'
 import { AssetForm } from '@/components/equipment/asset-form'
-import { createClient } from '@/lib/supabase/server'
 import { canCreateAsset } from '@/lib/permissions'
-import { UserProfile } from '@/types/permissions'
 import { getCurrentUserProfile, guardPage } from '@/lib/auth-utils';
 
 export default async function NewAssetPage() {

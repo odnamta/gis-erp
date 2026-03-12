@@ -51,7 +51,7 @@ export function ScheduleCard({ schedule, onView, onEdit, showVesselInfo = true }
   };
 
   // Format date only
-  const formatDate = (dateStr?: string) => {
+  const _formatDate = (dateStr?: string) => {
     if (!dateStr) return '-';
     try {
       return format(parseISO(dateStr), 'dd MMM yyyy');
@@ -61,7 +61,7 @@ export function ScheduleCard({ schedule, onView, onEdit, showVesselInfo = true }
   };
 
   // Format time only
-  const formatTime = (dateStr?: string) => {
+  const _formatTime = (dateStr?: string) => {
     if (!dateStr) return '-';
     try {
       return format(parseISO(dateStr), 'HH:mm');

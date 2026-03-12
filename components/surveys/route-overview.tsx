@@ -148,7 +148,7 @@ export function RouteOverview({ survey, waypoints }: RouteOverviewProps) {
             {/* Waypoints */}
             {sortedWaypoints.length > 0 && (
               <div className="ml-5 border-l-2 border-dashed border-gray-300 py-2">
-                {sortedWaypoints.map((wp, index) => (
+                {sortedWaypoints.map((wp, _index) => (
                   <div key={wp.id} className="relative pl-8 py-2">
                     <div className="absolute left-[-9px] top-1/2 -translate-y-1/2">
                       <div

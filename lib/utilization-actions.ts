@@ -118,7 +118,7 @@ export async function assignAsset(
       success: true,
       data: transformAssignmentRow(assignment as AssetAssignmentRow),
     };
-  } catch (error) {
+  } catch (_error) {
     return { success: false, error: 'An unexpected error occurred' };
   }
 }
@@ -194,7 +194,7 @@ export async function completeAssignment(
     revalidatePath(`/equipment/${assignment.asset_id}`);
 
     return { success: true };
-  } catch (error) {
+  } catch (_error) {
     return { success: false, error: 'An unexpected error occurred' };
   }
 }
@@ -222,7 +222,7 @@ export async function getAssetAssignments(
       success: true,
       data: (data as AssetAssignmentRow[]).map(transformAssignmentRow),
     };
-  } catch (error) {
+  } catch (_error) {
     return { success: false, error: 'An unexpected error occurred' };
   }
 }
@@ -251,7 +251,7 @@ export async function getCurrentAssignments(): Promise<{
       success: true,
       data: (data as CurrentAssignmentRow[]).map(transformCurrentAssignmentRow),
     };
-  } catch (error) {
+  } catch (_error) {
     return { success: false, error: 'An unexpected error occurred' };
   }
 }
@@ -396,7 +396,7 @@ export async function logDailyUtilization(
       success: true,
       data: transformDailyLogRow(log as AssetDailyLogRow),
     };
-  } catch (error) {
+  } catch (_error) {
     return { success: false, error: 'An unexpected error occurred' };
   }
 }
@@ -435,7 +435,7 @@ export async function getDailyLogs(
       success: true,
       data: (data as AssetDailyLogRow[]).map(transformDailyLogRow),
     };
-  } catch (error) {
+  } catch (_error) {
     return { success: false, error: 'An unexpected error occurred' };
   }
 }
@@ -468,7 +468,7 @@ export async function getUtilizationSummary(
       success: true,
       data: (data as UtilizationSummaryRow[]).map(transformUtilizationSummaryRow),
     };
-  } catch (error) {
+  } catch (_error) {
     return { success: false, error: 'An unexpected error occurred' };
   }
 }
@@ -525,7 +525,7 @@ export async function getUtilizationTrend(
     });
 
     return { success: true, data: trend };
-  } catch (error) {
+  } catch (_error) {
     return { success: false, error: 'An unexpected error occurred' };
   }
 }
@@ -555,7 +555,7 @@ export async function getAvailableAssets(
       success: true,
       data: (data as AssetAvailabilityRow[]).map(transformAvailabilityRow),
     };
-  } catch (error) {
+  } catch (_error) {
     return { success: false, error: 'An unexpected error occurred' };
   }
 }
@@ -583,7 +583,7 @@ export async function refreshUtilizationView(): Promise<{
 
     revalidatePath('/equipment/utilization');
     return { success: true };
-  } catch (error) {
+  } catch (_error) {
     return { success: false, error: 'An unexpected error occurred' };
   }
 }

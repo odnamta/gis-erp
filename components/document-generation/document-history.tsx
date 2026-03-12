@@ -127,7 +127,7 @@ export function DocumentHistory({
   // Load documents on mount
   useEffect(() => {
     loadDocuments()
-  }, [entityType, entityId])
+  }, [entityType, entityId]) // eslint-disable-line react-hooks/exhaustive-deps
 
   // Apply filters
   useEffect(() => {

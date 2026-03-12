@@ -74,7 +74,7 @@ const statusIcons: Record<JobStatus, React.ReactNode> = {
   abandoned: <XCircle className="h-4 w-4" />,
 }
 
-export function JobFailuresClient({ initialFailures, initialStats, currentUser }: Props) {
+export function JobFailuresClient({ initialFailures, initialStats, currentUser: _currentUser }: Props) {
   const [failures, setFailures] = useState(initialFailures)
   const [stats] = useState(initialStats)
   const [statusFilter, setStatusFilter] = useState<string>('all')

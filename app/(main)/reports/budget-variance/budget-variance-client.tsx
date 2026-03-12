@@ -10,7 +10,6 @@ import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { ReportTable, ReportSummary } from '@/components/reports'
 import { formatVariancePercentage } from '@/lib/reports/budget-variance-utils'
-import { formatCurrency } from '@/lib/reports/report-utils'
 import { logReportExecution } from '@/lib/reports/report-execution-service'
 import { BudgetVarianceItem, ReportColumn, RowHighlight } from '@/types/reports'
 

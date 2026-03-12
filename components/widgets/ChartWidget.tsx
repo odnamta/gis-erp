@@ -24,7 +24,6 @@ import {
   CartesianGrid,
   Tooltip,
   ResponsiveContainer,
-  Legend,
 } from 'recharts';
 import type { ChartWidgetProps, ChartData } from '@/types/widgets';
 

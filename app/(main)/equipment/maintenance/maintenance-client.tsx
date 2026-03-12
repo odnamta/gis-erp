@@ -63,7 +63,7 @@ export function MaintenanceClient() {
     if (activeTab === 'history') {
       loadHistory()
     }
-  }, [historyFilters, activeTab])
+  }, [historyFilters, activeTab]) // eslint-disable-line react-hooks/exhaustive-deps
 
   const loadData = async () => {
     setIsLoading(true)

@@ -25,7 +25,7 @@ export async function getMedicalCheckups(
   const supabase = await createClient();
 
   let query = supabase
-    .from('employee_medical_checkups' as any)
+    .from('employee_medical_checkups' as any) // eslint-disable-line @typescript-eslint/no-explicit-any
     .select(`
       *,
       employees(employee_code, full_name, departments(department_name))
@@ -56,7 +56,7 @@ export async function getMedicalCheckups(
     throw new Error(`Gagal mengambil data medical checkup: ${error.message}`);
   }
 
-  return ((data || []) as any[]).map((row) => ({
+  return ((data || []) as any[]).map((row) => ({ // eslint-disable-line @typescript-eslint/no-explicit-any
     ...row,
     employee_name: row.employees?.full_name,
     employee_code: row.employees?.employee_code,
@@ -75,7 +75,7 @@ export async function getMedicalCheckup(
   const supabase = await createClient();
 
   const { data, error } = await supabase
-    .from('employee_medical_checkups' as any)
+    .from('employee_medical_checkups' as any) // eslint-disable-line @typescript-eslint/no-explicit-any
     .select(`
       *,
       employees(employee_code, full_name, departments(department_name))
@@ -90,7 +90,7 @@ export async function getMedicalCheckup(
     throw new Error(`Gagal mengambil data medical checkup: ${error.message}`);
   }
 
-  const row = data as any;
+  const row = data as any; // eslint-disable-line @typescript-eslint/no-explicit-any
   return {
     ...row,
     employee_name: row.employees?.full_name,
@@ -155,7 +155,7 @@ export async function createMedicalCheckup(
     .single();
 
   const { data, error } = await supabase
-    .from('employee_medical_checkups' as any)
+    .from('employee_medical_checkups' as any) // eslint-disable-line @typescript-eslint/no-explicit-any
     .insert({
       employee_id: input.employee_id,
       checkup_type: input.checkup_type,
@@ -260,7 +260,7 @@ export async function updateMedicalCheckup(
   if (input.notes !== undefined) updateData.notes = input.notes;
 
   const { data, error } = await supabase
-    .from('employee_medical_checkups' as any)
+    .from('employee_medical_checkups' as any) // eslint-disable-line @typescript-eslint/no-explicit-any
     .update(updateData)
     .eq('id', id)
     .select()
@@ -291,7 +291,7 @@ export async function deleteMedicalCheckup(id: string): Promise<{ error?: string
   const supabase = await createClient();
 
   const { error } = await supabase
-    .from('employee_medical_checkups' as any)
+    .from('employee_medical_checkups' as any) // eslint-disable-line @typescript-eslint/no-explicit-any
     .update({ is_active: false, updated_at: new Date().toISOString() })
     .eq('id', id);
 
@@ -317,7 +317,7 @@ export async function getMedicalCheckupStats(): Promise<{
   const supabase = await createClient();
 
   const { data, error } = await supabase
-    .from('employee_medical_checkups' as any)
+    .from('employee_medical_checkups' as any) // eslint-disable-line @typescript-eslint/no-explicit-any
     .select('id, medical_status, valid_to')
     .eq('is_active', true);
 
@@ -326,7 +326,7 @@ export async function getMedicalCheckupStats(): Promise<{
     return { total: 0, fit: 0, conditionalFit: 0, expiringSoon: 0 };
   }
 
-  const records = (data || []) as any[];
+  const records = (data || []) as any[]; // eslint-disable-line @typescript-eslint/no-explicit-any
   const now = new Date();
   const thirtyDaysFromNow = new Date();
   thirtyDaysFromNow.setDate(thirtyDaysFromNow.getDate() + 30);

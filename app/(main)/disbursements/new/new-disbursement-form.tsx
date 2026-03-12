@@ -68,7 +68,7 @@ interface NewDisbursementFormProps {
   userId: string
 }
 
-export function NewDisbursementForm({ vendors, jobOrders, userId }: NewDisbursementFormProps) {
+export function NewDisbursementForm({ vendors, jobOrders, userId: _userId }: NewDisbursementFormProps) {
   const router = useRouter()
   const [isSubmitting, setIsSubmitting] = useState(false)
 

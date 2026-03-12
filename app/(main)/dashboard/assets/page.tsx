@@ -24,7 +24,7 @@ export default async function AssetsDashboardPage() {
   }
 
   // Check if user has access to assets dashboard
-  const hasAccess = profileHasRole(profile as any, ['owner', 'director', 'operations_manager', 'ops']) ||
+  const hasAccess = profileHasRole(profile as any, ['owner', 'director', 'operations_manager', 'ops']) || // eslint-disable-line @typescript-eslint/no-explicit-any
     (profile.role === 'operations_manager' && profile.department_scope?.includes('operations'))
 
   if (!hasAccess) {

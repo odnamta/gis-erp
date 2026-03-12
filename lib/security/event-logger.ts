@@ -87,7 +87,7 @@ export async function logEvent(
   // Trigger alert for critical events
   if (params.severity === 'critical') {
     // Fire and forget - don't block on alert sending
-    sendSecurityAlert(event).catch((err) => {
+    sendSecurityAlert(event).catch((_err) => {
     });
   }
 

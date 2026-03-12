@@ -23,13 +23,12 @@ import {
 } from '@/components/ui/table';
 import {
   UpcomingArrival,
-  VesselType,
   VESSEL_TYPE_LABELS,
   VESSEL_TYPES,
   SCHEDULE_STATUS_LABELS,
   SCHEDULE_STATUS_COLORS,
 } from '@/types/agency';
-import { DelayIndicator, CompactDelayBadge } from './delay-indicator';
+import { CompactDelayBadge } from './delay-indicator';
 import { filterArrivalsByDateRange, sortArrivalsByTime } from '@/lib/vessel-tracking-utils';
 import { format, parseISO, addDays, startOfDay, endOfDay } from 'date-fns';
 import {

@@ -19,8 +19,7 @@ import { MaintenanceTypeSelect } from './maintenance-type-select'
 import { MaintenancePartsTable } from './maintenance-parts-table'
 import { 
   MaintenanceType, 
-  MaintenanceRecordInput, 
-  MaintenancePartInput,
+  MaintenanceRecordInput,
   MaintenancePerformedAt 
 } from '@/types/maintenance'
 import { Asset } from '@/types/assets'

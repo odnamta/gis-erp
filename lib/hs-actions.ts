@@ -51,7 +51,7 @@ export async function logHSCodeSearch(
     if (error) throw error;
     
     return { success: true };
-  } catch (error) {
+  } catch (_error) {
     return { success: false, error: 'Failed to log search' };
   }
 }
@@ -100,7 +100,7 @@ export async function createHSCode(
     revalidatePath('/customs/hs-codes');
     
     return { success: true, data: transformHSCode(result as HSCodeRow) };
-  } catch (error) {
+  } catch (_error) {
     return { success: false, error: 'Failed to create HS code' };
   }
 }
@@ -156,7 +156,7 @@ export async function updateHSCode(
     revalidatePath('/customs/hs-codes');
     
     return { success: true, data: transformHSCode(result as HSCodeRow) };
-  } catch (error) {
+  } catch (_error) {
     return { success: false, error: 'Failed to update HS code' };
   }
 }
@@ -186,7 +186,7 @@ export async function deactivateHSCode(
     revalidatePath('/customs/hs-codes');
     
     return { success: true };
-  } catch (error) {
+  } catch (_error) {
     return { success: false, error: 'Failed to deactivate HS code' };
   }
 }
@@ -216,7 +216,7 @@ export async function reactivateHSCode(
     revalidatePath('/customs/hs-codes');
     
     return { success: true };
-  } catch (error) {
+  } catch (_error) {
     return { success: false, error: 'Failed to reactivate HS code' };
   }
 }
@@ -258,7 +258,7 @@ export async function upsertPreferentialRate(
     revalidatePath('/customs/hs-codes');
     
     return { success: true, data: transformPreferentialRate(result as HSPreferentialRateRow) };
-  } catch (error) {
+  } catch (_error) {
     return { success: false, error: 'Failed to save preferential rate' };
   }
 }
@@ -287,7 +287,7 @@ export async function deletePreferentialRate(
     revalidatePath('/customs/hs-codes');
     
     return { success: true };
-  } catch (error) {
+  } catch (_error) {
     return { success: false, error: 'Failed to delete preferential rate' };
   }
 }
@@ -362,7 +362,7 @@ export async function getFrequentHSCodesAction(
       .filter((code): code is HSCode => code !== undefined);
     
     return { success: true, data: sortedCodes };
-  } catch (error) {
+  } catch (_error) {
     return { success: false, error: 'Failed to get frequent HS codes' };
   }
 }
@@ -390,7 +390,7 @@ export async function clearSearchHistory(): Promise<{ success: boolean; error?: 
     if (error) throw error;
     
     return { success: true };
-  } catch (error) {
+  } catch (_error) {
     return { success: false, error: 'Failed to clear search history' };
   }
 }

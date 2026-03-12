@@ -181,7 +181,7 @@ export async function getFinanceManagerMetrics(): Promise<FinanceManagerMetrics>
       
       // Pending BKK
       supabase
-        .from('bukti_kas_keluar' as any)
+        .from('bukti_kas_keluar' as any) // eslint-disable-line @typescript-eslint/no-explicit-any
         .select('id', { count: 'exact', head: true })
         .eq('status', 'draft'),
       
@@ -253,7 +253,7 @@ export async function getFinanceManagerMetrics(): Promise<FinanceManagerMetrics>
       
       // Expenses MTD (approved/paid BKK records this month)
       supabase
-        .from('bukti_kas_keluar' as any)
+        .from('bukti_kas_keluar' as any) // eslint-disable-line @typescript-eslint/no-explicit-any
         .select('amount_requested')
         .in('status', ['approved', 'paid'])
         .gte('approved_at', startOfMonth.toISOString()),
@@ -266,13 +266,13 @@ export async function getFinanceManagerMetrics(): Promise<FinanceManagerMetrics>
       
       // AP Outstanding (pending disbursements)
       supabase
-        .from('bukti_kas_keluar' as any)
+        .from('bukti_kas_keluar' as any) // eslint-disable-line @typescript-eslint/no-explicit-any
         .select('amount_requested')
         .in('status', ['draft', 'pending_check', 'pending_approval']),
       
       // AP Due This Week (approved BKK records created in last 7 days - proxy for urgency)
       supabase
-        .from('bukti_kas_keluar' as any)
+        .from('bukti_kas_keluar' as any) // eslint-disable-line @typescript-eslint/no-explicit-any
         .select('amount_requested')
         .eq('status', 'approved')
         .gte('created_at', sevenDaysAgo.toISOString()),
@@ -286,7 +286,7 @@ export async function getFinanceManagerMetrics(): Promise<FinanceManagerMetrics>
       
       // Pending Disbursement Approvals (count and value)
       supabase
-        .from('bukti_kas_keluar' as any)
+        .from('bukti_kas_keluar' as any) // eslint-disable-line @typescript-eslint/no-explicit-any
         .select('id, amount_requested')
         .in('status', ['pending_check', 'pending_approval']),
       

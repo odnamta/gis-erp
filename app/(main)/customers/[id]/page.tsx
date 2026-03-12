@@ -3,11 +3,10 @@ import { notFound } from 'next/navigation'
 import { createClient } from '@/lib/supabase/server'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
-import { Badge } from '@/components/ui/badge'
 import { StatusBadge } from '@/components/ui/status-badge'
 import { AttachmentsSection } from '@/components/attachments'
 import { CustomerRatesSection } from '@/components/customers/customer-rates-section'
-import { ArrowLeft, Plus, Building2, Mail, Phone, MapPin, Calendar, Cake, FileText, Receipt, Briefcase, Clock } from 'lucide-react'
+import { ArrowLeft, Plus, Building2, Mail, Phone, MapPin, Calendar, Cake, FileText, Receipt, Clock } from 'lucide-react'
 import { formatDate, formatCurrency } from '@/lib/utils/format'
 
 interface CustomerDetailPageProps {
@@ -113,14 +112,14 @@ export default async function CustomerDetailPage({ params }: CustomerDetailPageP
               <div>
                 <p className="text-sm text-muted-foreground">Tanggal Berdiri</p>
                 <p className="font-medium">
-                  {(customer as any).established_date
-                    ? formatDate((customer as any).established_date)
+                  {(customer as any).established_date // eslint-disable-line @typescript-eslint/no-explicit-any
+                    ? formatDate((customer as any).established_date) // eslint-disable-line @typescript-eslint/no-explicit-any
                     : '-'}
                 </p>
               </div>
             </div>
             {(() => {
-              const estDate = (customer as any).established_date
+              const estDate = (customer as any).established_date // eslint-disable-line @typescript-eslint/no-explicit-any
               if (!estDate) return null
               const today = new Date()
               const established = new Date(estDate)

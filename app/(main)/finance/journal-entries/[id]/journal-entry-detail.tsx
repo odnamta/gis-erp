@@ -20,7 +20,7 @@ import { useToast } from '@/hooks/use-toast'
 import { postJournalEntry } from '@/lib/gl-actions'
 import { formatDate, formatCurrency } from '@/lib/utils/format'
 import type { JournalEntryWithLines, JournalEntryStatus } from '@/types/accounting'
-import { JOURNAL_ENTRY_STATUS_LABELS, JOURNAL_ENTRY_SOURCE_LABELS, ACCOUNT_TYPE_LABELS } from '@/types/accounting'
+import { JOURNAL_ENTRY_STATUS_LABELS, JOURNAL_ENTRY_SOURCE_LABELS } from '@/types/accounting'
 
 const STATUS_COLORS: Record<JournalEntryStatus, string> = {
   draft: 'bg-yellow-100 text-yellow-800',

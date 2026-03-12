@@ -22,7 +22,6 @@ import { Badge } from '@/components/ui/badge';
 import { Vendor, VendorType } from '@/types/vendors';
 import { getVendorsByType, getActiveVendors } from '@/app/(main)/vendors/actions';
 import {
-  getVendorTypeLabel,
   formatRating,
   sortVendorsForDropdown,
   filterVendorsBySearch,

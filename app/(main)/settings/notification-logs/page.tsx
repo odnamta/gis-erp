@@ -24,7 +24,6 @@ import {
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
-import { Input } from '@/components/ui/input'
 import {
   Table,
   TableBody,
@@ -52,7 +51,6 @@ import { Progress } from '@/components/ui/progress'
 import { useToast } from '@/hooks/use-toast'
 import {
   Loader2,
-  Search,
   RefreshCw,
   Mail,
   MessageSquare,
@@ -100,7 +98,7 @@ const HEALTH_ICONS: Record<DeliveryHealth, React.ReactNode> = {
 }
 
 export default function NotificationLogsPage() {
-  const router = useRouter()
+  const _router = useRouter()
   const { toast } = useToast()
 
   const [logs, setLogs] = useState<NotificationLogEntry[]>([])
@@ -123,12 +121,12 @@ export default function NotificationLogsPage() {
   useEffect(() => {
     loadLogs()
     loadStats()
-  }, [])
+  }, []) // eslint-disable-line react-hooks/exhaustive-deps
 
   // Reload logs when filters change
   useEffect(() => {
     loadLogs()
-  }, [channelFilter, statusFilter, page])
+  }, [channelFilter, statusFilter, page]) // eslint-disable-line react-hooks/exhaustive-deps
 
   const loadLogs = async () => {
     setIsLoading(true)

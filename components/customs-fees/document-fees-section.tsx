@@ -37,7 +37,7 @@ export function DocumentFeesSection({
   documentId,
   editable = true,
 }: DocumentFeesSectionProps) {
-  const router = useRouter();
+  const _router = useRouter();
   const [fees, setFees] = useState<CustomsFeeWithRelations[]>([]);
   const [loading, setLoading] = useState(true);
   const [selectedFee, setSelectedFee] = useState<CustomsFeeWithRelations | null>(null);
@@ -52,7 +52,7 @@ export function DocumentFeesSection({
 
   useEffect(() => {
     loadFees();
-  }, [documentType, documentId]);
+  }, [documentType, documentId]); // eslint-disable-line react-hooks/exhaustive-deps
 
   // Calculate totals
   const totalAmount = fees.reduce((sum, fee) => sum + fee.amount, 0);

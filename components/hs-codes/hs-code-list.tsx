@@ -1,8 +1,7 @@
 'use client';
 
 import { useEffect, useState } from 'react';
-import { FileText, AlertTriangle, Ban } from 'lucide-react';
-import { Badge } from '@/components/ui/badge';
+import { FileText } from 'lucide-react';
 import { Skeleton } from '@/components/ui/skeleton';
 import { cn } from '@/lib/utils';
 import { getHSCodesForHeading } from '@/lib/hs-utils';

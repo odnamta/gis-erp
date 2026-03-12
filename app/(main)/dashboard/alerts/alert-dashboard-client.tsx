@@ -24,7 +24,7 @@ export function AlertDashboardClient({
   initialReports,
 }: AlertDashboardClientProps) {
   const [alerts, setAlerts] = useState(initialAlerts);
-  const [isPending, startTransition] = useTransition();
+  const [_isPending, startTransition] = useTransition();
   const [currentUserId, setCurrentUserId] = useState<string | null>(null);
   const router = useRouter();
   const { toast } = useToast();
@@ -118,7 +118,7 @@ export function AlertDashboardClient({
     router.push(`/dashboard/alerts/${alertId}`);
   };
 
-  const handleRunReportNow = async (reportId: string) => {
+  const handleRunReportNow = async (_reportId: string) => {
     // TODO: Implement run report now functionality
     toast({
       title: 'Running Report',

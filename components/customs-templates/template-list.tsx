@@ -28,7 +28,7 @@ import {
 } from '@/components/ui/dropdown-menu';
 import { MoreHorizontal, Plus, Search, FileText, Edit, Power, PowerOff } from 'lucide-react';
 import { format } from 'date-fns';
-import type { CustomsDocumentTemplate, DocumentType } from '@/types/customs-templates';
+import type { CustomsDocumentTemplate } from '@/types/customs-templates';
 import { DOCUMENT_TYPE_LABELS, DOCUMENT_TYPES } from '@/types/customs-templates';
 import { deactivateTemplate, activateTemplate } from '@/lib/template-actions';
 import { toast } from 'sonner';

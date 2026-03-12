@@ -3,7 +3,7 @@ import { PDFHeader } from './components/pdf-header'
 import { PDFFooter } from './components/pdf-footer'
 import { CompanySettingsForPDF, formatCurrencyForPDF, formatDateForPDF } from './pdf-utils'
 
-const STATUS_LABELS: Record<string, string> = {
+const _STATUS_LABELS: Record<string, string> = {
   draft: 'Draft',
   submitted: 'Diajukan',
   approved: 'Disetujui',

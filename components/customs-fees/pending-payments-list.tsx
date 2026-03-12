@@ -26,7 +26,7 @@ interface PendingPaymentsListProps {
 }
 
 export function PendingPaymentsList({ fees }: PendingPaymentsListProps) {
-  const router = useRouter();
+  const _router = useRouter();
   const [selectedFee, setSelectedFee] = useState<CustomsFeeWithRelations | null>(null);
   const [showPaymentDialog, setShowPaymentDialog] = useState(false);
 

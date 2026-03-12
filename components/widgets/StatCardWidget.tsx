@@ -26,7 +26,7 @@ import {
   AlertCircle,
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
-import type { StatCardWidgetProps, StatCardData } from '@/types/widgets';
+import type { StatCardWidgetProps } from '@/types/widgets';
 import { Button } from '@/components/ui/button';
 
 const iconMap: Record<string, React.ComponentType<{ className?: string }>> = {

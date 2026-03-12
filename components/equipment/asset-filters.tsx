@@ -1,6 +1,6 @@
 'use client'
 
-import { memo, useCallback } from 'react'
+import { memo } from 'react'
 import { Input } from '@/components/ui/input'
 import {
   Select,

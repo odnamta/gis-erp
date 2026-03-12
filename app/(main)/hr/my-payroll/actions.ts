@@ -2,7 +2,7 @@
 
 import { createClient } from '@/lib/supabase/server';
 import { getUserProfile } from '@/lib/permissions-server';
-import type { PayrollRecord, PayrollPeriod, PayrollComponentItem } from '@/types/payroll';
+import type { PayrollComponentItem } from '@/types/payroll';
 
 export interface MyPayrollRecord {
   id: string;

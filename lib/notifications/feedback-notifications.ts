@@ -3,7 +3,6 @@
  * v0.81 Bug Report & Improvement Request System
  */
 
-import { createClient } from '@/lib/supabase/server';
 import { createNotification, createBulkNotifications, getUsersByRoles } from './notification-service';
 import { NotificationPriority } from '@/types/notifications';
 import type { FeedbackType, FeedbackStatus, Severity } from '@/types/feedback';
@@ -43,7 +42,7 @@ export async function notifyNewFeedback(
       },
       { userIds: adminUsers.map(u => u.id) }
     );
-  } catch (error) {
+  } catch (_error) {
   }
 }
 
@@ -88,7 +87,7 @@ export async function notifyFeedbackStatusChange(
       entityType: 'feedback',
       entityId: feedbackId,
     });
-  } catch (error) {
+  } catch (_error) {
   }
 }
 
@@ -116,7 +115,7 @@ export async function notifyFeedbackComment(
       entityType: 'feedback',
       entityId: feedbackId,
     });
-  } catch (error) {
+  } catch (_error) {
   }
 }
 
@@ -144,6 +143,6 @@ export async function notifyFeedbackAssignment(
       entityType: 'feedback',
       entityId: feedbackId,
     });
-  } catch (error) {
+  } catch (_error) {
   }
 }

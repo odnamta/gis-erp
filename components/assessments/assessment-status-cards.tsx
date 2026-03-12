@@ -9,8 +9,7 @@ import {
   Clock, 
   CheckCircle, 
   XCircle, 
-  AlertCircle,
-  Archive
+  AlertCircle
 } from 'lucide-react';
 
 interface AssessmentStatusCardsProps {

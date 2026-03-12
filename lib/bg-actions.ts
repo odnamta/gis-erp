@@ -50,7 +50,7 @@ export async function getBGsForInvoice(invoiceId: string): Promise<BilyetGiro[]>
 
   const supabase = await createClient()
 
-  const { data, error } = await (supabase as any).from('bilyet_giro')
+  const { data, error } = await (supabase as any).from('bilyet_giro') // eslint-disable-line @typescript-eslint/no-explicit-any
     .select('*')
     .eq('invoice_id', invoiceId)
     .eq('is_active', true)
@@ -92,7 +92,7 @@ export async function createBG(input: CreateBGInput): Promise<ActionResult<Bilye
     return { success: false, error: 'Invoice tidak ditemukan' }
   }
 
-  const { data, error } = await (supabase as any).from('bilyet_giro')
+  const { data, error } = await (supabase as any).from('bilyet_giro') // eslint-disable-line @typescript-eslint/no-explicit-any
     .insert({
       invoice_id: parsed.data.invoice_id,
       bg_number: parsed.data.bg_number,
@@ -137,7 +137,7 @@ export async function updateBGStatus(
   const supabase = await createClient()
 
   // Fetch current BG
-  const { data: bg, error: fetchError } = await (supabase as any).from('bilyet_giro')
+  const { data: bg, error: fetchError } = await (supabase as any).from('bilyet_giro') // eslint-disable-line @typescript-eslint/no-explicit-any
     .select('status, invoice_id')
     .eq('id', id)
     .single()
@@ -159,7 +159,7 @@ export async function updateBGStatus(
     updateData.cleared_date = clearedDate || new Date().toISOString().split('T')[0]
   }
 
-  const { error: updateError } = await (supabase as any).from('bilyet_giro')
+  const { error: updateError } = await (supabase as any).from('bilyet_giro') // eslint-disable-line @typescript-eslint/no-explicit-any
     .update(updateData)
     .eq('id', id)
 
@@ -188,7 +188,7 @@ export async function getBGsPendingClearing(): Promise<BilyetGiro[]> {
   const sevenDaysLater = new Date()
   sevenDaysLater.setDate(today.getDate() + 7)
 
-  const { data, error } = await (supabase as any).from('bilyet_giro')
+  const { data, error } = await (supabase as any).from('bilyet_giro') // eslint-disable-line @typescript-eslint/no-explicit-any
     .select('*')
     .eq('status', 'pending')
     .eq('is_active', true)
@@ -209,7 +209,7 @@ export async function getBGsPendingClearing(): Promise<BilyetGiro[]> {
 export async function invoiceHasBGs(invoiceId: string): Promise<boolean> {
   const supabase = await createClient()
 
-  const { count, error } = await (supabase as any).from('bilyet_giro')
+  const { count, error } = await (supabase as any).from('bilyet_giro') // eslint-disable-line @typescript-eslint/no-explicit-any
     .select('id', { count: 'exact', head: true })
     .eq('invoice_id', invoiceId)
     .eq('is_active', true)

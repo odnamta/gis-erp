@@ -20,7 +20,6 @@ import {
   ShippingLine,
   BOOKING_STATUSES,
   BOOKING_STATUS_LABELS,
-  BookingStatus,
 } from '@/types/agency';
 import { getBookings } from '@/app/actions/booking-actions';
 import { Plus, Search, X, Loader2 } from 'lucide-react';

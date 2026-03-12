@@ -3,7 +3,6 @@
 import {
   EngineeringStatus,
   AssessmentType,
-  AssessmentStatus,
   EngineeringAssessment,
   ComplexityFactor,
   ENGINEERING_REQUIRED_THRESHOLD,

@@ -21,7 +21,6 @@ import {
   ContainerTrackingWithRelations,
   CustomsDocumentType,
   CONTAINER_SIZE_LABELS,
-  ContainerStatus,
 } from '@/types/customs-fees';
 import { format } from 'date-fns';
 import { Plus, Package, Loader2, LogOut } from 'lucide-react';
@@ -37,7 +36,7 @@ export function DocumentContainersSection({
   documentId,
   editable = true,
 }: DocumentContainersSectionProps) {
-  const router = useRouter();
+  const _router = useRouter();
   const [containers, setContainers] = useState<ContainerTrackingWithRelations[]>([]);
   const [loading, setLoading] = useState(true);
   const [actionLoading, setActionLoading] = useState<string | null>(null);
@@ -51,7 +50,7 @@ export function DocumentContainersSection({
 
   useEffect(() => {
     loadContainers();
-  }, [documentType, documentId]);
+  }, [documentType, documentId]); // eslint-disable-line react-hooks/exhaustive-deps
 
   const handleGateOut = async (container: ContainerTrackingWithRelations) => {
     setActionLoading(container.id);

@@ -236,7 +236,7 @@ export function calculateDeductions(
  * Note: Real PPh 21 requires PTKP, tax brackets, and annual calculation
  * This is a simplified monthly estimate
  */
-export function calculateSimplifiedPPh21(grossSalary: number, baseSalary: number): number {
+export function calculateSimplifiedPPh21(grossSalary: number, _baseSalary: number): number {
   // PTKP (Penghasilan Tidak Kena Pajak) monthly for single person: ~4.5M
   const monthlyPTKP = 4_500_000;
   

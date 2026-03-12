@@ -62,7 +62,7 @@ function WidgetSlot({ config, isEditing }: WidgetSlotProps) {
   );
 }
 
-export function WidgetGrid({ configs, onLayoutChange, isEditing = false }: WidgetGridProps) {
+export function WidgetGrid({ configs, onLayoutChange: _onLayoutChange, isEditing = false }: WidgetGridProps) {
   // Sort widgets by position
   const sortedConfigs = useMemo(() => {
     return sortWidgetsByPosition(configs);

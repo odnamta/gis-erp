@@ -6,7 +6,6 @@
 import { createClient } from '@/lib/supabase/server';
 import { revalidatePath } from 'next/cache';
 import type {
-  NotificationTemplate,
   NotificationWorkflowPreference,
   NotificationLogEntry,
   SendNotificationInput,
@@ -21,19 +20,12 @@ import type { SupabaseClient } from '@supabase/supabase-js';
 type AnySupabaseClient = SupabaseClient<any, any, any>;
 import {
   getTemplateByCode,
-  renderTemplate,
-  getTemplateSupportedChannels,
 } from '@/lib/notification-template-utils';
 import {
   getPreferenceOrDefault,
-  getEnabledChannels,
-  isTimeInQuietHours,
-  shouldBatchNotification,
 } from '@/lib/notification-preference-utils';
 import {
-  getDeliveryChannels,
   prepareNotification,
-  isValidEmail,
   buildSuccessResult,
   buildPartialResult,
   buildFailureResult,
@@ -44,7 +36,6 @@ import {
   markLogFailed,
   buildPendingLogEntry,
 } from '@/lib/notification-log-utils';
-import { validatePhoneNumber } from '@/lib/phone-validation-utils';
 
 // ============================================================================
 // Send Notification Action
@@ -167,9 +158,9 @@ export async function sendNotification(
  * Simulate channel delivery (placeholder for actual implementation)
  */
 async function simulateChannelDelivery(
-  channel: NotificationChannel,
-  rendered: { body: string; subject?: string; title?: string },
-  input: SendNotificationInput
+  _channel: NotificationChannel,
+  _rendered: { body: string; subject?: string; title?: string },
+  _input: SendNotificationInput
 ): Promise<void> {
   // In production, this would call:
   // - Email: SendGrid, AWS SES, etc.

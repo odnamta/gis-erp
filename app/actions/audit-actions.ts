@@ -303,7 +303,7 @@ export async function createManualAuditEntry(
     
     const { data, error } = await supabase
       .from('audit_log' as AuditLogTable as 'activity_log')
-      .insert(auditEntry as any)
+      .insert(auditEntry as any) // eslint-disable-line @typescript-eslint/no-explicit-any
       .select()
       .single();
     
@@ -372,7 +372,7 @@ export async function getAuditLogStats(
       const moduleName = (log as { document_type?: string }).document_type || 'unknown';
       moduleCountMap[moduleName] = (moduleCountMap[moduleName] || 0) + 1;
     }
-    const entriesByModule = Object.entries(moduleCountMap)
+    const _entriesByModule = Object.entries(moduleCountMap)
       .map(([moduleName, count]) => ({ module: moduleName, count }))
       .sort((a, b) => b.count - a.count);
     
@@ -382,7 +382,7 @@ export async function getAuditLogStats(
       const entityType = (log as { document_type?: string }).document_type || 'unknown';
       entityTypeCountMap[entityType] = (entityTypeCountMap[entityType] || 0) + 1;
     }
-    const entriesByEntityType = Object.entries(entityTypeCountMap)
+    const _entriesByEntityType = Object.entries(entityTypeCountMap)
       .map(([entity_type, count]) => ({ entity_type, count }))
       .sort((a, b) => b.count - a.count);
     
@@ -402,7 +402,7 @@ export async function getAuditLogStats(
       .slice(0, 10);
     
     // Calculate failure rate (activity_log doesn't have status, so skip)
-    const failureRate = 0;
+    const _failureRate = 0;
     
     const stats: AuditLogStats = {
       total_entries: totalEntries,

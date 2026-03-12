@@ -19,7 +19,6 @@ import { Alert, AlertDescription } from '@/components/ui/alert'
 import { PEBItem, PEBItemFormData } from '@/types/peb'
 import { calculateItemTotalPrice, formatCurrency } from '@/lib/peb-utils'
 import { HSCodeDropdown } from '@/components/hs-codes/hs-code-dropdown'
-import type { HSCodeRates } from '@/types/hs-codes'
 import { Loader2, AlertTriangle } from 'lucide-react'
 
 const itemSchema = z.object({

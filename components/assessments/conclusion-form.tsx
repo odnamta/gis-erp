@@ -8,13 +8,8 @@ import { useRouter } from 'next/navigation';
 import { Button } from '@/components/ui/button';
 import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from '@/components/ui/select';
+
+
 import {
   Card,
   CardContent,
@@ -36,8 +31,8 @@ interface ConclusionFormProps {
 export function ConclusionForm({ assessment, canEdit }: ConclusionFormProps) {
   const router = useRouter();
   const [loading, setLoading] = useState(false);
-  const [conclusion, setConclusion] = useState<ConclusionType | ''>(assessment.conclusion || '');
-  const [conclusionNotes, setConclusionNotes] = useState(assessment.conclusion_notes || '');
+  const [conclusion, _setConclusion] = useState<ConclusionType | ''>(assessment.conclusion || '');
+  const [conclusionNotes, _setConclusionNotes] = useState(assessment.conclusion_notes || '');
   const [recommendations, setRecommendations] = useState(assessment.recommendations || '');
   const [limitations, setLimitations] = useState(assessment.limitations || '');
   const [assumptions, setAssumptions] = useState(assessment.assumptions || '');

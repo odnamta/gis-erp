@@ -23,13 +23,10 @@ import {
   calculateQuotationTotals,
   canSubmitQuotation,
   prepareQuotationForPJO,
-  splitQuotationByShipments,
   calculatePursuitCostPerShipment,
 } from '@/lib/quotation-utils'
 import {
   calculateMarketClassification,
-  classifyMarketType,
-  requiresEngineering,
 } from '@/lib/market-classification-utils'
 import { PJOClassificationInput } from '@/types/market-classification'
 import { generatePJONumber } from '@/app/(main)/proforma-jo/actions'
@@ -1109,7 +1106,7 @@ export async function convertToPJO(
       : 1
     
     // Calculate pursuit cost per shipment
-    const pursuitCostPerShipment = calculatePursuitCostPerShipment(
+    const _pursuitCostPerShipment = calculatePursuitCostPerShipment(
       quotation.total_pursuit_cost || 0,
       shipmentCount
     )

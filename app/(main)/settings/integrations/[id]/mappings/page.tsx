@@ -5,8 +5,6 @@ import { useParams, useRouter } from 'next/navigation'
 import {
   IntegrationConnection,
   SyncMapping,
-  VALID_SYNC_DIRECTIONS,
-  VALID_SYNC_FREQUENCIES,
 } from '@/types/integration'
 import { getConnection } from '@/lib/integration-actions'
 import {
@@ -96,7 +94,7 @@ export default function SyncMappingsPage() {
 
   useEffect(() => {
     loadData()
-  }, [connectionId])
+  }, [connectionId]) // eslint-disable-line react-hooks/exhaustive-deps
 
   const loadData = async () => {
     setIsLoading(true)

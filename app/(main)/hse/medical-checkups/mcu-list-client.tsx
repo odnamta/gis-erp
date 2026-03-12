@@ -53,7 +53,7 @@ const CHECKUP_TYPE_OPTIONS: { value: CheckupType | 'all'; label: string }[] = [
   { value: 'exit', label: 'Akhir Masa Kerja' },
 ];
 
-export function McuListClient({ readOnly }: { readOnly?: boolean }) {
+export function McuListClient({ readOnly: _readOnly }: { readOnly?: boolean }) {
   const [records, setRecords] = useState<MedicalCheckup[]>([]);
   const [loading, setLoading] = useState(true);
   const [search, setSearch] = useState('');
@@ -63,7 +63,7 @@ export function McuListClient({ readOnly }: { readOnly?: boolean }) {
 
   useEffect(() => {
     loadRecords();
-  }, [medicalStatus, checkupType]);
+  }, [medicalStatus, checkupType]); // eslint-disable-line react-hooks/exhaustive-deps
 
   const loadRecords = async () => {
     setLoading(true);

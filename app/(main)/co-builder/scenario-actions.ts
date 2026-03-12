@@ -191,7 +191,7 @@ export async function completeScenario(data: {
     } as Record<string, unknown>)
 
     // Refresh leaderboard
-    try { await supabase.rpc('refresh_leaderboard' as any) } catch { /* non-critical */ }
+    try { await supabase.rpc('refresh_leaderboard' as any) } catch { /* non-critical */ } // eslint-disable-line @typescript-eslint/no-explicit-any
 
     revalidatePath('/co-builder')
     revalidatePath('/co-builder/scenarios')

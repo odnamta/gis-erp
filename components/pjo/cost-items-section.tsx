@@ -101,7 +101,7 @@ export function CostItemsSection({ pjoId, items, totalRevenue, isEditable, onRef
                     <TableHead>Category</TableHead>
                     <TableHead>Description</TableHead>
                     <TableHead>Vendor</TableHead>
-                    <TableHead className="text-right">Estimated Amount</TableHead>
+                    <TableHead className="w-44 text-right">Estimated Amount</TableHead>
                     {isEditable && <TableHead className="w-[100px]">Actions</TableHead>}
                   </TableRow>
                 </TableHeader>

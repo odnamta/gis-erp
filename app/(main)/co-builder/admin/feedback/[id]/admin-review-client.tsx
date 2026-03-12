@@ -25,8 +25,6 @@ import {
   ThumbsUp,
   HelpCircle,
   Loader2,
-  ExternalLink,
-  Image as ImageIcon,
   Bot,
 } from 'lucide-react'
 import { useToast } from '@/hooks/use-toast'

@@ -10,7 +10,6 @@ import {
   classifyOverdueSeverity,
 } from '@/lib/overdue-check-utils'
 import { formatCurrency } from '@/lib/utils/format'
-import type { OverdueSeverity } from '@/types/overdue-check'
 
 // =====================================================
 // TYPES

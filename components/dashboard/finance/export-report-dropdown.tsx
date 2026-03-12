@@ -10,7 +10,6 @@ import {
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu'
 import { Button } from '@/components/ui/button'
-import { formatCurrency } from '@/lib/utils/format'
 import type { ARAgingData, RecentPayment, AgingBucketType } from '@/lib/finance-dashboard-utils'
 
 interface ExportReportDropdownProps {

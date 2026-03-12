@@ -82,7 +82,7 @@ export function SurveyForm({
       } else {
         toast.error(result.error || 'Failed to save survey');
       }
-    } catch (error) {
+    } catch (_error) {
       toast.error('An error occurred');
     } finally {
       setLoading(false);

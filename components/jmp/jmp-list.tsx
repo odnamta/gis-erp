@@ -23,7 +23,7 @@ import {
   SelectValue,
 } from '@/components/ui/select';
 import { Eye, Search } from 'lucide-react';
-import { JmpWithRelations, JmpStatus, JmpFilters } from '@/types/jmp';
+import { JmpWithRelations, JmpFilters } from '@/types/jmp';
 import { formatJmpStatus, getJmpStatusColor } from '@/lib/jmp-utils';
 
 interface JmpListProps {

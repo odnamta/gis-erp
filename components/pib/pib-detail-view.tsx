@@ -34,7 +34,6 @@ import { AttachmentsSection } from '@/components/attachments/attachments-section
 import { DocumentFeesSection } from '@/components/customs-fees/document-fees-section'
 import { DocumentContainersSection } from '@/components/customs-fees/document-containers-section'
 import {
-  formatCurrency,
   formatPIBDate,
   formatTransportMode,
   canEditPIB as canEditPIBStatus,
@@ -95,7 +94,7 @@ export function PIBDetailView({ pib, permissions }: PIBDetailViewProps) {
   const { toast } = useToast()
   const [items, setItems] = useState<PIBItem[]>([])
   const [history, setHistory] = useState<PIBStatusHistory[]>([])
-  const [isLoading, setIsLoading] = useState(true)
+  const [_isLoading, setIsLoading] = useState(true)
   const [statusDialogOpen, setStatusDialogOpen] = useState(false)
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false)
   const [isDeleting, setIsDeleting] = useState(false)
@@ -127,7 +126,7 @@ export function PIBDetailView({ pib, permissions }: PIBDetailViewProps) {
 
   useEffect(() => {
     loadData()
-  }, [pib.id])
+  }, [pib.id]) // eslint-disable-line react-hooks/exhaustive-deps
 
   const handleStatusUpdate = async (newStatus: PIBStatus, data?: StatusUpdateData) => {
     const result = await updatePIBStatus(pib.id, newStatus, data)

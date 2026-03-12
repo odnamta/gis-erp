@@ -111,7 +111,7 @@ export async function deleteDocument(fileUrl: string): Promise<boolean> {
     }
     
     return true
-  } catch (error) {
+  } catch (_error) {
     return false
   }
 }
@@ -180,7 +180,7 @@ export async function getSignedUrl(
     }
     
     return data.signedUrl
-  } catch (error) {
+  } catch (_error) {
     return null
   }
 }
@@ -278,7 +278,7 @@ export async function listDocuments(
     }
     
     return data?.map(file => file.name) || []
-  } catch (error) {
+  } catch (_error) {
     return []
   }
 }

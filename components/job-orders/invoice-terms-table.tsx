@@ -16,7 +16,6 @@ import {
 import { InvoiceTerm, TermStatus, TriggerType } from '@/types'
 import {
   getTermStatus,
-  getTermStatusLabel,
   getLockedTriggerDescription,
   calculateTermInvoiceTotals,
   TRIGGER_LABELS,
@@ -36,7 +35,7 @@ interface InvoiceTermsTableProps {
   hasBeritaAcara?: boolean
 }
 
-interface JOInvoice {
+interface _JOInvoice {
   id: string
   invoice_number: string
   status: string

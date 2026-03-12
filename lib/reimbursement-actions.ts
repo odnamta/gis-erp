@@ -17,7 +17,7 @@ async function generateReimbursementNumber(): Promise<string> {
   const prefix = `RB-${year}-`;
 
   const { data } = await supabase
-    .from('reimbursement_requests' as any)
+    .from('reimbursement_requests' as any) // eslint-disable-line @typescript-eslint/no-explicit-any
     .select('request_number')
     .like('request_number', `${prefix}%`)
     .order('request_number', { ascending: false })
@@ -25,7 +25,7 @@ async function generateReimbursementNumber(): Promise<string> {
 
   let sequence = 1;
   if (data && data.length > 0) {
-    const lastNum = (data[0] as any).request_number as string;
+    const lastNum = (data[0] as any).request_number as string; // eslint-disable-line @typescript-eslint/no-explicit-any
     const lastSeq = parseInt(lastNum.split('-').pop() || '0', 10);
     sequence = lastSeq + 1;
   }
@@ -39,7 +39,7 @@ export async function getReimbursements(
   const supabase = await createClient();
 
   let query = supabase
-    .from('reimbursement_requests' as any)
+    .from('reimbursement_requests' as any) // eslint-disable-line @typescript-eslint/no-explicit-any
     .select('*')
     .eq('is_active', true)
     .order('created_at', { ascending: false });
@@ -60,16 +60,16 @@ export async function getReimbursements(
   if (!data || data.length === 0) return [];
 
   // Fetch employee info
-  const employeeIds = [...new Set((data as any[]).map((d: any) => d.employee_id))];
+  const employeeIds = [...new Set((data as any[]).map((d: any) => d.employee_id))]; // eslint-disable-line @typescript-eslint/no-explicit-any
   const { data: employees } = await supabase
     .from('employees')
     .select('id, full_name, employee_code')
     .in('id', employeeIds);
 
-  const empMap = new Map<string, any>();
-  (employees || []).forEach((e: any) => empMap.set(e.id, e));
+  const empMap = new Map<string, any>(); // eslint-disable-line @typescript-eslint/no-explicit-any
+  (employees || []).forEach((e: any) => empMap.set(e.id, e)); // eslint-disable-line @typescript-eslint/no-explicit-any
 
-  let result = (data as any[]).map((req: any) => ({
+  let result = (data as any[]).map((req: any) => ({ // eslint-disable-line @typescript-eslint/no-explicit-any
     ...req,
     employee: empMap.get(req.employee_id) || null,
   })) as ReimbursementRequest[];
@@ -91,14 +91,14 @@ export async function getReimbursementById(id: string): Promise<ReimbursementReq
   const supabase = await createClient();
 
   const { data, error } = await supabase
-    .from('reimbursement_requests' as any)
+    .from('reimbursement_requests' as any) // eslint-disable-line @typescript-eslint/no-explicit-any
     .select('*')
     .eq('id', id)
     .single();
 
   if (error || !data) return null;
 
-  const req = data as any;
+  const req = data as any; // eslint-disable-line @typescript-eslint/no-explicit-any
 
   // Fetch employee
   const { data: emp } = await supabase
@@ -153,7 +153,7 @@ export async function submitReimbursement(
   const requestNumber = await generateReimbursementNumber();
 
   const { data, error } = await supabase
-    .from('reimbursement_requests' as any)
+    .from('reimbursement_requests' as any) // eslint-disable-line @typescript-eslint/no-explicit-any
     .insert({
       request_number: requestNumber,
       employee_id: input.employee_id,
@@ -190,17 +190,17 @@ export async function checkReimbursement(
   const profileId = await getCurrentProfileId();
 
   const { data: req } = await supabase
-    .from('reimbursement_requests' as any)
+    .from('reimbursement_requests' as any) // eslint-disable-line @typescript-eslint/no-explicit-any
     .select('status')
     .eq('id', id)
     .single();
 
-  if (!req || (req as any).status !== 'pending') {
+  if (!req || (req as any).status !== 'pending') { // eslint-disable-line @typescript-eslint/no-explicit-any
     return { success: false, error: 'Permintaan tidak dalam status pending' };
   }
 
   const { error } = await supabase
-    .from('reimbursement_requests' as any)
+    .from('reimbursement_requests' as any) // eslint-disable-line @typescript-eslint/no-explicit-any
     .update({
       status: 'checked',
       checked_by: profileId,
@@ -230,18 +230,18 @@ export async function approveReimbursement(
   const profileId = await getCurrentProfileId();
 
   const { data: req } = await supabase
-    .from('reimbursement_requests' as any)
+    .from('reimbursement_requests' as any) // eslint-disable-line @typescript-eslint/no-explicit-any
     .select('status')
     .eq('id', id)
     .single();
 
   // Accept both 'checked' (new flow) and 'pending' (backward compat for items without check step)
-  if (!req || !['pending', 'checked'].includes((req as any).status)) {
+  if (!req || !['pending', 'checked'].includes((req as any).status)) { // eslint-disable-line @typescript-eslint/no-explicit-any
     return { success: false, error: 'Permintaan harus dalam status pending atau sudah diperiksa' };
   }
 
   const { error } = await supabase
-    .from('reimbursement_requests' as any)
+    .from('reimbursement_requests' as any) // eslint-disable-line @typescript-eslint/no-explicit-any
     .update({
       status: 'approved',
       approved_by: profileId,
@@ -274,17 +274,17 @@ export async function rejectReimbursement(
   const profileId = await getCurrentProfileId();
 
   const { data: req } = await supabase
-    .from('reimbursement_requests' as any)
+    .from('reimbursement_requests' as any) // eslint-disable-line @typescript-eslint/no-explicit-any
     .select('status')
     .eq('id', id)
     .single();
 
-  if (!req || !['pending', 'checked'].includes((req as any).status)) {
+  if (!req || !['pending', 'checked'].includes((req as any).status)) { // eslint-disable-line @typescript-eslint/no-explicit-any
     return { success: false, error: 'Permintaan harus dalam status pending atau sudah diperiksa' };
   }
 
   const { error } = await supabase
-    .from('reimbursement_requests' as any)
+    .from('reimbursement_requests' as any) // eslint-disable-line @typescript-eslint/no-explicit-any
     .update({
       status: 'rejected',
       approved_by: profileId,
@@ -316,17 +316,17 @@ export async function markReimbursementPaid(
   const profileId = await getCurrentProfileId();
 
   const { data: req } = await supabase
-    .from('reimbursement_requests' as any)
+    .from('reimbursement_requests' as any) // eslint-disable-line @typescript-eslint/no-explicit-any
     .select('status')
     .eq('id', id)
     .single();
 
-  if (!req || (req as any).status !== 'approved') {
+  if (!req || (req as any).status !== 'approved') { // eslint-disable-line @typescript-eslint/no-explicit-any
     return { success: false, error: 'Hanya reimbursement yang sudah disetujui yang bisa dibayar' };
   }
 
   const { error } = await supabase
-    .from('reimbursement_requests' as any)
+    .from('reimbursement_requests' as any) // eslint-disable-line @typescript-eslint/no-explicit-any
     .update({
       status: 'paid',
       paid_by: profileId,
@@ -354,17 +354,17 @@ export async function cancelReimbursement(
   const supabase = await createClient();
 
   const { data: req } = await supabase
-    .from('reimbursement_requests' as any)
+    .from('reimbursement_requests' as any) // eslint-disable-line @typescript-eslint/no-explicit-any
     .select('status')
     .eq('id', id)
     .single();
 
-  if (!req || (req as any).status !== 'pending') {
+  if (!req || (req as any).status !== 'pending') { // eslint-disable-line @typescript-eslint/no-explicit-any
     return { success: false, error: 'Hanya permintaan pending yang bisa dibatalkan' };
   }
 
   const { error } = await supabase
-    .from('reimbursement_requests' as any)
+    .from('reimbursement_requests' as any) // eslint-disable-line @typescript-eslint/no-explicit-any
     .update({ status: 'cancelled' })
     .eq('id', id);
 
@@ -388,11 +388,11 @@ export async function getReimbursementStats(): Promise<{
   const supabase = await createClient();
 
   const { data } = await supabase
-    .from('reimbursement_requests' as any)
+    .from('reimbursement_requests' as any) // eslint-disable-line @typescript-eslint/no-explicit-any
     .select('status, amount')
     .eq('is_active', true);
 
-  const all = (data || []) as any[];
+  const all = (data || []) as any[]; // eslint-disable-line @typescript-eslint/no-explicit-any
   return {
     total: all.length,
     pending: all.filter((r) => r.status === 'pending').length,

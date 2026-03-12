@@ -32,7 +32,7 @@ import {
   DialogTitle,
 } from '@/components/ui/dialog';
 import { Bar, BarChart, ResponsiveContainer, XAxis, YAxis, Tooltip } from 'recharts';
-import type { AIQueryResponse, ChartConfig } from '@/types/ai-insights';
+import type { AIQueryResponse } from '@/types/ai-insights';
 import { exportToCSV, formatValue } from '@/lib/ai-insights-utils';
 
 interface AIQueryResponseProps {

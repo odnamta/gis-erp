@@ -9,7 +9,6 @@ import type {
   ChartConfig,
   AIQueryTemplate,
   TemplateMatch,
-  AI_INSIGHTS_ALLOWED_ROLES,
 } from '@/types/ai-insights';
 import { formatDate } from '@/lib/utils/format';
 

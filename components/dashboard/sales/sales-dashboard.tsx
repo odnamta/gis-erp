@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useEffect, useTransition } from 'react'
+import { useState, useTransition } from 'react'
 import { PeriodFilter } from './period-filter'
 import { SalesKPICards } from './sales-kpi-cards'
 import { PipelineFunnel } from './pipeline-funnel'

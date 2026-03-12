@@ -14,7 +14,7 @@ export const metadata = {
 async function fetchBKKRecords() {
   const supabase = await createClient()
   const result = await (supabase
-    .from('bukti_kas_keluar' as any)
+    .from('bukti_kas_keluar' as any) // eslint-disable-line @typescript-eslint/no-explicit-any
     .select(`
       *,
       job_orders:jo_id (jo_number, customer_name),
@@ -23,7 +23,7 @@ async function fetchBKKRecords() {
       approved_by_profile:user_profiles!bukti_kas_keluar_approved_by_fkey (full_name)
     `)
     .order('created_at', { ascending: false })
-    .limit(200) as any)
+    .limit(200) as any) // eslint-disable-line @typescript-eslint/no-explicit-any
 
   return result
 }

@@ -418,7 +418,7 @@ export async function updateJOCategory(
     .update({
       jo_category: category,
       updated_at: new Date().toISOString(),
-    } as any)
+    } as any) // eslint-disable-line @typescript-eslint/no-explicit-any
     .eq('id', joId)
 
   if (error) {
@@ -485,7 +485,7 @@ export async function requestJORevision(
       revision_requested_at: new Date().toISOString(),
       revision_requested_by: user.id,
       updated_at: new Date().toISOString(),
-    } as any)
+    } as any) // eslint-disable-line @typescript-eslint/no-explicit-any
     .eq('id', joId)
 
   if (error) {

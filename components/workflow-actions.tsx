@@ -53,7 +53,7 @@ const ACTION_CONFIG: Record<WorkflowAction, { label: string; variant: 'default' 
 export function WorkflowActions({
   documentType,
   currentStatus,
-  documentId,
+  documentId: _documentId,
   documentNumber,
   onAction,
   compact = false,

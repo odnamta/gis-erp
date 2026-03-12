@@ -148,7 +148,7 @@ export async function getInvoiceDataFromJO(joId: string): Promise<ActionResult<I
       const contractRatesMap: Record<string, { route_pattern: string | null; description: string }> = {}
       if (contractSourceIds.length > 0) {
         const { data: rates } = await supabase
-          .from('customer_contract_rates' as any)
+          .from('customer_contract_rates' as any) // eslint-disable-line @typescript-eslint/no-explicit-any
           .select('id, route_pattern, description')
           .in('id', contractSourceIds)
         if (rates) {
@@ -386,7 +386,7 @@ export async function getInvoices(filters?: InvoiceFilters): Promise<InvoiceWith
   // Fetch which invoices have BG records
   if (invoices.length > 0) {
     const invoiceIds = invoices.map(inv => inv.id)
-    const bgQuery = (supabase as any).from('bilyet_giro')
+    const bgQuery = (supabase as any).from('bilyet_giro') // eslint-disable-line @typescript-eslint/no-explicit-any
       .select('invoice_id')
       .in('invoice_id', invoiceIds)
       .eq('is_active', true)
@@ -855,7 +855,7 @@ export async function createDPInvoice(
   const entityType = profile.role === 'agency' ? 'gama_agency' : 'gama_main'
 
   // Create invoice with invoice_type = 'dp' and pjo_id (new columns not in generated types)
-  const { data: invoice, error: invoiceError } = await (supabase.from('invoices') as any)
+  const { data: invoice, error: invoiceError } = await (supabase.from('invoices') as any) // eslint-disable-line @typescript-eslint/no-explicit-any
     .insert({
       invoice_number: invoiceNumber,
       jo_id: null,
@@ -935,7 +935,7 @@ export async function getDPInvoicesForPJO(
   const supabase = await createClient()
 
   // Query invoices with pjo_id and invoice_type = 'dp' (new columns, use as any)
-  const { data, error } = await (supabase.from('invoices') as any)
+  const { data, error } = await (supabase.from('invoices') as any) // eslint-disable-line @typescript-eslint/no-explicit-any
     .select(`
       *,
       customers (id, name, email, address)
@@ -1229,12 +1229,12 @@ export async function postInvoiceToJournal(
 
   // Check if journal already exists for this invoice
   const { data: existingJE } = await (supabase
-    .from('journal_entries' as any)
+    .from('journal_entries' as any) // eslint-disable-line @typescript-eslint/no-explicit-any
     .select('id, entry_number')
     .eq('source_type', 'invoice')
     .eq('source_id', invoiceId)
     .neq('status', 'reversed')
-    .limit(1) as any)
+    .limit(1) as any) // eslint-disable-line @typescript-eslint/no-explicit-any
 
   if (existingJE && existingJE.length > 0) {
     return { success: false, error: `Jurnal sudah ada: ${existingJE[0].entry_number}` }
@@ -1242,19 +1242,19 @@ export async function postInvoiceToJournal(
 
   // Find AR (Piutang Usaha) and Revenue accounts
   const { data: arAccount } = await (supabase
-    .from('chart_of_accounts' as any)
+    .from('chart_of_accounts' as any) // eslint-disable-line @typescript-eslint/no-explicit-any
     .select('id')
     .eq('account_type', 'asset')
     .ilike('account_name', '%piutang%')
     .eq('is_active', true)
-    .limit(1) as any)
+    .limit(1) as any) // eslint-disable-line @typescript-eslint/no-explicit-any
 
   const { data: revenueAccount } = await (supabase
-    .from('chart_of_accounts' as any)
+    .from('chart_of_accounts' as any) // eslint-disable-line @typescript-eslint/no-explicit-any
     .select('id')
     .eq('account_type', 'revenue')
     .eq('is_active', true)
-    .limit(1) as any)
+    .limit(1) as any) // eslint-disable-line @typescript-eslint/no-explicit-any
 
   if (!arAccount?.[0]?.id || !revenueAccount?.[0]?.id) {
     return { success: false, error: 'Akun Piutang Usaha atau Pendapatan belum diatur di Chart of Accounts' }
@@ -1330,7 +1330,7 @@ export async function updateCollectionStatus(
   const { error } = await (supabase
     .from('invoices')
     .update(updateData)
-    .eq('id', invoiceId) as any)
+    .eq('id', invoiceId) as any) // eslint-disable-line @typescript-eslint/no-explicit-any
 
   if (error) {
     return { success: false, error: error.message }

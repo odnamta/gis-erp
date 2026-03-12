@@ -16,7 +16,6 @@ import { Badge } from '@/components/ui/badge';
 import {
   RouteWaypoint,
   TransportDimensions,
-  WaypointFormData,
 } from '@/types/survey';
 import {
   assessWaypointPassability,

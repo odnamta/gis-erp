@@ -3,10 +3,9 @@
 import { useState, useEffect, useCallback } from 'react'
 import { OwnerDashboard } from './owner-dashboard'
 import { DashboardClient } from './dashboard-client'
-import { OpsDashboard, EnhancedOpsDashboard } from './ops'
+import { EnhancedOpsDashboard } from './ops'
 import { FinanceDashboard } from './finance/finance-dashboard'
 import { SalesDashboard } from './sales/sales-dashboard'
-import { SalesEngineeringDashboard } from './sales-engineering'
 import { ManagerDashboard } from './manager/manager-dashboard'
 import { AdminDashboard } from './admin/admin-dashboard'
 import { OnboardingWidget } from '@/components/onboarding'
@@ -34,7 +33,7 @@ const previewDataCache: Record<string, unknown> = {}
 export function OwnerDashboardWithPreview({
   ownerData,
   userName,
-  userEmail,
+  userEmail: _userEmail,
   userId,
   onboardingData,
 }: OwnerDashboardWithPreviewProps) {

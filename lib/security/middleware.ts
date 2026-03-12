@@ -386,7 +386,7 @@ export async function performRateLimitCheck(
     }
 
     return { allowed: true, result };
-  } catch (error) {
+  } catch (_error) {
     // Fail open - allow request if rate limiting fails
     return {
       allowed: true,
@@ -500,7 +500,7 @@ export async function performIPBlockCheck(
     }
 
     return { blocked: false };
-  } catch (error) {
+  } catch (_error) {
     // Fail open - allow request if IP check fails
     return { blocked: false };
   }
@@ -625,7 +625,7 @@ export async function performInputValidation(
     }
 
     return { valid: true, threats: [] };
-  } catch (error) {
+  } catch (_error) {
     // Fail open - allow request if validation fails
     return { valid: true, threats: [] };
   }

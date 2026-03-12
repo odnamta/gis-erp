@@ -210,7 +210,7 @@ export async function getErrorById(errorId: string): Promise<ErrorTracking | nul
 /**
  * Top recurring error type for internal use
  */
-interface TopRecurringError {
+interface _TopRecurringError {
   error_hash: string;
   error_message: string;
   occurrence_count: number;

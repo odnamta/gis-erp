@@ -234,6 +234,7 @@ export function BeritaAcaraPDF({
             <View style={styles.photoGrid}>
               {beritaAcara.photo_urls.slice(0, 6).map((url, index) => (
                 <View key={index} style={styles.photoContainer}>
+                  {/* eslint-disable-next-line jsx-a11y/alt-text */}
                   <Image src={url} style={styles.photo} />
                 </View>
               ))}

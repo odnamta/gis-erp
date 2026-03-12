@@ -36,7 +36,7 @@ export function EnhancedActiveJobsTable({ jobs }: EnhancedActiveJobsTableProps) 
     )
   }
 
-  const getStatusBadge = (status: string) => {
+  const _getStatusBadge = (status: string) => {
     switch (status) {
       case 'active':
         return <Badge className="bg-blue-100 text-blue-800">Active</Badge>

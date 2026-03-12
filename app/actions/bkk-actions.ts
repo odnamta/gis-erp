@@ -89,7 +89,7 @@ export async function createBKK(formData: BKKFormData): Promise<{
     
     const { data, error } = await supabase
       .from(BKK_TABLE)
-      .insert(insertData as any)
+      .insert(insertData as any) // eslint-disable-line @typescript-eslint/no-explicit-any
       .select('id, bkk_number')
       .single()
     
@@ -312,7 +312,7 @@ export async function getBKKList(filters?: {
     }
     
     // Safely map the data to expected format
-    const mappedData = Array.isArray(data) ? data.map((item: any) => ({
+    const mappedData = Array.isArray(data) ? data.map((item: any) => ({ // eslint-disable-line @typescript-eslint/no-explicit-any
       id: item.id || '',
       bkk_number: item.bkk_number || '',
       description: item.purpose || item.description || '',
@@ -409,7 +409,7 @@ export async function getPendingBKKs(): Promise<{
     }
     
     // Safely map the data to expected format
-    const mappedData = Array.isArray(data) ? data.map((item: any) => ({
+    const mappedData = Array.isArray(data) ? data.map((item: any) => ({ // eslint-disable-line @typescript-eslint/no-explicit-any
       id: item.id || '',
       bkk_number: item.bkk_number || '',
       description: item.purpose || item.description || '',

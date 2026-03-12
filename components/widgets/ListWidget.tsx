@@ -16,7 +16,7 @@ import { Badge } from '@/components/ui/badge';
 import { RefreshCw, AlertCircle, ChevronRight, Clock } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { formatDistanceToNow } from 'date-fns';
-import type { ListWidgetProps, ListData, ListItem } from '@/types/widgets';
+import type { ListWidgetProps, ListItem } from '@/types/widgets';
 
 const statusColors: Record<string, string> = {
   pending: 'bg-yellow-100 text-yellow-800 dark:bg-yellow-900/30 dark:text-yellow-400',

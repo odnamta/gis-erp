@@ -1,6 +1,5 @@
 // Export Utility Functions for Reports
 
-import type ExcelJS from 'exceljs'
 import { DateRange } from '@/types/reports'
 
 export interface ExportColumn {

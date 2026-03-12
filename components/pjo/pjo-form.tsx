@@ -138,8 +138,8 @@ export function PJOForm({ projects, pjo, existingRevenueItems = [], existingCost
   const [costItems, setCostItems] = useState<CostItemRow[]>(initialCostItems)
   const [revenueItemErrors, setRevenueItemErrors] = useState<Record<number, { description?: string; unit_price?: string }>>({})
   const [costItemErrors, setCostItemErrors] = useState<Record<number, { category?: string; description?: string; estimated_amount?: string }>>({})
-  const [serviceScope, setServiceScope] = useState((pjo as any)?.service_scope || '')
-  const [joSubcategory, setJoSubcategory] = useState((pjo as any)?.jo_subcategory || '')
+  const [serviceScope, setServiceScope] = useState((pjo as any)?.service_scope || '') // eslint-disable-line @typescript-eslint/no-explicit-any
+  const [joSubcategory, setJoSubcategory] = useState((pjo as any)?.jo_subcategory || '') // eslint-disable-line @typescript-eslint/no-explicit-any
   const today = new Date().toISOString().split('T')[0]
   const calculatedTotalRevenue = revenueItems.reduce((sum, item) => sum + item.subtotal, 0)
   const calculatedTotalCost = costItems.reduce((sum, item) => sum + item.estimated_amount, 0)
@@ -223,7 +223,7 @@ export function PJOForm({ projects, pjo, existingRevenueItems = [], existingCost
       return
     }
     const supabase = createClient()
-    ;(supabase.from('projects') as any)
+    ;(supabase.from('projects') as any) // eslint-disable-line @typescript-eslint/no-explicit-any
       .select('contract_value')
       .eq('id', selectedProjectId)
       .single()
@@ -458,8 +458,8 @@ export function PJOForm({ projects, pjo, existingRevenueItems = [], existingCost
         complexity_factors: classification?.complexity_factors ?? null,
         pricing_approach: pricingApproach,
         pricing_notes: pricingNotes || null,
-        service_scope: (serviceScope || null) as any,
-        jo_subcategory: (joSubcategory || null) as any,
+        service_scope: (serviceScope || null) as any, // eslint-disable-line @typescript-eslint/no-explicit-any
+        jo_subcategory: (joSubcategory || null) as any, // eslint-disable-line @typescript-eslint/no-explicit-any
       }
 
       if (mode === 'create') {

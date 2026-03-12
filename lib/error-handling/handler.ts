@@ -75,7 +75,7 @@ export function generateShortReference(): string {
  * - 2.5: Return generic message with reference code for unexpected errors
  * - 2.6: Do not expose stack traces to end users
  */
-export function handleError(error: unknown, context?: RequestContext): ErrorResponse {
+export function handleError(error: unknown, _context?: RequestContext): ErrorResponse {
   // Generate reference code for all errors
   const reference = generateShortReference();
   

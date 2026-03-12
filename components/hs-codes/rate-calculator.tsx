@@ -16,7 +16,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { HSCodeDropdown } from './hs-code-dropdown';
 import { DutyBreakdown } from './duty-breakdown';
 import { calculateDuties, getPreferentialRates } from '@/lib/hs-utils';
-import { FTA_CODES, FTA_NAMES } from '@/types/hs-codes';
+import { FTA_NAMES } from '@/types/hs-codes';
 import type { DutyCalculation, FTACode, HSPreferentialRate } from '@/types/hs-codes';
 
 interface RateCalculatorProps {

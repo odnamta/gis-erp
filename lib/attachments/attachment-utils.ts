@@ -13,7 +13,6 @@ import type {
 import {
   ALLOWED_MIME_TYPES,
   MAX_FILE_SIZE_MB,
-  MAX_FILE_SIZE_BYTES,
 } from '@/types/attachments';
 
 /**

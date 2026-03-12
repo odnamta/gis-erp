@@ -3,7 +3,7 @@
 import { createClient } from '@/lib/supabase/server'
 import { getUserProfile, requireFeatureAccess } from '@/lib/permissions-server'
 import { logCreate, logUpdate, logWorkflowTransition } from '@/lib/audit-log'
-import { checkDocument, approveDocument, rejectDocument } from '@/lib/workflow-service'
+import { approveDocument, rejectDocument } from '@/lib/workflow-service'
 import { revalidatePath } from 'next/cache'
 
 export interface PJOFormData {
@@ -247,7 +247,7 @@ export async function submitPJOForApproval(id: string) {
  */
 export async function approvePJO(id: string, notes?: string) {
   try {
-    const supabase = await createClient()
+    const _supabase = await createClient()
     const userProfile = await getUserProfile()
     
     if (!userProfile) {
@@ -273,7 +273,7 @@ export async function approvePJO(id: string, notes?: string) {
  */
 export async function rejectPJO(id: string, reason: string) {
   try {
-    const supabase = await createClient()
+    const _supabase = await createClient()
     const userProfile = await getUserProfile()
     
     if (!userProfile) {

@@ -179,9 +179,9 @@ export async function getProjectRecap(projectId: string): Promise<ProjectRecapSu
   try {
     const { data: cvData } = await (supabase
       .from('projects')
-      .select('contract_value' as any)
+      .select('contract_value' as any) // eslint-disable-line @typescript-eslint/no-explicit-any
       .eq('id', projectId)
-      .single() as any)
+      .single() as any) // eslint-disable-line @typescript-eslint/no-explicit-any
     contractValue = cvData?.contract_value ?? null
   } catch {
     // contract_value column may not exist

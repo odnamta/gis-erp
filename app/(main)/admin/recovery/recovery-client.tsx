@@ -57,7 +57,7 @@ interface Props {
   currentUser: { id: string; email: string | null; role: string }
 }
 
-export function RecoveryClient({ initialRecords, initialStats, currentUser }: Props) {
+export function RecoveryClient({ initialRecords, initialStats, currentUser: _currentUser }: Props) {
   const [records, setRecords] = useState(initialRecords)
   const [stats] = useState(initialStats)
   const [tableFilter, setTableFilter] = useState<string>('all')

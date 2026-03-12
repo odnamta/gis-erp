@@ -6,7 +6,7 @@
 
 import { createClient } from '@/lib/supabase/server';
 import { EventQueueItem, QueueStats, QueueStatus } from '@/types/automation';
-import { calculateNextRetryTime, isValidQueueStatus } from '@/lib/automation-utils';
+import { calculateNextRetryTime } from '@/lib/automation-utils';
 import { Json } from '@/types/database';
 
 const DEFAULT_MAX_RETRIES = 3;

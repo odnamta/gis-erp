@@ -1,7 +1,7 @@
 'use client'
 
 import { cn } from '@/lib/utils'
-import { CalendarCell as CalendarCellType, ResourceAssignment } from '@/types/resource-scheduling'
+import { CalendarCell as CalendarCellType } from '@/types/resource-scheduling'
 import {
   Tooltip,
   TooltipContent,
@@ -69,7 +69,7 @@ export function CalendarCell({ cell, onClick }: CalendarCellProps) {
         <div className="h-full flex flex-col">
           {cell.assignments.length > 0 ? (
             <div className="flex-1 overflow-hidden">
-              {cell.assignments.slice(0, 2).map((assignment, idx) => (
+              {cell.assignments.slice(0, 2).map((assignment, _idx) => (
                 <div
                   key={assignment.id}
                   className="text-xs truncate px-1 py-0.5 mb-0.5 bg-primary/10 rounded"

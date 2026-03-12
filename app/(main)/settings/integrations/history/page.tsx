@@ -97,11 +97,11 @@ export default function SyncHistoryPage() {
 
   useEffect(() => {
     loadData()
-  }, [])
+  }, []) // eslint-disable-line react-hooks/exhaustive-deps
 
   useEffect(() => {
     loadLogs()
-  }, [connectionFilter, statusFilter, fromDate, toDate])
+  }, [connectionFilter, statusFilter, fromDate, toDate]) // eslint-disable-line react-hooks/exhaustive-deps
 
   const loadData = async () => {
     setIsLoading(true)

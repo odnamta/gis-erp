@@ -119,7 +119,7 @@ export async function generateDocumentPdf(
       html,
       // pdfUrl would be set after actual PDF generation and upload
     };
-  } catch (error) {
+  } catch (_error) {
     return { success: false, error: 'Failed to generate PDF' };
   }
 }

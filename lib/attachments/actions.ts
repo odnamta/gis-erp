@@ -120,7 +120,7 @@ export async function uploadAttachment(
     }
 
     return { data: attachment as DocumentAttachment, error: null };
-  } catch (error) {
+  } catch (_error) {
     return { data: null, error: 'An unexpected error occurred' };
   }
 }
@@ -168,7 +168,7 @@ export async function deleteAttachment(
     }
 
     return { success: true, error: null };
-  } catch (error) {
+  } catch (_error) {
     return { success: false, error: 'An unexpected error occurred' };
   }
 }
@@ -219,7 +219,7 @@ export async function getAttachments(
     }));
 
     return { data: attachments, error: null };
-  } catch (error) {
+  } catch (_error) {
     return { data: [], error: 'An unexpected error occurred' };
   }
 }
@@ -299,7 +299,7 @@ export async function getAttachmentsByCategory(
     }));
 
     return { data: attachments, error: null };
-  } catch (error) {
+  } catch (_error) {
     return { data: [], error: 'An unexpected error occurred' };
   }
 }
@@ -349,7 +349,7 @@ export async function getAttachmentsExcludingCategory(
     }));
 
     return { data: attachments, error: null };
-  } catch (error) {
+  } catch (_error) {
     return { data: [], error: 'An unexpected error occurred' };
   }
 }
@@ -377,7 +377,7 @@ export async function getSignedUrl(
     }
 
     return { url: data.signedUrl, error: null };
-  } catch (error) {
+  } catch (_error) {
     return { url: null, error: 'An unexpected error occurred' };
   }
 }

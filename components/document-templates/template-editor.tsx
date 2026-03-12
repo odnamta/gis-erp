@@ -235,7 +235,7 @@ export function TemplateEditor({
       newData[v] = previewData[v] || `[${v}]`
     }
     setPreviewData(newData)
-  }, [extractedVariables.join(',')])
+  }, [extractedVariables.join(',')]) // eslint-disable-line react-hooks/exhaustive-deps
 
   const handleInputChange = useCallback((field: keyof FormState, value: string | boolean | MarginSettings | DocumentType | PageSize | PageOrientation) => {
     setForm((prev) => ({ ...prev, [field]: value }))

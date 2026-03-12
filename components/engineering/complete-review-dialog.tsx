@@ -47,7 +47,7 @@ interface CompleteReviewDialogProps {
 export function CompleteReviewDialog({
   open,
   onOpenChange,
-  pjoId,
+  pjoId: _pjoId,
   assessments,
   onComplete,
 }: CompleteReviewDialogProps) {

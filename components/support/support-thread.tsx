@@ -224,7 +224,7 @@ export function SupportThread({
     return () => {
       cancelled = true
     }
-  }, [entityType, entityId])
+  }, [entityType, entityId]) // eslint-disable-line react-hooks/exhaustive-deps
 
   // Auto-scroll when messages change or loading finishes
   useEffect(() => {

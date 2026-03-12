@@ -21,7 +21,7 @@ export default function TransmittalDetailPage({ params }: TransmittalDetailPageP
 
   useEffect(() => {
     loadTransmittal();
-  }, [id]);
+  }, [id]); // eslint-disable-line react-hooks/exhaustive-deps
 
   const loadTransmittal = async () => {
     setLoading(true);

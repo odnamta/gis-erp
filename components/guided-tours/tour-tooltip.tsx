@@ -90,7 +90,7 @@ export function TourTooltip({
   step,
   stepIndex,
   totalSteps,
-  tourName,
+  tourName: _tourName,
   showBack,
   showNext,
   showFinish,

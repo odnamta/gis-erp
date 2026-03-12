@@ -78,7 +78,7 @@ export async function hasPendingApprovals(userId: string): Promise<boolean> {
  * Check if user has urgent items requiring immediate attention
  * Currently checks for overdue invoices or critical budget alerts
  */
-export async function hasUrgentItems(userId: string): Promise<boolean> {
+export async function hasUrgentItems(_userId: string): Promise<boolean> {
   try {
     const supabase = await createClient()
     

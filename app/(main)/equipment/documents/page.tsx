@@ -13,6 +13,7 @@ import { getAssetDocumentTypeLabel } from '@/lib/asset-utils';
 import { formatDate } from '@/lib/utils/format';
 import { DocumentExpiryStatus } from '@/types/assets';
 import { FileText, AlertTriangle, XCircle, Files } from 'lucide-react';
+import Link from 'next/link';
 
 function ExpiryBadge({ status }: { status: DocumentExpiryStatus }) {
   switch (status) {
@@ -44,7 +45,7 @@ export default async function AssetDocumentsPage() {
         </p>
         <p className="text-sm text-muted-foreground mt-1">
           Untuk menambahkan dokumen, buka halaman detail aset masing-masing dari{' '}
-          <a href="/equipment" className="text-primary hover:underline font-medium">Daftar Aset</a>.
+          <Link href="/equipment" className="text-primary hover:underline font-medium">Daftar Aset</Link>.
         </p>
       </div>
 

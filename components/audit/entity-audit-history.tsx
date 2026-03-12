@@ -183,7 +183,7 @@ function ChangeDetails({ entry }: { entry: AuditLogEntry }) {
  */
 function TimelineEntry({
   entry,
-  isFirst,
+  isFirst: _isFirst,
   isLast,
   onEntryClick,
 }: {
@@ -309,7 +309,7 @@ function TimelineEntry({
  */
 export function EntityAuditHistory({
   entityType,
-  entityId,
+  entityId: _entityId,
   entityReference,
   entries,
   loading = false,

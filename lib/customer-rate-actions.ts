@@ -16,7 +16,7 @@ export async function getCustomerRates(customerId: string): Promise<{
   const supabase = await createClient()
 
   const { data, error } = await supabase
-    .from('customer_contract_rates' as any)
+    .from('customer_contract_rates' as any) // eslint-disable-line @typescript-eslint/no-explicit-any
     .select('*')
     .eq('customer_id', customerId)
     .order('is_active', { ascending: false })
@@ -45,7 +45,7 @@ export async function getActiveCustomerRate(
   const today = new Date().toISOString().split('T')[0]
 
   const { data, error } = await supabase
-    .from('customer_contract_rates' as any)
+    .from('customer_contract_rates' as any) // eslint-disable-line @typescript-eslint/no-explicit-any
     .select('*')
     .eq('customer_id', customerId)
     .eq('service_type', serviceType)
@@ -74,7 +74,7 @@ export async function getActiveCustomerRates(customerId: string): Promise<{
   const today = new Date().toISOString().split('T')[0]
 
   const { data, error } = await supabase
-    .from('customer_contract_rates' as any)
+    .from('customer_contract_rates' as any) // eslint-disable-line @typescript-eslint/no-explicit-any
     .select('*')
     .eq('customer_id', customerId)
     .eq('is_active', true)
@@ -110,7 +110,7 @@ export async function createCustomerRate(
   const { data: { user } } = await supabase.auth.getUser()
 
   const { data, error } = await supabase
-    .from('customer_contract_rates' as any)
+    .from('customer_contract_rates' as any) // eslint-disable-line @typescript-eslint/no-explicit-any
     .insert({
       customer_id: customerId,
       service_type: formData.service_type,
@@ -170,7 +170,7 @@ export async function updateCustomerRate(
   if (formData.notes !== undefined) updateData.notes = formData.notes || null
 
   const { error } = await supabase
-    .from('customer_contract_rates' as any)
+    .from('customer_contract_rates' as any) // eslint-disable-line @typescript-eslint/no-explicit-any
     .update(updateData)
     .eq('id', id)
 
@@ -199,7 +199,7 @@ export async function deactivateCustomerRate(
   const supabase = await createClient()
 
   const { error } = await supabase
-    .from('customer_contract_rates' as any)
+    .from('customer_contract_rates' as any) // eslint-disable-line @typescript-eslint/no-explicit-any
     .update({
       is_active: false,
       updated_at: new Date().toISOString(),

@@ -79,7 +79,7 @@ export function AvailabilityForm({
         onSuccess()
         resetForm()
       }
-    } catch (error) {
+    } catch (_error) {
       toast.error('Failed to set unavailability')
     } finally {
       setLoading(false)

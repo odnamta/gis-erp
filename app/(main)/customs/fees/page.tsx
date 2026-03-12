@@ -3,7 +3,6 @@ import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { FeeList } from '@/components/customs-fees/fee-list';
 import { FeeSummaryCards } from '@/components/customs-fees/fee-summary-cards';
-import { FeeFilters } from '@/components/customs-fees/fee-filters';
 import { getFees, getFeeStatistics } from '@/lib/fee-actions';
 import { Plus } from 'lucide-react';
 

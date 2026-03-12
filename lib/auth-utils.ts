@@ -8,7 +8,7 @@
 
 import { cookies } from 'next/headers';
 import { createClient } from '@/lib/supabase/server';
-import { UserProfile, UserRole } from '@/types/permissions';
+import { UserProfile } from '@/types/permissions';
 
 /**
  * Get current user profile with role and permissions

@@ -307,7 +307,7 @@ export async function getRecentBKK(): Promise<RecentBKK[]> {
   const supabase = await createClient()
 
   const result = await supabase
-    .from('bukti_kas_keluar' as any)
+    .from('bukti_kas_keluar' as any) // eslint-disable-line @typescript-eslint/no-explicit-any
     .select('id, bkk_number, purpose, amount_requested, created_at')
     .order('created_at', { ascending: false })
     .limit(5)

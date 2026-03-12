@@ -235,7 +235,7 @@ export function CostsClient({ pjo, costItems: initialCostItems, canEdit }: Costs
                     <th className="px-4 py-3 text-left text-sm font-medium">#</th>
                     <th className="px-4 py-3 text-left text-sm font-medium">Category</th>
                     <th className="px-4 py-3 text-left text-sm font-medium">Description</th>
-                    <th className="px-4 py-3 text-right text-sm font-medium">Budget</th>
+                    <th className="px-4 py-3 text-right text-sm font-medium min-w-[160px]">Budget</th>
                     <th className="px-4 py-3 text-left text-sm font-medium">Actual</th>
                     <th className="px-4 py-3 text-right text-sm font-medium">Variance</th>
                     <th className="px-4 py-3 text-left text-sm font-medium">Status</th>

@@ -48,7 +48,7 @@ export function UtilizationReport({ initialData }: UtilizationReportProps) {
 
   useEffect(() => {
     loadData()
-  }, [dateFrom, dateTo, resourceType])
+  }, [dateFrom, dateTo, resourceType]) // eslint-disable-line react-hooks/exhaustive-deps
 
   const loadData = async () => {
     setLoading(true)

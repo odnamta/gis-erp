@@ -248,7 +248,7 @@ export async function createGeneratedDocumentRecord(data: {
       success: true,
       data: mapDbRecordToGeneratedDocument(record),
     }
-  } catch (error) {
+  } catch (_error) {
     return { success: false, error: 'Failed to create document record' }
   }
 }
@@ -294,7 +294,7 @@ export async function updateSourceEntityPdfUrl(
     }
 
     return { success: true }
-  } catch (error) {
+  } catch (_error) {
     return { success: false, error: 'Failed to update source entity' }
   }
 }
@@ -610,7 +610,7 @@ function calculateInvoiceTotals(
  * @param lineItems - Invoice line items
  * @returns InvoiceTemplateVariables for template substitution
  */
-function buildInvoiceVariables(
+function _buildInvoiceVariables(
   invoice: InvoiceData,
   lineItems: InvoiceLineItem[]
 ): InvoiceTemplateVariables {
@@ -1302,7 +1302,7 @@ export async function getGenerationHistory(
       success: true,
       data: (documents || []).map(mapDbRecordToGeneratedDocumentWithRelations),
     }
-  } catch (error) {
+  } catch (_error) {
     return { success: false, error: 'Failed to fetch generation history' }
   }
 }
@@ -1347,7 +1347,7 @@ export async function getGeneratedDocument(
       success: true,
       data: mapDbRecordToGeneratedDocumentWithRelations(document),
     }
-  } catch (error) {
+  } catch (_error) {
     return { success: false, error: 'Failed to fetch document' }
   }
 }
@@ -1372,7 +1372,7 @@ function mapDbRecordToGeneratedDocumentWithRelations(
  * @param documentType - The type of document being generated
  * @returns Validation result with errors if any
  */
-function validateDocumentData(
+function _validateDocumentData(
   variables: VariableContext,
   documentType: DocumentType
 ): { valid: boolean; errors: string[] } {
@@ -1835,7 +1835,7 @@ function matchesAllFilters(
  * @param filters - The filters to apply
  * @returns Filtered array of documents
  */
-function filterDocumentHistory<T extends GeneratedDocument | GeneratedDocumentWithRelations>(
+function _filterDocumentHistory<T extends GeneratedDocument | GeneratedDocumentWithRelations>(
   documents: T[],
   filters: DocumentHistoryFilters
 ): T[] {
@@ -1850,7 +1850,7 @@ function filterDocumentHistory<T extends GeneratedDocument | GeneratedDocumentWi
  * @param document - The document to validate
  * @returns Object with valid flag and missing fields
  */
-function validateHistoryDataCompleteness(
+function _validateHistoryDataCompleteness(
   document: GeneratedDocumentWithRelations
 ): { valid: boolean; missingFields: string[] } {
   const missingFields: string[] = []

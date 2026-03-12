@@ -9,7 +9,6 @@ import { createClient } from '@/lib/supabase/server';
 import { revalidatePath } from 'next/cache';
 import { sanitizeSearchInput } from '@/lib/utils/sanitize';
 import {
-  BillOfLading,
   BillOfLadingRow,
   CargoManifest,
   CargoManifestRow,

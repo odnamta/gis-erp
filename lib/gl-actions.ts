@@ -27,7 +27,7 @@ export async function getChartOfAccounts(
   const supabase = await createClient()
 
   let query = supabase
-    .from('chart_of_accounts' as any)
+    .from('chart_of_accounts' as any) // eslint-disable-line @typescript-eslint/no-explicit-any
     .select('*')
     .eq('is_active', true)
     .order('account_code', { ascending: true })
@@ -36,7 +36,7 @@ export async function getChartOfAccounts(
     query = query.eq('account_type', accountType)
   }
 
-  const { data, error } = await (query as any)
+  const { data, error } = await (query as any) // eslint-disable-line @typescript-eslint/no-explicit-any
 
   if (error) {
     return []
@@ -54,10 +54,10 @@ export async function getChartOfAccountById(
   const supabase = await createClient()
 
   const { data, error } = await (supabase
-    .from('chart_of_accounts' as any)
+    .from('chart_of_accounts' as any) // eslint-disable-line @typescript-eslint/no-explicit-any
     .select('*')
     .eq('id', id)
-    .single() as any)
+    .single() as any) // eslint-disable-line @typescript-eslint/no-explicit-any
 
   if (error) {
     return null
@@ -80,7 +80,7 @@ export async function createChartOfAccount(
   }
 
   const { data, error } = await (supabase
-    .from('chart_of_accounts' as any)
+    .from('chart_of_accounts' as any) // eslint-disable-line @typescript-eslint/no-explicit-any
     .insert({
       account_code: input.account_code,
       account_name: input.account_name,
@@ -90,7 +90,7 @@ export async function createChartOfAccount(
       level: input.level ?? 1,
     })
     .select('id')
-    .single() as any)
+    .single() as any) // eslint-disable-line @typescript-eslint/no-explicit-any
 
   if (error) {
     if (error.message?.includes('unique') || error.message?.includes('duplicate')) {
@@ -124,9 +124,9 @@ export async function updateChartOfAccount(
   if (input.level !== undefined) updateData.level = input.level
 
   const { error } = await (supabase
-    .from('chart_of_accounts' as any)
+    .from('chart_of_accounts' as any) // eslint-disable-line @typescript-eslint/no-explicit-any
     .update(updateData)
-    .eq('id', id) as any)
+    .eq('id', id) as any) // eslint-disable-line @typescript-eslint/no-explicit-any
 
   if (error) {
     return { error: error.message }
@@ -149,11 +149,11 @@ async function generateEntryNumber(): Promise<string> {
   const prefix = `JE-${year}-`
 
   const { data } = await (supabase
-    .from('journal_entries' as any)
+    .from('journal_entries' as any) // eslint-disable-line @typescript-eslint/no-explicit-any
     .select('entry_number')
     .like('entry_number', `${prefix}%`)
     .order('entry_number', { ascending: false })
-    .limit(1) as any)
+    .limit(1) as any) // eslint-disable-line @typescript-eslint/no-explicit-any
 
   let sequence = 1
   if (data && data.length > 0) {
@@ -178,7 +178,7 @@ export async function getJournalEntries(options?: {
   const supabase = await createClient()
 
   let query = supabase
-    .from('journal_entries' as any)
+    .from('journal_entries' as any) // eslint-disable-line @typescript-eslint/no-explicit-any
     .select('*')
     .order('entry_date', { ascending: false })
 
@@ -198,7 +198,7 @@ export async function getJournalEntries(options?: {
     query = query.limit(options.limit)
   }
 
-  const { data, error } = await (query as any)
+  const { data, error } = await (query as any) // eslint-disable-line @typescript-eslint/no-explicit-any
 
   if (error) {
     return []
@@ -217,10 +217,10 @@ export async function getJournalEntryById(
 
   // Fetch journal entry
   const { data: entry, error: entryError } = await (supabase
-    .from('journal_entries' as any)
+    .from('journal_entries' as any) // eslint-disable-line @typescript-eslint/no-explicit-any
     .select('*')
     .eq('id', id)
-    .single() as any)
+    .single() as any) // eslint-disable-line @typescript-eslint/no-explicit-any
 
   if (entryError || !entry) {
     return null
@@ -228,7 +228,7 @@ export async function getJournalEntryById(
 
   // Fetch lines with account info
   const { data: lines, error: linesError } = await (supabase
-    .from('journal_entry_lines' as any)
+    .from('journal_entry_lines' as any) // eslint-disable-line @typescript-eslint/no-explicit-any
     .select(`
       *,
       account:chart_of_accounts (
@@ -238,7 +238,7 @@ export async function getJournalEntryById(
       )
     `)
     .eq('journal_entry_id', id)
-    .order('line_order', { ascending: true }) as any)
+    .order('line_order', { ascending: true }) as any) // eslint-disable-line @typescript-eslint/no-explicit-any
 
   if (linesError) {
     return {
@@ -288,7 +288,7 @@ export async function createJournalEntry(
 
   // Insert journal entry
   const { data: entryData, error: entryError } = await (supabase
-    .from('journal_entries' as any)
+    .from('journal_entries' as any) // eslint-disable-line @typescript-eslint/no-explicit-any
     .insert({
       entry_number: entryNumber,
       entry_date: input.entry_date,
@@ -302,7 +302,7 @@ export async function createJournalEntry(
       created_by: user?.id || null,
     })
     .select('id')
-    .single() as any)
+    .single() as any) // eslint-disable-line @typescript-eslint/no-explicit-any
 
   if (entryError) {
     return { error: entryError.message }
@@ -321,15 +321,15 @@ export async function createJournalEntry(
   }))
 
   const { error: linesError } = await (supabase
-    .from('journal_entry_lines' as any)
-    .insert(lineInserts) as any)
+    .from('journal_entry_lines' as any) // eslint-disable-line @typescript-eslint/no-explicit-any
+    .insert(lineInserts) as any) // eslint-disable-line @typescript-eslint/no-explicit-any
 
   if (linesError) {
     // Soft-delete the entry if lines failed (never hard delete)
     await (supabase
-      .from('journal_entries' as any)
+      .from('journal_entries' as any) // eslint-disable-line @typescript-eslint/no-explicit-any
       .update({ status: 'cancelled', updated_at: new Date().toISOString() })
-      .eq('id', entryId) as any)
+      .eq('id', entryId) as any) // eslint-disable-line @typescript-eslint/no-explicit-any
     return { error: `Gagal menyimpan baris jurnal: ${linesError.message}` }
   }
 
@@ -351,10 +351,10 @@ export async function postJournalEntry(
 
   // Fetch current status
   const { data: entry, error: fetchError } = await (supabase
-    .from('journal_entries' as any)
+    .from('journal_entries' as any) // eslint-disable-line @typescript-eslint/no-explicit-any
     .select('status')
     .eq('id', id)
-    .single() as any)
+    .single() as any) // eslint-disable-line @typescript-eslint/no-explicit-any
 
   if (fetchError || !entry) {
     return { error: 'Jurnal tidak ditemukan' }
@@ -365,14 +365,14 @@ export async function postJournalEntry(
   }
 
   const { error } = await (supabase
-    .from('journal_entries' as any)
+    .from('journal_entries' as any) // eslint-disable-line @typescript-eslint/no-explicit-any
     .update({
       status: 'posted',
       posted_by: user?.id || null,
       posted_at: new Date().toISOString(),
       updated_at: new Date().toISOString(),
     })
-    .eq('id', id) as any)
+    .eq('id', id) as any) // eslint-disable-line @typescript-eslint/no-explicit-any
 
   if (error) {
     return { error: error.message }

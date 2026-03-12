@@ -6,13 +6,11 @@
 import {
   Card,
   CardContent,
-  CardDescription,
   CardHeader,
   CardTitle,
 } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
-import { Separator } from '@/components/ui/separator';
-import { Package, Ruler, Target, Wrench } from 'lucide-react';
+import { Package, Wrench } from 'lucide-react';
 import { TechnicalAssessment } from '@/types/assessment';
 import { formatWeight, formatDimensions, formatCOG } from '@/lib/assessment-utils';
 

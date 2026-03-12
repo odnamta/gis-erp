@@ -4,10 +4,7 @@ import { useState, useEffect } from 'react'
 import { useRouter } from 'next/navigation'
 import {
   NotificationTemplate,
-  EventType,
   EVENT_TYPE_LABELS,
-  NOTIFICATION_CHANNELS,
-  CHANNEL_LABELS,
 } from '@/types/notification-workflows'
 import {
   getNotificationTemplates,
@@ -15,7 +12,7 @@ import {
   deactivateNotificationTemplate,
   deleteNotificationTemplate,
 } from '@/app/actions/notification-template-actions'
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
+import { Card, CardContent } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
 import { Input } from '@/components/ui/input'
@@ -62,7 +59,6 @@ import {
   Power,
   PowerOff,
   Trash2,
-  Copy,
   Mail,
   MessageSquare,
   Bell,
@@ -87,7 +83,7 @@ export default function NotificationTemplatesPage() {
   // Load templates
   useEffect(() => {
     loadTemplates()
-  }, [])
+  }, []) // eslint-disable-line react-hooks/exhaustive-deps
 
   // Filter templates
   useEffect(() => {

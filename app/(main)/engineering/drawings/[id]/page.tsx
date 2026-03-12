@@ -21,7 +21,7 @@ export default function DrawingDetailPage({ params }: DrawingDetailPageProps) {
 
   useEffect(() => {
     loadDrawing();
-  }, [id]);
+  }, [id]); // eslint-disable-line react-hooks/exhaustive-deps
 
   const loadDrawing = async () => {
     setLoading(true);

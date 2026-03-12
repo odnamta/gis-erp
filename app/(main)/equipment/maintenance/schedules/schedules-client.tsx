@@ -21,7 +21,7 @@ export function SchedulesClient() {
 
   useEffect(() => {
     loadData()
-  }, [])
+  }, []) // eslint-disable-line react-hooks/exhaustive-deps
 
   const loadData = async () => {
     setIsLoading(true)

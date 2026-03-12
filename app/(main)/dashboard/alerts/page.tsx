@@ -4,8 +4,6 @@
 
 import { Suspense } from 'react';
 import { AlertSummaryCards } from '@/components/alerts/alert-summary-cards';
-import { ActiveAlertsList } from '@/components/alerts/active-alerts-list';
-import { UpcomingReportsList } from '@/components/alerts/upcoming-reports-list';
 import { getAlertSummary, getAlertInstances } from '@/lib/alert-actions';
 import { getScheduledReports } from '@/lib/scheduled-report-actions';
 import { AlertDashboardClient } from './alert-dashboard-client';

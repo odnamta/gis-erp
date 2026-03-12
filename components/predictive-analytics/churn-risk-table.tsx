@@ -11,7 +11,6 @@ import {
 } from '@/components/ui/table';
 import { Button } from '@/components/ui/button';
 import { CustomerChurnRisk } from '@/types/predictive-analytics';
-import { formatPredictionCurrency } from '@/lib/predictive-analytics-utils';
 import { RiskBadge } from './risk-badge';
 import { TrendIndicator } from './trend-indicator';
 import { recordChurnAction } from '@/lib/predictive-analytics-actions';

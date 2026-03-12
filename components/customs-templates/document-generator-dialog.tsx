@@ -20,7 +20,7 @@ import {
 } from '@/components/ui/select';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { FileText, Eye, Loader2 } from 'lucide-react';
-import type { CustomsDocumentTemplate, PlaceholderDefinition } from '@/types/customs-templates';
+import type { CustomsDocumentTemplate } from '@/types/customs-templates';
 import { DOCUMENT_TYPE_LABELS } from '@/types/customs-templates';
 import { generateDocument, resolveTemplateData, generatePreviewHtml } from '@/lib/template-actions';
 import { DocumentDataForm } from './document-data-form';

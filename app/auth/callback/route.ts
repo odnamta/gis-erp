@@ -27,7 +27,7 @@ export async function GET(request: Request) {
 
   if (code) {
     const supabase = await createClient()
-    const { error: exchangeError, data: sessionData } = await supabase.auth.exchangeCodeForSession(code)
+    const { error: exchangeError, data: _sessionData } = await supabase.auth.exchangeCodeForSession(code)
 
     if (exchangeError) {
       await recordFailedLoginAttempt(
@@ -85,7 +85,7 @@ export async function GET(request: Request) {
       
       // Check if last_login_at was just set (within last minute) - indicates first login
       const lastLogin = profile.last_login_at ? new Date(profile.last_login_at) : null
-      const isFirstLogin = lastLogin && (now.getTime() - lastLogin.getTime() < 60000)
+      const _isFirstLogin = lastLogin && (now.getTime() - lastLogin.getTime() < 60000)
 
       // Send notification for new users (isNewUser already defined above)
       if (isNewUser && user) {

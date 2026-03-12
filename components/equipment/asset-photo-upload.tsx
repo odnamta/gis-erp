@@ -1,7 +1,7 @@
 'use client'
 
 import { useState, useRef } from 'react'
-import { Upload, Loader2, X, Star, Trash2 } from 'lucide-react'
+import { Upload, Loader2, Star, Trash2 } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
@@ -152,6 +152,7 @@ export function AssetPhotoUpload({ assetId, photos, onSuccess }: AssetPhotoUploa
             {photos.map((photo, index) => (
               <div key={index} className="relative group">
                 <div className="aspect-square rounded-md bg-muted overflow-hidden">
+                  {/* eslint-disable-next-line @next/next/no-img-element */}
                   <img
                     src={photo.url}
                     alt={photo.caption || `Photo ${index + 1}`}

@@ -17,7 +17,6 @@ import {
   MapPin,
   Calendar,
   Clock,
-  CheckCircle2,
   Circle,
   Eye,
   Trash2,

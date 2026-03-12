@@ -63,7 +63,7 @@ interface VendorDocumentsProps {
 }
 
 export function VendorDocuments({
-  vendorId,
+  vendorId: _vendorId,
   documents,
   canEdit,
   onUpload,

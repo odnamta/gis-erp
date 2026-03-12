@@ -54,7 +54,7 @@ const EXPLORER_COOKIE = 'gama-explorer-mode';
 
 export default function SessionDetailPage() {
   const params = useParams();
-  const router = useRouter();
+  const _router = useRouter();
   const [session, setSession] = useState<TrainingSession | null>(null);
   const [participants, setParticipants] = useState<SessionParticipant[]>([]);
   const [employees, setEmployees] = useState<Employee[]>([]);

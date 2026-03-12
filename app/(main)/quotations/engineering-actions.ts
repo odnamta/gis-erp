@@ -7,7 +7,6 @@ import { canAccessFeature } from '@/lib/permissions'
 import {
   determineRequiredAssessments,
   calculateEngineeringStatus,
-  calculateTotalAdditionalCosts,
   canWaiveEngineeringReview,
 } from '@/lib/engineering-utils'
 import {
@@ -16,7 +15,6 @@ import {
 } from '@/lib/notifications/notification-triggers'
 import type {
   EngineeringAssessment,
-  AssessmentType,
   RiskLevel,
   EngineeringDecision,
   ComplexityFactor,

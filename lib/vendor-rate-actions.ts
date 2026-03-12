@@ -16,7 +16,7 @@ export async function getVendorRates(vendorId: string): Promise<{
   const supabase = await createClient()
 
   const { data, error } = await supabase
-    .from('vendor_rates' as any)
+    .from('vendor_rates' as any) // eslint-disable-line @typescript-eslint/no-explicit-any
     .select('*')
     .eq('vendor_id', vendorId)
     .order('is_active', { ascending: false })
@@ -45,7 +45,7 @@ export async function getActiveRate(
   const today = new Date().toISOString().split('T')[0]
 
   const { data, error } = await supabase
-    .from('vendor_rates' as any)
+    .from('vendor_rates' as any) // eslint-disable-line @typescript-eslint/no-explicit-any
     .select('*')
     .eq('vendor_id', vendorId)
     .eq('service_type', serviceType)
@@ -74,7 +74,7 @@ export async function getActiveVendorRates(vendorId: string): Promise<{
   const today = new Date().toISOString().split('T')[0]
 
   const { data, error } = await supabase
-    .from('vendor_rates' as any)
+    .from('vendor_rates' as any) // eslint-disable-line @typescript-eslint/no-explicit-any
     .select('*')
     .eq('vendor_id', vendorId)
     .eq('is_active', true)
@@ -110,7 +110,7 @@ export async function createVendorRate(
   const { data: { user } } = await supabase.auth.getUser()
 
   const { data, error } = await supabase
-    .from('vendor_rates' as any)
+    .from('vendor_rates' as any) // eslint-disable-line @typescript-eslint/no-explicit-any
     .insert({
       vendor_id: vendorId,
       service_type: formData.service_type,
@@ -170,7 +170,7 @@ export async function updateVendorRate(
   if (formData.notes !== undefined) updateData.notes = formData.notes || null
 
   const { error } = await supabase
-    .from('vendor_rates' as any)
+    .from('vendor_rates' as any) // eslint-disable-line @typescript-eslint/no-explicit-any
     .update(updateData)
     .eq('id', id)
 
@@ -199,7 +199,7 @@ export async function deactivateVendorRate(
   const supabase = await createClient()
 
   const { error } = await supabase
-    .from('vendor_rates' as any)
+    .from('vendor_rates' as any) // eslint-disable-line @typescript-eslint/no-explicit-any
     .update({
       is_active: false,
       updated_at: new Date().toISOString(),
@@ -225,7 +225,7 @@ export async function getRatesByServiceType(serviceType: string): Promise<{
   const today = new Date().toISOString().split('T')[0]
 
   const { data, error } = await supabase
-    .from('vendor_rates' as any)
+    .from('vendor_rates' as any) // eslint-disable-line @typescript-eslint/no-explicit-any
     .select('*, vendors(vendor_name)')
     .eq('service_type', serviceType)
     .eq('is_active', true)
@@ -293,7 +293,7 @@ export async function getVendorSuggestionsForCategory(
   // Get active rate counts per vendor
   const vendorIds = vendors.map(v => v.id)
   const { data: rates } = await supabase
-    .from('vendor_rates' as any)
+    .from('vendor_rates' as any) // eslint-disable-line @typescript-eslint/no-explicit-any
     .select('vendor_id, base_price')
     .in('vendor_id', vendorIds)
     .eq('is_active', true)

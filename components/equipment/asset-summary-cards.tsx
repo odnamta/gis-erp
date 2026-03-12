@@ -2,7 +2,7 @@
 
 import { memo } from 'react'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
-import { Truck, Wrench, PauseCircle, DollarSign, FileWarning } from 'lucide-react'
+import { Truck, Wrench, DollarSign, FileWarning } from 'lucide-react'
 import { AssetSummaryStats } from '@/types/assets'
 import { formatAssetCurrency } from '@/lib/asset-utils'
 

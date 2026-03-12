@@ -163,7 +163,7 @@ export async function recordPayment(data: PaymentFormData): Promise<{
         const { notifyUninvoicedRevenue } = await import('@/lib/notifications/notification-triggers')
         const terms = Array.isArray(jo.invoice_terms) ? jo.invoice_terms : []
         const { uninvoicedAmount, uninvoicedPercent } = calculateUninvoicedRevenue(
-          terms as any,
+          terms as any, // eslint-disable-line @typescript-eslint/no-explicit-any
           jo.final_revenue
         )
         if (uninvoicedPercent > 0) {
@@ -173,7 +173,7 @@ export async function recordPayment(data: PaymentFormData): Promise<{
             uninvoicedAmount,
             uninvoicedPercent,
             totalRevenue: jo.final_revenue,
-            customerName: (jo.customers as any)?.name,
+            customerName: (jo.customers as any)?.name, // eslint-disable-line @typescript-eslint/no-explicit-any
           })
         }
       }

@@ -56,7 +56,7 @@ interface AlertRulesClientProps {
 
 export function AlertRulesClient({ initialRules }: AlertRulesClientProps) {
   const [rules, setRules] = useState(initialRules);
-  const [isPending, startTransition] = useTransition();
+  const [_isPending, startTransition] = useTransition();
   const [dialogOpen, setDialogOpen] = useState(false);
   const [editingRule, setEditingRule] = useState<AlertRule | null>(null);
   const [isSaving, setIsSaving] = useState(false);

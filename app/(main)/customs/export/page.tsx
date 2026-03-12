@@ -35,14 +35,14 @@ function LoadingSkeleton() {
 }
 
 async function PEBContent({ filters }: { filters: PEBFilters }) {
-  let documents: any[] = []
-  let statistics: any = {
+  let documents: any[] = [] // eslint-disable-line @typescript-eslint/no-explicit-any
+  let statistics: any = { // eslint-disable-line @typescript-eslint/no-explicit-any
     active_pebs: 0,
     pending_approval: 0,
     loaded: 0,
     departed_mtd: 0,
   }
-  let customsOffices: any[] = []
+  let customsOffices: any[] = [] // eslint-disable-line @typescript-eslint/no-explicit-any
 
   try {
     const [documentsResult, statisticsResult, officesResult] = await Promise.all([

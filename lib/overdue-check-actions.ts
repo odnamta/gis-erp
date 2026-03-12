@@ -136,7 +136,7 @@ export async function updateInvoiceToOverdue(
     }
     
     return prepareOverdueStatusUpdate(invoiceId, invoice.status);
-  } catch (error) {
+  } catch (_error) {
     return {
       success: false,
       invoice_id: invoiceId,
@@ -157,7 +157,7 @@ export async function createFollowUpTask(
   try {
     const supabase = await createClient();
     
-    const taskInput = createFollowUpTaskInput(invoice);
+    const _taskInput = createFollowUpTaskInput(invoice);
     const priority = getFollowUpPriority(invoice.severity);
     const description = generateFollowUpDescription(invoice);
     
@@ -285,7 +285,7 @@ export async function sendOverdueSummaryEmail(
   try {
     // This would integrate with the notification system
     // For now, we'll just log the summary
-    const summary = generateOverdueSummary(result);
+    const _summary = generateOverdueSummary(result);
     
     // TODO: Integrate with email notification system
     // await sendNotification({

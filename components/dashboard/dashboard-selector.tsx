@@ -57,7 +57,7 @@ export function DashboardSelector({
   userId,
   onboardingData,
 }: DashboardSelectorProps) {
-  const { effectiveRole, isPreviewActive } = usePreview()
+  const { effectiveRole, isPreviewActive: _isPreviewActive } = usePreview()
   const [showWelcomeModal, setShowWelcomeModal] = useState(
     onboardingData?.status?.show_welcome_modal ?? false
   )

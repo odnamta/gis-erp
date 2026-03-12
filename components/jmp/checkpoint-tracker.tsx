@@ -18,7 +18,7 @@ interface CheckpointTrackerProps {
   onUpdate: () => void;
 }
 
-export function CheckpointTracker({ checkpoints, jmpId, onUpdate }: CheckpointTrackerProps) {
+export function CheckpointTracker({ checkpoints, jmpId: _jmpId, onUpdate }: CheckpointTrackerProps) {
   const { toast } = useToast();
   const [loading, setLoading] = useState<string | null>(null);
 
@@ -104,7 +104,7 @@ export function CheckpointTracker({ checkpoints, jmpId, onUpdate }: CheckpointTr
       )}
 
       <div className="space-y-2">
-        {checkpoints.map((cp, idx) => (
+        {checkpoints.map((cp, _idx) => (
           <Card key={cp.id} className={cp.status === 'departed' ? 'opacity-60' : ''}>
             <CardContent className="py-3">
               <div className="flex items-center gap-4">

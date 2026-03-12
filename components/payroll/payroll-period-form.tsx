@@ -63,7 +63,7 @@ export function PayrollPeriodForm({ open, onOpenChange }: PayrollPeriodFormProps
       } else {
         toast.error(result.error || 'Failed to create payroll period');
       }
-    } catch (error) {
+    } catch (_error) {
       toast.error('An error occurred');
     } finally {
       setLoading(false);

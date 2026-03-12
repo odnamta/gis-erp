@@ -26,7 +26,7 @@ export default async function FinanceManagerDashboardPage() {
   }
 
   // Check access: finance_manager role or owner/director
-  const hasAccess = profileHasRole(profile as any, ['finance_manager', 'owner', 'director'])
+  const hasAccess = profileHasRole(profile as any, ['finance_manager', 'owner', 'director']) // eslint-disable-line @typescript-eslint/no-explicit-any
 
   if (!hasAccess) {
     redirect('/dashboard')

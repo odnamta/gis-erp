@@ -498,7 +498,7 @@ export async function getVendorInvoiceById(
 export async function getMatchingBKKs(
   vendorId: string,
   joId?: string,
-  pjoId?: string
+  _pjoId?: string
 ): Promise<{ id: string; bkk_number: string; amount_spent: number | null; amount_requested: number; purpose: string }[]> {
   const supabase = await createClient()
 

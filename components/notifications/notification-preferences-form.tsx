@@ -35,7 +35,7 @@ interface PreferenceState {
   [key: string]: NotificationWorkflowPreference
 }
 
-export function NotificationPreferencesForm({ userId, onSave }: NotificationPreferencesFormProps) {
+export function NotificationPreferencesForm({ userId, onSave: _onSave }: NotificationPreferencesFormProps) {
   const [preferences, setPreferences] = useState<PreferenceState>({})
   const [isLoading, setIsLoading] = useState(true)
   const [isSaving, setIsSaving] = useState<string | null>(null)
@@ -46,7 +46,7 @@ export function NotificationPreferencesForm({ userId, onSave }: NotificationPref
   // Load preferences on mount
   useEffect(() => {
     loadPreferences()
-  }, [userId])
+  }, [userId]) // eslint-disable-line react-hooks/exhaustive-deps
 
   const loadPreferences = async () => {
     setIsLoading(true)

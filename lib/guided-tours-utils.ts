@@ -11,7 +11,6 @@ import {
   TourWithProgress,
   TourStep,
   TourNavigationState,
-  AdvanceStepResult,
   TourStatus,
 } from '@/types/guided-tours';
 

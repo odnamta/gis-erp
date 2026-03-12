@@ -22,7 +22,7 @@ import { calculateWorkingDays, formatDays } from '@/lib/leave-utils';
 import { submitLeaveRequest } from '@/app/(main)/hr/leave/actions';
 import { toast } from 'sonner';
 import { AlertTriangle, Calendar, Loader2 } from 'lucide-react';
-import { format, differenceInDays, parseISO } from 'date-fns';
+import { differenceInDays, parseISO } from 'date-fns';
 
 interface LeaveRequestFormProps {
   employeeId: string;

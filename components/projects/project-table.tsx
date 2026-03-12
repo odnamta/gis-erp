@@ -19,14 +19,10 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select'
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuTrigger,
-} from '@/components/ui/dropdown-menu'
+
+
 import { StatusBadge, ProjectStatus } from '@/components/ui/status-badge'
-import { Pencil, Eye, Trash2, MoreHorizontal } from 'lucide-react'
+import { Pencil, Eye, Trash2 } from 'lucide-react'
 import { useIsDesktop } from '@/hooks/use-media-query'
 
 export type ProjectWithCustomer = Project & {

@@ -58,7 +58,7 @@ export function PeriodSelector({
     }
   };
 
-  const periodLabels: Record<PeriodType, string> = {
+  const _periodLabels: Record<PeriodType, string> = {
     mtd: 'Month to Date',
     qtd: 'Quarter to Date',
     ytd: 'Year to Date',

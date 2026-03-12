@@ -63,7 +63,7 @@ function getCostStatus(items: CostItem[]): { label: string; variant: 'default' |
   return { label: 'Pending', variant: 'destructive', confirmed, total }
 }
 
-export function CostEntryClient({ pjos, userRole }: CostEntryClientProps) {
+export function CostEntryClient({ pjos, userRole: _userRole }: CostEntryClientProps) {
   const totalPending = pjos.filter(p => {
     const status = getCostStatus(p.pjo_cost_items)
     return status.confirmed < status.total

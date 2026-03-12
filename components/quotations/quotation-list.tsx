@@ -11,7 +11,6 @@ import {
   LOST_REASON_LABELS,
 } from '@/types/quotation'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
-import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
 import { Badge } from '@/components/ui/badge'
@@ -20,7 +19,7 @@ import { formatCurrency, formatDate } from '@/lib/utils/format'
 import { calculateWinRate, calculatePipelineValue } from '@/lib/quotation-utils'
 import { MarketTypeBadge } from '@/components/ui/market-type-badge'
 import { MarketType } from '@/types/market-classification'
-import { Search, FileText, TrendingUp, DollarSign, Target, AlertTriangle } from 'lucide-react'
+import { Search, TrendingUp, DollarSign, Target, AlertTriangle } from 'lucide-react'
 
 interface QuotationListProps {
   quotations: QuotationWithRelations[]

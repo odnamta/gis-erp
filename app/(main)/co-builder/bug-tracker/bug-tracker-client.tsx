@@ -33,7 +33,6 @@ import {
   Lightbulb,
   ThumbsUp,
   HelpCircle,
-  MessageSquare,
 } from 'lucide-react'
 import { SupportThread } from '@/components/support/support-thread'
 import type { CompetitionFeedback } from '../actions'

@@ -35,11 +35,11 @@ export async function checkAdvanceEligibility(
   // - return_deadline is set and is before today
   // - status is NOT in terminal/resolved states
   const { data, error } = await (supabase
-    .from('bukti_kas_keluar' as any)
+    .from('bukti_kas_keluar' as any) // eslint-disable-line @typescript-eslint/no-explicit-any
     .select('bkk_number, amount_requested, return_deadline, status')
     .ilike('advance_recipient_name', recipientName.trim())
     .lt('return_deadline', today)
-    .not('status', 'in', '("settled","cancelled","rejected")') as any)
+    .not('status', 'in', '("settled","cancelled","rejected")') as any) // eslint-disable-line @typescript-eslint/no-explicit-any
 
   if (error || !data) {
     // On query error, fail open but log — don't block BKK creation due to a query bug
@@ -47,7 +47,7 @@ export async function checkAdvanceEligibility(
     return { eligible: true, overdueAdvances: [] }
   }
 
-  const overdueAdvances: OverdueAdvance[] = (data as any[]).map((row) => {
+  const overdueAdvances: OverdueAdvance[] = (data as any[]).map((row) => { // eslint-disable-line @typescript-eslint/no-explicit-any
     const deadlineDate = new Date(row.return_deadline)
     const todayDate = new Date(today)
     const diffMs = todayDate.getTime() - deadlineDate.getTime()

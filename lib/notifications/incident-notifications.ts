@@ -72,7 +72,7 @@ export async function notifyIncidentReported(
         });
       }
     }
-  } catch (error) {
+  } catch (_error) {
   }
 }
 
@@ -111,7 +111,7 @@ export async function notifyInvestigatorAssigned(
         },
       });
     }
-  } catch (error) {
+  } catch (_error) {
   }
 }
 
@@ -156,7 +156,7 @@ export async function notifyActionAssigned(
         },
       });
     }
-  } catch (error) {
+  } catch (_error) {
   }
 }
 
@@ -195,6 +195,6 @@ export async function notifyIncidentClosed(
         },
       });
     }
-  } catch (error) {
+  } catch (_error) {
   }
 }

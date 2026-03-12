@@ -16,7 +16,6 @@ import {
   LucideIcon,
   HelpCircle,
   Truck,
-  Wrench,
   ShieldAlert,
   Package,
   Compass,
@@ -24,12 +23,11 @@ import {
   Zap,
   Shield,
   Wallet,
-  Sparkles,
   Trophy,
   BookOpen,
 } from 'lucide-react'
-import { UserRole, UserPermissions, UserProfile, DepartmentScope } from '@/types/permissions'
-import { getInheritedRoles, DEPARTMENT_STAFF_ROLES } from '@/lib/permissions'
+import { UserRole, UserPermissions, UserProfile } from '@/types/permissions'
+import { getInheritedRoles } from '@/lib/permissions'
 
 export interface NavItem {
   title: string

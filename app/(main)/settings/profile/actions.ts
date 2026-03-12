@@ -26,7 +26,7 @@ export async function updateProfile(data: UpdateProfileData) {
         phone: data.phone || null,
         address: data.address || null,
         updated_at: new Date().toISOString(),
-      } as any)
+      } as any) // eslint-disable-line @typescript-eslint/no-explicit-any
       .eq('user_id', user.id)
 
     if (error) {
@@ -54,7 +54,7 @@ export async function getProfileExtended() {
 
     // phone and address may exist in DB but not in generated types
     const { data, error } = await (supabase
-      .from('user_profiles') as any)
+      .from('user_profiles') as any) // eslint-disable-line @typescript-eslint/no-explicit-any
       .select('phone, address')
       .eq('user_id', user.id)
       .single()

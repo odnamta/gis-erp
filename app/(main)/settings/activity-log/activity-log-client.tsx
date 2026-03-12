@@ -33,7 +33,6 @@ import {
 } from '@/types/activity-log'
 import {
   formatActionType,
-  formatEntityType,
   formatRelativeTime,
   formatDetails,
   getEntityUrl,

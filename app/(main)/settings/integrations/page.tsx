@@ -133,7 +133,7 @@ export default function IntegrationsPage() {
   // Load connections
   useEffect(() => {
     loadConnections()
-  }, [])
+  }, []) // eslint-disable-line react-hooks/exhaustive-deps
 
   // Filter connections
   useEffect(() => {

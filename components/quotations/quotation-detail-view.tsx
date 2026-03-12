@@ -41,9 +41,6 @@ import {
   cancelQuotationAssessment,
 } from '@/app/(main)/quotations/engineering-actions'
 import {
-  submitQuotation,
-  markQuotationWon,
-  markQuotationLost,
   markQuotationReady,
   deleteQuotation,
 } from '@/app/(main)/quotations/actions'
@@ -105,7 +102,7 @@ export function QuotationDetailView({ quotation, userRole, userId }: QuotationDe
   const engineeringStatus = (quotation.engineering_status as EngineeringStatus) || 'not_required'
   const canWaive = canWaiveEngineeringReview(userRole)
   const canAssign = canWaive
-  const isEngineeringBlocking = requiresEngineering && 
+  const _isEngineeringBlocking = requiresEngineering && 
     (engineeringStatus === 'pending' || engineeringStatus === 'in_progress')
   
   const isEditable = status === 'draft' || status === 'engineering_review'

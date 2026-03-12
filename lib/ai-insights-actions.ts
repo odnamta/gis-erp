@@ -11,7 +11,6 @@ import type {
   AIQueryTemplate,
   AIQueryResponse,
   QueryHistoryInput,
-  TemplateMatch,
 } from '@/types/ai-insights';
 import {
   validateSQL,
@@ -51,7 +50,7 @@ export async function logQuery(input: QueryHistoryInput): Promise<{ success: boo
     }
 
     return { success: true };
-  } catch (error) {
+  } catch (_error) {
     return { success: false, error: 'Failed to log query' };
   }
 }
@@ -76,7 +75,7 @@ export async function getQueryHistory(userId: string): Promise<AIQueryHistory[]>
     }
 
     return (data ?? []) as unknown as AIQueryHistory[];
-  } catch (error) {
+  } catch (_error) {
     return [];
   }
 }
@@ -106,7 +105,7 @@ export async function updateQueryFeedback(
     }
 
     return { success: true };
-  } catch (error) {
+  } catch (_error) {
     return { success: false, error: 'Failed to update feedback' };
   }
 }
@@ -133,7 +132,7 @@ export async function getQueryTemplates(): Promise<AIQueryTemplate[]> {
     }
 
     return (data ?? []) as unknown as AIQueryTemplate[];
-  } catch (error) {
+  } catch (_error) {
     return [];
   }
 }
@@ -233,7 +232,7 @@ export async function processAIQuery(
       suggestions: getSuggestedQuestions(),
     };
 
-  } catch (error) {
+  } catch (_error) {
     return {
       responseType: 'error',
       responseText: 'Sorry, I encountered an error processing your question.',
@@ -264,7 +263,7 @@ async function executeQuery(sql: string): Promise<{ data: unknown[] | null; erro
     }
 
     return { data: (data || []) as unknown[] | null, error: null };
-  } catch (error) {
+  } catch (_error) {
     return { data: null, error: 'Query execution failed' };
   }
 }
@@ -333,7 +332,7 @@ export async function checkAIInsightsAccess(): Promise<{
       userId: user.id,
       role: profile.role,
     };
-  } catch (error) {
+  } catch (_error) {
     return { hasAccess: false };
   }
 }

@@ -94,7 +94,7 @@ export async function updateCustomer(
 
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const { error } = await supabase.from('customers')
-    .update(updateData as any)
+    .update(updateData as any) // eslint-disable-line @typescript-eslint/no-explicit-any
     .eq('id', id)
 
   if (error) {

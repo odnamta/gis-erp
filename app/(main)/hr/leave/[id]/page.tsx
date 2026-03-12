@@ -44,7 +44,7 @@ function formatDate(dateStr: string): string {
 }
 
 export default async function LeaveDetailPage({ params }: LeaveDetailPageProps) {
-  const profile = await getCurrentUserProfile();
+  const _profile = await getCurrentUserProfile();
   const { explorerReadOnly } = await guardPage(true);
 
   const { id } = await params;
@@ -71,7 +71,7 @@ export default async function LeaveDetailPage({ params }: LeaveDetailPageProps) 
     .eq('id', id)
     .single();
 
-  const record = result.data as (LeaveRequest & { employee: any; leave_type: any }) | null;
+  const record = result.data as (LeaveRequest & { employee: any; leave_type: any }) | null; // eslint-disable-line @typescript-eslint/no-explicit-any
 
   if (!record) {
     notFound();

@@ -11,7 +11,6 @@ import { createClient } from '@/lib/supabase/server'
 import { revalidatePath } from 'next/cache'
 import {
   calculateDaysOverdue,
-  classifyOverdueSeverity,
 } from '@/lib/overdue-check-utils'
 import { formatCurrency } from '@/lib/utils/format'
 import type { Json } from '@/types/database'
@@ -206,7 +205,7 @@ export async function runInvoiceAlertChecks(): Promise<{
       return { success: true, results: [], totalTriggered: 0, followUpTasksCreated: 0 }
     }
 
-    const ruleMap = new Map(activeRules.map(r => [r.rule_code, r]))
+    const _ruleMap = new Map(activeRules.map(r => [r.rule_code, r]))
 
     // Check cooldown for each rule (skip if recently triggered)
     const now = new Date()

@@ -7,7 +7,6 @@ import {
   DepreciationMethod,
   DepreciationRecord,
   DepreciationRunResult,
-  DepreciationError,
   CreateDepreciationRecordInput,
 } from '@/types/depreciation-run';
 

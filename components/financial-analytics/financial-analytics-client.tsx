@@ -19,7 +19,6 @@ import { CustomerParetoChart } from './customer-pareto-chart';
 import { FinancialExportDialog } from './financial-export-dialog';
 import {
   BarChart3,
-  DollarSign,
   FileText,
   LayoutDashboard,
   RefreshCw,

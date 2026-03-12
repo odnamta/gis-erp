@@ -103,7 +103,7 @@ export async function getHistoricalEstimation(
         lastShipmentDate,
       },
     }
-  } catch (error) {
+  } catch (_error) {
     return { data: null, error: 'Gagal mengambil data estimasi historis' }
   }
 }

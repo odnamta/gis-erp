@@ -5,7 +5,6 @@ import { CustomerProfitability } from '@/types/financial-analytics';
 import { formatCurrencyIDR, formatPercentage } from '@/lib/financial-analytics-utils';
 import { BarChart3 } from 'lucide-react';
 import {
-  BarChart,
   Bar,
   XAxis,
   YAxis,

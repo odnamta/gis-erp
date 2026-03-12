@@ -416,7 +416,7 @@ export async function updatePJO(
 
   // Handle cost items diff
   if (data.cost_items) {
-    const { data: { user } } = await supabase.auth.getUser()
+    const { data: { user: _user } } = await supabase.auth.getUser()
     
     // Get existing cost items
     const { data: existingCostItems } = await supabase
@@ -839,7 +839,7 @@ export async function confirmCostItem(
   }
 
   // Calculate status and variance
-  const { status, variance, variancePct } = calculateCostStatus(
+  const { status, variance: _variance, variancePct } = calculateCostStatus(
     costItem.estimated_amount,
     actualAmount
   )

@@ -41,7 +41,7 @@ export default function RecordsPage() {
 
   useEffect(() => {
     loadRecords();
-  }, [status]);
+  }, [status]); // eslint-disable-line react-hooks/exhaustive-deps
 
   const loadRecords = async () => {
     setLoading(true);

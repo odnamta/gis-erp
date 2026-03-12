@@ -5,7 +5,7 @@
 // =====================================================
 
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { AlertTriangle, AlertCircle, Info, Bell, CheckCircle2, Activity } from 'lucide-react';
+import { AlertTriangle, AlertCircle, CheckCircle2, Activity } from 'lucide-react';
 
 interface AlertSummaryCardsProps {
   criticalCount: number;
@@ -19,10 +19,10 @@ interface AlertSummaryCardsProps {
 export function AlertSummaryCards({
   criticalCount,
   warningCount,
-  infoCount,
+  infoCount: _infoCount,
   activeRulesCount,
   resolvedMtdCount,
-  totalActiveCount,
+  totalActiveCount: _totalActiveCount,
 }: AlertSummaryCardsProps) {
   return (
     <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">

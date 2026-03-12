@@ -8,9 +8,6 @@ import { useRouter } from 'next/navigation';
 import {
   Card,
   CardContent,
-  CardDescription,
-  CardHeader,
-  CardTitle,
 } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -89,9 +86,9 @@ export function DrawingsTab({ assessment, canEdit }: DrawingsTabProps) {
       };
 
       // eslint-disable-next-line @typescript-eslint/no-unused-vars
-      const updatedDrawings = [...drawings, newDrawing];
+      const _updatedDrawings = [...drawings, newDrawing];
       // eslint-disable-next-line @typescript-eslint/no-unused-vars
-      const result = await updateAssessment(assessment.id, {
+      const _result = await updateAssessment(assessment.id, {
         // Note: drawings field would need to be added to UpdateAssessmentInput
       } as Record<string, unknown>);
 
@@ -113,7 +110,7 @@ export function DrawingsTab({ assessment, canEdit }: DrawingsTabProps) {
     setLoading(true);
 
     try {
-      const updatedDrawings = drawings.filter((d) => d.id !== deleteId);
+      const _updatedDrawings = drawings.filter((d) => d.id !== deleteId);
       // Update assessment with new drawings array
       setDeleteId(null);
       router.refresh();

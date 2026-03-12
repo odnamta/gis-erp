@@ -13,7 +13,7 @@ interface CostTrackingCardProps {
 }
 
 export function CostTrackingCard({ costSummary }: CostTrackingCardProps) {
-  const getProgressColor = (percent: number) => {
+  const _getProgressColor = (percent: number) => {
     if (percent >= 100) return 'bg-red-500'
     if (percent >= 80) return 'bg-yellow-500'
     return 'bg-green-500'

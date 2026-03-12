@@ -14,7 +14,6 @@ import {
   HelpCircle,
   Clock,
   CheckCircle2,
-  XCircle,
   AlertTriangle,
   MessageSquare,
   Shield,

@@ -25,7 +25,7 @@ export default async function MarketingManagerDashboardPage() {
   }
 
   // Check access: marketing_manager role or owner/director
-  const hasAccess = profileHasRole(profile as any, ['marketing_manager', 'owner', 'director'])
+  const hasAccess = profileHasRole(profile as any, ['marketing_manager', 'owner', 'director']) // eslint-disable-line @typescript-eslint/no-explicit-any
 
   if (!hasAccess) {
     redirect('/dashboard')

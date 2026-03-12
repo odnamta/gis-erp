@@ -193,7 +193,7 @@ export function CostItemsTable({ items, onChange, errors = {}, disabled = false 
                   <TableHead className="w-40">Category</TableHead>
                   <TableHead className="min-w-[200px]">Description</TableHead>
                   <TableHead className="w-48">Vendor</TableHead>
-                  <TableHead className="w-40 text-right">Estimated Amount</TableHead>
+                  <TableHead className="w-52 text-right">Estimated Amount</TableHead>
                   <TableHead className="w-28 text-center">Status</TableHead>
                   <TableHead className="w-16">Actions</TableHead>
                 </TableRow>

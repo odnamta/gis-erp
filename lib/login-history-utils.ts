@@ -19,7 +19,6 @@ import {
   PaginatedLoginHistory,
   SessionStatistics,
   ParsedUserAgent,
-  LoginDetails,
   LoginMethod,
   DeviceType,
   LoginStatus,
@@ -125,7 +124,7 @@ export function parseUserAgent(userAgent: string): ParsedUserAgent {
     };
   }
 
-  const ua = userAgent.toLowerCase();
+  const _ua = userAgent.toLowerCase();
 
   // Detect device type
   let device_type: DeviceType = 'desktop';

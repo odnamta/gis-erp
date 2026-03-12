@@ -3,7 +3,6 @@
 // =====================================================
 
 import {
-  AuditType,
   Audit,
   AuditFinding,
   AuditCategory,
@@ -20,7 +19,6 @@ import {
   FindingCounts,
   AuditDashboardMetrics,
   AuditScheduleItem,
-  OpenFindingView,
   AuditFilters,
   FindingFilters,
   AUDIT_CATEGORIES,

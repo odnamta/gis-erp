@@ -4,7 +4,7 @@
  * Part of the n8n Document Generation module (v0.68)
  */
 
-import { DocumentType, StoragePath, UploadResult } from '@/types/document-generation'
+import { DocumentType, StoragePath } from '@/types/document-generation'
 
 // Storage bucket for generated documents
 export const GENERATED_DOCUMENTS_BUCKET = 'generated-documents'

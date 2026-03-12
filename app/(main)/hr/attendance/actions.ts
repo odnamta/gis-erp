@@ -8,7 +8,6 @@ import {
   AttendanceSummary,
   MonthlySummary,
   AttendanceFilters,
-  AttendanceStatus,
 } from '@/types/attendance';
 import { getUserProfile } from '@/lib/permissions-server';
 import { canAccessFeature } from '@/lib/permissions';
@@ -129,7 +128,7 @@ export async function getAttendanceSummary(
   }
 
   // Calculate absent (employees without any record, excluding on_leave and holiday)
-  const recordedCount = records?.length || 0;
+  const _recordedCount = records?.length || 0;
   const accountedFor = statusCounts.present + statusCounts.late + statusCounts.absent + statusCounts.onLeave + statusCounts.holiday;
   statusCounts.absent = Math.max(0, (totalEmployees || 0) - accountedFor);
 

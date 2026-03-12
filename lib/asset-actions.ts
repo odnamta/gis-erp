@@ -18,7 +18,6 @@ import {
   AssetFilterState,
   AssetCategorySummary,
   ExpiringDocument,
-  AssetStatus,
 } from '@/types/assets'
 import { ActionResult } from '@/types/actions'
 
@@ -636,7 +635,7 @@ export async function deleteAssetDocument(
 /**
  * Get expiring documents
  */
-export async function getExpiringDocuments(daysAhead: number = 30): Promise<ExpiringDocument[]> {
+export async function getExpiringDocuments(_daysAhead: number = 30): Promise<ExpiringDocument[]> {
   const profile = await getUserProfile()
   if (!profile || !profileHasRole(profile, [...ASSET_READ_ROLES])) {
     return []

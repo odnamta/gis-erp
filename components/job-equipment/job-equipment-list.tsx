@@ -31,7 +31,7 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from '@/components/ui/alert-dialog';
-import { MoreHorizontal, CheckCircle, Trash2, Edit } from 'lucide-react';
+import { MoreHorizontal, CheckCircle, Trash2 } from 'lucide-react';
 import { JobEquipmentUsage } from '@/types/job-equipment';
 import {
   formatEquipmentCurrency,

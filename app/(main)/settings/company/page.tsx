@@ -21,7 +21,7 @@ export default async function CompanySettingsPage() {
     .eq('user_id', user.id)
     .single();
   
-  if (!profileHasRole(profile as any, ['sysadmin', 'director', 'owner'])) {
+  if (!profileHasRole(profile as any, ['sysadmin', 'director', 'owner'])) { // eslint-disable-line @typescript-eslint/no-explicit-any
     redirect('/dashboard');
   }
   

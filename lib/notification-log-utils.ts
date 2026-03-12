@@ -8,7 +8,6 @@ import type {
   NotificationLogUpdate,
   NotificationStatus,
   NotificationChannel,
-  VALID_STATUS_TRANSITIONS,
 } from '@/types/notification-workflows';
 
 // Re-export valid transitions

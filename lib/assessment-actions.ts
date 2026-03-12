@@ -116,7 +116,7 @@ export async function createAssessment(
       cargo_dimensions: input.cargo_dimensions || null,
       status: 'draft',
       revision_number: 1,
-    } as any)
+    } as any) // eslint-disable-line @typescript-eslint/no-explicit-any
     .select(`
       *,
       assessment_type:technical_assessment_types(*),
@@ -567,7 +567,7 @@ export async function createRevision(
       revision_number: (original.revision_number || 0) + 1,
       previous_revision_id: id,
       revision_notes: revisionNotes,
-    } as any)
+    } as any) // eslint-disable-line @typescript-eslint/no-explicit-any
     .select(`
       *,
       assessment_type:technical_assessment_types(*)
@@ -874,7 +874,7 @@ export async function createAxleCalculation(
       within_legal_limits: withinLimits,
       permit_required: permitRequired,
       notes: input.notes || null,
-    } as any)
+    } as any) // eslint-disable-line @typescript-eslint/no-explicit-any
     .select()
     .single();
 

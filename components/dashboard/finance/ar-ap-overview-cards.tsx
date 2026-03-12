@@ -95,7 +95,7 @@ export function AROverviewCard({
   agingBuckets,
 }: AROverviewCardProps) {
   const hasCritical = hasCriticalOverdue(agingBuckets)
-  const overduePercentage = totalAR > 0 ? (overdueAR / totalAR) * 100 : 0
+  const _overduePercentage = totalAR > 0 ? (overdueAR / totalAR) * 100 : 0
 
   return (
     <Card>

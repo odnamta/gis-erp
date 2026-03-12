@@ -72,7 +72,7 @@ export async function submitFeedback(
 
     // Insert feedback submission
     const { data, error } = await supabase
-      .from('feedback_submissions' as any)
+      .from('feedback_submissions' as any) // eslint-disable-line @typescript-eslint/no-explicit-any
       .insert({
         feedback_type: formData.feedbackType,
         submitted_by: profile?.id || null,
@@ -107,7 +107,7 @@ export async function submitFeedback(
     }
 
     // Cast data to access properties
-    const result = data as any;
+    const result = data as any; // eslint-disable-line @typescript-eslint/no-explicit-any
 
     // Send notification to admins
     await notifyNewFeedback(
@@ -217,7 +217,7 @@ export async function getMySubmissions(): Promise<FeedbackActionResult<FeedbackL
     }
 
     const { data, error } = await supabase
-      .from('feedback_with_comments' as any)
+      .from('feedback_with_comments' as any) // eslint-disable-line @typescript-eslint/no-explicit-any
       .select('*')
       .eq('submitted_by', profile.id)
       .order('created_at', { ascending: false })
@@ -293,7 +293,7 @@ export async function getAllFeedback(
 
     // Build query
     let query = supabase
-      .from('feedback_with_comments' as any)
+      .from('feedback_with_comments' as any) // eslint-disable-line @typescript-eslint/no-explicit-any
       .select('*', { count: 'exact' });
 
     // Apply filters

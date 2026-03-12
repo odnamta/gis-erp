@@ -12,9 +12,6 @@ import {
   CreateKPISnapshotInput,
   KPISnapshotFilters,
   DateRange,
-  EMPTY_REVENUE_METRICS,
-  EMPTY_OPERATIONAL_METRICS,
-  EMPTY_FINANCIAL_METRICS,
 } from '@/types/kpi-snapshot';
 
 // =====================================================

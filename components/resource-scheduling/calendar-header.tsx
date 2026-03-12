@@ -8,7 +8,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select'
-import { ResourceType, RESOURCE_TYPE_LABELS } from '@/types/resource-scheduling'
+import { RESOURCE_TYPE_LABELS } from '@/types/resource-scheduling'
 import { ChevronLeft, ChevronRight, Calendar } from 'lucide-react'
 import { format, addWeeks, subWeeks, startOfWeek } from 'date-fns'
 

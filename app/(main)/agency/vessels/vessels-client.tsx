@@ -26,8 +26,8 @@ function calculateVesselStats(vessels: Vessel[]): VesselStats {
 }
 
 export function VesselsClient() {
-  const router = useRouter();
-  const searchParams = useSearchParams();
+  const _router = useRouter();
+  const _searchParams = useSearchParams();
   const { toast } = useToast();
 
   const [vessels, setVessels] = useState<Vessel[]>([]);

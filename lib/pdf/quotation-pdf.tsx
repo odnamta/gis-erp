@@ -233,7 +233,7 @@ export function QuotationPDF({
   quotation,
   customer,
   revenueItems,
-  costItems,
+  costItems: _costItems,
   company,
 }: QuotationPDFProps) {
   return (

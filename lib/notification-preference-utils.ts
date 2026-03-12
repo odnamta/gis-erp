@@ -9,7 +9,6 @@ import type {
   EventType,
   DigestFrequency,
   NotificationChannel,
-  DEFAULT_PREFERENCE,
 } from '@/types/notification-workflows';
 
 // Re-export default preference for convenience

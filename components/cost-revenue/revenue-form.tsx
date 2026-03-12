@@ -95,7 +95,7 @@ export function RevenueForm({
     formState: { errors },
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
   } = useForm<RevenueFormValues>({
-    resolver: zodResolver(revenueFormSchema) as any,
+    resolver: zodResolver(revenueFormSchema) as any, // eslint-disable-line @typescript-eslint/no-explicit-any
     defaultValues: {
       chargeTypeId: revenue?.chargeTypeId || '',
       description: revenue?.description || '',

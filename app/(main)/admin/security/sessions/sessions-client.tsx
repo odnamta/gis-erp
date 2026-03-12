@@ -74,7 +74,7 @@ function getDeviceIcon(userAgent: string | null) {
 
 export function SessionsClient({
   users,
-  currentUser,
+  currentUser: _currentUser,
 }: SessionsClientProps) {
   const { toast } = useToast()
   const [isPending, startTransition] = useTransition()

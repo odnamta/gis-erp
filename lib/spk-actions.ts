@@ -16,7 +16,7 @@ async function generateSPKNumber(): Promise<string> {
   const prefix = `SPK-${now.getFullYear()}${String(now.getMonth() + 1).padStart(2, '0')}-`;
 
   const { data } = await supabase
-    .from('vendor_work_orders' as any)
+    .from('vendor_work_orders' as any) // eslint-disable-line @typescript-eslint/no-explicit-any
     .select('spk_number')
     .like('spk_number', `${prefix}%`)
     .order('spk_number', { ascending: false })
@@ -24,7 +24,7 @@ async function generateSPKNumber(): Promise<string> {
 
   let sequence = 1;
   if (data && data.length > 0) {
-    const lastNum = (data[0] as any).spk_number as string;
+    const lastNum = (data[0] as any).spk_number as string; // eslint-disable-line @typescript-eslint/no-explicit-any
     const lastSeq = parseInt(lastNum.split('-').pop() || '0', 10);
     sequence = lastSeq + 1;
   }
@@ -38,7 +38,7 @@ export async function getSPKList(
   const supabase = await createClient();
 
   let query = supabase
-    .from('vendor_work_orders' as any)
+    .from('vendor_work_orders' as any) // eslint-disable-line @typescript-eslint/no-explicit-any
     .select('*')
     .eq('is_active', true)
     .order('created_at', { ascending: false });
@@ -51,16 +51,16 @@ export async function getSPKList(
   if (error || !data) return [];
 
   // Fetch vendor names
-  const vendorIds = [...new Set((data as any[]).map((d: any) => d.vendor_id))];
+  const vendorIds = [...new Set((data as any[]).map((d: any) => d.vendor_id))]; // eslint-disable-line @typescript-eslint/no-explicit-any
   const { data: vendors } = await supabase
     .from('vendors')
     .select('id, vendor_name, vendor_code')
     .in('id', vendorIds);
 
-  const vendorMap = new Map<string, any>();
-  (vendors || []).forEach((v: any) => vendorMap.set(v.id, v));
+  const vendorMap = new Map<string, any>(); // eslint-disable-line @typescript-eslint/no-explicit-any
+  (vendors || []).forEach((v: any) => vendorMap.set(v.id, v)); // eslint-disable-line @typescript-eslint/no-explicit-any
 
-  let result = (data as any[]).map((spk: any) => ({
+  let result = (data as any[]).map((spk: any) => ({ // eslint-disable-line @typescript-eslint/no-explicit-any
     ...spk,
     vendor: vendorMap.get(spk.vendor_id) || null,
   })) as VendorWorkOrder[];
@@ -82,14 +82,14 @@ export async function getSPKById(id: string): Promise<VendorWorkOrder | null> {
   const supabase = await createClient();
 
   const { data, error } = await supabase
-    .from('vendor_work_orders' as any)
+    .from('vendor_work_orders' as any) // eslint-disable-line @typescript-eslint/no-explicit-any
     .select('*')
     .eq('id', id)
     .single();
 
   if (error || !data) return null;
 
-  const spk = data as any;
+  const spk = data as any; // eslint-disable-line @typescript-eslint/no-explicit-any
 
   // Fetch vendor
   const { data: vendor } = await supabase
@@ -145,7 +145,7 @@ export async function createSPK(
   const spkNumber = await generateSPKNumber();
 
   const { data, error } = await supabase
-    .from('vendor_work_orders' as any)
+    .from('vendor_work_orders' as any) // eslint-disable-line @typescript-eslint/no-explicit-any
     .insert({
       spk_number: spkNumber,
       vendor_id: input.vendor_id,
@@ -181,17 +181,17 @@ export async function issueSPK(
   const profileId = await getCurrentProfileId();
 
   const { data: spk } = await supabase
-    .from('vendor_work_orders' as any)
+    .from('vendor_work_orders' as any) // eslint-disable-line @typescript-eslint/no-explicit-any
     .select('status')
     .eq('id', id)
     .single();
 
-  if (!spk || (spk as any).status !== 'draft') {
+  if (!spk || (spk as any).status !== 'draft') { // eslint-disable-line @typescript-eslint/no-explicit-any
     return { success: false, error: 'SPK harus dalam status draft untuk diterbitkan' };
   }
 
   const { error } = await supabase
-    .from('vendor_work_orders' as any)
+    .from('vendor_work_orders' as any) // eslint-disable-line @typescript-eslint/no-explicit-any
     .update({
       status: 'issued',
       issued_by: profileId,
@@ -217,17 +217,17 @@ export async function completeSPK(
   const supabase = await createClient();
 
   const { data: spk } = await supabase
-    .from('vendor_work_orders' as any)
+    .from('vendor_work_orders' as any) // eslint-disable-line @typescript-eslint/no-explicit-any
     .select('status')
     .eq('id', id)
     .single();
 
-  if (!spk || !['issued', 'in_progress'].includes((spk as any).status)) {
+  if (!spk || !['issued', 'in_progress'].includes((spk as any).status)) { // eslint-disable-line @typescript-eslint/no-explicit-any
     return { success: false, error: 'SPK harus dalam status issued atau in progress' };
   }
 
   const { error } = await supabase
-    .from('vendor_work_orders' as any)
+    .from('vendor_work_orders' as any) // eslint-disable-line @typescript-eslint/no-explicit-any
     .update({ status: 'completed' })
     .eq('id', id);
 
@@ -249,17 +249,17 @@ export async function cancelSPK(
   const supabase = await createClient();
 
   const { data: spk } = await supabase
-    .from('vendor_work_orders' as any)
+    .from('vendor_work_orders' as any) // eslint-disable-line @typescript-eslint/no-explicit-any
     .select('status')
     .eq('id', id)
     .single();
 
-  if (!spk || !['draft', 'issued'].includes((spk as any).status)) {
+  if (!spk || !['draft', 'issued'].includes((spk as any).status)) { // eslint-disable-line @typescript-eslint/no-explicit-any
     return { success: false, error: 'Hanya SPK draft atau issued yang bisa dibatalkan' };
   }
 
   const { error } = await supabase
-    .from('vendor_work_orders' as any)
+    .from('vendor_work_orders' as any) // eslint-disable-line @typescript-eslint/no-explicit-any
     .update({ status: 'cancelled' })
     .eq('id', id);
 

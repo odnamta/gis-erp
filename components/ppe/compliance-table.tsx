@@ -20,12 +20,9 @@ import {
 } from '@/components/ui/select';
 import { EmployeePPEStatus, EmployeeComplianceSummary } from '@/types/ppe';
 import {
-  formatComplianceStatus,
-  getComplianceStatusColor,
   getEmployeeComplianceSummary,
-  formatPPEDate,
 } from '@/lib/ppe-utils';
-import { Search, CheckCircle2, AlertTriangle, XCircle, Clock } from 'lucide-react';
+import { Search, CheckCircle2, XCircle, Clock } from 'lucide-react';
 
 interface ComplianceTableProps {
   statuses: EmployeePPEStatus[];

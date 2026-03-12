@@ -42,11 +42,11 @@ export async function generateBKKNumber(): Promise<string> {
 
   // Get the latest BKK number for this year
   const { data } = await (supabase
-    .from('bukti_kas_keluar' as any)
+    .from('bukti_kas_keluar' as any) // eslint-disable-line @typescript-eslint/no-explicit-any
     .select('bkk_number')
     .like('bkk_number', `${prefix}%`)
     .order('bkk_number', { ascending: false })
-    .limit(1) as any)
+    .limit(1) as any) // eslint-disable-line @typescript-eslint/no-explicit-any
 
   let sequence = 1
   if (data && data.length > 0) {
@@ -89,7 +89,7 @@ export async function createDisbursement(input: CreateDisbursementInput) {
     }
 
     const { data, error } = await (supabase
-      .from('bukti_kas_keluar' as any)
+      .from('bukti_kas_keluar' as any) // eslint-disable-line @typescript-eslint/no-explicit-any
       .insert({
         bkk_number: bkkNumber,
         jo_id: input.jo_id,
@@ -108,7 +108,7 @@ export async function createDisbursement(input: CreateDisbursementInput) {
         entity_type: entityType,
       })
       .select()
-      .single() as any)
+      .single() as any) // eslint-disable-line @typescript-eslint/no-explicit-any
 
     if (error) throw error
 
@@ -141,14 +141,14 @@ export async function updateDisbursement(
     }
 
     const { data, error } = await (supabase
-      .from('bukti_kas_keluar' as any)
+      .from('bukti_kas_keluar' as any) // eslint-disable-line @typescript-eslint/no-explicit-any
       .update({
         ...input,
         updated_at: new Date().toISOString(),
       })
       .eq('id', id)
       .select()
-      .single() as any)
+      .single() as any) // eslint-disable-line @typescript-eslint/no-explicit-any
 
     if (error) throw error
 
@@ -165,7 +165,7 @@ export async function submitForApproval(id: string) {
 
   try {
     const { data, error } = await (supabase
-      .from('bukti_kas_keluar' as any)
+      .from('bukti_kas_keluar' as any) // eslint-disable-line @typescript-eslint/no-explicit-any
       .update({
         status: 'pending',
         updated_at: new Date().toISOString(),
@@ -173,7 +173,7 @@ export async function submitForApproval(id: string) {
       .eq('id', id)
       .eq('status', 'draft')
       .select()
-      .single() as any)
+      .single() as any) // eslint-disable-line @typescript-eslint/no-explicit-any
 
     if (error) throw error
 
@@ -200,7 +200,7 @@ export async function approveDisbursement(id: string, _userId?: string) {
     const approvedBy = profile.id
 
     const { data, error } = await (supabase
-      .from('bukti_kas_keluar' as any)
+      .from('bukti_kas_keluar' as any) // eslint-disable-line @typescript-eslint/no-explicit-any
       .update({
         status: 'approved',
         approved_by: approvedBy,
@@ -210,7 +210,7 @@ export async function approveDisbursement(id: string, _userId?: string) {
       .eq('id', id)
       .eq('status', 'pending')
       .select()
-      .single() as any)
+      .single() as any) // eslint-disable-line @typescript-eslint/no-explicit-any
 
     if (error) throw error
 
@@ -241,7 +241,7 @@ export async function rejectDisbursement(id: string, _userId?: string, reason?: 
     }
 
     const { data, error } = await (supabase
-      .from('bukti_kas_keluar' as any)
+      .from('bukti_kas_keluar' as any) // eslint-disable-line @typescript-eslint/no-explicit-any
       .update({
         status: 'rejected',
         rejection_reason: reason || null,
@@ -250,7 +250,7 @@ export async function rejectDisbursement(id: string, _userId?: string, reason?: 
       .eq('id', id)
       .eq('status', 'pending')
       .select()
-      .single() as any)
+      .single() as any) // eslint-disable-line @typescript-eslint/no-explicit-any
 
     if (error) throw error
 
@@ -277,7 +277,7 @@ export async function releaseDisbursement(id: string, _userId?: string) {
     const releasedBy = profile.id
 
     const { data, error } = await (supabase
-      .from('bukti_kas_keluar' as any)
+      .from('bukti_kas_keluar' as any) // eslint-disable-line @typescript-eslint/no-explicit-any
       .update({
         status: 'released',
         released_by: releasedBy,
@@ -287,7 +287,7 @@ export async function releaseDisbursement(id: string, _userId?: string) {
       .eq('id', id)
       .eq('status', 'approved')
       .select()
-      .single() as any)
+      .single() as any) // eslint-disable-line @typescript-eslint/no-explicit-any
 
     if (error) throw error
 
@@ -319,7 +319,7 @@ export async function settleDisbursement(id: string, _userId?: string) {
     const settledBy = profile.id
 
     const { data, error } = await (supabase
-      .from('bukti_kas_keluar' as any)
+      .from('bukti_kas_keluar' as any) // eslint-disable-line @typescript-eslint/no-explicit-any
       .update({
         status: 'settled',
         settled_by: settledBy,
@@ -329,7 +329,7 @@ export async function settleDisbursement(id: string, _userId?: string) {
       .eq('id', id)
       .eq('status', 'released')
       .select()
-      .single() as any)
+      .single() as any) // eslint-disable-line @typescript-eslint/no-explicit-any
 
     if (error) throw error
 
@@ -347,10 +347,10 @@ export async function deleteDisbursement(id: string) {
   try {
     // Set status to 'cancelled' since bukti_kas_keluar has no is_active column
     const { error } = await (supabase
-      .from('bukti_kas_keluar' as any)
+      .from('bukti_kas_keluar' as any) // eslint-disable-line @typescript-eslint/no-explicit-any
       .update({ status: 'cancelled', updated_at: new Date().toISOString() })
       .eq('id', id)
-      .eq('status', 'draft') as any)
+      .eq('status', 'draft') as any) // eslint-disable-line @typescript-eslint/no-explicit-any
 
     if (error) throw error
 
@@ -412,8 +412,8 @@ export async function getBKKDashboardStats(): Promise<BKKDashboardStats> {
 
   // Fetch all BKK records with status and amounts
   const { data: allBKKs } = await (supabase
-    .from('bukti_kas_keluar' as any)
-    .select('id, status, amount_requested, released_at, jo_id, budget_amount') as any)
+    .from('bukti_kas_keluar' as any) // eslint-disable-line @typescript-eslint/no-explicit-any
+    .select('id, status, amount_requested, released_at, jo_id, budget_amount') as any) // eslint-disable-line @typescript-eslint/no-explicit-any
 
   const records = (allBKKs || []) as {
     id: string

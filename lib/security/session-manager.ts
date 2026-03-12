@@ -16,7 +16,6 @@ import type {
   SessionValidationResult,
   SessionConfig,
   UserSessionInsert,
-  DEFAULT_SESSION_CONFIG,
 } from './types';
 import { logEvent } from './event-logger';
 

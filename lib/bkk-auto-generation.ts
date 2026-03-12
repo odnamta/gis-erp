@@ -81,11 +81,11 @@ export async function generateBKKSuggestionsFromJO(
 
   // 3. Fetch existing BKKs for this JO
   const { data: existingBKKs } = await (supabase
-    .from('bukti_kas_keluar' as any)
+    .from('bukti_kas_keluar' as any) // eslint-disable-line @typescript-eslint/no-explicit-any
     .select('id, pjo_cost_item_id, amount_requested, status')
     .eq('jo_id', joId)
     .neq('status', 'cancelled')
-    .neq('status', 'rejected') as any)
+    .neq('status', 'rejected') as any) // eslint-disable-line @typescript-eslint/no-explicit-any
 
   const bkkRecords = (existingBKKs || []) as {
     id: string
@@ -108,7 +108,7 @@ export async function generateBKKSuggestionsFromJO(
   )
 
   // 4. Filter to uncovered cost items (not confirmed/exceeded, no active BKK)
-  const uncoveredItems = (costItems as any[]).filter(
+  const uncoveredItems = (costItems as any[]).filter( // eslint-disable-line @typescript-eslint/no-explicit-any
     (item) =>
       item.status !== 'confirmed' &&
       item.status !== 'exceeded' &&
@@ -119,7 +119,7 @@ export async function generateBKKSuggestionsFromJO(
     return {
       suggestions: [],
       jo_number: jo.jo_number,
-      total_estimated: (costItems as any[]).reduce(
+      total_estimated: (costItems as any[]).reduce( // eslint-disable-line @typescript-eslint/no-explicit-any
         (sum, item) => sum + Number(item.estimated_amount || 0),
         0
       ),
@@ -193,7 +193,7 @@ export async function generateBKKSuggestionsFromJO(
     })
   }
 
-  const totalEstimated = (costItems as any[]).reduce(
+  const totalEstimated = (costItems as any[]).reduce( // eslint-disable-line @typescript-eslint/no-explicit-any
     (sum, item) => sum + Number(item.estimated_amount || 0),
     0
   )

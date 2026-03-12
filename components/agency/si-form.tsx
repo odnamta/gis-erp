@@ -13,7 +13,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Switch } from '@/components/ui/switch';
 import { Checkbox } from '@/components/ui/checkbox';
-import { Loader2, Ship, Package, Users, FileText, AlertCircle, CreditCard, CheckSquare } from 'lucide-react';
+import { Loader2, Package, Users, FileText, AlertCircle, CreditCard, CheckSquare } from 'lucide-react';
 import {
   SIFormData,
   BLType,
@@ -109,7 +109,7 @@ export function SIForm({
   const [validationErrors, setValidationErrors] = useState<string[]>([]);
 
   // Get initial booking data
-  const selectedBooking = booking || bookings.find(b => b.id === initialData?.bookingId);
+  const _selectedBooking = booking || bookings.find(b => b.id === initialData?.bookingId);
 
   const {
     register,

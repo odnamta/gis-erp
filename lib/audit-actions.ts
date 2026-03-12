@@ -31,10 +31,7 @@ import {
   validateClosureEvidence,
   calculateAuditScore,
   determineAuditRating,
-  calculateDashboardMetrics,
   getAuditsDueSoon,
-  filterOpenFindings,
-  countCriticalOpenFindings,
   calculateAverageScore,
 } from '@/lib/audit-utils';
 import { profileHasRole } from '@/lib/auth-utils';

@@ -257,7 +257,7 @@ export async function approveBKK(bkkId: string): Promise<{ error?: string }> {
     .single()
   
   // Check permission
-  if (!profile || !profileHasRole(profile as any, ['sysadmin', 'director', 'owner', 'finance', 'finance_manager', 'marketing_manager', 'operations_manager'])) {
+  if (!profile || !profileHasRole(profile as any, ['sysadmin', 'director', 'owner', 'finance', 'finance_manager', 'marketing_manager', 'operations_manager'])) { // eslint-disable-line @typescript-eslint/no-explicit-any
     return { error: 'You don\'t have permission to approve BKK requests' }
   }
   
@@ -330,7 +330,7 @@ export async function rejectBKK(
     .single()
   
   // Check permission
-  if (!profile || !profileHasRole(profile as any, ['sysadmin', 'director', 'owner', 'finance', 'finance_manager', 'marketing_manager', 'operations_manager'])) {
+  if (!profile || !profileHasRole(profile as any, ['sysadmin', 'director', 'owner', 'finance', 'finance_manager', 'marketing_manager', 'operations_manager'])) { // eslint-disable-line @typescript-eslint/no-explicit-any
     return { error: 'You don\'t have permission to reject BKK requests' }
   }
   
@@ -387,7 +387,7 @@ export async function cancelBKK(bkkId: string): Promise<{ error?: string }> {
   }
   
   // Get user profile
-  const { data: profile } = await supabase
+  const { data: _profile } = await supabase
     .from('user_profiles')
     .select('id')
     .eq('user_id', user.id)
@@ -462,7 +462,7 @@ export async function releaseBKK(
     .single()
   
   // Check permission
-  if (!profile || !profileHasRole(profile as any, ['sysadmin', 'director', 'owner', 'finance', 'finance_manager'])) {
+  if (!profile || !profileHasRole(profile as any, ['sysadmin', 'director', 'owner', 'finance', 'finance_manager'])) { // eslint-disable-line @typescript-eslint/no-explicit-any
     return { error: 'You don\'t have permission to release cash' }
   }
   

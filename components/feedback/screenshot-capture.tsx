@@ -183,6 +183,7 @@ export function ScreenshotCapture({
               key={index}
               className="relative group w-24 h-24 rounded-md overflow-hidden border"
             >
+              {/* eslint-disable-next-line @next/next/no-img-element */}
               <img
                 src={screenshot.dataUrl}
                 alt={screenshot.filename || `Screenshot ${index + 1}`}

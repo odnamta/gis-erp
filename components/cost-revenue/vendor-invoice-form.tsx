@@ -86,7 +86,7 @@ export function VendorInvoiceForm({
     formState: { errors },
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
   } = useForm<VendorInvoiceFormValues>({
-    resolver: zodResolver(vendorInvoiceFormSchema) as any,
+    resolver: zodResolver(vendorInvoiceFormSchema) as any, // eslint-disable-line @typescript-eslint/no-explicit-any
     defaultValues: {
       invoiceNumber: invoice?.invoiceNumber || '',
       vendorId: invoice?.vendorId || '',

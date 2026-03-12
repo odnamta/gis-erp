@@ -80,7 +80,7 @@ export async function getVendors(filters?: Partial<VendorFilterState>): Promise<
       vendor_equipment(count),
       vendor_ratings(count)
     `)
-    .order('vendor_name') as any;
+    .order('vendor_name') as any; // eslint-disable-line @typescript-eslint/no-explicit-any
 
   if (filters?.type && filters.type !== 'all') {
     query = query.eq('vendor_type', filters.type);

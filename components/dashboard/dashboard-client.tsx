@@ -68,7 +68,7 @@ export function DashboardClient({
 
   // Determine which KPIs to show based on role
   const isOpsOnly = userRole === 'ops'
-  const isFinance = userRole === 'finance'
+  const _isFinance = userRole === 'finance'
   const canSeeFullDashboard = canSeeRevenue && canSeeProfit
 
   return (

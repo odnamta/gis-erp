@@ -12,7 +12,6 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import {
   Card,
   CardContent,
-  CardDescription,
   CardHeader,
   CardTitle,
 } from '@/components/ui/card';
@@ -81,8 +80,6 @@ import { LiftingPlanTab } from './lifting-plan-tab';
 import { AxleCalcTab } from './axle-calc-tab';
 import { DrawingsTab } from './drawings-tab';
 import { DocumentsTab } from './documents-tab';
-import { ReviewWorkflowPanel } from './review-workflow-panel';
-import { RevisionHistory } from './revision-history';
 
 interface AssessmentDetailViewProps {
   assessment: TechnicalAssessment;
@@ -348,6 +345,7 @@ export function AssessmentDetailView({
             </TabsTrigger>
           )}
           <TabsTrigger value="drawings" className="flex items-center gap-2">
+            {/* eslint-disable-next-line jsx-a11y/alt-text */}
             <Image className="h-4 w-4" />
             Drawings
           </TabsTrigger>

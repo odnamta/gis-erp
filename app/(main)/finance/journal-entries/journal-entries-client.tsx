@@ -54,7 +54,7 @@ export function JournalEntriesClient({ entries, canWrite }: Props) {
   // Stats
   const draftCount = entries.filter((e) => e.status === 'draft').length
   const postedCount = entries.filter((e) => e.status === 'posted').length
-  const totalDebit = entries
+  const _totalDebit = entries
     .filter((e) => e.status === 'posted')
     .reduce((s, e) => s + e.total_debit, 0)
 

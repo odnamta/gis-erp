@@ -66,7 +66,7 @@ export default function EditNotificationTemplatePage({ params }: PageProps) {
 
   useEffect(() => {
     loadTemplate()
-  }, [id])
+  }, [id]) // eslint-disable-line react-hooks/exhaustive-deps
 
   const loadTemplate = async () => {
     setIsLoading(true)

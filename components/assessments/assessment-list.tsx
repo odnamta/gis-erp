@@ -30,7 +30,6 @@ import {
   Edit, 
   Trash2,
   ArrowUpDown,
-  Filter,
   X
 } from 'lucide-react';
 import {

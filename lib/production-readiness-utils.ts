@@ -796,7 +796,7 @@ export async function checkRequiredTables(): Promise<{ passed: boolean; error?: 
   for (const table of REQUIRED_TABLES) {
     try {
       // Dynamic table name requires cast
-      const { error } = await supabase.from(table as any).select('*').limit(0);
+      const { error } = await supabase.from(table as any).select('*').limit(0); // eslint-disable-line @typescript-eslint/no-explicit-any
       if (error) {
         missing.push(table);
       }
@@ -874,14 +874,14 @@ export async function gracefulShutdown(timeoutMs: number = 10000): Promise<void>
     for (const callback of shutdownCallbacks) {
       try {
         await callback();
-      } catch (err) {
+      } catch (_err) {
       }
     }
   };
   
   try {
     await Promise.race([cleanup(), timeout]);
-  } catch (err) {
+  } catch (_err) {
   }
 }
 

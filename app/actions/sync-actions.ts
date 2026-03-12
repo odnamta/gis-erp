@@ -22,12 +22,7 @@ import {
 import {
   createSyncContext,
   contextToResult,
-  updateContextFromResults,
-  processSyncBatch,
   checkTokenStatus,
-  DEFAULT_RETRY_CONFIG,
-  type SyncRecord,
-  type ExternalApiAdapter,
 } from '@/lib/sync-engine';
 import {
   prepareSyncLogForCreate,
@@ -160,7 +155,7 @@ export async function triggerManualSync(
 
     const { data: syncLog, error: logError } = await supabase
       .from('sync_log')
-      .insert(logInput.data as any)
+      .insert(logInput.data as any) // eslint-disable-line @typescript-eslint/no-explicit-any
       .select()
       .single();
 
@@ -336,7 +331,7 @@ export async function retryFailedSync(
 
     const { data: retrySyncLog, error: retryLogError } = await supabase
       .from('sync_log')
-      .insert(retryLogInput.data as any)
+      .insert(retryLogInput.data as any) // eslint-disable-line @typescript-eslint/no-explicit-any
       .select()
       .single();
 
@@ -757,7 +752,7 @@ export async function cancelSync(
 
     await supabase
       .from('sync_log')
-      .update(failureData as any)
+      .update(failureData as any) // eslint-disable-line @typescript-eslint/no-explicit-any
       .eq('id', syncLogId);
 
     revalidatePath('/settings/integrations');

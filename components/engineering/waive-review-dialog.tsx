@@ -25,7 +25,7 @@ interface WaiveReviewDialogProps {
 export function WaiveReviewDialog({
   open,
   onOpenChange,
-  pjoId,
+  pjoId: _pjoId,
   pjoNumber,
   onWaive,
 }: WaiveReviewDialogProps) {

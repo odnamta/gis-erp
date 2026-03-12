@@ -19,7 +19,6 @@ import {
   DollarSign,
   User,
   Package,
-  Calendar,
   AlertTriangle,
   CheckCircle,
   Briefcase,

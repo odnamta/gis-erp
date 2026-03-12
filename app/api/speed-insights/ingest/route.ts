@@ -14,8 +14,8 @@ export async function POST(request: NextRequest) {
     const supabase = createClient(supabaseUrl, supabaseServiceKey)
 
     const rows = events
-      .filter((e: any) => e.type === 'vitals' && e.payload)
-      .map((e: any) => ({
+      .filter((e: any) => e.type === 'vitals' && e.payload) // eslint-disable-line @typescript-eslint/no-explicit-any
+      .map((e: any) => ({ // eslint-disable-line @typescript-eslint/no-explicit-any
         event_name: e.payload.event_name,
         href: e.payload.href,
         route: e.payload.route || extractRoute(e.payload.href),
@@ -26,7 +26,7 @@ export async function POST(request: NextRequest) {
       }))
 
     if (rows.length > 0) {
-      await supabase.from('speed_insights_events' as any).insert(rows)
+      await supabase.from('speed_insights_events' as any).insert(rows) // eslint-disable-line @typescript-eslint/no-explicit-any
     }
 
     return NextResponse.json({ ok: true })

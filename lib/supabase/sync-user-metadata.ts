@@ -55,7 +55,7 @@ export async function syncUserMetadataToAuth(
     }
 
     return { success: true }
-  } catch (error) {
+  } catch (_error) {
     return { success: false, error: 'Failed to sync metadata' }
   }
 }
@@ -90,7 +90,7 @@ export async function syncUserMetadataFromProfile(userId: string): Promise<{ suc
       is_active: profile.is_active,
       custom_homepage: profile.custom_homepage,
     })
-  } catch (error) {
+  } catch (_error) {
     return { success: false, error: 'Failed to sync metadata from profile' }
   }
 }

@@ -55,7 +55,7 @@ interface LiftingPlanTabProps {
 export function LiftingPlanTab({ assessment, liftingPlans, canEdit }: LiftingPlanTabProps) {
   const router = useRouter();
   const [isFormOpen, setIsFormOpen] = useState(false);
-  const [editingPlan, setEditingPlan] = useState<LiftingPlan | null>(null);
+  const [_editingPlan, setEditingPlan] = useState<LiftingPlan | null>(null);
   const [deleteId, setDeleteId] = useState<string | null>(null);
   const [isDeleting, setIsDeleting] = useState(false);
 

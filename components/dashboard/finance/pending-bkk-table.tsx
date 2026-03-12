@@ -8,7 +8,6 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from '@/components/ui/dialog'
 import { Textarea } from '@/components/ui/textarea'
 import { Label } from '@/components/ui/label'
-import { BKKStatusBadge } from '@/components/ui/bkk-status-badge'
 import { formatCurrency, formatDate } from '@/lib/utils/format'
 import { approveBKK, rejectBKK } from '@/app/(main)/job-orders/bkk-actions'
 import { useToast } from '@/hooks/use-toast'

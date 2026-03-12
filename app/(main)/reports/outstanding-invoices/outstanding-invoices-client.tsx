@@ -11,7 +11,7 @@ import { Badge } from '@/components/ui/badge'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { ReportSummary, ReportEmptyState } from '@/components/reports'
-import { OutstandingInvoiceItem, OutstandingInvoicesReport } from '@/lib/reports/outstanding-invoices-utils'
+import { OutstandingInvoicesReport } from '@/lib/reports/outstanding-invoices-utils'
 import { formatCurrency, formatDate } from '@/lib/reports/report-utils'
 import { logReportExecution } from '@/lib/reports/report-execution-service'
 

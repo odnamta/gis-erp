@@ -22,8 +22,8 @@ export default function NewTrainingRequestPage() {
   const router = useRouter();
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  const [employees, setEmployees] = useState<any[]>([]);
-  const [courses, setCourses] = useState<any[]>([]);
+  const [employees, setEmployees] = useState<any[]>([]); // eslint-disable-line @typescript-eslint/no-explicit-any
+  const [courses, setCourses] = useState<any[]>([]); // eslint-disable-line @typescript-eslint/no-explicit-any
 
   const [formData, setFormData] = useState({
     employee_id: '',
@@ -148,7 +148,7 @@ export default function NewTrainingRequestPage() {
                   </SelectTrigger>
                   <SelectContent>
                     <SelectItem value="_none">-- Tidak ada (isi manual) --</SelectItem>
-                    {courses.map((c: any) => (
+                    {courses.map((c: any) => ( // eslint-disable-line @typescript-eslint/no-explicit-any
                       <SelectItem key={c.id} value={c.id}>
                         {c.course_name}
                       </SelectItem>

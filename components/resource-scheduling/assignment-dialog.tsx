@@ -92,7 +92,7 @@ export function AssignmentDialog({
         toast.success('Assignment created successfully')
       }
       onSuccess()
-    } catch (error) {
+    } catch (_error) {
       toast.error('Failed to create assignment')
     } finally {
       setLoading(false)
@@ -105,7 +105,7 @@ export function AssignmentDialog({
       await updateAssignmentStatus(assignmentId, status as AssignmentStatus)
       toast.success('Status updated')
       onSuccess()
-    } catch (error) {
+    } catch (_error) {
       toast.error('Failed to update status')
     } finally {
       setLoading(false)
@@ -120,7 +120,7 @@ export function AssignmentDialog({
       await deleteAssignment(assignmentId)
       toast.success('Assignment deleted')
       onSuccess()
-    } catch (error) {
+    } catch (_error) {
       toast.error('Failed to delete assignment')
     } finally {
       setLoading(false)

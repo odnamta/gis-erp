@@ -27,7 +27,7 @@ import {
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu'
 import { ResourceTypeBadge, AvailabilityBadge } from '@/components/ui/resource-status-badge'
-import { EngineeringResource, ResourceType, RESOURCE_TYPE_LABELS } from '@/types/resource-scheduling'
+import { EngineeringResource, RESOURCE_TYPE_LABELS } from '@/types/resource-scheduling'
 import { deleteResource } from '@/lib/resource-scheduling-actions'
 import { Search, MoreHorizontal, Pencil, Trash2, Eye, Plus } from 'lucide-react'
 import { toast } from 'sonner'
@@ -65,7 +65,7 @@ export function ResourceList({ resources, showActions = true }: ResourceListProp
       await deleteResource(id)
       toast.success('Resource deleted successfully')
       router.refresh()
-    } catch (error) {
+    } catch (_error) {
       toast.error('Failed to delete resource')
     }
   }

@@ -65,7 +65,7 @@ export async function lookupRouteRates(
     if (!isOps) {
       // Fetch all active customer rates for this customer
       const { data: rates } = await supabase
-        .from('customer_contract_rates' as any)
+        .from('customer_contract_rates' as any) // eslint-disable-line @typescript-eslint/no-explicit-any
         .select('id, service_type, description, unit, base_price, route_pattern, notes')
         .eq('customer_id', customerId)
         .eq('is_active', true)
@@ -78,7 +78,7 @@ export async function lookupRouteRates(
         const polKey = pol ? extractLocationKey(pol) : ''
         const podKey = pod ? extractLocationKey(pod) : ''
 
-        customerRates = (rates as any[])
+        customerRates = (rates as any[]) // eslint-disable-line @typescript-eslint/no-explicit-any
           .filter(rate => {
             // Include rates with no route_pattern (applies to all routes)
             if (!rate.route_pattern) return true
@@ -108,7 +108,7 @@ export async function lookupRouteRates(
     // 2. Look up active vendor rates for freight-related services
     const freightServiceTypes = ['trucking', 'equipment_rental', 'labor', 'shipping', 'port_handling']
     const { data: vendorRatesData } = await supabase
-      .from('vendor_rates' as any)
+      .from('vendor_rates' as any) // eslint-disable-line @typescript-eslint/no-explicit-any
       .select('id, vendor_id, service_type, description, unit, base_price, notes, vendors(vendor_name)')
       .in('service_type', freightServiceTypes)
       .eq('is_active', true)
@@ -118,10 +118,10 @@ export async function lookupRouteRates(
       .order('base_price')
       .limit(20)
 
-    const vendorRates: RateSuggestion[] = (vendorRatesData || []).map((rate: any) => ({
+    const vendorRates: RateSuggestion[] = (vendorRatesData || []).map((rate: any) => ({ // eslint-disable-line @typescript-eslint/no-explicit-any
       id: rate.id,
       type: 'vendor' as const,
-      source_name: (rate.vendors as any)?.vendor_name || 'Unknown Vendor',
+      source_name: (rate.vendors as any)?.vendor_name || 'Unknown Vendor', // eslint-disable-line @typescript-eslint/no-explicit-any
       service_type: rate.service_type,
       description: rate.description,
       unit: rate.unit,

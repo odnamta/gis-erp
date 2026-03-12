@@ -1,5 +1,4 @@
 import { redirect } from 'next/navigation'
-import { getUserProfile } from '@/lib/permissions-server'
 import { profileHasRole } from '@/lib/auth-utils'
 import { createClient } from '@/lib/supabase/server'
 import { NewDisbursementForm } from './new-disbursement-form'

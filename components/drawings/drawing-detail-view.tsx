@@ -28,7 +28,6 @@ import {
   Download,
   ExternalLink,
   Calendar,
-  User,
   Ruler,
   FileType,
 } from 'lucide-react';
@@ -46,7 +45,7 @@ export function DrawingDetailView({ drawing, onRefresh }: DrawingDetailViewProps
 
   useEffect(() => {
     loadRevisions();
-  }, [drawing.id]);
+  }, [drawing.id]); // eslint-disable-line react-hooks/exhaustive-deps
 
   const loadRevisions = async () => {
     setLoadingRevisions(true);

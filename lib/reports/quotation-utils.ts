@@ -123,7 +123,7 @@ export function buildQuotationConversionReportData(
   const statusCounts = countByStatus(pjos)
   
   // Calculate conversion rates
-  const draftCount = statusCounts.find(s => s.status === 'draft')?.count || 0
+  const _draftCount = statusCounts.find(s => s.status === 'draft')?.count || 0
   const pendingCount = statusCounts.find(s => s.status === 'pending_approval')?.count || 0
   const approvedCount = statusCounts.find(s => s.status === 'approved')?.count || 0
   const convertedCount = statusCounts.find(s => s.status === 'converted')?.count || 0

@@ -11,7 +11,6 @@ import { KPIValue } from '@/types/executive-dashboard';
 import {
   formatKPIValue,
   getStatusColor,
-  getTrendIcon,
   getTrendColor,
 } from '@/lib/executive-dashboard-utils';
 import { TrendingUp, TrendingDown, Minus, Target, AlertTriangle } from 'lucide-react';

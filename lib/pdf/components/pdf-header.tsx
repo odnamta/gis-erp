@@ -60,6 +60,7 @@ export function PDFHeader({
     <View style={styles.header}>
       <View style={styles.companyInfo}>
         {company.logo_url && (
+          /* eslint-disable-next-line jsx-a11y/alt-text */
           <Image src={company.logo_url} style={styles.logo} />
         )}
         <Text style={styles.companyName}>{company.company_name}</Text>

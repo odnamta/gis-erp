@@ -27,7 +27,6 @@ import {
   ShippingLine,
   Port,
   CONTAINER_TYPES,
-  ContainerType,
 } from '@/types/agency';
 import { getShippingLines } from '@/app/actions/shipping-line-actions';
 import { getPorts } from '@/app/actions/port-actions';
@@ -158,7 +157,7 @@ export function ShippingRatesClient() {
     }).format(amount);
   };
 
-  const getPortLabel = (portId: string) => {
+  const _getPortLabel = (portId: string) => {
     const port = ports.find(p => p.id === portId);
     return port ? `${port.portCode} - ${port.portName}` : portId;
   };
@@ -363,7 +362,7 @@ export function ShippingRatesClient() {
                     </TableRow>
                   </TableHeader>
                   <TableBody>
-                    {searchResults.map((rate, index) => {
+                    {searchResults.map((rate, _index) => {
                       const isBest = bestRate?.id === rate.id;
                       const surcharges = (rate.baf || 0) + (rate.caf || 0) + (rate.pss || 0) + (rate.ens || 0);
                       const expiringSoon = isRateExpiringSoon(rate.validTo);

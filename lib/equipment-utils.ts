@@ -3,10 +3,7 @@
 // =====================================================
 
 import type {
-  Asset,
   AssetStatus,
-  AssetSummaryStats,
-  ExpiringDocument,
   DocumentExpiryStatus,
 } from '@/types/assets'
 

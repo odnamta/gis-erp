@@ -13,7 +13,6 @@ import type {
   HSHeadingRow,
   HSCodeRow,
   HSPreferentialRateRow,
-  FTA_CODES,
 } from '@/types/hs-codes';
 
 // Transform database rows to application types

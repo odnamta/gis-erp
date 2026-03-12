@@ -3,7 +3,6 @@
 import { useEffect, useState } from 'react'
 import { Card, CardContent } from '@/components/ui/card'
 import { Building2, Mail, Phone, MapPin, Clock } from 'lucide-react'
-import { formatDate } from '@/lib/utils/format'
 import { getCustomerDetailsForPJO } from '@/app/(main)/proforma-jo/actions'
 import type { CustomerDetailsForPJO, PJOHistoryItem } from '@/app/(main)/proforma-jo/actions'
 import { cn } from '@/lib/utils'

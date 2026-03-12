@@ -7,7 +7,6 @@ import { Label } from '@/components/ui/label'
 import { Card, CardContent } from '@/components/ui/card'
 import { Certification } from '@/types/resource-scheduling'
 import { Plus, Trash2, AlertTriangle, CheckCircle } from 'lucide-react'
-import { formatDate } from '@/lib/utils/format'
 import { getCertificationStatus } from '@/lib/resource-scheduling-utils'
 
 interface CertificationEditorProps {

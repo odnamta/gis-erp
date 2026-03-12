@@ -20,7 +20,7 @@ interface ScheduledReportsClientProps {
 
 export function ScheduledReportsClient({ initialReports }: ScheduledReportsClientProps) {
   const [reports, setReports] = useState(initialReports);
-  const [isPending, startTransition] = useTransition();
+  const [_isPending, startTransition] = useTransition();
   const router = useRouter();
   const { toast } = useToast();
 
@@ -81,7 +81,7 @@ export function ScheduledReportsClient({ initialReports }: ScheduledReportsClien
     });
   };
 
-  const handleRunNow = async (reportId: string) => {
+  const handleRunNow = async (_reportId: string) => {
     toast({
       title: 'Running Report',
       description: 'The report is being generated...',

@@ -132,7 +132,7 @@ export async function createEmployee(
 
   // Check for circular reporting if reporting_to is set
   if (formData.reporting_to) {
-    const { data: allEmployees } = await supabase
+    const { data: _allEmployees } = await supabase
       .from('employees')
       .select('id, reporting_to');
     

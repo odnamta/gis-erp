@@ -16,7 +16,7 @@ import {
   formatPercentage,
   getProfitMarginStatus,
 } from '@/lib/financial-analytics-utils';
-import { Users, TrendingUp, CheckCircle2 } from 'lucide-react';
+import { Users, CheckCircle2 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 
 interface CustomerProfitabilityTableProps {

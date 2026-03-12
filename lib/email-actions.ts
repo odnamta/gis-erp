@@ -113,10 +113,10 @@ export async function sendAdvanceReturnReminder(
 
     // Fetch BKK record
     const { data: bkk, error: fetchError } = await (supabase
-      .from('bukti_kas_keluar' as any)
+      .from('bukti_kas_keluar' as any) // eslint-disable-line @typescript-eslint/no-explicit-any
       .select('id, bkk_number, amount_requested, advance_recipient_name, return_deadline, status')
       .eq('id', bkkId)
-      .single() as any)
+      .single() as any) // eslint-disable-line @typescript-eslint/no-explicit-any
 
     if (fetchError || !bkk) {
       return { success: false, error: 'BKK tidak ditemukan' }

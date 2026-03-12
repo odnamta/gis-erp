@@ -1,7 +1,7 @@
 import { redirect } from 'next/navigation'
 import Link from 'next/link'
 import { createClient } from '@/lib/supabase/server'
-import { guardPage, profileHasRole } from '@/lib/auth-utils'
+import { profileHasRole } from '@/lib/auth-utils'
 import { getHrDashboardMetrics } from '@/lib/dashboard/hr-data'
 import { formatCurrency, formatNumber } from '@/lib/utils/format'
 import { 
@@ -78,7 +78,7 @@ export default async function HRDashboardPage() {
 
   // Check access: hr role or executive roles
   const allowedRoles = ['hr', 'owner', 'director']
-  if (!profileHasRole(profile as any, allowedRoles)) {
+  if (!profileHasRole(profile as any, allowedRoles)) { // eslint-disable-line @typescript-eslint/no-explicit-any
     redirect('/dashboard')
   }
 

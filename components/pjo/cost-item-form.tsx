@@ -34,7 +34,7 @@ import { Vendor, VendorEquipment } from '@/types/vendors'
 import { getActiveVendorRates, getVendorSuggestionsForCategory } from '@/lib/vendor-rate-actions'
 import type { VendorSuggestion } from '@/lib/vendor-rate-actions'
 import type { VendorRate } from '@/types/vendor-rate'
-import { SERVICE_TYPE_LABELS, UNIT_LABELS } from '@/types/vendor-rate'
+import { UNIT_LABELS } from '@/types/vendor-rate'
 import { formatCurrency } from '@/lib/utils/format'
 
 const schema = z.object({
@@ -128,7 +128,7 @@ export function CostItemForm({ pjoId, item, open, onOpenChange, onSuccess }: Cos
     }
   }, [selectedVendorId])
 
-  const handleVendorChange = (vendorId: string | null, vendor?: Vendor) => {
+  const handleVendorChange = (vendorId: string | null, _vendor?: Vendor) => {
     setSelectedVendorId(vendorId)
     setValue('vendor_id', vendorId)
     // Clear equipment when vendor changes

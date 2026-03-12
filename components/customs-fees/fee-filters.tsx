@@ -12,9 +12,6 @@ import {
   SelectValue,
 } from '@/components/ui/select';
 import {
-  CustomsDocumentType,
-  FeeCategory,
-  PaymentStatus,
   FEE_CATEGORY_LABELS,
   PAYMENT_STATUS_LABELS,
 } from '@/types/customs-fees';

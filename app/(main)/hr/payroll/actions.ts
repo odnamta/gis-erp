@@ -11,7 +11,6 @@ import {
   EmployeePayrollSetup,
   SalarySlip,
   DepartmentManpowerCost,
-  PayrollComponentItem,
 } from '@/types/payroll';
 import {
   generatePeriodName,

@@ -23,7 +23,6 @@ import {
   combineTourWithProgress,
   calculateNextStepIndex,
   calculatePrevStepIndex,
-  getStepAtIndex,
 } from '@/lib/guided-tours-utils';
 
 // =====================================================
@@ -90,7 +89,7 @@ export async function getAvailableTours(): Promise<{
     const toursWithProgress = combineTourWithProgress(sortedTours, progress);
 
     return { data: toursWithProgress, error: null };
-  } catch (error) {
+  } catch (_error) {
     return { data: null, error: 'Failed to fetch tours' };
   }
 }
@@ -118,7 +117,7 @@ export async function getTourByCode(tourCode: string): Promise<{
 
     const tour = mapDbRowToTour(tourRow as unknown as GuidedTourRow);
     return { data: tour, error: null };
-  } catch (error) {
+  } catch (_error) {
     return { data: null, error: 'Failed to fetch tour' };
   }
 }
@@ -145,7 +144,7 @@ export async function getTourById(tourId: string): Promise<{
 
     const tour = mapDbRowToTour(tourRow as unknown as GuidedTourRow);
     return { data: tour, error: null };
-  } catch (error) {
+  } catch (_error) {
     return { data: null, error: 'Failed to fetch tour' };
   }
 }
@@ -221,7 +220,7 @@ export async function startTour(tourId: string): Promise<{
       }, 
       error: null 
     };
-  } catch (error) {
+  } catch (_error) {
     return { data: null, error: 'Failed to start tour' };
   }
 }
@@ -308,7 +307,7 @@ export async function advanceTourStep(tourId: string): Promise<{
       }, 
       error: null 
     };
-  } catch (error) {
+  } catch (_error) {
     return { data: null, error: 'Failed to advance step' };
   }
 }
@@ -378,7 +377,7 @@ export async function goBackTourStep(tourId: string): Promise<{
       }, 
       error: null 
     };
-  } catch (error) {
+  } catch (_error) {
     return { data: null, error: 'Failed to go back' };
   }
 }
@@ -415,7 +414,7 @@ export async function skipTour(tourId: string): Promise<{
     }
 
     return { success: true, error: null };
-  } catch (error) {
+  } catch (_error) {
     return { success: false, error: 'Failed to skip tour' };
   }
 }
@@ -453,7 +452,7 @@ export async function getTourProgress(tourId: string): Promise<{
 
     const progress = mapDbRowToProgress(progressRow as unknown as TourProgressRow);
     return { data: progress, error: null };
-  } catch (error) {
+  } catch (_error) {
     return { data: null, error: 'Failed to fetch progress' };
   }
 }

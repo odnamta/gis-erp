@@ -16,7 +16,7 @@ import {
 } from '@/components/ui/table'
 import Link from 'next/link'
 import { ArrowLeft, Wrench, Calendar, Gauge, MapPin, User, FileText, Pencil } from 'lucide-react'
-import { MaintenanceRecord, MaintenancePart } from '@/types/maintenance'
+import { MaintenanceRecord } from '@/types/maintenance'
 import { getMaintenanceRecordById } from '@/lib/maintenance-actions'
 import { formatIDR, formatDate } from '@/lib/pjo-utils'
 
@@ -32,7 +32,7 @@ export function MaintenanceDetailClient({ recordId }: MaintenanceDetailClientPro
 
   useEffect(() => {
     loadRecord()
-  }, [recordId])
+  }, [recordId]) // eslint-disable-line react-hooks/exhaustive-deps
 
   const loadRecord = async () => {
     setIsLoading(true)

@@ -39,7 +39,7 @@ interface AssignEngineeringDialogProps {
 export function AssignEngineeringDialog({
   open,
   onOpenChange,
-  pjoId,
+  pjoId: _pjoId,
   pjoNumber,
   onAssign,
 }: AssignEngineeringDialogProps) {

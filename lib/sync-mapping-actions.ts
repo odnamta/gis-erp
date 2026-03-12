@@ -33,7 +33,7 @@ export async function createSyncMapping(input: CreateSyncMappingInput): Promise<
     if (!prepared.valid) return { success: false, error: prepared.errors.join(', ') };
 
     const supabase = await createClient();
-    const { data, error } = await supabase.from('sync_mappings').insert(prepared.data as any).select().single();
+    const { data, error } = await supabase.from('sync_mappings').insert(prepared.data as any).select().single(); // eslint-disable-line @typescript-eslint/no-explicit-any
 
     if (error) return { success: false, error: error.message };
     revalidatePath('/settings/integrations');

@@ -16,7 +16,7 @@ interface PageProps {
 async function fetchBKKRecord(id: string): Promise<{ data: BKKRecord | null; error: unknown }> {
   const supabase = await createClient()
   const result = await (supabase
-    .from('bukti_kas_keluar' as any)
+    .from('bukti_kas_keluar' as any) // eslint-disable-line @typescript-eslint/no-explicit-any
     .select(`
       *,
       job_orders:jo_id (id, jo_number, customer_name, status),
@@ -27,7 +27,7 @@ async function fetchBKKRecord(id: string): Promise<{ data: BKKRecord | null; err
       settled_by_profile:user_profiles!bukti_kas_keluar_settled_by_fkey (id, full_name, email)
     `)
     .eq('id', id)
-    .single() as any)
+    .single() as any) // eslint-disable-line @typescript-eslint/no-explicit-any
 
   return result as { data: BKKRecord | null; error: unknown }
 }

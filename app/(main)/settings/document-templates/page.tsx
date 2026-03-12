@@ -108,7 +108,7 @@ export default function DocumentTemplatesPage() {
   // Load templates
   useEffect(() => {
     loadTemplates()
-  }, [])
+  }, []) // eslint-disable-line react-hooks/exhaustive-deps
 
   // Filter templates
   useEffect(() => {

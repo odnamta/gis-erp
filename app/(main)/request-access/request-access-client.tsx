@@ -28,7 +28,7 @@ import {
   SelectValue,
 } from '@/components/ui/select'
 import { Textarea } from '@/components/ui/textarea'
-import { DEPARTMENT_ROLES, getDepartmentRoles } from '@/lib/permissions'
+import { getDepartmentRoles } from '@/lib/permissions'
 import { RoleRequest, Department } from '@/types/role-request'
 import { submitRoleRequest } from './actions'
 import { toast } from 'sonner'

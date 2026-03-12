@@ -50,7 +50,7 @@ export async function logActivity(
 
     if (error) {
     }
-  } catch (error) {
+  } catch (_error) {
     // Log error but don't throw to avoid disrupting user actions
   }
 }
@@ -97,6 +97,6 @@ export async function logPageView(
 
     if (error) {
     }
-  } catch (error) {
+  } catch (_error) {
   }
 }

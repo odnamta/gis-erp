@@ -471,7 +471,7 @@ export async function requestRoleChange(
     });
 
     return { success: true };
-  } catch (e: any) {
+  } catch (e: any) { // eslint-disable-line @typescript-eslint/no-explicit-any
     return { success: false, error: e.message || 'Unknown error occurred' };
   }
 }

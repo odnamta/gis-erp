@@ -31,7 +31,6 @@ import {
   Eye,
   Users,
   MessageSquare,
-  Trophy,
   Clock,
   CheckCircle2,
   XCircle,
@@ -276,8 +275,8 @@ const ROLE_LABELS: Record<string, string> = {
 
 function EligibilityPanel({ results }: { results: CompetitionResults }) {
   const entries = results.entries
-  const eligible = entries.filter(e => e.prize_eligible)
-  const ineligible = entries.filter(e => !e.prize_eligible)
+  const _eligible = entries.filter(e => e.prize_eligible)
+  const _ineligible = entries.filter(e => !e.prize_eligible)
 
   // Count missing requirements
   const missingActiveDays = entries.filter(e => !e.requirements.activeDays.met).length

@@ -64,7 +64,7 @@ export function AuditForm({ audit, auditType, preselectedTypeId }: AuditFormProp
 
   useEffect(() => {
     loadAuditTypes();
-  }, []);
+  }, []); // eslint-disable-line react-hooks/exhaustive-deps
 
   useEffect(() => {
     if (selectedTypeId && auditTypes.length > 0) {

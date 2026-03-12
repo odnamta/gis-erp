@@ -1,8 +1,6 @@
 'use server';
 
 import { createClient } from '@/lib/supabase/server';
-import { getUserProfile } from '@/lib/permissions-server';
-import { canAccessFeature } from '@/lib/permissions';
 import { AssetDocumentType, DocumentExpiryStatus } from '@/types/assets';
 import { getDocumentExpiryStatus } from '@/lib/asset-utils';
 
@@ -43,7 +41,7 @@ async function fetchDocumentsWithAssets(
   const supabase = await createClient();
 
   let query = supabase
-    .from('asset_documents' as any)
+    .from('asset_documents' as any) // eslint-disable-line @typescript-eslint/no-explicit-any
     .select('*')
     .order('expiry_date', { ascending: true, nullsFirst: false });
 
@@ -60,16 +58,16 @@ async function fetchDocumentsWithAssets(
   if (!docs || docs.length === 0) return [];
 
   // Fetch asset info for all docs
-  const assetIds = [...new Set((docs as any[]).map((d: any) => d.asset_id))];
+  const assetIds = [...new Set((docs as any[]).map((d: any) => d.asset_id))]; // eslint-disable-line @typescript-eslint/no-explicit-any
   const { data: assets } = await supabase
-    .from('equipment_assets' as any)
+    .from('equipment_assets' as any) // eslint-disable-line @typescript-eslint/no-explicit-any
     .select('id, asset_code, asset_name, registration_number')
     .in('id', assetIds);
 
-  const assetMap = new Map<string, any>();
-  (assets || []).forEach((a: any) => assetMap.set(a.id, a));
+  const assetMap = new Map<string, any>(); // eslint-disable-line @typescript-eslint/no-explicit-any
+  (assets || []).forEach((a: any) => assetMap.set(a.id, a)); // eslint-disable-line @typescript-eslint/no-explicit-any
 
-  return (docs as any[]).map((doc: any) => {
+  return (docs as any[]).map((doc: any) => { // eslint-disable-line @typescript-eslint/no-explicit-any
     const asset = assetMap.get(doc.asset_id) || {};
     return {
       id: doc.id,

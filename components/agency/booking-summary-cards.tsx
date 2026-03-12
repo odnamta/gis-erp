@@ -1,7 +1,7 @@
 'use client';
 
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Ship, FileText, CheckCircle, Truck, XCircle, Clock } from 'lucide-react';
+import { Ship, FileText, CheckCircle, Truck, Clock } from 'lucide-react';
 import { BookingStats } from '@/types/agency';
 
 interface BookingSummaryCardsProps {

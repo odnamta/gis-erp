@@ -93,7 +93,7 @@ const HealthBadge = ({ health }: { health: DeliveryHealth }) => {
   )
 }
 
-const channelColors: Record<NotificationChannel, string> = {
+const _channelColors: Record<NotificationChannel, string> = {
   email: 'bg-blue-500',
   whatsapp: 'bg-green-500',
   in_app: 'bg-purple-500',

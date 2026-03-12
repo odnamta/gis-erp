@@ -32,7 +32,6 @@ import {
 } from '@/types/system-log'
 import {
   formatLogLevel,
-  getLogLevelColor,
   formatLogTimestamp,
   formatStackTrace,
 } from '@/lib/system-log-utils'

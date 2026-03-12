@@ -36,7 +36,7 @@ export function filterCustomersByName(customers: Customer[], searchTerm: string)
 }
 
 function getDaysUntilAnniversary(customer: Customer): number | null {
-  const estDate = (customer as any).established_date
+  const estDate = (customer as any).established_date // eslint-disable-line @typescript-eslint/no-explicit-any
   if (!estDate) return null
   const today = new Date()
   today.setHours(0, 0, 0, 0)

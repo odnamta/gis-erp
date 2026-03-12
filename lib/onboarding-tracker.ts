@@ -20,7 +20,7 @@ export async function trackRecordCreation(table: string): Promise<void> {
     if (!user) return;
     
     await trackAction(user.id, table, 'create');
-  } catch (error) {
+  } catch (_error) {
     // Silently fail - onboarding tracking should not break main functionality
   }
 }

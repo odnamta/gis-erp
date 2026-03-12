@@ -16,8 +16,7 @@ import {
   Ship, 
   FileText, 
   Package, 
-  AlertCircle, 
-  Plus,
+  AlertCircle,
   Trash2,
   Link as LinkIcon
 } from 'lucide-react';
@@ -180,7 +179,7 @@ export function ManifestForm({
   };
 
   // Format date for display
-  const formatDate = (dateStr?: string) => {
+  const _formatDate = (dateStr?: string) => {
     if (!dateStr) return '-';
     try {
       return new Date(dateStr).toLocaleDateString('en-GB', {

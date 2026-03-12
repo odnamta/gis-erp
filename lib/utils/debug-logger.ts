@@ -18,7 +18,7 @@
  * @param message - The debug message to log
  * @param data - Optional data to include in the log
  */
-export function debugLog(component: string, message: string, data?: unknown) {
+export function debugLog(_component: string, _message: string, _data?: unknown) {
   if (process.env.NODE_ENV === 'development') {
   }
 }
@@ -30,7 +30,7 @@ export function debugLog(component: string, message: string, data?: unknown) {
  * @param message - The error message to log
  * @param error - Optional error object to include in the log
  */
-export function debugError(component: string, message: string, error?: unknown) {
+export function debugError(_component: string, _message: string, _error?: unknown) {
   if (process.env.NODE_ENV === 'development') {
   }
 }

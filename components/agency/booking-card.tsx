@@ -4,7 +4,7 @@ import { Card, CardContent, CardHeader } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { BookingStatusBadge } from './booking-status-badge';
 import { FreightBooking } from '@/types/agency';
-import { formatBookingDate, formatRoute, getCutoffWarningLevel, getCutoffWarningMessage } from '@/lib/booking-utils';
+import { formatBookingDate, getCutoffWarningLevel, getCutoffWarningMessage } from '@/lib/booking-utils';
 import { Ship, MapPin, Calendar, Package, AlertTriangle, AlertCircle, Eye, Edit } from 'lucide-react';
 import Link from 'next/link';
 

@@ -39,7 +39,6 @@ import {
   Clock,
   User,
   Loader2,
-  ArrowRight,
 } from 'lucide-react';
 import { TechnicalAssessment, ConclusionType } from '@/types/assessment';
 import {

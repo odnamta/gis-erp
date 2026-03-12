@@ -37,7 +37,7 @@ export default function AssessmentsPage() {
 
   useEffect(() => {
     loadData();
-  }, [filters]);
+  }, [filters]); // eslint-disable-line react-hooks/exhaustive-deps
 
   const loadData = async () => {
     setLoading(true);

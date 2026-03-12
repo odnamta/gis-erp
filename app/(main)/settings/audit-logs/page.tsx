@@ -33,7 +33,7 @@ export default async function AuditLogsPage() {
     .single()
   
   // Only admin and owner can access audit logs
-  const isAuthorized = profile && profileHasRole(profile as any, ['admin', 'owner', 'manager'])
+  const isAuthorized = profile && profileHasRole(profile as any, ['admin', 'owner', 'manager']) // eslint-disable-line @typescript-eslint/no-explicit-any
   if (!isAuthorized) {
     redirect('/dashboard')
   }

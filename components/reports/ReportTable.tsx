@@ -13,7 +13,7 @@ import {
 import { Button } from '@/components/ui/button'
 import { ChevronLeft, ChevronRight } from 'lucide-react'
 import { cn } from '@/lib/utils'
-import { ReportColumn, RowHighlight, PaginationState } from '@/types/reports'
+import { ReportColumn, RowHighlight } from '@/types/reports'
 import { formatCurrency, formatPercentage, formatNumber } from '@/lib/reports/report-utils'
 
 interface ReportTableProps<T> {

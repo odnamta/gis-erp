@@ -23,7 +23,7 @@ import {
 } from '@/components/ui/table';
 import { RefreshCw, AlertCircle, ArrowUpDown, ArrowUp, ArrowDown } from 'lucide-react';
 import { cn } from '@/lib/utils';
-import type { TableWidgetProps, TableData, TableColumn } from '@/types/widgets';
+import type { TableWidgetProps, TableColumn } from '@/types/widgets';
 
 type SortDirection = 'asc' | 'desc' | null;
 

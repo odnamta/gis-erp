@@ -96,7 +96,7 @@ export function BLForm({
   const [validationErrors, setValidationErrors] = useState<string[]>([]);
 
   // Get initial booking data
-  const selectedBooking = booking || bookings.find(b => b.id === initialData?.bookingId);
+  const _selectedBooking = booking || bookings.find(b => b.id === initialData?.bookingId);
 
   const {
     register,

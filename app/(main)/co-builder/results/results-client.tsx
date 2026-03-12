@@ -46,7 +46,7 @@ const RANK_STYLES: Record<number, { bg: string; border: string; text: string; ic
 
 export function ResultsClient({ results }: { results: CompetitionResults }) {
   const [countdown, setCountdown] = useState('')
-  const competitionEnd = new Date(results.competitionEnd)
+  const competitionEnd = new Date(results.competitionEnd) // eslint-disable-line react-hooks/exhaustive-deps
 
   useEffect(() => {
     function updateCountdown() {

@@ -90,7 +90,7 @@ export async function recoverRecordAction(
   // Restore the record
   const recordData = deletedRecord.record_data as Record<string, unknown>;
   const { error: restoreError } = await supabase
-    .from(sourceTable as any)
+    .from(sourceTable as any) // eslint-disable-line @typescript-eslint/no-explicit-any
     .update({ ...recordData, is_active: true })
     .eq('id', sourceId);
 

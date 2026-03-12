@@ -92,7 +92,7 @@ export function WidgetCustomizer({
   };
 
   // Remove widget from dashboard
-  const removeWidget = (widgetId: string) => {
+  const _removeWidget = (widgetId: string) => {
     const newConfigs = configs.filter(c => c.widgetId !== widgetId);
     onConfigsChange(newConfigs);
   };

@@ -62,7 +62,7 @@ interface JODetailViewProps {
   userRole?: string
 }
 
-export function JODetailView({ jobOrder, userId, userRole }: JODetailViewProps) {
+export function JODetailView({ jobOrder, userId: _userId, userRole }: JODetailViewProps) {
   const isOps = userRole === 'ops'
   const isPrivileged = PRIVILEGED_ROLES.includes(userRole || '')
   const router = useRouter()
@@ -81,7 +81,7 @@ export function JODetailView({ jobOrder, userId, userRole }: JODetailViewProps) 
   } | null>(null)
 
   // Feature 1: JO Category state
-  const joAny = jobOrder as any
+  const joAny = jobOrder as any // eslint-disable-line @typescript-eslint/no-explicit-any
   const [currentCategory, setCurrentCategory] = useState<string>(joAny.jo_category || '')
   const [categoryLoading, setCategoryLoading] = useState(false)
 

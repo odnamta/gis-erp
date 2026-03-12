@@ -108,7 +108,7 @@ export function GenerateDialog({
       setResult(null)
       setError(null)
     }
-  }, [open, documentType])
+  }, [open, documentType]) // eslint-disable-line react-hooks/exhaustive-deps
 
   const loadTemplates = async () => {
     setIsLoadingTemplates(true)

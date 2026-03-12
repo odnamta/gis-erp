@@ -46,7 +46,7 @@ export function PayrollProcessingView({ period, records }: PayrollProcessingView
       } else {
         toast.error(result.error || 'Failed to calculate payroll');
       }
-    } catch (error) {
+    } catch (_error) {
       toast.error('An error occurred');
     } finally {
       setCalculating(false);
@@ -63,7 +63,7 @@ export function PayrollProcessingView({ period, records }: PayrollProcessingView
       } else {
         toast.error(result.error || 'Failed to approve payroll');
       }
-    } catch (error) {
+    } catch (_error) {
       toast.error('An error occurred');
     } finally {
       setApproving(false);

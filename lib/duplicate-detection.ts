@@ -104,7 +104,7 @@ export async function checkPJODuplicates(
     }
 
     return { duplicates: filtered }
-  } catch (error) {
+  } catch (_error) {
     return { duplicates: [], error: 'Gagal memeriksa duplikat PJO' }
   }
 }
@@ -170,7 +170,7 @@ export async function checkInvoiceDuplicates(
     }))
 
     return { duplicates: results }
-  } catch (error) {
+  } catch (_error) {
     return { duplicates: [], error: 'Gagal memeriksa duplikat invoice' }
   }
 }

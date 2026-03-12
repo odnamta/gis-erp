@@ -3,7 +3,7 @@
 import { createClient } from '@/lib/supabase/server';
 import { revalidatePath } from 'next/cache';
 import { AttendanceRecord, AttendanceStatus, WorkSchedule } from '@/types/attendance';
-import { calculateLateMinutes, determineAttendanceStatus, getTodayDateString } from '@/lib/attendance-utils';
+import { calculateLateMinutes, getTodayDateString } from '@/lib/attendance-utils';
 import { parseTimeString } from '@/lib/attendance-utils';
 
 /**

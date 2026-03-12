@@ -50,7 +50,7 @@ export function ManagedSelect({
 
   useEffect(() => {
     loadOptions()
-  }, [category])
+  }, [category]) // eslint-disable-line react-hooks/exhaustive-deps
 
   async function loadOptions() {
     setLoading(true)

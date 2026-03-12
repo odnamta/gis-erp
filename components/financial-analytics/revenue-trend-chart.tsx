@@ -5,8 +5,6 @@ import { MonthlyPLSummary } from '@/types/financial-analytics';
 import { formatCurrencyIDR } from '@/lib/financial-analytics-utils';
 import { TrendingUp } from 'lucide-react';
 import {
-  LineChart,
-  Line,
   XAxis,
   YAxis,
   CartesianGrid,

@@ -1,6 +1,6 @@
 'use client'
 
-import { PIBStatus, PIB_STATUSES } from '@/types/pib'
+import { PIBStatus } from '@/types/pib'
 import { formatPIBStatus } from '@/lib/pib-utils'
 import { Check, Circle, Clock } from 'lucide-react'
 import { cn } from '@/lib/utils'

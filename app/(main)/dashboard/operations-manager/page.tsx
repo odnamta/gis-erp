@@ -25,7 +25,7 @@ export default async function OperationsManagerDashboardPage() {
     redirect('/login')
   }
 
-  const hasAccess = profileHasRole(profile as any, ['operations_manager', 'owner', 'director'])
+  const hasAccess = profileHasRole(profile as any, ['operations_manager', 'owner', 'director']) // eslint-disable-line @typescript-eslint/no-explicit-any
   if (!hasAccess) {
     redirect('/dashboard')
   }

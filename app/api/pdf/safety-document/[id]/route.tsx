@@ -31,7 +31,7 @@ export async function GET(
 
     // Tables not in generated types — use `as any` pattern per CLAUDE.md
     const result = await supabase
-      .from('safety_documents' as any)
+      .from('safety_documents' as any) // eslint-disable-line @typescript-eslint/no-explicit-any
       .select(`
         *,
         category:safety_document_categories(category_code, category_name),
@@ -58,7 +58,7 @@ export async function GET(
 
     if (isJSA) {
       const jsaResult = await supabase
-        .from('jsa_hazards' as any)
+        .from('jsa_hazards' as any) // eslint-disable-line @typescript-eslint/no-explicit-any
         .select('*')
         .eq('document_id', id)
         .order('step_number')
@@ -83,7 +83,7 @@ export async function GET(
       .eq('status', 'active')
 
     const ackResult = await supabase
-      .from('safety_document_acknowledgments' as any)
+      .from('safety_document_acknowledgments' as any) // eslint-disable-line @typescript-eslint/no-explicit-any
       .select('*', { count: 'exact', head: true })
       .eq('document_id', id)
 

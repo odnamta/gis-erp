@@ -115,7 +115,7 @@ function isValidCronField(field: string, min: number, max: number): boolean {
  */
 export function getNextRunTime(
   cron: string,
-  timezone: string = DEFAULT_TIMEZONE,
+  _timezone: string = DEFAULT_TIMEZONE,
   fromDate: Date = new Date()
 ): Date | null {
   if (!isValidCronExpression(cron)) {
@@ -167,7 +167,7 @@ function matchesCron(date: Date, parts: CronParts): boolean {
 /**
  * Checks if a value matches a cron field pattern.
  */
-function matchesCronField(value: number, field: string, min: number, max: number): boolean {
+function matchesCronField(value: number, field: string, _min: number, _max: number): boolean {
   if (field === '*') {
     return true;
   }

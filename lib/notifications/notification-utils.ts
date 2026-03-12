@@ -1,4 +1,4 @@
-import { formatDistanceToNow, isToday, isYesterday, format } from 'date-fns'
+import { isToday, isYesterday, format } from 'date-fns'
 import { NotificationType, NotificationPriority } from '@/types/notifications'
 
 /**

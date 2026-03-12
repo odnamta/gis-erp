@@ -1,7 +1,7 @@
 import { Metadata } from 'next';
 import { FeedbackDashboard } from './feedback-dashboard';
 import { getAllFeedback, getFeedbackSummary } from '@/app/actions/feedback';
-import type { FeedbackListItem, FeedbackSummary, PaginatedFeedback } from '@/types/feedback';
+import type { FeedbackSummary, PaginatedFeedback } from '@/types/feedback';
 
 export const metadata: Metadata = {
   title: 'Feedback Management | Gama ERP',

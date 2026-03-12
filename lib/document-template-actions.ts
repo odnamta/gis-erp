@@ -108,7 +108,7 @@ export async function createTemplate(
       success: true, 
       data: mapDbTemplateToTemplate(template) 
     }
-  } catch (error) {
+  } catch (_error) {
     return { success: false, error: 'Failed to create template' }
   }
 }
@@ -205,7 +205,7 @@ export async function updateTemplate(
       success: true, 
       data: mapDbTemplateToTemplate(template) 
     }
-  } catch (error) {
+  } catch (_error) {
     return { success: false, error: 'Failed to update template' }
   }
 }
@@ -240,7 +240,7 @@ export async function getTemplate(
       success: true, 
       data: mapDbTemplateToTemplate(template) 
     }
-  } catch (error) {
+  } catch (_error) {
     return { success: false, error: 'Failed to fetch template' }
   }
 }
@@ -275,7 +275,7 @@ export async function getTemplateByCode(
       success: true, 
       data: mapDbTemplateToTemplate(template) 
     }
-  } catch (error) {
+  } catch (_error) {
     return { success: false, error: 'Failed to fetch template' }
   }
 }
@@ -318,7 +318,7 @@ export async function listTemplates(
       success: true, 
       data: (templates || []).map(mapDbTemplateToTemplate) 
     }
-  } catch (error) {
+  } catch (_error) {
     return { success: false, error: 'Failed to list templates' }
   }
 }
@@ -395,7 +395,7 @@ export async function deleteTemplate(
 
     revalidatePath('/settings/document-templates')
     return { success: true }
-  } catch (error) {
+  } catch (_error) {
     return { success: false, error: 'Failed to delete template' }
   }
 }
@@ -429,7 +429,7 @@ export async function deactivateTemplate(
 
     revalidatePath('/settings/document-templates')
     return { success: true }
-  } catch (error) {
+  } catch (_error) {
     return { success: false, error: 'Failed to deactivate template' }
   }
 }
@@ -463,7 +463,7 @@ export async function activateTemplate(
 
     revalidatePath('/settings/document-templates')
     return { success: true }
-  } catch (error) {
+  } catch (_error) {
     return { success: false, error: 'Failed to activate template' }
   }
 }

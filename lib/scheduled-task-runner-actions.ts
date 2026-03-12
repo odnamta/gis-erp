@@ -9,7 +9,6 @@ import {
   triggerTaskManually,
   createTaskExecution,
   completeTaskExecution,
-  failTaskExecution,
   executeWithTimeout,
   handleTaskFailure,
   getScheduledTaskByCode,

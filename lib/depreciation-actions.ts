@@ -171,7 +171,7 @@ export async function recordDepreciation(
       success: true,
       data: transformDepreciationRow(depreciation as AssetDepreciationRow),
     };
-  } catch (error) {
+  } catch (_error) {
     return { success: false, error: 'An unexpected error occurred' };
   }
 }
@@ -200,7 +200,7 @@ export async function getDepreciationHistory(
       success: true,
       data: (data as AssetDepreciationRow[]).map(transformDepreciationRow),
     };
-  } catch (error) {
+  } catch (_error) {
     return { success: false, error: 'An unexpected error occurred' };
   }
 }
@@ -283,7 +283,7 @@ export async function runMonthlyDepreciation(
 
     revalidatePath('/equipment/costing');
     return { success: true, data: result };
-  } catch (error) {
+  } catch (_error) {
     return { success: false, error: 'An unexpected error occurred' };
   }
 }
@@ -369,7 +369,7 @@ export async function recordCost(
       success: true,
       data: transformCostTrackingRow(cost as AssetCostTrackingRow),
     };
-  } catch (error) {
+  } catch (_error) {
     return { success: false, error: 'An unexpected error occurred' };
   }
 }
@@ -415,7 +415,7 @@ export async function getCostHistory(
       success: true,
       data: (data as AssetCostTrackingRow[]).map(transformCostTrackingRow),
     };
-  } catch (error) {
+  } catch (_error) {
     return { success: false, error: 'An unexpected error occurred' };
   }
 }
@@ -460,7 +460,7 @@ export async function getCostBreakdown(
       success: true,
       data: calculateCostBreakdown(costs),
     };
-  } catch (error) {
+  } catch (_error) {
     return { success: false, error: 'An unexpected error occurred' };
   }
 }
@@ -503,7 +503,7 @@ export async function getTCOSummary(
     }
 
     return { success: true, data: summaries };
-  } catch (error) {
+  } catch (_error) {
     return { success: false, error: 'An unexpected error occurred' };
   }
 }
@@ -531,7 +531,7 @@ export async function getAssetTCOSummary(
       success: true,
       data: transformTCOSummaryRow(data as AssetTCOSummaryRow),
     };
-  } catch (error) {
+  } catch (_error) {
     return { success: false, error: 'An unexpected error occurred' };
   }
 }
@@ -559,7 +559,7 @@ export async function refreshTCOView(): Promise<{
 
     revalidatePath('/equipment/costing');
     return { success: true };
-  } catch (error) {
+  } catch (_error) {
     return { success: false, error: 'An unexpected error occurred' };
   }
 }
@@ -589,7 +589,7 @@ export async function deleteCost(
 
     revalidatePath('/equipment/costing');
     return { success: true };
-  } catch (error) {
+  } catch (_error) {
     return { success: false, error: 'An unexpected error occurred' };
   }
 }

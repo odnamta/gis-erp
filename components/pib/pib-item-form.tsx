@@ -19,7 +19,6 @@ import {
 import { PIBItem, PIBItemFormData, DEFAULT_PPN_RATE } from '@/types/pib'
 import { calculateItemTotalPrice, calculateItemDuties, formatCurrency } from '@/lib/pib-utils'
 import { HSCodeDropdown } from '@/components/hs-codes/hs-code-dropdown'
-import type { HSCodeRates } from '@/types/hs-codes'
 import { Loader2 } from 'lucide-react'
 
 const itemSchema = z.object({

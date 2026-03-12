@@ -88,7 +88,7 @@ export function CostItemRow({
         <span className="font-medium">{COST_CATEGORY_LABELS[item.category] || item.category}</span>
       </td>
       <td className="px-4 py-3 text-sm">{item.description}</td>
-      <td className="px-4 py-3 text-right font-mono text-sm">
+      <td className="px-4 py-3 text-right font-mono text-sm min-w-[160px]">
         {formatIDR(item.estimated_amount)}
       </td>
       <td className="px-4 py-3">

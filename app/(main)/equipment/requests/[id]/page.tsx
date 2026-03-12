@@ -6,7 +6,7 @@ import { Button } from '@/components/ui/button';
 import { getEquipmentRequestById } from '@/lib/equipment-request-actions';
 import { getUserProfile } from '@/lib/permissions-server';
 import { canAccessFeature } from '@/lib/permissions';
-import { PRIORITY_LABELS, EquipmentRequestStatus, RequestPriority } from '@/types/equipment-request';
+import { PRIORITY_LABELS, EquipmentRequestStatus } from '@/types/equipment-request';
 import { formatDate } from '@/lib/utils/format';
 import { ArrowLeft } from 'lucide-react';
 import { EquipmentRequestActions } from './actions-client';
