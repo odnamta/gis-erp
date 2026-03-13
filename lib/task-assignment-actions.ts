@@ -10,6 +10,11 @@ import {
   CreateTaskAssignmentInput,
   TaskAssignmentFilters,
 } from '@/types/task-assignment';
+import { sendEmail } from '@/lib/email';
+import {
+  taskAssignmentApprovedTemplate,
+  taskAssignmentRejectedTemplate,
+} from '@/lib/email-templates';
 
 async function generateTaskAssignmentNumber(): Promise<string> {
   const supabase = await createClient();
@@ -228,7 +233,7 @@ export async function approveTaskAssignment(
 
   const { data: req } = await supabase
     .from('task_assignments' as any) // eslint-disable-line @typescript-eslint/no-explicit-any
-    .select('status')
+    .select('*, employees:employee_id(full_name, email)')
     .eq('id', id)
     .single();
 
@@ -247,6 +252,24 @@ export async function approveTaskAssignment(
 
   if (error) {
     return { success: false, error: 'Gagal menyetujui surat tugas' };
+  }
+
+  // Send email notification (non-blocking)
+  const row = req as any; // eslint-disable-line @typescript-eslint/no-explicit-any
+  const employeeEmail = row.employees?.email;
+  if (employeeEmail) {
+    const emailData = taskAssignmentApprovedTemplate({
+      employeeName: row.employees?.full_name || 'Karyawan',
+      taskTitle: row.task_title,
+      requestNumber: row.request_number,
+      location: row.location,
+      startDate: row.start_date,
+      endDate: row.end_date,
+      approverName: profile?.full_name || 'Manager',
+    });
+    sendEmail({ to: employeeEmail, ...emailData }).catch((err) =>
+      console.error('[TaskAssignment] Approval email failed:', err)
+    );
   }
 
   revalidatePath('/hr/task-assignments');
@@ -270,7 +293,7 @@ export async function rejectTaskAssignment(
 
   const { data: req } = await supabase
     .from('task_assignments' as any) // eslint-disable-line @typescript-eslint/no-explicit-any
-    .select('status')
+    .select('*, employees:employee_id(full_name, email)')
     .eq('id', id)
     .single();
 
@@ -290,6 +313,25 @@ export async function rejectTaskAssignment(
 
   if (error) {
     return { success: false, error: 'Gagal menolak surat tugas' };
+  }
+
+  // Send email notification (non-blocking)
+  const row = req as any; // eslint-disable-line @typescript-eslint/no-explicit-any
+  const employeeEmail = row.employees?.email;
+  if (employeeEmail) {
+    const emailData = taskAssignmentRejectedTemplate({
+      employeeName: row.employees?.full_name || 'Karyawan',
+      taskTitle: row.task_title,
+      requestNumber: row.request_number,
+      location: row.location,
+      startDate: row.start_date,
+      endDate: row.end_date,
+      approverName: profile?.full_name || 'Manager',
+      rejectionReason: reason,
+    });
+    sendEmail({ to: employeeEmail, ...emailData }).catch((err) =>
+      console.error('[TaskAssignment] Rejection email failed:', err)
+    );
   }
 
   revalidatePath('/hr/task-assignments');

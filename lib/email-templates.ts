@@ -378,3 +378,103 @@ export function leaveRejectedTemplate(data: LeaveRejectionData): {
 
   return { subject, html: wrapInLayout('Cuti Ditolak', body) }
 }
+
+// ============================================================================
+// Task Assignment (Surat Tugas) Notifications
+// ============================================================================
+
+interface TaskAssignmentNotificationData {
+  employeeName: string
+  taskTitle: string
+  requestNumber: string
+  location: string
+  startDate: string
+  endDate: string
+  approverName: string
+}
+
+export function taskAssignmentApprovedTemplate(data: TaskAssignmentNotificationData): {
+  subject: string
+  html: string
+} {
+  const subject = `[Surat Tugas Disetujui] ${data.requestNumber} - ${data.taskTitle}`
+
+  const body = `
+    <p style="margin:0 0 16px; color:#374151; font-size:15px; line-height:1.6;">
+      Halo ${data.employeeName},
+    </p>
+    <p style="margin:0 0 24px; color:#374151; font-size:15px; line-height:1.6;">
+      Surat Tugas Anda telah <strong style="color:#16a34a;">disetujui</strong>. Berikut detailnya:
+    </p>
+    <table width="100%" cellpadding="12" cellspacing="0" style="background-color:#f0fdf4; border-radius:6px; border: 1px solid #bbf7d0; margin-bottom:24px;">
+      <tr>
+        <td style="color:#6b7280; font-size:13px; border-bottom: 1px solid #d1fae5;">Nomor ST</td>
+        <td style="color:#111827; font-size:14px; font-weight:600; border-bottom: 1px solid #d1fae5;">${data.requestNumber}</td>
+      </tr>
+      <tr>
+        <td style="color:#6b7280; font-size:13px; border-bottom: 1px solid #d1fae5;">Judul Tugas</td>
+        <td style="color:#111827; font-size:14px; border-bottom: 1px solid #d1fae5;">${data.taskTitle}</td>
+      </tr>
+      <tr>
+        <td style="color:#6b7280; font-size:13px; border-bottom: 1px solid #d1fae5;">Lokasi</td>
+        <td style="color:#111827; font-size:14px; border-bottom: 1px solid #d1fae5;">${data.location}</td>
+      </tr>
+      <tr>
+        <td style="color:#6b7280; font-size:13px; border-bottom: 1px solid #d1fae5;">Periode</td>
+        <td style="color:#111827; font-size:14px; border-bottom: 1px solid #d1fae5;">${formatDate(data.startDate)} s/d ${formatDate(data.endDate)}</td>
+      </tr>
+      <tr>
+        <td style="color:#6b7280; font-size:13px;">Disetujui Oleh</td>
+        <td style="color:#111827; font-size:14px; font-weight:600;">${data.approverName}</td>
+      </tr>
+    </table>
+    <p style="margin:0; color:#6b7280; font-size:13px;">
+      Silakan persiapkan diri untuk penugasan ini. Hubungi atasan jika ada pertanyaan.
+    </p>
+  `
+
+  return { subject, html: wrapInLayout('Surat Tugas Disetujui', body) }
+}
+
+interface TaskAssignmentRejectionData extends TaskAssignmentNotificationData {
+  rejectionReason: string
+}
+
+export function taskAssignmentRejectedTemplate(data: TaskAssignmentRejectionData): {
+  subject: string
+  html: string
+} {
+  const subject = `[Surat Tugas Ditolak] ${data.requestNumber} - ${data.taskTitle}`
+
+  const body = `
+    <p style="margin:0 0 16px; color:#374151; font-size:15px; line-height:1.6;">
+      Halo ${data.employeeName},
+    </p>
+    <p style="margin:0 0 24px; color:#374151; font-size:15px; line-height:1.6;">
+      Mohon maaf, Surat Tugas Anda <strong style="color:#dc2626;">tidak disetujui</strong>.
+    </p>
+    <table width="100%" cellpadding="12" cellspacing="0" style="background-color:#fef2f2; border-radius:6px; border: 1px solid #fecaca; margin-bottom:24px;">
+      <tr>
+        <td style="color:#6b7280; font-size:13px; border-bottom: 1px solid #fecaca;">Nomor ST</td>
+        <td style="color:#111827; font-size:14px; font-weight:600; border-bottom: 1px solid #fecaca;">${data.requestNumber}</td>
+      </tr>
+      <tr>
+        <td style="color:#6b7280; font-size:13px; border-bottom: 1px solid #fecaca;">Judul Tugas</td>
+        <td style="color:#111827; font-size:14px; border-bottom: 1px solid #fecaca;">${data.taskTitle}</td>
+      </tr>
+      <tr>
+        <td style="color:#6b7280; font-size:13px; border-bottom: 1px solid #fecaca;">Ditinjau Oleh</td>
+        <td style="color:#111827; font-size:14px; border-bottom: 1px solid #fecaca;">${data.approverName}</td>
+      </tr>
+      <tr>
+        <td style="color:#6b7280; font-size:13px;">Alasan Penolakan</td>
+        <td style="color:#dc2626; font-size:14px; font-weight:600;">${data.rejectionReason}</td>
+      </tr>
+    </table>
+    <p style="margin:0; color:#374151; font-size:15px; line-height:1.6;">
+      Silakan hubungi atasan Anda jika membutuhkan penjelasan lebih lanjut.
+    </p>
+  `
+
+  return { subject, html: wrapInLayout('Surat Tugas Ditolak', body) }
+}
