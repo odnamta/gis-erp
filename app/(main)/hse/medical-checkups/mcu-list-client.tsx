@@ -56,6 +56,7 @@ const CHECKUP_TYPE_OPTIONS: { value: CheckupType | 'all'; label: string }[] = [
 export function McuListClient({ readOnly: _readOnly }: { readOnly?: boolean }) {
   const [records, setRecords] = useState<MedicalCheckup[]>([]);
   const [loading, setLoading] = useState(true);
+  const [fetchError, setFetchError] = useState<string | null>(null);
   const [search, setSearch] = useState('');
   const [medicalStatus, setMedicalStatus] = useState<MedicalStatus | 'all'>('all');
   const [checkupType, setCheckupType] = useState<CheckupType | 'all'>('all');
@@ -67,6 +68,7 @@ export function McuListClient({ readOnly: _readOnly }: { readOnly?: boolean }) {
 
   const loadRecords = async () => {
     setLoading(true);
+    setFetchError(null);
     try {
       const [data, statsData] = await Promise.all([
         getMedicalCheckups({
@@ -78,7 +80,9 @@ export function McuListClient({ readOnly: _readOnly }: { readOnly?: boolean }) {
       setRecords(data);
       setStats(statsData);
     } catch (err) {
-      toast.error(err instanceof Error ? err.message : 'Gagal memuat data MCU');
+      const message = err instanceof Error ? err.message : 'Gagal memuat data MCU';
+      setFetchError(message);
+      toast.error(message);
     } finally {
       setLoading(false);
     }
@@ -214,6 +218,13 @@ export function McuListClient({ readOnly: _readOnly }: { readOnly?: boolean }) {
       {loading ? (
         <div className="flex items-center justify-center py-12">
           <Loader2 className="h-8 w-8 animate-spin text-muted-foreground" />
+        </div>
+      ) : fetchError ? (
+        <div className="flex flex-col items-center justify-center py-12 text-center">
+          <AlertTriangle className="h-12 w-12 text-destructive mb-4" />
+          <h3 className="text-lg font-medium">Gagal memuat data</h3>
+          <p className="text-muted-foreground mb-4">{fetchError}</p>
+          <Button variant="outline" onClick={loadRecords}>Coba Lagi</Button>
         </div>
       ) : filteredRecords.length === 0 ? (
         <div className="flex flex-col items-center justify-center py-12 text-center">

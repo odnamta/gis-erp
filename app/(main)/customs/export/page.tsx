@@ -96,7 +96,7 @@ export default async function CustomsExportPage({ searchParams }: PageProps) {
             <p className="text-muted-foreground">Manage customs export declarations</p>
           </div>
         </div>
-        {showCreateButton && (
+        {showCreateButton && !explorerReadOnly && (
           <Button asChild>
             <Link href="/customs/export/new">
               <Plus className="mr-2 h-4 w-4" />

@@ -12,10 +12,10 @@ import { LeaveBalance } from '@/types/leave';
 export default async function LeaveRequestsPage() {
   try {
     const [requests, leaveTypes, employees, pendingCount] = await Promise.all([
-      getLeaveRequests(),
-      getLeaveTypes(),
-      getEmployeesForSelect(),
-      getPendingRequestsCount(),
+      getLeaveRequests().catch(() => []),
+      getLeaveTypes().catch(() => []),
+      getEmployeesForSelect().catch(() => []),
+      getPendingRequestsCount().catch(() => 0),
     ]);
 
     // Batch-fetch balances for all employees with pending requests

@@ -115,8 +115,11 @@ export async function uploadAttachment(
 
     if (dbError) {
       // Rollback: delete the uploaded file
-      await supabase.storage.from(STORAGE_BUCKET).remove([storagePath]);
-      return { data: null, error: 'Failed to save attachment. Please try again.' };
+      const { error: rollbackError } = await supabase.storage.from(STORAGE_BUCKET).remove([storagePath]);
+      if (rollbackError) {
+        console.error('[Attachment] Storage rollback failed for path:', storagePath, rollbackError.message);
+      }
+      return { data: null, error: 'Gagal menyimpan lampiran. Silakan coba lagi.' };
     }
 
     return { data: attachment as DocumentAttachment, error: null };
