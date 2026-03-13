@@ -18,9 +18,7 @@ import { getEnhancedOpsDashboardData } from '@/lib/ops-dashboard-enhanced-utils'
 import { getUserOnboardingProgress } from '@/lib/onboarding-actions'
 import { fetchCachedOwnerDashboardData } from '@/lib/dashboard-cache-actions'
 import { guardPage } from '@/lib/auth-utils'
-
-// Hutami's email - Marketing Manager who also manages Engineering
-const HUTAMI_EMAIL = 'hutamiarini@gama-group.co'
+import { canAccessFeature } from '@/lib/permissions'
 
 export default async function DashboardPage() {
   // Get user profile for role-based rendering
@@ -79,11 +77,10 @@ export default async function DashboardPage() {
   }
 
   if (userRole === 'marketing') {
-    // Check if this is Hutami (Marketing Manager who also manages Engineering)
-    const isHutami = userEmail === HUTAMI_EMAIL
-    
-    if (isHutami) {
-      // Fetch sales-engineering dashboard data for Hutami
+    // Marketing users with engineering dashboard access get combined sales+engineering view
+    const hasEngineeringAccess = canAccessFeature(profile, 'dashboard.engineering')
+
+    if (hasEngineeringAccess) {
       const salesEngineeringData = await getSalesEngineeringDashboardData()
       return (
         <DashboardSelector
@@ -96,7 +93,7 @@ export default async function DashboardPage() {
         />
       )
     }
-    
+
     // Regular marketing users get the standard sales dashboard
     const salesData = await fetchSalesDashboardData()
     return (

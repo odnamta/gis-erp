@@ -267,7 +267,7 @@ export function QuotationDetailView({ quotation, userRole, userId }: QuotationDe
             <QuotationStatusBadge status={status} />
             {quotation.created_at && (
               <span className="text-sm text-muted-foreground">
-                Created {formatDate(quotation.created_at)}
+                Dibuat {formatDate(quotation.created_at)}
               </span>
             )}
           </div>
@@ -358,15 +358,15 @@ export function QuotationDetailView({ quotation, userRole, userId }: QuotationDe
       {/* Basic Info */}
       <Card>
         <CardHeader>
-          <CardTitle>Basic Information</CardTitle>
+          <CardTitle>Informasi Dasar</CardTitle>
         </CardHeader>
         <CardContent className="grid gap-4 md:grid-cols-2">
           <div>
-            <Label className="text-muted-foreground">Title</Label>
+            <Label className="text-muted-foreground">Judul</Label>
             <p className="font-medium">{quotation.title}</p>
           </div>
           <div>
-            <Label className="text-muted-foreground">Customer</Label>
+            <Label className="text-muted-foreground">Pelanggan</Label>
             <p className="font-medium">
               {quotation.customer ? (
                 <Link href={`/customers/${quotation.customer.id}`} className="hover:underline">
@@ -376,7 +376,7 @@ export function QuotationDetailView({ quotation, userRole, userId }: QuotationDe
             </p>
           </div>
           <div>
-            <Label className="text-muted-foreground">Project</Label>
+            <Label className="text-muted-foreground">Proyek</Label>
             <p className="font-medium">
               {quotation.project ? (
                 <Link href={`/projects/${quotation.project.id}`} className="hover:underline">
@@ -386,7 +386,7 @@ export function QuotationDetailView({ quotation, userRole, userId }: QuotationDe
             </p>
           </div>
           <div>
-            <Label className="text-muted-foreground">Commodity</Label>
+            <Label className="text-muted-foreground">Komoditas</Label>
             <p className="font-medium">{quotation.commodity || '-'}</p>
           </div>
         </CardContent>
@@ -395,23 +395,23 @@ export function QuotationDetailView({ quotation, userRole, userId }: QuotationDe
       {/* RFQ Details */}
       <Card>
         <CardHeader>
-          <CardTitle>RFQ Details</CardTitle>
+          <CardTitle>Detail RFQ</CardTitle>
         </CardHeader>
         <CardContent className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
           <div>
-            <Label className="text-muted-foreground">RFQ Number</Label>
+            <Label className="text-muted-foreground">Nomor RFQ</Label>
             <p className="font-medium">{quotation.rfq_number || '-'}</p>
           </div>
           <div>
-            <Label className="text-muted-foreground">RFQ Date</Label>
+            <Label className="text-muted-foreground">Tanggal RFQ</Label>
             <p className="font-medium">{quotation.rfq_date ? formatDate(quotation.rfq_date) : '-'}</p>
           </div>
           <div>
-            <Label className="text-muted-foreground">Received Date</Label>
+            <Label className="text-muted-foreground">Tanggal Diterima</Label>
             <p className="font-medium">{quotation.rfq_received_date ? formatDate(quotation.rfq_received_date) : '-'}</p>
           </div>
           <div>
-            <Label className="text-muted-foreground">Deadline</Label>
+            <Label className="text-muted-foreground">Batas Waktu</Label>
             <p className="font-medium">{quotation.rfq_deadline ? formatDate(quotation.rfq_deadline) : '-'}</p>
           </div>
         </CardContent>
@@ -420,24 +420,24 @@ export function QuotationDetailView({ quotation, userRole, userId }: QuotationDe
       {/* Route */}
       <Card>
         <CardHeader>
-          <CardTitle>Route</CardTitle>
+          <CardTitle>Rute</CardTitle>
         </CardHeader>
         <CardContent className="grid gap-4 md:grid-cols-2">
           <div>
-            <Label className="text-muted-foreground">Origin</Label>
+            <Label className="text-muted-foreground">Asal</Label>
             <p className="font-medium">{quotation.origin}</p>
           </div>
           <div>
-            <Label className="text-muted-foreground">Destination</Label>
+            <Label className="text-muted-foreground">Tujuan</Label>
             <p className="font-medium">{quotation.destination}</p>
           </div>
           <div>
-            <Label className="text-muted-foreground">Estimated Shipments</Label>
+            <Label className="text-muted-foreground">Estimasi Pengiriman</Label>
             <p className="font-medium">{quotation.estimated_shipments || 1}</p>
           </div>
           <div>
-            <Label className="text-muted-foreground">Duration</Label>
-            <p className="font-medium">{quotation.duration_days ? `${quotation.duration_days} days` : '-'}</p>
+            <Label className="text-muted-foreground">Durasi</Label>
+            <p className="font-medium">{quotation.duration_days ? `${quotation.duration_days} hari` : '-'}</p>
           </div>
         </CardContent>
       </Card>
@@ -447,7 +447,7 @@ export function QuotationDetailView({ quotation, userRole, userId }: QuotationDe
         <Card>
           <CardHeader>
             <CardTitle className="flex items-center justify-between">
-              <span>Market Classification</span>
+              <span>Klasifikasi Pasar</span>
               <MarketTypeBadge
                 marketType={quotation.market_type as MarketType}
                 score={quotation.complexity_score ?? undefined}
@@ -458,7 +458,7 @@ export function QuotationDetailView({ quotation, userRole, userId }: QuotationDe
           <CardContent className="space-y-6">
             <div className="space-y-2">
               <div className="flex items-center justify-between text-sm">
-                <span className="text-muted-foreground">Complexity Score</span>
+                <span className="text-muted-foreground">Skor Kompleksitas</span>
                 <span className="font-medium">{quotation.complexity_score ?? 0} / 100</span>
               </div>
               <Progress
@@ -470,13 +470,13 @@ export function QuotationDetailView({ quotation, userRole, userId }: QuotationDe
             {quotation.market_type === 'complex' && (
               <div className="flex items-center gap-2 rounded-md bg-orange-50 p-3 text-orange-800">
                 <AlertTriangle className="h-5 w-5" />
-                <span className="text-sm font-medium">Engineering assessment required for complex projects</span>
+                <span className="text-sm font-medium">Penilaian engineering diperlukan untuk proyek kompleks</span>
               </div>
             )}
 
             {quotation.complexity_factors && Array.isArray(quotation.complexity_factors) && (quotation.complexity_factors as unknown as ComplexityFactor[]).length > 0 && (
               <div className="space-y-2">
-                <Label className="text-muted-foreground">Triggered Complexity Factors</Label>
+                <Label className="text-muted-foreground">Faktor Kompleksitas</Label>
                 <div className="space-y-1">
                   {(quotation.complexity_factors as unknown as ComplexityFactor[]).map((factor, index) => (
                     <div key={index} className="flex items-center justify-between text-sm">
@@ -493,31 +493,31 @@ export function QuotationDetailView({ quotation, userRole, userId }: QuotationDe
             <div className="grid gap-4 md:grid-cols-3">
               {quotation.cargo_weight_kg && (
                 <div>
-                  <Label className="text-muted-foreground">Cargo Weight</Label>
+                  <Label className="text-muted-foreground">Berat Kargo</Label>
                   <p className="font-medium">{Number(quotation.cargo_weight_kg).toLocaleString('id-ID')} kg</p>
                 </div>
               )}
               {quotation.cargo_length_m && (
                 <div>
-                  <Label className="text-muted-foreground">Length</Label>
+                  <Label className="text-muted-foreground">Panjang</Label>
                   <p className="font-medium">{quotation.cargo_length_m} m</p>
                 </div>
               )}
               {quotation.cargo_width_m && (
                 <div>
-                  <Label className="text-muted-foreground">Width</Label>
+                  <Label className="text-muted-foreground">Lebar</Label>
                   <p className="font-medium">{quotation.cargo_width_m} m</p>
                 </div>
               )}
               {quotation.cargo_height_m && (
                 <div>
-                  <Label className="text-muted-foreground">Height</Label>
+                  <Label className="text-muted-foreground">Tinggi</Label>
                   <p className="font-medium">{quotation.cargo_height_m} m</p>
                 </div>
               )}
               {quotation.cargo_value && (
                 <div>
-                  <Label className="text-muted-foreground">Cargo Value</Label>
+                  <Label className="text-muted-foreground">Nilai Kargo</Label>
                   <p className="font-medium">{formatCurrency(Number(quotation.cargo_value))}</p>
                 </div>
               )}
@@ -528,13 +528,13 @@ export function QuotationDetailView({ quotation, userRole, userId }: QuotationDe
                 <span className="text-sm bg-gray-100 text-gray-800 px-2 py-1 rounded capitalize">{quotation.terrain_type}</span>
               )}
               {quotation.is_new_route && (
-                <span className="text-sm bg-blue-100 text-blue-800 px-2 py-1 rounded">New Route</span>
+                <span className="text-sm bg-blue-100 text-blue-800 px-2 py-1 rounded">Rute Baru</span>
               )}
               {quotation.requires_special_permit && (
-                <span className="text-sm bg-purple-100 text-purple-800 px-2 py-1 rounded">Special Permit</span>
+                <span className="text-sm bg-purple-100 text-purple-800 px-2 py-1 rounded">Izin Khusus</span>
               )}
               {quotation.is_hazardous && (
-                <span className="text-sm bg-red-100 text-red-800 px-2 py-1 rounded">Hazardous</span>
+                <span className="text-sm bg-red-100 text-red-800 px-2 py-1 rounded">Berbahaya</span>
               )}
             </div>
           </CardContent>
@@ -559,21 +559,21 @@ export function QuotationDetailView({ quotation, userRole, userId }: QuotationDe
       {/* Financial Summary */}
       <Card>
         <CardHeader>
-          <CardTitle>Financial Summary</CardTitle>
+          <CardTitle>Ringkasan Keuangan</CardTitle>
         </CardHeader>
         <CardContent className="grid gap-4 md:grid-cols-2 lg:grid-cols-5">
           <div>
-            <Label className="text-muted-foreground">Total Revenue</Label>
+            <Label className="text-muted-foreground">Total Pendapatan</Label>
             <p className="text-lg font-semibold">{formatCurrency(quotation.total_revenue || 0)}</p>
           </div>
           <div>
-            <Label className="text-muted-foreground">Total Cost</Label>
+            <Label className="text-muted-foreground">Total Biaya</Label>
             <p className="text-lg font-semibold">{formatCurrency(quotation.total_cost || 0)}</p>
           </div>
           {canViewProfitMargin && (
             <>
               <div>
-                <Label className="text-muted-foreground">Gross Profit</Label>
+                <Label className="text-muted-foreground">Laba Kotor</Label>
                 <p className={`text-lg font-semibold ${(quotation.gross_profit || 0) >= 0 ? 'text-green-600' : 'text-red-600'}`}>
                   {formatCurrency(quotation.gross_profit || 0)}
                 </p>
@@ -587,7 +587,7 @@ export function QuotationDetailView({ quotation, userRole, userId }: QuotationDe
             </>
           )}
           <div>
-            <Label className="text-muted-foreground">Pursuit Cost</Label>
+            <Label className="text-muted-foreground">Biaya Pursuit</Label>
             <p className="text-lg font-semibold">{formatCurrency(quotation.total_pursuit_cost || 0)}</p>
           </div>
         </CardContent>
@@ -619,7 +619,7 @@ export function QuotationDetailView({ quotation, userRole, userId }: QuotationDe
       {quotation.notes && (
         <Card>
           <CardHeader>
-            <CardTitle>Notes</CardTitle>
+            <CardTitle>Catatan</CardTitle>
           </CardHeader>
           <CardContent>
             <p className="whitespace-pre-wrap">{quotation.notes}</p>
@@ -639,7 +639,7 @@ export function QuotationDetailView({ quotation, userRole, userId }: QuotationDe
         <Card className={status === 'won' ? 'border-green-200 bg-green-50' : 'border-red-200 bg-red-50'}>
           <CardHeader>
             <CardTitle className={status === 'won' ? 'text-green-800' : 'text-red-800'}>
-              {status === 'won' ? 'Won' : 'Evaluasi Kekalahan'}
+              {status === 'won' ? 'Menang' : 'Evaluasi Kekalahan'}
             </CardTitle>
           </CardHeader>
           <CardContent className="grid gap-4 md:grid-cols-2">

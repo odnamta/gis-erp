@@ -92,15 +92,15 @@ export default async function CustomsExportPage({ searchParams }: PageProps) {
         <div className="flex items-center gap-3">
           <FileText className="h-8 w-8 text-primary" />
           <div>
-            <h1 className="text-3xl font-bold">Export Documents (PEB)</h1>
-            <p className="text-muted-foreground">Manage customs export declarations</p>
+            <h1 className="text-3xl font-bold">Dokumen Ekspor (PEB)</h1>
+            <p className="text-muted-foreground">Kelola dokumen pemberitahuan ekspor barang</p>
           </div>
         </div>
         {showCreateButton && !explorerReadOnly && (
           <Button asChild>
             <Link href="/customs/export/new">
               <Plus className="mr-2 h-4 w-4" />
-              New PEB
+              PEB Baru
             </Link>
           </Button>
         )}
