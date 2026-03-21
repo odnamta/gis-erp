@@ -429,15 +429,18 @@ export async function getBlockedIdentifiers(): Promise<{ data: RateLimitLog[]; e
  * @returns Rate limit configuration
  */
 export function getConfigForEndpoint(endpoint: string): RateLimitConfig {
-  // Check for specific endpoint patterns
+  // Check for specific endpoint patterns (most specific first)
   if (endpoint.includes('/auth') || endpoint.includes('/login')) {
     return DEFAULT_RATE_LIMITS.auth;
   }
-  if (endpoint.includes('/api')) {
-    return DEFAULT_RATE_LIMITS.api;
+  if (endpoint.includes('/api/pdf/') || endpoint.includes('/export')) {
+    return DEFAULT_RATE_LIMITS.export;
   }
   if (endpoint.includes('/upload')) {
     return DEFAULT_RATE_LIMITS.upload;
+  }
+  if (endpoint.includes('/api')) {
+    return DEFAULT_RATE_LIMITS.api;
   }
   return DEFAULT_RATE_LIMITS.default;
 }

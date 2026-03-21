@@ -1,10 +1,27 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { createClient } from '@supabase/supabase-js'
+import { isValidOrigin, getClientIp } from '@/lib/api-security'
+import { checkRateLimit } from '@/lib/security/rate-limiter'
 
 const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL!
 const supabaseServiceKey = process.env.SUPABASE_SERVICE_ROLE_KEY!
 
 export async function POST(request: NextRequest) {
+  // CSRF protection
+  if (!isValidOrigin(request)) {
+    return NextResponse.json({ ok: false, error: 'Invalid origin' }, { status: 403 })
+  }
+
+  // Rate limiting: 30 req/min
+  const clientIp = getClientIp(request)
+  const rateCheck = await checkRateLimit(clientIp, '/api/speed-insights/ingest')
+  if (!rateCheck.allowed) {
+    return NextResponse.json(
+      { ok: false, error: 'Too many requests' },
+      { status: 429, headers: { 'Retry-After': String(Math.ceil((rateCheck.resetAt.getTime() - Date.now()) / 1000)) } }
+    )
+  }
+
   try {
     const body = await request.json()
 

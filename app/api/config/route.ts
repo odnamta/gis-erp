@@ -14,7 +14,8 @@ import {
   setConfig,
   type AppConfig,
 } from '@/lib/production-readiness-utils';
-import { isValidOrigin } from '@/lib/api-security';
+import { isValidOrigin, getClientIp } from '@/lib/api-security';
+import { checkRateLimit } from '@/lib/security/rate-limiter';
 
 export const dynamic = 'force-dynamic';
 export const revalidate = 0;
@@ -41,6 +42,16 @@ interface SetConfigRequest {
  */
 export async function GET(request: NextRequest): Promise<NextResponse<ConfigResponse>> {
   try {
+    // Rate limiting: 30 req/min
+    const clientIp = getClientIp(request);
+    const rateCheck = await checkRateLimit(clientIp, '/api/config');
+    if (!rateCheck.allowed) {
+      return NextResponse.json(
+        { success: false, error: 'Too many requests' },
+        { status: 429, headers: { 'Retry-After': String(Math.ceil((rateCheck.resetAt.getTime() - Date.now()) / 1000)) } }
+      );
+    }
+
     const { searchParams } = new URL(request.url);
     const environment = searchParams.get('environment') || undefined;
     
@@ -73,6 +84,16 @@ export async function POST(request: NextRequest): Promise<NextResponse<{ success
   // CSRF protection
   if (!isValidOrigin(request)) {
     return NextResponse.json({ success: false, error: 'Invalid origin' }, { status: 403 });
+  }
+
+  // Rate limiting: 30 req/min
+  const clientIpPost = getClientIp(request);
+  const rateCheckPost = await checkRateLimit(clientIpPost, '/api/config');
+  if (!rateCheckPost.allowed) {
+    return NextResponse.json(
+      { success: false, error: 'Too many requests' },
+      { status: 429, headers: { 'Retry-After': String(Math.ceil((rateCheckPost.resetAt.getTime() - Date.now()) / 1000)) } }
+    );
   }
 
   try {

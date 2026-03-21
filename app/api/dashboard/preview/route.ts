@@ -1,5 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { requireRole } from '@/lib/permissions-server'
+import { getClientIp } from '@/lib/api-security'
+import { checkRateLimit } from '@/lib/security/rate-limiter'
 import { getOpsDashboardData } from '@/lib/ops-dashboard-utils'
 import { getEnhancedOpsDashboardData } from '@/lib/ops-dashboard-enhanced-utils'
 import {
@@ -22,6 +24,16 @@ import { getSalesEngineeringDashboardData } from '@/app/(main)/dashboard/sales-e
  */
 export async function GET(request: NextRequest) {
   try {
+    // Rate limiting: 30 req/min
+    const clientIp = getClientIp(request)
+    const rateCheck = await checkRateLimit(clientIp, '/api/dashboard/preview')
+    if (!rateCheck.allowed) {
+      return NextResponse.json(
+        { error: 'Too many requests' },
+        { status: 429, headers: { 'Retry-After': String(Math.ceil((rateCheck.resetAt.getTime() - Date.now()) / 1000)) } }
+      )
+    }
+
     // Verify user has preview access
     await requireRole(['owner', 'director'])
 

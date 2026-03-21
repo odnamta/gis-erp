@@ -151,7 +151,8 @@ export interface RateLimitResult {
 export const DEFAULT_RATE_LIMITS: Record<string, RateLimitConfig> = {
   default: { limit: 100, windowSeconds: 60, blockDurationSeconds: 300 },
   auth: { limit: 5, windowSeconds: 60, blockDurationSeconds: 900 },
-  api: { limit: 60, windowSeconds: 60, blockDurationSeconds: 300 },
+  api: { limit: 30, windowSeconds: 60, blockDurationSeconds: 300 },
+  export: { limit: 10, windowSeconds: 60, blockDurationSeconds: 600 },
   upload: { limit: 10, windowSeconds: 60, blockDurationSeconds: 600 },
 };
 

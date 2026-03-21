@@ -2,15 +2,26 @@ import { NextRequest, NextResponse } from 'next/server';
 import { createClient } from '@/lib/supabase/server';
 import { getUserProfile } from '@/lib/permissions-server';
 import { ADMIN_ROLES } from '@/lib/permissions';
+import { getClientIp } from '@/lib/api-security';
+import { checkRateLimit } from '@/lib/security/rate-limiter';
 import type { UserActivityLog, DailyActivityCount } from '@/types/activity';
 
 /**
  * API Route for querying user activities (v0.13.1)
- * 
+ *
  * Only accessible to owner, director, sysadmin roles.
  */
 export async function GET(request: NextRequest) {
   try {
+    // Rate limiting: 30 req/min
+    const clientIp = getClientIp(request);
+    const rateCheck = await checkRateLimit(clientIp, '/api/activity/query');
+    if (!rateCheck.allowed) {
+      return NextResponse.json(
+        { error: 'Too many requests' },
+        { status: 429, headers: { 'Retry-After': String(Math.ceil((rateCheck.resetAt.getTime() - Date.now()) / 1000)) } }
+      );
+    }
     // Check authorization
     const profile = await getUserProfile();
     if (!profile || !(ADMIN_ROLES as readonly string[]).includes(profile.role)) {

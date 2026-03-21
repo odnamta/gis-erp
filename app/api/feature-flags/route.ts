@@ -16,7 +16,8 @@ import {
   type FeatureFlag,
   type FeatureFlagContext,
 } from '@/lib/production-readiness-utils';
-import { isValidOrigin } from '@/lib/api-security';
+import { isValidOrigin, getClientIp } from '@/lib/api-security';
+import { checkRateLimit } from '@/lib/security/rate-limiter';
 
 export const dynamic = 'force-dynamic';
 export const revalidate = 0;
@@ -55,6 +56,16 @@ interface UpdateFeatureFlagRequest {
  */
 export async function GET(request: NextRequest): Promise<NextResponse<FeatureFlagsResponse>> {
   try {
+    // Rate limiting: 30 req/min
+    const clientIp = getClientIp(request);
+    const rateCheck = await checkRateLimit(clientIp, '/api/feature-flags');
+    if (!rateCheck.allowed) {
+      return NextResponse.json(
+        { success: false, error: 'Too many requests' },
+        { status: 429, headers: { 'Retry-After': String(Math.ceil((rateCheck.resetAt.getTime() - Date.now()) / 1000)) } }
+      );
+    }
+
     // Authenticate user
     const supabase = await createClient();
     const { data: { user }, error: authError } = await supabase.auth.getUser();
@@ -137,6 +148,16 @@ export async function POST(request: NextRequest): Promise<NextResponse<{ success
   // CSRF protection
   if (!isValidOrigin(request)) {
     return NextResponse.json({ success: false, error: 'Invalid origin' }, { status: 403 });
+  }
+
+  // Rate limiting: 30 req/min
+  const clientIpPost = getClientIp(request);
+  const rateCheckPost = await checkRateLimit(clientIpPost, '/api/feature-flags');
+  if (!rateCheckPost.allowed) {
+    return NextResponse.json(
+      { success: false, error: 'Too many requests' },
+      { status: 429, headers: { 'Retry-After': String(Math.ceil((rateCheckPost.resetAt.getTime() - Date.now()) / 1000)) } }
+    );
   }
 
   try {

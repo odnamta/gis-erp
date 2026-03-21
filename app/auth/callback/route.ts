@@ -1,11 +1,23 @@
 import { createClient } from '@/lib/supabase/server'
-import { NextResponse } from 'next/server'
+import { NextRequest, NextResponse } from 'next/server'
 import { ensureUserProfile } from '@/lib/permissions-server'
 import { recordSuccessfulLogin, recordFailedLoginAttempt } from '@/app/actions/auth-actions'
 import { syncUserMetadataToAuth } from '@/lib/supabase/sync-user-metadata'
 import { initializeOnboardingForUser } from '@/lib/onboarding-actions'
+import { checkRateLimit } from '@/lib/security/rate-limiter'
+import { getClientIp } from '@/lib/api-security'
 
-export async function GET(request: Request) {
+export async function GET(request: NextRequest) {
+  // Rate limiting: auth routes = 5 req/min
+  const clientIp = getClientIp(request)
+  const rateCheck = await checkRateLimit(clientIp, '/auth/callback')
+  if (!rateCheck.allowed) {
+    const { origin } = new URL(request.url)
+    const loginUrl = new URL('/login', origin)
+    loginUrl.searchParams.set('error', 'Too many requests. Please try again later.')
+    return NextResponse.redirect(loginUrl)
+  }
+
   const { searchParams, origin } = new URL(request.url)
   const code = searchParams.get('code')
   const error = searchParams.get('error')

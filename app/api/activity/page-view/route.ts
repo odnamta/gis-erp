@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { createClient } from '@/lib/supabase/server';
-import { isValidOrigin } from '@/lib/api-security';
+import { isValidOrigin, getClientIp } from '@/lib/api-security';
+import { checkRateLimit } from '@/lib/security/rate-limiter';
 
 /**
  * API Route for logging page views (v0.13.1)
@@ -12,6 +13,16 @@ export async function POST(request: NextRequest) {
   // CSRF protection
   if (!isValidOrigin(request)) {
     return NextResponse.json({ error: 'Invalid origin' }, { status: 403 });
+  }
+
+  // Rate limiting: 30 req/min
+  const clientIp = getClientIp(request);
+  const rateCheck = await checkRateLimit(clientIp, '/api/activity/page-view');
+  if (!rateCheck.allowed) {
+    return NextResponse.json(
+      { error: 'Too many requests' },
+      { status: 429, headers: { 'Retry-After': String(Math.ceil((rateCheck.resetAt.getTime() - Date.now()) / 1000)) } }
+    );
   }
 
   try {
