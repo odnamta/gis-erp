@@ -4,6 +4,7 @@ import { createClient } from '@/lib/supabase/server'
 import { revalidatePath } from 'next/cache'
 import { getUserProfile } from '@/lib/permissions-server'
 import { canAccessFeature } from '@/lib/permissions'
+import { sanitizeSearchInput } from '@/lib/utils/sanitize'
 
 // ============================================================
 // TYPES
@@ -57,7 +58,7 @@ export async function getTools(filters?: ToolFilters): Promise<{ data: Equipment
     .order('name')
 
   if (filters?.search) {
-    query = query.ilike('name', `%${filters.search}%`)
+    query = query.ilike('name', `%${sanitizeSearchInput(filters.search)}%`)
   }
 
   if (filters?.category && filters.category !== 'all') {

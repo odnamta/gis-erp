@@ -20,6 +20,7 @@ import {
   ALLOWED_MIME_TYPES,
   MAX_FILE_SIZE_BYTES,
 } from '@/types/attachments';
+import { sanitizeSearchInput } from '@/lib/utils/sanitize';
 
 /**
  * Upload a file attachment to an entity
@@ -330,7 +331,7 @@ export async function getAttachmentsExcludingCategory(
       `)
       .eq('entity_type', entityType)
       .eq('entity_id', entityId)
-      .or(`description.is.null,description.not.like.${prefix}%`)
+      .or(`description.is.null,description.not.like.${sanitizeSearchInput(prefix)}%`)
       .order('created_at', { ascending: false });
 
     if (error) {

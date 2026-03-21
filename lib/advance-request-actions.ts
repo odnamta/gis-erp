@@ -4,6 +4,7 @@ import { createClient } from '@/lib/supabase/server'
 import { revalidatePath } from 'next/cache'
 import { getUserProfile } from '@/lib/permissions-server'
 import { getCurrentProfileId } from '@/lib/auth-helpers'
+import { sanitizeSearchInput } from '@/lib/utils/sanitize'
 import {
   checkAdvanceEligibility,
   buildAdvanceBlockMessage,
@@ -111,7 +112,8 @@ export async function getAdvanceRequests(
 
   // Search by recipient name or BKK number
   if (filters?.search && filters.search.trim()) {
-    const term = `%${filters.search.trim()}%`
+    const sanitized = sanitizeSearchInput(filters.search.trim())
+    const term = `%${sanitized}%`
     query = query.or(`advance_recipient_name.ilike.${term},bkk_number.ilike.${term}`)
   }
 

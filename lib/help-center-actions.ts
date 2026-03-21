@@ -20,6 +20,11 @@ import {
   isValidSearchQuery,
 } from '@/lib/help-center-utils';
 
+/** Validate role is alphanumeric only (prevent injection in .or() filters) */
+function sanitizeRole(role: string): string {
+  return role.replace(/[^a-zA-Z0-9_]/g, '');
+}
+
 // =====================================================
 // Search Actions
 // =====================================================
@@ -66,7 +71,7 @@ export async function getArticlesForRole(
     .from('help_articles')
     .select('*')
     .eq('is_published', true)
-    .or(`applicable_roles.cs.{${userRole}},applicable_roles.eq.{}`)
+    .or(`applicable_roles.cs.{${sanitizeRole(userRole)}},applicable_roles.eq.{}`)
     .order('display_order', { ascending: true });
 
   if (error) {
@@ -116,7 +121,7 @@ export async function getContextualArticles(
     .from('help_articles')
     .select('*')
     .eq('is_published', true)
-    .or(`applicable_roles.cs.{${userRole}},applicable_roles.eq.{}`)
+    .or(`applicable_roles.cs.{${sanitizeRole(userRole)}},applicable_roles.eq.{}`)
     .contains('related_routes', [normalizedRoute])
     .order('display_order', { ascending: true });
 
@@ -141,7 +146,7 @@ export async function getArticlesByCategory(
     .select('*')
     .eq('is_published', true)
     .eq('category', category)
-    .or(`applicable_roles.cs.{${userRole}},applicable_roles.eq.{}`)
+    .or(`applicable_roles.cs.{${sanitizeRole(userRole)}},applicable_roles.eq.{}`)
     .order('display_order', { ascending: true });
 
   if (error) {
@@ -191,7 +196,7 @@ export async function getFAQsForRole(
   const { data, error } = await supabase
     .from('help_faqs')
     .select('*')
-    .or(`applicable_roles.cs.{${userRole}},applicable_roles.eq.{}`)
+    .or(`applicable_roles.cs.{${sanitizeRole(userRole)}},applicable_roles.eq.{}`)
     .order('display_order', { ascending: true });
 
   if (error) {

@@ -3,6 +3,7 @@
 import { createClient } from '@/lib/supabase/server'
 import { getUserProfile } from '@/lib/permissions-server'
 import { extractLocationKey } from '@/lib/utils/location'
+import { sanitizeSearchInput } from '@/lib/utils/sanitize'
 
 export interface HistoricalEstimation {
   avgRevenue: number
@@ -61,8 +62,8 @@ export async function getHistoricalEstimation(
       .select('id, total_revenue, total_expenses, etd, created_at, status')
       .in('project_id', projectIds)
       .eq('is_active', true)
-      .ilike('pol', `%${polKey}%`)
-      .ilike('pod', `%${podKey}%`)
+      .ilike('pol', `%${sanitizeSearchInput(polKey)}%`)
+      .ilike('pod', `%${sanitizeSearchInput(podKey)}%`)
       .not('status', 'eq', 'cancelled')
       .order('created_at', { ascending: false })
       .limit(50) // Look at up to 50 historical shipments

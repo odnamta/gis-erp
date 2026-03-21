@@ -307,7 +307,8 @@ export async function getAllFeedback(
       query = query.eq('severity', filters.severity);
     }
     if (filters.module) {
-      query = query.or(`module.eq.${filters.module},affected_module.eq.${filters.module}`);
+      const mod = sanitizeSearchInput(filters.module);
+      query = query.or(`module.eq.${mod},affected_module.eq.${mod}`);
     }
     if (filters.assignedTo) {
       query = query.eq('assigned_to', filters.assignedTo);

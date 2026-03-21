@@ -15,6 +15,7 @@
 import { createClient } from '@/lib/supabase/server';
 import { getUserProfile } from '@/lib/permissions-server';
 import { ADMIN_ROLES } from '@/lib/permissions';
+import { sanitizeSearchInput } from '@/lib/utils/sanitize';
 import {
   AuditLogEntry,
   CreateAuditLogInput,
@@ -89,9 +90,9 @@ export async function getAuditLogs(
     }
     
     if (filters?.user_email) {
-      query = query.ilike('user_email', `%${filters.user_email}%`);
+      query = query.ilike('user_email', `%${sanitizeSearchInput(filters.user_email)}%`);
     }
-    
+
     // Filter by action (single or array)
     if (filters?.action) {
       const actions = Array.isArray(filters.action) ? filters.action : [filters.action];
@@ -135,8 +136,9 @@ export async function getAuditLogs(
     
     // Filter by search term
     if (filters?.search) {
+      const search = sanitizeSearchInput(filters.search);
       query = query.or(
-        `description.ilike.%${filters.search}%,entity_reference.ilike.%${filters.search}%,user_email.ilike.%${filters.search}%`
+        `description.ilike.%${search}%,entity_reference.ilike.%${search}%,user_email.ilike.%${search}%`
       );
     }
     
@@ -457,7 +459,7 @@ export async function exportAuditLogs(
       query = query.eq('user_id', filters.user_id);
     }
     if (filters?.user_email) {
-      query = query.ilike('user_email', `%${filters.user_email}%`);
+      query = query.ilike('user_email', `%${sanitizeSearchInput(filters.user_email)}%`);
     }
     if (filters?.action) {
       const actions = Array.isArray(filters.action) ? filters.action : [filters.action];

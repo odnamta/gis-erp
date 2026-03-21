@@ -14,6 +14,7 @@
 import { createClient } from '@/lib/supabase/server';
 import { getUserProfile } from '@/lib/permissions-server';
 import { ADMIN_ROLES } from '@/lib/permissions';
+import { sanitizeSearchInput } from '@/lib/utils/sanitize';
 import {
   SystemLogEntry,
   SystemLogFilters,
@@ -91,27 +92,27 @@ export async function getSystemLogs(
     
     // Filter by source (case-insensitive partial match) - Requirement 7.2
     if (filters?.source) {
-      query = query.ilike('source', `%${filters.source}%`);
+      query = query.ilike('source', `%${sanitizeSearchInput(filters.source)}%`);
     }
-    
+
     // Filter by module (case-insensitive partial match)
     if (filters?.module) {
-      query = query.ilike('module', `%${filters.module}%`);
+      query = query.ilike('module', `%${sanitizeSearchInput(filters.module)}%`);
     }
-    
+
     // Filter by user_id
     if (filters?.user_id) {
       query = query.eq('user_id', filters.user_id);
     }
-    
+
     // Filter by request_id
     if (filters?.request_id) {
       query = query.eq('request_id', filters.request_id);
     }
-    
+
     // Filter by search term (searches in message) - Requirement 7.4
     if (filters?.search) {
-      query = query.ilike('message', `%${filters.search}%`);
+      query = query.ilike('message', `%${sanitizeSearchInput(filters.search)}%`);
     }
     
     // Filter by date range - Requirement 7.3
@@ -201,12 +202,12 @@ export async function getLogStatistics(
     
     // Apply source filter if provided
     if (filters?.source) {
-      query = query.ilike('source', `%${filters.source}%`);
+      query = query.ilike('source', `%${sanitizeSearchInput(filters.source)}%`);
     }
-    
+
     // Apply module filter if provided
     if (filters?.module) {
-      query = query.ilike('module', `%${filters.module}%`);
+      query = query.ilike('module', `%${sanitizeSearchInput(filters.module)}%`);
     }
     
     const { data: entries, error } = await query.limit(10000);
@@ -350,13 +351,13 @@ export async function exportSystemLogs(
       query = query.in('level', levels);
     }
     if (filters?.source) {
-      query = query.ilike('source', `%${filters.source}%`);
+      query = query.ilike('source', `%${sanitizeSearchInput(filters.source)}%`);
     }
     if (filters?.module) {
-      query = query.ilike('module', `%${filters.module}%`);
+      query = query.ilike('module', `%${sanitizeSearchInput(filters.module)}%`);
     }
     if (filters?.search) {
-      query = query.ilike('message', `%${filters.search}%`);
+      query = query.ilike('message', `%${sanitizeSearchInput(filters.search)}%`);
     }
     if (filters?.start_date) {
       query = query.gte('timestamp', filters.start_date);

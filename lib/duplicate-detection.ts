@@ -2,6 +2,7 @@
 
 import { createClient } from '@/lib/supabase/server'
 import { extractLocationKey } from '@/lib/utils/location'
+import { sanitizeSearchInput } from '@/lib/utils/sanitize'
 
 export interface PJODuplicateResult {
   id: string
@@ -72,8 +73,8 @@ export async function checkPJODuplicates(
       .in('project_id', projectIds)
       .eq('is_active', true)
       .neq('status', 'cancelled')
-      .ilike('pol', `%${polKey}%`)
-      .ilike('pod', `%${podKey}%`)
+      .ilike('pol', `%${sanitizeSearchInput(polKey)}%`)
+      .ilike('pod', `%${sanitizeSearchInput(podKey)}%`)
       .order('created_at', { ascending: false })
       .limit(10)
 

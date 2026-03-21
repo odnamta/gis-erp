@@ -165,7 +165,7 @@ export async function getEngineeringDashboardMetrics(
         ? supabase
             .from('journey_management_plans')
             .select('id, jmp_number, journey_title, status, planned_departure, created_at')
-            .or(`prepared_by.eq.${userId},convoy_commander_id.eq.${userId}`)
+            .or(`prepared_by.eq.${userId.replace(/[^a-f0-9-]/gi, '')},convoy_commander_id.eq.${userId.replace(/[^a-f0-9-]/gi, '')}`)
             .in('status', ['draft', 'pending_review', 'active'])
             .order('planned_departure', { ascending: true })
             .limit(10)

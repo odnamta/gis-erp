@@ -552,7 +552,7 @@ export async function getGeneratedDocuments(
     }
     
     if (filters?.search) {
-      query = query.ilike('document_number', `%${filters.search}%`);
+      query = query.ilike('document_number', `%${sanitizeSearchInput(filters.search)}%`);
     }
     
     const { data, error } = await query;

@@ -14,6 +14,7 @@
  */
 
 import { createClient } from '@/lib/supabase/server';
+import { sanitizeSearchInput } from '@/lib/utils/sanitize';
 import {
   DataAccessLogEntry,
   DataAccessLogFilters,
@@ -87,12 +88,12 @@ export async function getDataAccessLogs(
     
     // Filter by data_type (partial match, case-insensitive)
     if (filters?.data_type) {
-      query = query.ilike('data_type', `%${filters.data_type}%`);
+      query = query.ilike('data_type', `%${sanitizeSearchInput(filters.data_type)}%`);
     }
-    
+
     // Filter by entity_type (partial match, case-insensitive)
     if (filters?.entity_type) {
-      query = query.ilike('entity_type', `%${filters.entity_type}%`);
+      query = query.ilike('entity_type', `%${sanitizeSearchInput(filters.entity_type)}%`);
     }
     
     // Filter by access_type - single or array
@@ -319,10 +320,10 @@ export async function exportDataAccessLogs(
       query = query.eq('user_id', filters.user_id);
     }
     if (filters?.data_type) {
-      query = query.ilike('data_type', `%${filters.data_type}%`);
+      query = query.ilike('data_type', `%${sanitizeSearchInput(filters.data_type)}%`);
     }
     if (filters?.entity_type) {
-      query = query.ilike('entity_type', `%${filters.entity_type}%`);
+      query = query.ilike('entity_type', `%${sanitizeSearchInput(filters.entity_type)}%`);
     }
     if (filters?.access_type) {
       const accessTypes = Array.isArray(filters.access_type) 
